@@ -28,7 +28,6 @@
 			}
 		}
 	},
-	"postCreateCommand": "pip install -r requirements.txt",
 	"workspaceFolder": "/home/dev/app",
 	"remoteUser": "dev"
 }
