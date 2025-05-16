@@ -20,11 +20,12 @@ WORKDIR /home/$USERNAME/app
 RUN python3 -m venv /home/$USERNAME/.venv
 ENV PATH="/home/$USERNAME/.venv/bin:$PATH"
 
-# Copy only requirements.txt first for caching
 COPY --chown=dev:dev requirements.txt ./requirements.txt
+COPY --chown=dev:dev precommit-config.yaml ./.pre-commit-config.yaml
 
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
     
-# Copy the rest of the library source code
+RUN pre-commit install
+
 COPY --chown=dev:dev . .
