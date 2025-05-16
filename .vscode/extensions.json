@@ -1,0 +1,10 @@
+{
+	"recommendations": [
+		"ms-python.python",
+		"ms-python.vscode-pylance",
+		"charliermarsh.ruff",
+		"njpwerner.autodocstring",
+		"ms-python.black-formatter",
+		"ms-toolsai.jupyter"
+	]
+}

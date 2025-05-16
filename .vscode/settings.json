@@ -1,0 +1,11 @@
+{
+	"python.formatting.provider": "autopep8",
+	"editor.formatOnSave": true,
+	"python.linting.enabled": true,
+	"python.linting.ruffEnabled": true,
+	"python.linting.mypyEnabled": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll": true
+	},
+	"python.analysis.typeCheckingMode": "strict"
+}

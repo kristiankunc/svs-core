@@ -16,6 +16,11 @@ build-backend = "setuptools.build_meta"
 
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "W", "C90", "I"]
-ignore = ["E203", "W503"]
-fix = true
+target-version = "py39"
+
+[tool.autopep8]
+max_line_length = 88
+in-place = true
+aggressive = 2
+recursive = true
+

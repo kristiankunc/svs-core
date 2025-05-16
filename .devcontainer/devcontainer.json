@@ -6,14 +6,24 @@
 	},
 	"customizations": {
 		"vscode": {
-			"extensions": ["tamasfe.even-better-toml", "ms-python.python", "ms-python.vscode-pylance", "charliermarsh.ruff"],
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"charliermarsh.ruff",
+				"njpwerner.autodocstring",
+				"ms-python.black-formatter",
+				"ms-toolsai.jupyter"
+			],
 			"settings": {
-				"python.analysis.autoSearchPaths": true,
-				"python.analysis.useLibraryCodeForTypes": true,
+				"python.formatting.provider": "autopep8",
+				"editor.formatOnSave": true,
 				"python.linting.enabled": true,
 				"python.linting.ruffEnabled": true,
-				"python.linting.ruffPath": "ruff",
-				"python.formatting.provider": "autopep8"
+				"python.linting.mypyEnabled": true,
+				"editor.codeActionsOnSave": {
+					"source.fixAll": true
+				},
+				"python.analysis.typeCheckingMode": "strict"
 			}
 		}
 	},
