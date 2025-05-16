@@ -1,4 +1,3 @@
-import os
 import re
 from svs_core.shared.base import Executable
 
@@ -106,7 +105,10 @@ class UserManager(Executable):
             self.logger.error(f"User {username} does not exist.")
             raise ValueError(f"User {username} does not exist.")
 
-        if not os.path.exists(f"/home/{username}/.ssh/authorized_keys"):
+        check_auth_keys_cmd = f"sudo test -f /home/{username}/.ssh/authorized_keys"
+        result = self.execute(check_auth_keys_cmd, check=False)
+
+        if result.returncode != 0:
             self.execute(f"sudo mkdir -p /home/{username}/.ssh")
             self.execute(f"sudo touch /home/{username}/.ssh/authorized_keys")
             self.execute(
@@ -138,11 +140,19 @@ class UserManager(Executable):
             self.logger.error(f"User {username} does not exist.")
             raise ValueError(f"User {username} does not exist.")
 
-        if not os.path.exists(f"/home/{username}/.ssh/authorized_keys"):
+        check_auth_keys_cmd = f"sudo test -f /home/{username}/.ssh/authorized_keys"
+        result = self.execute(check_auth_keys_cmd, check=False)
+
+        if result.returncode != 0:
             self.logger.error(f"No authorized keys file found for user {username}.")
             raise ValueError(f"No authorized keys file found for user {username}.")
 
-        self.execute(
-            f"sudo sed -i '/# {key_name}/d' /home/{username}/.ssh/authorized_keys")
+        sed_cmd = (
+            f"sudo sed -i '/^# {re.escape(key_name)}$/{{N;d;}}' /home/{username}/.ssh/authorized_keys"
+        )
+        sed_cmd = (
+            f"sudo sed -i '/^# {key_name}$/{{N;d;}}' /home/{username}/.ssh/authorized_keys"
+        )
+        self.execute(sed_cmd)
 
         self.logger.info(f"SSH key removed for user: {username}")
