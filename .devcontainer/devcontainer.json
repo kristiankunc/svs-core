@@ -31,7 +31,7 @@
 			}
 		}
 	},
-	"postCreateCommand": "pre-commit install && pre-commit autoupdate",
+	"postCreateCommand": "pip install -r requirements.txt && pre-commit install && pre-commit autoupdate",
 	"workspaceFolder": "/home/dev/app",
 	"remoteUser": "dev"
 }

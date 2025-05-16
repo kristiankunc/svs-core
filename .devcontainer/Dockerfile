@@ -20,9 +20,4 @@ WORKDIR /home/$USERNAME/app
 RUN python3 -m venv /home/$USERNAME/.venv
 ENV PATH="/home/$USERNAME/.venv/bin:$PATH"
 
-COPY --chown=dev:dev requirements.txt ./requirements.txt
-
-RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
-
 COPY --chown=dev:dev . .
