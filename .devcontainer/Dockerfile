@@ -21,11 +21,11 @@ RUN python3 -m venv /home/$USERNAME/.venv
 ENV PATH="/home/$USERNAME/.venv/bin:$PATH"
 
 COPY --chown=dev:dev requirements.txt ./requirements.txt
-COPY --chown=dev:dev precommit-config.yaml ./.pre-commit-config.yaml
+COPY --chown=dev:dev .pre-commit-config.yaml ./.pre-commit-config.yaml
 
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
-    
+
 RUN pre-commit install
 
 COPY --chown=dev:dev . .
