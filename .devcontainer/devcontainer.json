@@ -22,7 +22,7 @@
 				"python.linting.ruffEnabled": true,
 				"python.linting.mypyEnabled": true,
 				"editor.codeActionsOnSave": {
-					"source.fixAll": true
+					"source.fixAll": "explicit"
 				},
 				"python.analysis.typeCheckingMode": "standard",
 				"python.defaultInterpreterPath": "/home/dev/.venv/bin/python",
