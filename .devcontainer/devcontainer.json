@@ -12,7 +12,8 @@
 				"charliermarsh.ruff",
 				"njpwerner.autodocstring",
 				"ms-python.black-formatter",
-				"ms-toolsai.jupyter"
+				"tamasfe.even-better-toml",
+				"ms-python.mypy-type-checker"
 			],
 			"settings": {
 				"python.formatting.provider": "autopep8",
