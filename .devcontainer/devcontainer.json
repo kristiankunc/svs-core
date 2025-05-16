@@ -28,6 +28,7 @@
 			}
 		}
 	},
+	"postCreateCommand": "pre-commit install && pre-commit autoupdate",
 	"workspaceFolder": "/home/dev/app",
 	"remoteUser": "dev"
 }
