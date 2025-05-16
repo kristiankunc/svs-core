@@ -1,3 +1,4 @@
+import os
 import re
 from svs_core.shared.base import Executable
 
@@ -85,3 +86,63 @@ class UserManager(Executable):
 
         self.execute(f"sudo userdel {name}")
         self.logger.info(f"User {name} deleted successfully.")
+
+    def add_ssh_key(self, username: str, key_name: str, ssh_key: str) -> None:
+        """
+        Adds an SSH key to the specified user's authorized keys.
+
+        Args:
+            username (str): The name of the user.
+            key_name (str): The name of the SSH key.
+            ssh_key (str): The SSH key to add.
+
+        Returns:
+            None
+        """
+
+        self.logger.info(f"Adding SSH key for user: {username}")
+
+        if not self.user_exists(username):
+            self.logger.error(f"User {username} does not exist.")
+            raise ValueError(f"User {username} does not exist.")
+
+        if not os.path.exists(f"/home/{username}/.ssh/authorized_keys"):
+            self.execute(f"sudo mkdir -p /home/{username}/.ssh")
+            self.execute(f"sudo touch /home/{username}/.ssh/authorized_keys")
+            self.execute(
+                f"sudo chown {username}:{username} /home/{username}/.ssh/authorized_keys")
+            self.execute(f"sudo chmod 600 /home/{username}/.ssh/authorized_keys")
+
+        self.execute(
+            f"echo '# {key_name}' | sudo tee -a /home/{username}/.ssh/authorized_keys")
+        self.execute(
+            f"echo '{ssh_key}' | sudo tee -a /home/{username}/.ssh/authorized_keys")
+
+        self.logger.info(f"SSH key added for user: {username}")
+
+    def remove_ssh_key(self, username: str, key_name: str) -> None:
+        """
+        Removes an SSH key from the specified user's authorized keys.
+
+        Args:
+            username (str): The name of the user.
+            key_name (str): The name of the SSH key to remove.
+
+        Returns:
+            None
+        """
+
+        self.logger.info(f"Removing SSH key for user: {username}")
+
+        if not self.user_exists(username):
+            self.logger.error(f"User {username} does not exist.")
+            raise ValueError(f"User {username} does not exist.")
+
+        if not os.path.exists(f"/home/{username}/.ssh/authorized_keys"):
+            self.logger.error(f"No authorized keys file found for user {username}.")
+            raise ValueError(f"No authorized keys file found for user {username}.")
+
+        self.execute(
+            f"sudo sed -i '/# {key_name}/d' /home/{username}/.ssh/authorized_keys")
+
+        self.logger.info(f"SSH key removed for user: {username}")

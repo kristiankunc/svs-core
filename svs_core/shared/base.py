@@ -82,6 +82,9 @@ class Executable(BaseClass):
             subprocess.CalledProcessError: If check is True and the command returns a non-zero exit status.
             Exception: For any other unexpected errors.
         """
+
+        self.logger.debug(f"Executing command: {command}, check={check}")
+
         try:
             result = subprocess.run(
                 command,
