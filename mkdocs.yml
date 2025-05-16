@@ -1,4 +1,10 @@
-site_name: My Python Project
+site_name: SVS Core
+
+nav:
+  - Home: index.md
+  - Base: base.md
+  - Users: users.md
+
 theme:
   name: material
   palette:
@@ -20,5 +26,3 @@ plugins:
   - search
   - mkdocstrings
 
-nav:
-  - Home: index.md
