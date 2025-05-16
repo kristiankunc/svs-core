@@ -25,7 +25,9 @@
 					"source.fixAll": true
 				},
 				"python.analysis.typeCheckingMode": "standard",
-				"python.defaultInterpreterPath": "/home/dev/.venv/bin/python"
+				"python.defaultInterpreterPath": "/home/dev/.venv/bin/python",
+				"python.analysis.extraPaths": ["/home/dev/.venv/lib/python3.11/site-packages"],
+				"python.analysis.indexing": true
 			}
 		}
 	},
