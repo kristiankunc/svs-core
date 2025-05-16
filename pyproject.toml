@@ -1,0 +1,21 @@
+[project]
+name = "svs_core"
+version = "0.1.0"
+description = "Core library for SVS"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = []
+
+[tool.setuptools]
+packages = ["svs_core"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "C90", "I"]
+ignore = ["E203", "W503"]
+fix = true

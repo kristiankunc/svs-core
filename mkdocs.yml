@@ -1,0 +1,24 @@
+site_name: My Python Project
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: light-blue
+      accent: deep purple
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    - scheme: slate
+      primary: blue
+      accent: deep purple
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings
+
+nav:
+  - Home: index.md
