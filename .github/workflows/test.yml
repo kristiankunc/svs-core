@@ -1,4 +1,4 @@
-name: Test with Sudo User
+name: Test
 
 on:
   push:
@@ -13,23 +13,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create sudo user
+      - name: Set up Python
         run: |
-          sudo useradd -m testuser
-          echo "testuser ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/testuser
-          sudo chown -R testuser:testuser .
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements.txt
 
-      - name: Set up Python for testuser
+      - name: Run pytest
         run: |
-          sudo -u testuser bash -c "
-            python3 -m venv .venv &&
-            source .venv/bin/activate &&
-            pip install -r requirements.txt
-          "
-
-      - name: Run pytest as sudo user
-        run: |
-          sudo -u testuser bash -c "
-            source .venv/bin/activate &&
-            pytest
-          "
+          source .venv/bin/activate
+          pytest
