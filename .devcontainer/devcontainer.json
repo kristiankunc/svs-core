@@ -1,9 +1,7 @@
 {
 	"name": "Library DevContainer",
-	"build": {
-		"dockerfile": "Dockerfile",
-		"context": ".."
-	},
+	"dockerComposeFile": ["docker-compose.yml"],
+	"service": "devcontainer",
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -31,7 +29,8 @@
 			}
 		}
 	},
-	"postCreateCommand": "pip install -r requirements.txt && pre-commit install && pre-commit autoupdate",
+	"postAttachCommand": "pip install -r requirements.txt && pre-commit install && pre-commit autoupdate",
 	"workspaceFolder": "/home/dev/app",
-	"remoteUser": "dev"
+	"remoteUser": "dev",
+	"shutdownAction": "stopCompose"
 }
