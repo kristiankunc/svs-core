@@ -1,3 +1,5 @@
+import secrets
+import string
 import logging
 import os
 import subprocess
@@ -54,6 +56,21 @@ class BaseClass:
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         return logger
+
+    @staticmethod
+    def generate_secret(length: int = 16) -> str:
+        """
+        Generates a random secret string of the specified length.
+
+        Args:
+            length (int, optional): The length of the secret string. Defaults to 16.
+
+        Returns:
+            str: The generated secret string.
+        """
+
+        alphabet = string.ascii_letters + string.digits
+        return ''.join(secrets.choice(alphabet) for _ in range(length))
 
 
 class Executable(BaseClass):
