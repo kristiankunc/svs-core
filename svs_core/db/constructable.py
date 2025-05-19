@@ -17,9 +17,9 @@ class ConstructableFromORM(ABC):
 
     @staticmethod
     @abstractmethod
-    def from_orm(model, **kwargs) -> "ConstructableFromORM":
+    def from_orm(model: object, **kwargs: object) -> "ConstructableFromORM":
         pass
 
     @classmethod
-    def from_orm_generic(cls: Type[T], model, **kwargs) -> T:
+    def from_orm_generic(cls: Type[T], model: object, **kwargs: object) -> T:
         return cast(T, cls.from_orm(model, **kwargs))

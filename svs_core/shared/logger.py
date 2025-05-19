@@ -1,11 +1,12 @@
 import logging
 import os
 import time
+from typing import Optional
 
-_logger_instances = {}
+_logger_instances: dict[str, logging.Logger] = {}
 
 
-def get_logger(name=None) -> logging.Logger:
+def get_logger(name: Optional[str]=None) -> logging.Logger:
     if name is None:
         name = "unknown"
 

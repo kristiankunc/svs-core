@@ -5,6 +5,9 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ..:/home/dev/app:cached
+
+    environment:
+      - GPG_AGENT_INFO=/home/dev/.gnupg/S.gpg-agent
     env_file:
       - .env
     depends_on:
@@ -23,6 +26,6 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      
+
 volumes:
   pgdata:

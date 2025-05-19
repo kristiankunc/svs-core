@@ -1,6 +1,6 @@
 from abc import ABC, ABCMeta, abstractmethod
 from enum import Enum
-
+from typing import cast
 
 class Event(Enum):
     CREATE_USER = "create_user"
@@ -17,29 +17,30 @@ class Dispatcher:
         cls._adapters.append(adapter)
 
     @classmethod
-    def dispatch(cls, event: Event, *args, **kwargs) -> None:
+    def dispatch(cls, event: Event, *args: object, **kwargs: object) -> None:
         for adapter in cls._adapters:
             method = getattr(adapter, event.value, None)
             if callable(method):
                 method(*args, **kwargs)
 
 
+
 class AdapterMeta(ABCMeta):
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: object, **kwargs: object) -> "Adapter":
         instance = super().__call__(*args, **kwargs)
-        Dispatcher.register(instance)
-        return instance
+        Dispatcher.register(cast("Adapter", instance))
+        return cast("Adapter", instance)
 
 
 class Adapter(ABC, metaclass=AdapterMeta):
     @abstractmethod
-    def create_user(self, username: str): pass
+    def create_user(self, username: str) -> None: pass
 
     @abstractmethod
-    def delete_user(self, username: str): pass
+    def delete_user(self, username: str) -> None: pass
 
     @abstractmethod
-    def add_ssh_key(self, *args, **kwargs): pass
+    def add_ssh_key(self, username: str, ssh_key: str) -> None: pass
 
     @abstractmethod
-    def delete_ssh_key(self, *args, **kwargs): pass
+    def delete_ssh_key(self, username: str, ssh_key: str) -> None: pass

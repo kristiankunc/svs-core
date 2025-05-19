@@ -10,7 +10,7 @@ def run_command(
     command: str,
     env: Optional[Mapping[str, str]] = None,
     check: bool = True
-) -> subprocess.CompletedProcess:
+) -> subprocess.CompletedProcess[str]:
     """
     Executes a shell command with optional environment variables.
 

@@ -1,15 +1,17 @@
+# TODO: maybe remove type: ignore[misc] punishment for using DeclarativeBase
 from sqlalchemy import Integer, String, ForeignKey, DateTime
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import relationship
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime, timezone
 from typing import Optional
+from sqlalchemy.orm import DeclarativeBase
 
-
-def utc_now():
+def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
-Base = declarative_base()
+class Base(DeclarativeBase): # type: ignore[misc]
+    pass
 
 
 class TimestampMixin:
