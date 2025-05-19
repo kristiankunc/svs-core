@@ -12,10 +12,11 @@
 				"ms-python.black-formatter",
 				"tamasfe.even-better-toml",
 				"ms-python.mypy-type-checker",
-				"ms-ossdata.vscode-pgsql"
+				"ms-ossdata.vscode-pgsql",
+				"ms-python.mypy-type-checker"
 			],
 			"settings": {
-				"python.formatting.provider": "autopep8",
+				"python.formatting.provider": "ruff",
 				"editor.formatOnSave": true,
 				"python.linting.enabled": true,
 				"python.linting.ruffEnabled": true,
@@ -23,10 +24,11 @@
 				"editor.codeActionsOnSave": {
 					"source.fixAll": "explicit"
 				},
-				"python.analysis.typeCheckingMode": "standard",
+				"python.analysis.typeCheckingMode": "strict",
+				"python.analysis.diagnosticMode": "workspace",
 				"python.defaultInterpreterPath": "/home/dev/.venv/bin/python",
-				"python.analysis.extraPaths": ["/home/dev/.venv/lib/python3.11/site-packages"],
-				"python.analysis.indexing": true
+				"python.analysis.indexing": true,
+				"python.analysis.exclude": ["**/alembic/**", "conftest.py"],
 			}
 		}
 	},
