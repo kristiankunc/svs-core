@@ -1,9 +1,8 @@
 site_name: SVS Core
+site_url: https://svs.kristn.co.uk
 
 nav:
   - Home: index.md
-  - Base: base.md
-  - Users: users.md
 
 theme:
   name: material
@@ -24,4 +23,12 @@ theme:
 
 plugins:
   - search
-  - mkdocstrings
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_docstring_attributes: true
+            merge_init_into_class: true # maybe ?
+            group_by_category: true
+            members_order: source

@@ -8,6 +8,16 @@ import re
 
 
 class SSHKey(ConstructableFromORM):
+    """
+    Represents an SSH key associated with a user.
+
+    Attributes:
+        id (int): The unique identifier of the SSH key.
+        name (str): The name of the SSH key.
+        content (str): The content of the SSH key.
+        user (User): The user associated with the SSH key.
+    """
+
     def __init__(
         self, id: int, name: str, content: str, user: User, *, _orm_check: bool = False
     ):

@@ -11,6 +11,15 @@ from svs_core.db.models import UserModel
 
 
 class User(ConstructableFromORM):
+    """
+    Represents a user in the system.
+
+    Attributes:
+        id (int): The unique identifier of the user.
+        name (str): The name of the user.
+        ssh_keys (list[SSHKey]): The list of SSH keys associated with the user.
+    """
+
     def __init__(
         self,
         id: int,
