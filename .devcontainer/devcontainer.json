@@ -1,37 +1,65 @@
 {
-	"name": "Library DevContainer",
-	"build": {
-		"dockerfile": "Dockerfile",
-		"context": ".."
-	},
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"ms-python.python",
-				"ms-python.vscode-pylance",
-				"charliermarsh.ruff",
-				"njpwerner.autodocstring",
-				"ms-python.black-formatter",
-				"tamasfe.even-better-toml",
-				"ms-python.mypy-type-checker"
-			],
-			"settings": {
-				"python.formatting.provider": "autopep8",
-				"editor.formatOnSave": true,
-				"python.linting.enabled": true,
-				"python.linting.ruffEnabled": true,
-				"python.linting.mypyEnabled": true,
-				"editor.codeActionsOnSave": {
-					"source.fixAll": "explicit"
-				},
-				"python.analysis.typeCheckingMode": "standard",
-				"python.defaultInterpreterPath": "/home/dev/.venv/bin/python",
-				"python.analysis.extraPaths": ["/home/dev/.venv/lib/python3.11/site-packages"],
-				"python.analysis.indexing": true
-			}
-		}
-	},
-	"postCreateCommand": "pip install -r requirements.txt && pre-commit install && pre-commit autoupdate",
-	"workspaceFolder": "/home/dev/app",
-	"remoteUser": "dev"
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "njpwerner.autodocstring",
+        "tamasfe.even-better-toml",
+        "ms-python.mypy-type-checker",
+        "ms-ossdata.vscode-pgsql",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff"
+        },
+        "[yaml]": {
+          "editor.defaultFormatter": "redhat.vscode-yaml"
+        },
+        "[yml]": {
+          "editor.defaultFormatter": "redhat.vscode-yaml"
+        },
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit"
+        },
+        "editor.formatOnSave": true,
+        "python.analysis.autoImportCompletions": true,
+        "python.analysis.diagnosticMode": "workspace",
+        "python.analysis.exclude": [
+          "**/alembic/**",
+          "conftest.py"
+        ],
+        "python.analysis.indexing": true,
+        "python.analysis.typeCheckingMode": "strict",
+        "python.defaultInterpreterPath": "/home/dev/.venv/bin/python",
+        "python.formatting.provider": "none",
+        "python.linting.enabled": true,
+        "python.linting.mypyEnabled": true,
+        "python.linting.ruffEnabled": true,
+        "python.testing.pytestArgs": [
+          "tests"
+        ],
+        "python.testing.pytestEnabled": true,
+        "python.testing.unittestEnabled": false
+      }
+    }
+  },
+  "dockerComposeFile": [
+    "docker-compose.yml"
+  ],
+  "name": "Library DevContainer",
+  "postAttachCommand": "pip install -r requirements.txt && pre-commit install && pre-commit autoupdate",
+  "remoteUser": "dev",
+  "service": "devcontainer",
+  "shutdownAction": "stopCompose",
+  "workspaceFolder": "/home/dev/app"
 }

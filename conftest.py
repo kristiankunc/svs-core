@@ -1,4 +1,4 @@
-# conftest.py
+# type: ignore
 import subprocess
 
 

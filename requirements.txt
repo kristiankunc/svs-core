@@ -3,7 +3,8 @@ mkdocs-material
 mkdocstrings[python]
 pytest
 ruff
-autopep8
 mypy
 pre-commit
 pytest_mock
+psycopg2-binary
+SQLAlchemy
