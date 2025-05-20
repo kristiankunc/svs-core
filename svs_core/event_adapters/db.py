@@ -28,8 +28,6 @@ class DBAdapter(Adapter):
 
         get_logger(__name__).log(logging.INFO, f"User {username} deleted")
 
-    def add_ssh_key(self, *args: object, **kwargs: object) -> None:
-        pass
+    def add_ssh_key(self, username: str, ssh_key: str) -> None: pass
 
-    def delete_ssh_key(self, *args: object, **kwargs: object) -> None:
-        pass
+    def delete_ssh_key(self, username: str, ssh_key: str) -> None: pass
