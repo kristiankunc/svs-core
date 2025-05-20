@@ -24,7 +24,7 @@ class User(ConstructableFromORM):
     @staticmethod
     def from_orm(model: object, **kwargs: object) -> "User":
         model = cast(UserModel, model)
-        
+
         user = User(
             id=model.id,
             name=model.name,
@@ -36,7 +36,7 @@ class User(ConstructableFromORM):
             for k in model.ssh_keys
         ]
         return user
-    
+
     @staticmethod
     def is_username_valid(username: str) -> bool:
         """Checks if the username is valid for linux systems."
@@ -58,7 +58,7 @@ class User(ConstructableFromORM):
             return False
 
         return True
-    
+
     def delete(self) -> None:
         SideEffectAdapter.dispatch_delete_user(self)
         DBAdapter.delete_user(self)
@@ -66,7 +66,7 @@ class User(ConstructableFromORM):
         # TODO: destroy self or sum shit
 
     def add_ssh_key(self, key_name: str, key_content: str) -> "SSHKey":
-        if not SSHKey.is_valid(key_name, key_content): 
+        if not SSHKey.is_valid(key_name, key_content):
             raise ValueError("Invalid SSH key data")
 
         SideEffectAdapter.dispatch_add_ssh_key(self, key_name, key_content)

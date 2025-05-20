@@ -18,7 +18,7 @@ class DBAdapter():
         get_logger(__name__).log(logging.INFO, f"User {username} created")
 
         return User.from_orm(user_model)
-    
+
     @staticmethod
     def delete_user(user: User) -> None:
         get_logger(__name__).log(logging.INFO, f"Deleting user {user.name}")

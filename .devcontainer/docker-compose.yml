@@ -1,31 +1,31 @@
 services:
-  devcontainer:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    volumes:
-      - ..:/home/dev/app:cached
+    devcontainer:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - ..:/home/dev/app:cached
 
-    environment:
-      - GPG_AGENT_INFO=/home/dev/.gnupg/S.gpg-agent
-    env_file:
-      - .env
-    depends_on:
-      - db
-    user: dev
-    working_dir: /home/dev/app
-    tty: true
-    stdin_open: true
+        environment:
+            - GPG_AGENT_INFO=/home/dev/.gnupg/S.gpg-agent
+        env_file:
+            - .env
+        depends_on:
+            - db
+        user: dev
+        working_dir: /home/dev/app
+        tty: true
+        stdin_open: true
 
-  db:
-    image: postgres:latest
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+    db:
+        image: postgres:latest
+        restart: unless-stopped
+        env_file:
+            - .env
+        ports:
+            - "5432:5432"
+        volumes:
+            - pgdata:/var/lib/postgresql/data
 
 volumes:
-  pgdata:
+    pgdata:

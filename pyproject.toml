@@ -23,5 +23,17 @@ ignore = ["E712"]
 python_version = "3.11"
 ignore_missing_imports = true
 strict = true
-exclude = ["alembic", "conftest.py"]
-#plugins = ["sqlalchemy.ext.mypy.plugin"]
+exclude = ["alembic*", "conftest.py"]
+
+[tool.ruff.isort]
+known-first-party = ["svs_core"]
+combine-as-imports = true
+force-sort-within-sections = true
+lines-between-types = 1
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]

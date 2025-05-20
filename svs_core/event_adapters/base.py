@@ -14,7 +14,7 @@ class SideEffectAdapterMeta(ABCMeta):
         instance = super().__call__(*args, **kwargs)
         cls._instances.append(instance)
         return cast(SideEffectAdapter, instance)
-    
+
     @classmethod
     def get_all_instances(cls) -> List[SideEffectAdapter]:
         return SideEffectAdapterMeta._instances[:]
@@ -36,9 +36,9 @@ class SideEffectAdapter(metaclass=SideEffectAdapterMeta):
 
     @classmethod
     def _dispatch(
-        cls, 
-        operation: Callable[Concatenate[SideEffectAdapter, P], None], 
-        *args: P.args, 
+        cls,
+        operation: Callable[Concatenate[SideEffectAdapter, P], None],
+        *args: P.args,
         **kwargs: P.kwargs
     ) -> None:
         for impl in SideEffectAdapterMeta.get_all_instances():
@@ -59,4 +59,3 @@ class SideEffectAdapter(metaclass=SideEffectAdapterMeta):
     @classmethod
     def dispatch_delete_ssh_key(cls, user: User, ssh_key: SSHKey) -> None:
         cls._dispatch(SideEffectAdapter._delete_ssh_key, user, ssh_key)
-

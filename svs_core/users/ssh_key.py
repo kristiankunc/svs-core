@@ -32,10 +32,10 @@ class SSHKey(ConstructableFromORM):
             user=cast(User, kwargs.get("user")),
             _orm_check=True,
         )
-    
+
     def delete(self) -> None:
         self.user.ssh_keys.remove(self)
-        
+
         SideEffectAdapter.dispatch_delete_ssh_key(self.user, self)
         DBAdapter.delete_ssh_key(self.user, self)
         self.user.ssh_keys.remove(self)
@@ -46,9 +46,11 @@ class SSHKey(ConstructableFromORM):
     def is_valid(name: str, content: str) -> bool:
         if not name or len(name) > 32:
             return False
-        
+
+        if len(content) > 4096:
+            return False
+
         ssh_key_pattern = r"^(ssh-(rsa|dss|ed25519|ecdsa) AAAA[0-9A-Za-z+/]+[=]{0,3} .+)|(ecdsa-sha2-nistp[0-9]+ AAAA[0-9A-Za-z+/]+[=]{0,3} .+)$"
         match = re.match(ssh_key_pattern, content)
 
         return bool(match)
-
