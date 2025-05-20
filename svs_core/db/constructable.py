@@ -1,10 +1,15 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar, Type, cast
 
-T = TypeVar('T', bound="ConstructableFromORM")
+T = TypeVar("T", bound="ConstructableFromORM")
 
 
 class ConstructableFromORM(ABC):
+    """
+    Abstract base class for models that can be constructed from ORM models.
+    It serves as a base class for any class that relates directly to an ORM model.
+    """
+
     def __init__(self, *, _orm_check: bool = False) -> None:
         if not _orm_check:
             raise ValueError("This class can only be instantiated from ORM models.")

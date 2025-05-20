@@ -7,9 +7,7 @@ import shlex
 
 
 def run_command(
-    command: str,
-    env: Optional[Mapping[str, str]] = None,
-    check: bool = True
+    command: str, env: Optional[Mapping[str, str]] = None, check: bool = True
 ) -> subprocess.CompletedProcess[str]:
     """
     Executes a shell command with optional environment variables.
@@ -23,23 +21,20 @@ def run_command(
         subprocess.CompletedProcess: The result of the executed command.
     """
     get_logger(__name__).log(
-        logging.DEBUG,
-        f"Executing {command}\nENV: {env}, check = {check}")
+        logging.DEBUG, f"Executing {command}\nENV: {env}, check = {check}"
+    )
 
     exec_env = dict(env) if env else {}  # TODO: maybe inject system env?
 
     cmd_list = shlex.split(command)
 
     result = subprocess.run(
-        cmd_list,
-        env=exec_env,
-        check=check,
-        capture_output=True,
-        text=True
+        cmd_list, env=exec_env, check=check, capture_output=True, text=True
     )
 
     get_logger(__name__).log(
         logging.DEBUG,
-        f"Command output: {result.stdout}\nCommand error: {result.stderr}")
+        f"Command output: {result.stdout}\nCommand error: {result.stderr}",
+    )
 
     return result

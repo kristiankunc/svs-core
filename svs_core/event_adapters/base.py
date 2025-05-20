@@ -7,7 +7,16 @@ from svs_core.users.ssh_key import SSHKey
 
 P = ParamSpec("P")
 
+
 class SideEffectAdapterMeta(ABCMeta):
+    """
+    Metaclass for SideEffectAdapter that keeps track of all instances.
+    Meaning if a class inherits from SideEffectAdapter, it will be registered
+    in the SideEffectAdapterMeta class.
+
+    This allows us to dispatch operations to all instances of SideEffectAdapter from static context.
+    """
+
     _instances: ClassVar[List[SideEffectAdapter]] = []
 
     def __call__(cls, *args: Any, **kwargs: Any) -> SideEffectAdapter:
@@ -21,6 +30,14 @@ class SideEffectAdapterMeta(ABCMeta):
 
 
 class SideEffectAdapter(metaclass=SideEffectAdapterMeta):
+    """
+    Abstract base class for side effect adapters.
+    This class is used to define the interface for side effect adapters (those that do not return a value).
+
+    Calling a dispatch method assumes that all conditions for the operation are met.
+    (e.g. user with the same name does not exist already)
+    """
+
     @abstractmethod
     def _create_user(self, username: str) -> None: ...
 
@@ -33,14 +50,16 @@ class SideEffectAdapter(metaclass=SideEffectAdapterMeta):
     @abstractmethod
     def _delete_ssh_key(self, user: User, ssh_key: SSHKey) -> None: ...
 
-
     @classmethod
     def _dispatch(
         cls,
         operation: Callable[Concatenate[SideEffectAdapter, P], None],
         *args: P.args,
-        **kwargs: P.kwargs
+        **kwargs: P.kwargs,
     ) -> None:
+        """
+        Dispatches an operation to all instances of SideEffectAdapter.
+        """
         for impl in SideEffectAdapterMeta.get_all_instances():
             operation(impl, *args, **kwargs)
 
