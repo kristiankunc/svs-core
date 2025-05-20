@@ -1,34 +1,12 @@
-import re
 from svs_core.db.models import UserModel
 from svs_core.event_adapters.base import SideEffectAdapter
 from svs_core.event_adapters.db import DBAdapter
+from svs_core.shared.exceptions import UserAlreadyExistsException
 from svs_core.shared.shell import run_command
 from svs_core.db.client import get_db_session
 from svs_core.users.user import User
 
 class UserManager:
-    @staticmethod
-    def is_username_valid(username: str) -> bool:
-        """Checks if the username is valid for linux systems."
-
-        Args:
-            username (str): The username to check.
-
-        Returns:
-            bool: validity of the username.
-        """
-
-        if not 1 <= len(username) <= 32:
-            return False
-
-        if not re.match(r'^[a-z_][a-z0-9_-]*[$]?$', username):
-            return False
-
-        if username.endswith('-'):
-            return False
-
-        return True
-
     @staticmethod
     def name_exists_in_system(username: str) -> bool:
         """Checks if the user exists in the system.
@@ -61,12 +39,12 @@ class UserManager:
 
     @staticmethod
     def create_user(username: str) -> User:
-        if not UserManager.is_username_valid(username):
+        if not User.is_username_valid(username):
             raise ValueError(f"Invalid username: {username}")
 
         if UserManager.name_exists_in_system(
                 username) or UserManager.name_exists_in_db(username):
-            raise ValueError(f"User {username} already exists in system or database.")
+            raise UserAlreadyExistsException(f"User {username} already exists in system or database.")
 
         SideEffectAdapter.dispatch_create_user(username)
         return DBAdapter.create_user(username)
