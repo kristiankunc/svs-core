@@ -28,6 +28,7 @@
 				"python.analysis.diagnosticMode": "workspace",
 				"python.defaultInterpreterPath": "/home/dev/.venv/bin/python",
 				"python.analysis.indexing": true,
+				"python.analysis.autoImportCompletions": true,
 				"python.analysis.exclude": ["**/alembic/**", "conftest.py"],
 				    "python.testing.pytestArgs": [
 					"tests"

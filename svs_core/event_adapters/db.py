@@ -1,16 +1,14 @@
 import logging
-from svs_core.event_adapters.base import ResultAdapter
 from svs_core.db.client import get_db_session
-from svs_core.db.models import User as UserModel
-from svs_core.db.models import SSHKey as SSHKeyModel
+from svs_core.db.models import UserModel
+from svs_core.db.models import SSHKeyModel
 from svs_core.users.user import User
 from svs_core.users.ssh_key import SSHKey
 from svs_core.shared.logger import get_logger
-from svs_core.event_adapters.base import on_event, Event
 
-class DBAdapter(ResultAdapter):
-    @on_event(Event.CREATE_USER)
-    def create_user(self, username: str) -> User:
+class DBAdapter():
+    @staticmethod
+    def create_user(username: str) -> User:
         get_logger(__name__).log(logging.INFO, f"Creating user {username}")
 
         with get_db_session() as session:
@@ -20,9 +18,9 @@ class DBAdapter(ResultAdapter):
         get_logger(__name__).log(logging.INFO, f"User {username} created")
 
         return User.from_orm(user_model)
-
-    @on_event(Event.DELETE_USER)
-    def delete_user(self, user: User) -> None:
+    
+    @staticmethod
+    def delete_user(user: User) -> None:
         get_logger(__name__).log(logging.INFO, f"Deleting user {user.name}")
 
         with get_db_session() as session:
@@ -36,8 +34,8 @@ class DBAdapter(ResultAdapter):
 
         get_logger(__name__).log(logging.INFO, f"User {user.name} deleted")
 
-    @on_event(Event.ADD_SSH_KEY)
-    def add_ssh_key(self, user: User, key_name: str, key_content: str) -> SSHKey:
+    @staticmethod
+    def add_ssh_key(user: User, key_name: str, key_content: str) -> SSHKey:
         get_logger(__name__).log(logging.INFO, f"Adding SSH key for user {user.name}")
 
         with get_db_session() as session:
@@ -57,8 +55,8 @@ class DBAdapter(ResultAdapter):
 
         return SSHKey.from_orm(key_model)
 
-    @on_event(Event.DELETE_SSH_KEY)
-    def delete_ssh_key(self, user: User, ssh_key: SSHKey) -> None:
+    @staticmethod
+    def delete_ssh_key(user: User, ssh_key: SSHKey) -> None:
         get_logger(__name__).log(logging.INFO, f"Deleting SSH key for user {user.name}")
 
         with get_db_session() as session:

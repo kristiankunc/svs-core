@@ -29,33 +29,33 @@ class IDMixin:
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
 
-class User(IDMixin, TimestampMixin, Base):
+class UserModel(IDMixin, TimestampMixin, Base):
     __tablename__ = "user"
 
     name: Mapped[str] = mapped_column(String(30), unique=True, nullable=False)
 
-    ssh_keys: Mapped[list["SSHKey"]] = relationship("SSHKey", back_populates="user")
+    ssh_keys: Mapped[list["UserModel"]] = relationship("UserModel", back_populates="user")
 
     @classmethod
-    def create(cls, name: str, *, ssh_keys: Optional[list["SSHKey"]] = None) -> "User":
+    def create(cls, name: str, *, ssh_keys: Optional[list["UserModel"]] = None) -> "UserModel":
         user = cls()
         user.name = name
         user.ssh_keys = ssh_keys or []
         return user
 
 
-class SSHKey(IDMixin, TimestampMixin, Base):
+class SSHKeyModel(IDMixin, TimestampMixin, Base):
     __tablename__ = "ssh_key"
 
     name: Mapped[str] = mapped_column(String(30), nullable=False)
     content: Mapped[str] = mapped_column(String(4096), nullable=False)
 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
-    user: Mapped["User"] = relationship(
-        "User", back_populates="ssh_keys", foreign_keys=[user_id])
+    user: Mapped["UserModel"] = relationship(
+        "UserModel", back_populates="ssh_keys", foreign_keys=[user_id])
 
     @classmethod
-    def create(cls, name: str, content: str, user_id: int) -> "SSHKey":
+    def create(cls, name: str, content: str, user_id: int) -> "SSHKeyModel":
         ssh_key = cls()
         ssh_key.name = name
         ssh_key.content = content

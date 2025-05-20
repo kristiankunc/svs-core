@@ -4,10 +4,8 @@ from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import run_command
 from svs_core.users.user import User
 from svs_core.users.ssh_key import SSHKey
-from svs_core.event_adapters.base import on_event, Event
 
 class SystemAdapter(SideEffectAdapter):
-    @on_event(Event.CREATE_USER)
     def create_user(self, username: str) -> None:
         get_logger(__name__).log(logging.INFO, f"Creating user {username}")
 
@@ -16,7 +14,6 @@ class SystemAdapter(SideEffectAdapter):
 
         get_logger(__name__).log(logging.INFO, f"User {username} created")
 
-    @on_event(Event.DELETE_USER)
     def delete_user(self, user: User) -> None:
         get_logger(__name__).log(logging.INFO, f"Deleting user {user.name}")
 
@@ -24,7 +21,6 @@ class SystemAdapter(SideEffectAdapter):
 
         get_logger(__name__).log(logging.INFO, f"User {user.name} deleted")
 
-    @on_event(Event.ADD_SSH_KEY)
     def add_ssh_key(self, user: User, key_name: str, key_content: str) -> None:
         get_logger(__name__).log(logging.INFO, f"Adding SSH key for user {user.name}")
 
@@ -37,7 +33,6 @@ class SystemAdapter(SideEffectAdapter):
 
         get_logger(__name__).log(logging.INFO, f"SSH key added for user {user.name}")
 
-    @on_event(Event.DELETE_SSH_KEY)
     def delete_ssh_key(self, user: User, ssh_key: SSHKey) -> None:
         get_logger(__name__).log(logging.INFO, f"Deleting SSH key for user {user.name}")
 

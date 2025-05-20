@@ -1,10 +1,10 @@
 import re
+from svs_core.db.models import UserModel
+from svs_core.event_adapters.base import SideEffectAdapter
+from svs_core.event_adapters.db import DBAdapter
 from svs_core.shared.shell import run_command
 from svs_core.db.client import get_db_session
-from svs_core.db.models import User
-from svs_core.event_adapters.base import Dispatcher
-from svs_core.event_adapters.base import Event
-
+from svs_core.users.user import User
 
 class UserManager:
     @staticmethod
@@ -56,11 +56,11 @@ class UserManager:
             bool: True if the user exists, False otherwise.
         """
         with get_db_session() as session:
-            user = session.query(User).filter_by(name=username).first()
+            user = session.query(UserModel).filter_by(name=username).first()
             return user is not None
 
     @staticmethod
-    def create_user(username: str) -> None:
+    def create_user(username: str) -> User:
         if not UserManager.is_username_valid(username):
             raise ValueError(f"Invalid username: {username}")
 
@@ -68,15 +68,5 @@ class UserManager:
                 username) or UserManager.name_exists_in_db(username):
             raise ValueError(f"User {username} already exists in system or database.")
 
-        Dispatcher.dispatch(Event.CREATE_USER, username=username)
-
-    @staticmethod
-    def delete_user(username: str) -> None:
-        if not UserManager.is_username_valid(username):
-            raise ValueError(f"Invalid username: {username}")
-
-        if not UserManager.name_exists_in_system(
-                username) and not UserManager.name_exists_in_db(username):
-            raise ValueError(f"User {username} does not exist in system or database.")
-
-        Dispatcher.dispatch(Event.DELETE_USER, username=username)
+        SideEffectAdapter.dispatch_create_user(username)
+        return DBAdapter.create_user(username)

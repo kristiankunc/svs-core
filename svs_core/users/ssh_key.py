@@ -1,7 +1,7 @@
 from svs_core.db.constructable import ConstructableFromORM
 from svs_core.users.user import User
 from typing import Optional, cast
-from svs_core.db.models import SSHKey as SSHKeyModel
+from svs_core.db.models import SSHKeyModel
 
 class SSHKey(ConstructableFromORM):
     def __init__(

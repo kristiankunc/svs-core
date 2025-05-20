@@ -1,7 +1,7 @@
 from svs_core.db.constructable import ConstructableFromORM
 from svs_core.users.ssh_key import SSHKey
 from typing import Optional, cast
-from svs_core.db.models import User as UserModel
+from svs_core.db.models import UserModel
 
 
 class User(ConstructableFromORM):
