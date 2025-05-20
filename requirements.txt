@@ -6,4 +6,5 @@ ruff
 mypy
 pre-commit
 pytest_mock
+psycopg2
 SQLAlchemy
