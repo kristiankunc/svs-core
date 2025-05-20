@@ -4,15 +4,10 @@ from typing import TypeVar, Type, cast
 T = TypeVar('T', bound="ConstructableFromORM")
 
 
-class ConstructableException(Exception):
-    pass
-
-
 class ConstructableFromORM(ABC):
     def __init__(self, *, _orm_check: bool = False) -> None:
         if not _orm_check:
-            raise ConstructableException(
-                "ConstructableFromORM can only be instantiated from ORM models using the from_orm method.")
+            raise ValueError("This class can only be instantiated from ORM models.")
         super().__init__()
 
     @staticmethod

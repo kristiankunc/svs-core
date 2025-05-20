@@ -55,9 +55,9 @@ class SSHKey(IDMixin, TimestampMixin, Base):
         "User", back_populates="ssh_keys", foreign_keys=[user_id])
 
     @classmethod
-    def create(cls, name: str, content: str, user: "User") -> "SSHKey":
+    def create(cls, name: str, content: str, user_id: int) -> "SSHKey":
         ssh_key = cls()
         ssh_key.name = name
         ssh_key.content = content
-        ssh_key.user = user
+        ssh_key.user_id = user_id
         return ssh_key

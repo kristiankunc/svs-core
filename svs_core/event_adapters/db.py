@@ -1,33 +1,73 @@
 import logging
-from svs_core.event_adapters.base import Adapter
+from svs_core.event_adapters.base import ResultAdapter
 from svs_core.db.client import get_db_session
-from svs_core.db.models import User
+from svs_core.db.models import User as UserModel
+from svs_core.db.models import SSHKey as SSHKeyModel
+from svs_core.users.user import User
+from svs_core.users.ssh_key import SSHKey
 from svs_core.shared.logger import get_logger
+from svs_core.event_adapters.base import on_event, Event
 
-
-class DBAdapter(Adapter):
-    def create_user(self, username: str) -> None:
+class DBAdapter(ResultAdapter):
+    @on_event(Event.CREATE_USER)
+    def create_user(self, username: str) -> User:
         get_logger(__name__).log(logging.INFO, f"Creating user {username}")
 
         with get_db_session() as session:
-            user = User.create(username)
-            session.add(user)
+            user_model = UserModel.create(username)
+            session.add(user_model)
 
         get_logger(__name__).log(logging.INFO, f"User {username} created")
 
-    def delete_user(self, username: str) -> None:
-        get_logger(__name__).log(logging.INFO, f"Deleting user {username}")
+        return User.from_orm(user_model)
+
+    @on_event(Event.DELETE_USER)
+    def delete_user(self, user: User) -> None:
+        get_logger(__name__).log(logging.INFO, f"Deleting user {user.name}")
 
         with get_db_session() as session:
-            user = session.query(User).filter_by(name=username).first()
-            if user:
+            model = session.query(UserModel).filter_by(name=user.name).first()
+            if model:
                 session.delete(user)
             else:
                 get_logger(__name__).log(
-                    logging.WARNING, f"User {username} not found, cannot delete")
+                    logging.WARNING, f"User {user.name} not found, cannot delete")
+                raise ValueError(f"User {user.name} not found")
 
-        get_logger(__name__).log(logging.INFO, f"User {username} deleted")
+        get_logger(__name__).log(logging.INFO, f"User {user.name} deleted")
 
-    def add_ssh_key(self, username: str, ssh_key: str) -> None: pass
+    @on_event(Event.ADD_SSH_KEY)
+    def add_ssh_key(self, user: User, key_name: str, key_content: str) -> SSHKey:
+        get_logger(__name__).log(logging.INFO, f"Adding SSH key for user {user.name}")
 
-    def delete_ssh_key(self, username: str, ssh_key: str) -> None: pass
+        with get_db_session() as session:
+            key_user = session.query(UserModel).filter_by(name=user.name).first()
+            if not key_user:
+                get_logger(__name__).log(
+                    logging.WARNING, f"User {user.name} not found, cannot add SSH key")
+                raise ValueError(f"User {user.name} not found")
+
+            key_model = SSHKeyModel.create(
+                name=key_name,
+                content=key_content,
+                user_id=key_user.id,
+            )
+
+        get_logger(__name__).log(logging.INFO, f"SSH key added for user {user.name}")
+
+        return SSHKey.from_orm(key_model)
+
+    @on_event(Event.DELETE_SSH_KEY)
+    def delete_ssh_key(self, user: User, ssh_key: SSHKey) -> None:
+        get_logger(__name__).log(logging.INFO, f"Deleting SSH key for user {user.name}")
+
+        with get_db_session() as session:
+            key_model = session.query(SSHKeyModel).filter_by(id=ssh_key.id).first()
+            if key_model:
+                session.delete(key_model)
+            else:
+                get_logger(__name__).log(
+                    logging.WARNING, f"SSH key {ssh_key.name} not found, cannot delete")
+                raise ValueError(f"SSH key {ssh_key.name} not found")
+
+        get_logger(__name__).log(logging.INFO, f"SSH key deleted for user {user.name}")
