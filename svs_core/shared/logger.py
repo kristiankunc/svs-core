@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+import sys
 from typing import Optional
 
 _logger_instances: dict[str, logging.Logger] = {}
@@ -28,17 +29,20 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     logger = logging.getLogger(name)
     logger.handlers.clear()
 
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False
+
     class UTCFormatter(logging.Formatter):
         converter = time.gmtime
 
-    formatter = UTCFormatter("%(asctime)s: %(name)s[%(levelname)s] - %(message)s")
+    formatter = UTCFormatter("%(asctime)s: %(name)s[%(levelname)s] %(message)s")
     handler: logging.Handler
 
     if env == "production":
         handler = logging.FileHandler("svs-core.log")
         handler.setLevel(logging.INFO)
     else:
-        handler = logging.StreamHandler()
+        handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(logging.DEBUG)
 
     handler.setFormatter(formatter)
@@ -47,3 +51,10 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     _logger_instances[name] = logger
 
     return logger
+
+
+def clear_loggers() -> None:
+    """
+    Clears all stored logger instances.
+    """
+    _logger_instances.clear()
