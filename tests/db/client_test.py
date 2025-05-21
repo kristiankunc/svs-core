@@ -1,6 +1,19 @@
 import pytest
 from pytest_mock import MockerFixture
 from svs_core.db import client
+import os
+
+
+@pytest.fixture(autouse=True)  # type: ignore
+def mock_database_url(mocker: MockerFixture) -> None:
+    """Mock DATABASE_URL environment variable."""
+    mocker.patch.dict(os.environ, {"DATABASE_URL": "sqlite:///test.db"})
+
+
+@pytest.fixture(autouse=True)  # type: ignore
+def mock_sqlite(mocker: MockerFixture) -> None:
+    """Mock SQLite engine and connection."""
+    mocker.patch("sqlalchemy.create_engine")
 
 
 def test_get_db_session_commits_on_success(mocker: MockerFixture) -> None:
