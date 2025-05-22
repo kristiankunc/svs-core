@@ -1,10 +1,13 @@
+import re
+from typing import TYPE_CHECKING
 from svs_core.db.constructable import ConstructableFromORM
 from svs_core.event_adapters.base import SideEffectAdapter
 from svs_core.event_adapters.db import DBAdapter
-from svs_core.users.user import User
 from typing import cast
 from svs_core.db.models import SSHKeyModel
-import re
+
+if TYPE_CHECKING:
+    from svs_core.users.user import User
 
 
 class SSHKey(ConstructableFromORM):
@@ -19,7 +22,13 @@ class SSHKey(ConstructableFromORM):
     """
 
     def __init__(
-        self, id: int, name: str, content: str, user: User, *, _orm_check: bool = False
+        self,
+        id: int,
+        name: str,
+        content: str,
+        user: "User",
+        *,
+        _orm_check: bool = False,
     ):
         super().__init__(_orm_check=_orm_check)
 

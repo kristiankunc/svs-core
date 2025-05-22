@@ -4,8 +4,15 @@ from sqlalchemy.orm import sessionmaker, Session
 from contextlib import contextmanager
 from typing import Generator
 
-engine = create_engine(os.getenv("DATABASE_URL", ""), echo=True)
+DATABASE_URL = os.environ.get("DATABASE_URL")
+TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
 
+url = TEST_DATABASE_URL if "PYTEST_CURRENT_TEST" in os.environ else DATABASE_URL
+
+if not url:
+    raise ValueError("DATABASE_URL or TEST_DATABASE_URL environment variable not set.")
+
+engine = create_engine(url, future=True)
 SessionLocal = sessionmaker(bind=engine)
 
 

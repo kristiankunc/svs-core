@@ -1,9 +1,19 @@
 from __future__ import annotations
 from abc import ABCMeta, abstractmethod
-from typing import cast, Callable, ClassVar, List, Any, ParamSpec, Concatenate
+from typing import (
+    TYPE_CHECKING,
+    cast,
+    Callable,
+    ClassVar,
+    List,
+    Any,
+    ParamSpec,
+    Concatenate,
+)
 
-from svs_core.users.user import User
-from svs_core.users.ssh_key import SSHKey
+if TYPE_CHECKING:
+    from svs_core.users.user import User
+    from svs_core.users.ssh_key import SSHKey
 
 P = ParamSpec("P")
 

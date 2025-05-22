@@ -6,7 +6,7 @@ from pytest_mock import MockerFixture
 from svs_core.shared.shell import run_command
 
 
-class TestRunCommand:
+class TestCommandExecution:
     def test_basic_command_execution(self, mocker: MockerFixture) -> None:
         """Test that a basic command is executed correctly."""
 

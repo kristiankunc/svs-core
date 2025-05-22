@@ -35,7 +35,7 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     class UTCFormatter(logging.Formatter):
         converter = time.gmtime
 
-    formatter = UTCFormatter("%(asctime)s: %(name)s[%(levelname)s] %(message)s")
+    formatter = UTCFormatter("%(asctime)s: [%(levelname)s] %(name)s %(message)s")
     handler: logging.Handler
 
     if env == "production":

@@ -1,13 +1,14 @@
 import re
-
+from typing import cast, TYPE_CHECKING
 from svs_core.db.constructable import ConstructableFromORM
-from svs_core.event_adapters.base import SideEffectAdapter
-from svs_core.event_adapters.db import DBAdapter
 from svs_core.shared.exceptions import UserAlreadyExistsException
 from svs_core.users.manager import UserManager
-from svs_core.users.ssh_key import SSHKey
-from typing import cast
 from svs_core.db.models import UserModel
+from svs_core.event_adapters.base import SideEffectAdapter
+from svs_core.event_adapters.db import DBAdapter
+
+if TYPE_CHECKING:
+    from svs_core.users.ssh_key import SSHKey
 
 
 class User(ConstructableFromORM):
@@ -81,6 +82,8 @@ class User(ConstructableFromORM):
             ValueError: If the username is invalid.
             UserAlreadyExistsException: If the user already exists in the system or database.
         """
+
+        from svs_core.event_adapters.db import DBAdapter
 
         if not User.is_username_valid(username):
             raise ValueError(f"Invalid username: {username}")

@@ -1,10 +1,13 @@
 import logging
+from typing import TYPE_CHECKING
 from svs_core.db.client import get_db_session
 from svs_core.db.models import UserModel
 from svs_core.db.models import SSHKeyModel
-from svs_core.users.user import User
-from svs_core.users.ssh_key import SSHKey
 from svs_core.shared.logger import get_logger
+
+if TYPE_CHECKING:
+    from svs_core.users.user import User
+    from svs_core.users.ssh_key import SSHKey
 
 
 class DBAdapter:
@@ -12,8 +15,22 @@ class DBAdapter:
     DBAdapter is an effect adapter that interacts with the database to perform operations
     """
 
+    def _construct_user(self, user_model: UserModel) -> "User":
+        """Constructs a User object from a UserModel.
+
+        Args:
+            user_model (UserModel): The user model to construct the user from.
+
+        Returns:
+            User: The constructed user object.
+        """
+
+        from svs_core.users.user import User
+
+        return User.from_orm(user_model)
+
     @staticmethod
-    def create_user(username: str) -> User:
+    def create_user(username: str) -> "User":
         """Creates a new user in the database.
 
         Args:
@@ -33,7 +50,7 @@ class DBAdapter:
         return User.from_orm(user_model)
 
     @staticmethod
-    def delete_user(user: User) -> None:
+    def delete_user(user: "User") -> None:
         """Deletes a user from the database.
         Args:
             user (User): The user to delete.
@@ -57,7 +74,7 @@ class DBAdapter:
         get_logger(__name__).log(logging.INFO, f"User {user.name} deleted")
 
     @staticmethod
-    def add_ssh_key(user: User, key_name: str, key_content: str) -> SSHKey:
+    def add_ssh_key(user: "User", key_name: str, key_content: str) -> "SSHKey":
         """Adds an SSH key to the user's authorized keys in the database.
 
         Args:
@@ -92,7 +109,7 @@ class DBAdapter:
         return SSHKey.from_orm(key_model)
 
     @staticmethod
-    def delete_ssh_key(user: User, ssh_key: SSHKey) -> None:
+    def delete_ssh_key(user: "User", ssh_key: "SSHKey") -> None:
         """Deletes an SSH key from the user's authorized keys in the database.
 
         Args:

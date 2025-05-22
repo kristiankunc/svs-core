@@ -22,6 +22,9 @@ class SystemAdapter(SideEffectAdapter):
         get_logger(__name__).log(logging.INFO, f"Creating user {username}")
 
         run_command(f"sudo useradd -m {username}")
+        run_command(f"sudo mkdir -p /home/{username}/.ssh")
+        run_command(f"sudo touch /home/{username}/.ssh/authorized_keys")
+        run_command(f"sudo chown -R {username}:{username} /home/{username}/.ssh")
         run_command(f"sudo chmod 400 /home/{username}/.ssh/authorized_keys")
 
         get_logger(__name__).log(logging.INFO, f"User {username} created")
@@ -37,6 +40,7 @@ class SystemAdapter(SideEffectAdapter):
         get_logger(__name__).log(logging.INFO, f"Deleting user {user.name}")
 
         run_command(f"sudo userdel -r {user.name}")
+        run_command(f"sudo rm -rf /home/{user.name}")
 
         get_logger(__name__).log(logging.INFO, f"User {user.name} deleted")
 
@@ -50,7 +54,9 @@ class SystemAdapter(SideEffectAdapter):
             key_content (str): The content of the SSH key (public key).
         """
 
-        get_logger(__name__).log(logging.INFO, f"Adding SSH key for user {user.name}")
+        get_logger(__name__).log(
+            logging.INFO, f"Adding SSH key '{key_name}' for user {user.name}"
+        )
 
         run_command(f"sudo mkdir -p /home/{user.name}/.ssh")
         run_command(

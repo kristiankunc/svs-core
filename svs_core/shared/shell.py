@@ -21,7 +21,7 @@ def run_command(
         subprocess.CompletedProcess: The result of the executed command.
     """
     get_logger(__name__).log(
-        logging.DEBUG, f"Executing {command}\nENV: {env}, check = {check}"
+        logging.DEBUG, f"Executing {command} ENV: {env}, check = {check}"
     )
 
     exec_env = dict(env) if env else {}  # TODO: maybe inject system env?
@@ -32,9 +32,6 @@ def run_command(
         cmd_list, env=exec_env, check=check, capture_output=True, text=True
     )
 
-    get_logger(__name__).log(
-        logging.DEBUG,
-        f"Command output: {result.stdout}\nCommand error: {result.stderr}",
-    )
+    get_logger(__name__).log(logging.DEBUG, result)
 
     return result
