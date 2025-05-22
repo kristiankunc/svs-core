@@ -1,14 +1,11 @@
 import re
-from typing import cast, TYPE_CHECKING
+from typing import cast
 from svs_core.db.constructable import ConstructableFromORM
 from svs_core.shared.exceptions import UserAlreadyExistsException
 from svs_core.users.manager import UserManager
 from svs_core.db.models import UserModel
 from svs_core.event_adapters.base import SideEffectAdapter
 from svs_core.event_adapters.db import DBAdapter
-
-if TYPE_CHECKING:
-    from svs_core.users.ssh_key import SSHKey
 
 
 class User(ConstructableFromORM):
@@ -25,14 +22,12 @@ class User(ConstructableFromORM):
         self,
         id: int,
         name: str,
-        ssh_keys: list["SSHKey"] = [],
         *,
         _orm_check: bool = False,
     ):
         super().__init__(_orm_check=_orm_check)
         self.id = id
         self.name = name
-        self.ssh_keys = ssh_keys
 
     @staticmethod
     def from_orm(model: object, **kwargs: object) -> "User":
@@ -41,10 +36,8 @@ class User(ConstructableFromORM):
         user = User(
             id=model.id,
             name=model.name,
-            ssh_keys=[],
             _orm_check=True,
         )
-        user.ssh_keys = [SSHKey.from_orm(k, user=user) for k in model.ssh_keys]
         return user
 
     @staticmethod
