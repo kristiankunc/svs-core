@@ -16,12 +16,11 @@ jobs:
       - name: Set up Python
         run: |
           python3 -m venv .venv
-          source .venv/bin/activate
+          echo "${GITHUB_WORKSPACE}/.venv/bin" >> $GITHUB_PATH
           pip install -r requirements.txt
 
       - name: Run unit tests
         run: |
-          source .venv/bin/activate
           pytest -m unit
 
       - name: Setup PostgreSQL
@@ -33,5 +32,4 @@ jobs:
 
       - name: Run integration tests
         run: |
-          source .venv/bin/activate
           pytest -m integration
