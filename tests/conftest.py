@@ -4,10 +4,6 @@ import pytest
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 
-from svs_core.db.client import DBClient
-from svs_core.db.client import engine
-from svs_core.db.models import Base
-
 
 def pytest_sessionstart() -> None:
     """This will install the package in editable mode before any tests are run."""
@@ -21,6 +17,9 @@ def setup_db() -> None:
 
     It drops all tables in the database and recreates the ones defined in the models.
     """
+
+    from svs_core.db.models import Base
+    from svs_core.db.client import engine
 
     inspector = inspect(engine)
     print(f"Using database URL: {engine.url}")
@@ -46,6 +45,8 @@ def db_session(setup_db: None) -> Generator[Session, None, None]:
     Yields:
         Session: A SQLAlchemy session object for database operations.
     """
+
+    from svs_core.db.client import DBClient
 
     with DBClient.get_db_session() as session:
         yield session
