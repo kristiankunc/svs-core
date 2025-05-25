@@ -10,7 +10,6 @@ class User(ConstructableFromORM):
     Attributes:
         id (int): The unique identifier of the user.
         name (str): The name of the user.
-        ssh_keys (list[SSHKey]): The list of SSH keys associated with the user.
     """
 
     def __init__(
