@@ -25,9 +25,6 @@ jobs:
           echo "TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/postgres" >> $GITHUB_ENV
           echo "DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/postgres" >> $GITHUB_ENV
 
-      - name: Debug env
-        run: env | grep DATABASE
-
       - name: Run unit tests
         run: .venv/bin/python -m pytest -m unit
 
