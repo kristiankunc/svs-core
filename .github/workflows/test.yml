@@ -20,14 +20,14 @@ jobs:
           .venv/bin/pip install -e .
           .venv/bin/pip install -r requirements.txt
 
+      - name: Set database URL # TODO: set it only after the PostgreSQL setup
+        run: echo "TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/postgres" >> $GITHUB_ENV
+
       - name: Run unit tests
         run: .venv/bin/python -m pytest -m unit
 
       - name: Setup PostgreSQL
         uses: ikalnytskyi/action-setup-postgres@v7
-
-      - name: Set database URL
-        run: echo "TEST_DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/postgres" >> $GITHUB_ENV
 
       - name: Run integration tests
         run: .venv/bin/python -m pytest -m integration
