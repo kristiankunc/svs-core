@@ -1,11 +1,6 @@
-import re
 from typing import cast
 from svs_core.db.constructable import ConstructableFromORM
-from svs_core.shared.exceptions import UserAlreadyExistsException
-from svs_core.users.manager import UserManager
 from svs_core.db.models import UserModel
-from svs_core.event_adapters.base import SideEffectAdapter
-from svs_core.event_adapters.db import DBAdapter
 
 
 class User(ConstructableFromORM):
@@ -40,85 +35,11 @@ class User(ConstructableFromORM):
         )
         return user
 
-    @staticmethod
-    def is_username_valid(username: str) -> bool:
-        """Checks if the username is valid for linux systems."
+    def delete_self(self) -> None:
+        """Deletes the user"""
 
-        Args:
-            username (str): The username to check.
+        from svs_core.db.client import DBClient
 
-        Returns:
-            bool: validity of the username.
-        """
+        DBClient.delete_user(self.id)
 
-        if not 1 <= len(username) <= 32:
-            return False
-
-        if not re.match(r"^[a-z_][a-z0-9_-]*[$]?$", username):
-            return False
-
-        if username.endswith("-"):
-            return False
-
-        return True
-
-    @staticmethod
-    def create(username: str) -> "User":
-        """Creates a new user in the system and database.
-        Args:
-            username (str): The username to create.
-
-        Returns:
-            User: The created user object.
-
-        Raises:
-            ValueError: If the username is invalid.
-            UserAlreadyExistsException: If the user already exists in the system or database.
-        """
-
-        from svs_core.event_adapters.db import DBAdapter
-
-        if not User.is_username_valid(username):
-            raise ValueError(f"Invalid username: {username}")
-
-        if UserManager.name_exists_in_system(username) or UserManager.name_exists_in_db(
-            username
-        ):
-            raise UserAlreadyExistsException(
-                f"User {username} already exists in system or database."
-            )
-
-        SideEffectAdapter.dispatch_create_user(username)
-        return DBAdapter.create_user(username)
-
-    def delete(self) -> None:
-        """Deletes the user from the system and database."""
-
-        SideEffectAdapter.dispatch_delete_user(self)
-        DBAdapter.delete_user(self)
-
-        # TODO: destroy self or sum shit
-
-    def add_ssh_key(self, key_name: str, key_content: str) -> "SSHKey":
-        """Adds an SSH key to the user.
-
-        Args:
-            key_name (str): The name of the SSH key.
-            key_content (str): The content of the SSH key.
-
-        Returns:
-            SSHKey: The added SSH key object.
-
-        Raises:
-            ValueError: If the SSH key is invalid.
-        """
-
-        if not SSHKey.is_valid(key_name, key_content):
-            raise ValueError("Invalid SSH key data")
-
-        SideEffectAdapter.dispatch_add_ssh_key(self, key_name, key_content)
-
-        ssh_key = DBAdapter.add_ssh_key(self, key_name, key_content)
-        self.ssh_keys.append(ssh_key)
-
-        return ssh_key
+        ## TODO: destruct properly
