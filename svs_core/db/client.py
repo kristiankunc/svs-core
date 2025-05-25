@@ -24,10 +24,10 @@ class DBClient:
     @contextmanager
     def get_db_session() -> Generator[Session, None, None]:
         """
-        Provides a transactional scope around a series of operations.
+        Provides a session scope around a series of operations.
         This function is a context manager that creates a new database session
-        for each operation. It ensures that the session is committed if the
-        operation is successful, or rolled back if an error occurs.
+        for each operation. It doesn't automatically commit - the consumer must
+        explicitly call session.commit() when ready.
 
         Example:
         ```python
@@ -35,13 +35,13 @@ class DBClient:
             # Perform database operations
             user = session.query(User).filter_by(id=1).first()
             print(user.name)
-            # The session is automatically committed or rolled back
+            # Call session.commit() explicitly if needed
+            session.commit()
         ```
         """
         session = SessionLocal()
         try:
             yield session
-            session.commit()
         except BaseException:
             session.rollback()
             raise
@@ -59,21 +59,20 @@ class DBClient:
         Returns:
             User: The user object if found, otherwise raises an exception.
         """
-
         with DBClient.get_db_session() as session:
             model = session.query(UserModel).filter_by(name=username).first()
-        if not model:
-            return None
+            if not model:
+                return None
 
-        user = User(
-            id=model.id,
-            name=model.name,
-            _orm_check=True,
-        )
-        return user
+            user = User(
+                id=model.id,
+                name=model.name,
+                _orm_check=True,
+            )
+            return user
 
     @staticmethod
-    def creare_user(username: str) -> User:
+    def create_user(username: str) -> User:
         """
         Creates a new user in the database.
 
@@ -83,16 +82,17 @@ class DBClient:
         Raises:
             ValueError: If the username is invalid.
         """
-
         with DBClient.get_db_session() as session:
-            user = UserModel(name=username)
-            session.add(user)
+            user_model = UserModel.create(
+                name=username,
+            )
+            session.add(user_model)
+            session.flush()
+            session.refresh(user_model)
+            created_user = User.from_orm(user_model, _orm_check=True)
+            session.commit()
 
-        return User(
-            id=user.id,
-            name=user.name,
-            _orm_check=True,
-        )
+        return created_user
 
     @staticmethod
     def delete_user(user_id: int) -> None:
@@ -102,8 +102,8 @@ class DBClient:
         Args:
             user_id (int): The ID of the user to delete.
         """
-
         with DBClient.get_db_session() as session:
             user = session.query(UserModel).filter_by(id=user_id).first()
             if user:
                 session.delete(user)
+                session.commit()

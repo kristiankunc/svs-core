@@ -62,7 +62,7 @@ class UserManager:
             get_logger().debug(f"User '{username}' already exists.")
             raise UserAlreadyExistsException(f"User '{username}' already exists.")
 
-        user = DBClient.creare_user(username)
+        user = DBClient.create_user(username)
 
         get_logger().info(f"User '{username}' created successfully.")
 
