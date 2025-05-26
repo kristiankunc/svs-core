@@ -2,6 +2,7 @@ from typing import cast
 
 from svs_core.db.constructable import ConstructableFromORM
 from svs_core.db.models import UserModel
+from svs_core.docker.network import DockerNetworkManager
 
 
 class User(ConstructableFromORM):
@@ -41,5 +42,6 @@ class User(ConstructableFromORM):
         from svs_core.db.client import DBClient
 
         DBClient.delete_user(self.id)
+        DockerNetworkManager.delete_network(self.name)
 
         ## TODO: destruct properly

@@ -1,6 +1,7 @@
 import re
 
 from svs_core.db.client import DBClient
+from svs_core.docker.network import DockerNetworkManager
 from svs_core.shared.exceptions import UserAlreadyExistsException, UserNotFoundException
 from svs_core.shared.logger import get_logger
 from svs_core.users.user import User
@@ -63,6 +64,7 @@ class UserManager:
             raise UserAlreadyExistsException(f"User '{username}' already exists.")
 
         user = DBClient.create_user(username)
+        DockerNetworkManager.create_network(username)
 
         get_logger().info(f"User '{username}' created successfully.")
 
