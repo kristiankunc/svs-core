@@ -9,3 +9,4 @@ pytest_mock
 psycopg[binary]
 SQLAlchemy
 alembic
+docker
