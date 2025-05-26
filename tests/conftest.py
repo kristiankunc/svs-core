@@ -1,9 +1,9 @@
-import pytest
 import subprocess
-from sqlalchemy.orm import Session
 from typing import Generator
 
-from svs_core.db.client import SessionLocal
+import pytest
+from sqlalchemy import inspect, text
+from sqlalchemy.orm import Session
 
 
 def pytest_sessionstart() -> None:
@@ -12,19 +12,42 @@ def pytest_sessionstart() -> None:
 
 
 @pytest.fixture(scope="function")
-def db_session() -> Generator[Session, None, None]:
+def setup_db() -> None:
     """
-    Yields a SQLAlchemy session wrapped in a rollback-based transaction.
-    The session is rolled back after the test to keep DB clean.
+    Fixture that sets up the database before tests run.
 
-    Returns:
-        Generator[Session, None, None]: A generator that yields a SQLAlchemy session.
+    It drops all tables in the database and recreates the ones defined in the models.
     """
 
-    session: Session = SessionLocal()
-    trans = session.begin()
-    try:
+    from svs_core.db.client import engine
+    from svs_core.db.models import Base
+
+    inspector = inspect(engine)
+    print(f"Using database URL: {engine.url}")
+
+    with engine.begin() as conn:
+        table_names = inspector.get_table_names()
+
+        for table_name in table_names:
+            conn.execute(text(f'DROP TABLE IF EXISTS "{table_name}" CASCADE'))
+
+    Base.metadata.create_all(engine)
+
+
+@pytest.fixture(scope="function")
+def db_session(setup_db: None) -> Generator[Session, None, None]:
+    """
+    Fixture that provides a database session for tests.
+
+    This fixture is used to ensure that each test has a clean database session.
+    It is scoped to the function level, meaning it will be created and destroyed
+    for each test function.
+
+    Yields:
+        Session: A SQLAlchemy session object for database operations.
+    """
+
+    from svs_core.db.client import DBClient
+
+    with DBClient.get_db_session() as session:
         yield session
-        trans.rollback()
-    finally:
-        session.close()

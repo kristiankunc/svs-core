@@ -1,9 +1,9 @@
 import logging
+import shlex
 import subprocess
-from typing import Optional, Mapping
+from typing import Mapping, Optional
 
 from svs_core.shared.logger import get_logger
-import shlex
 
 
 def run_command(

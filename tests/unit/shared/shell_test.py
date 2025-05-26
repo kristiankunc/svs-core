@@ -1,5 +1,6 @@
 import subprocess
 from typing import Dict
+
 import pytest
 from pytest_mock import MockerFixture
 
@@ -7,6 +8,7 @@ from svs_core.shared.shell import run_command
 
 
 class TestCommandExecution:
+    @pytest.mark.unit
     def test_basic_command_execution(self, mocker: MockerFixture) -> None:
         """Test that a basic command is executed correctly."""
 
@@ -26,6 +28,7 @@ class TestCommandExecution:
 
         assert "mocked output" == result.stdout
 
+    @pytest.mark.unit
     def test_command_with_environment(self, mocker: MockerFixture) -> None:
         """Test that environment variables are correctly passed."""
 
@@ -41,6 +44,7 @@ class TestCommandExecution:
         _, kwargs = mock_run.call_args
         assert test_env == kwargs.get("env", {})
 
+    @pytest.mark.unit
     def test_command_with_check_false(self, mocker: MockerFixture) -> None:
         """Test that check=False is correctly passed."""
 
@@ -55,6 +59,7 @@ class TestCommandExecution:
         _, kwargs = mock_run.call_args
         assert False == kwargs.get("check", True)
 
+    @pytest.mark.unit
     def test_output_capturing(self, mocker: MockerFixture) -> None:
         """Test that command output is correctly captured."""
 
@@ -69,6 +74,7 @@ class TestCommandExecution:
         assert "expected stdout" == result.stdout
         assert "expected stderr" == result.stderr
 
+    @pytest.mark.unit
     def test_error_handling(self, mocker: MockerFixture) -> None:
         """Test that errors are properly propagated when check=True."""
 
