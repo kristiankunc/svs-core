@@ -1,21 +1,12 @@
 from typing import List
 
-import docker
 from docker.errors import NotFound
 from docker.models.networks import Network
 
+from svs_core.docker.base import get_docker_client
+
 
 class DockerNetworkManager:
-    @staticmethod
-    def _get_client() -> docker.DockerClient:
-        """
-        Returns a Docker client instance.
-
-        Returns:
-            docker.DockerClient: A Docker client instance.
-        """
-        return docker.from_env()
-
     @staticmethod
     def get_networks() -> List[Network]:
         """
@@ -25,8 +16,7 @@ class DockerNetworkManager:
             list[Network]: A list of Docker network objects.
         """
 
-        client = DockerNetworkManager._get_client()
-        return client.networks.list()  # type: ignore
+        return get_docker_client().networks.list()  # type: ignore
 
     @staticmethod
     def create_network(name: str) -> Network:
@@ -43,9 +33,7 @@ class DockerNetworkManager:
             docker.errors.APIError: If the network creation fails.
         """
 
-        client = DockerNetworkManager._get_client()
-
-        return client.networks.create(name=name)
+        return get_docker_client().networks.create(name=name)
 
     @staticmethod
     def delete_network(name: str) -> None:
@@ -59,9 +47,8 @@ class DockerNetworkManager:
             docker.errors.APIError: If the network deletion fails.
         """
 
-        client = DockerNetworkManager._get_client()
         try:
-            network = client.networks.get(name)
+            network = get_docker_client().networks.get(name)
             network.remove()
         except NotFound:
             pass
