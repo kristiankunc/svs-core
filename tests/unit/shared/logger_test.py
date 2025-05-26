@@ -1,9 +1,11 @@
-import os
 import logging
+import os
 import time
-import pytest
 from typing import Any
-from svs_core.shared.logger import get_logger, clear_loggers
+
+import pytest
+
+from svs_core.shared.logger import clear_loggers, get_logger
 
 
 class TestLogger:

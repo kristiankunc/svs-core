@@ -1,9 +1,9 @@
 # TODO: maybe remove type: ignore[misc] punishment for using DeclarativeBase
-from sqlalchemy import Integer, String, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime, timezone
 from typing import Optional
-from sqlalchemy.orm import DeclarativeBase
+
+from sqlalchemy import DateTime, Integer, String
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 def utc_now() -> datetime:

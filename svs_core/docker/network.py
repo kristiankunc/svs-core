@@ -1,7 +1,8 @@
-import docker
-from docker.models.networks import Network
 from typing import List
+
+import docker
 from docker.errors import NotFound
+from docker.models.networks import Network
 
 
 class DockerNetworkManager:

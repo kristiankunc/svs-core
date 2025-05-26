@@ -1,6 +1,8 @@
+from typing import List
+
 import pytest
 from docker.models.networks import Network
-from typing import List
+
 from svs_core.docker.network import DockerNetworkManager
 
 TEST_NETWORK_NAME = "test_network"

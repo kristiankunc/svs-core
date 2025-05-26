@@ -1,10 +1,11 @@
-import pytest
-from sqlalchemy.orm import Session
 from typing import Optional
 
+import pytest
+from sqlalchemy.orm import Session
+
 from svs_core.db.client import DBClient
-from svs_core.users.user import User
 from svs_core.db.models import UserModel
+from svs_core.users.user import User
 
 
 class TestDBClient:

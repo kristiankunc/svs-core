@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Type, cast
+from typing import Type, TypeVar, cast
 
 T = TypeVar("T", bound="ConstructableFromORM")
 

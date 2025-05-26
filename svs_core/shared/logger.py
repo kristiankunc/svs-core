@@ -1,7 +1,7 @@
 import logging
 import os
-import time
 import sys
+import time
 from typing import Optional
 
 _logger_instances: dict[str, logging.Logger] = {}

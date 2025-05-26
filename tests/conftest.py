@@ -1,5 +1,6 @@
 import subprocess
 from typing import Generator
+
 import pytest
 from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
@@ -18,8 +19,8 @@ def setup_db() -> None:
     It drops all tables in the database and recreates the ones defined in the models.
     """
 
-    from svs_core.db.models import Base
     from svs_core.db.client import engine
+    from svs_core.db.models import Base
 
     inspector = inspect(engine)
     print(f"Using database URL: {engine.url}")

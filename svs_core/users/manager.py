@@ -1,9 +1,9 @@
 import re
 
+from svs_core.db.client import DBClient
 from svs_core.shared.exceptions import UserAlreadyExistsException, UserNotFoundException
 from svs_core.shared.logger import get_logger
 from svs_core.users.user import User
-from svs_core.db.client import DBClient
 
 
 class UserManager:

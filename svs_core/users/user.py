@@ -1,4 +1,5 @@
 from typing import cast
+
 from svs_core.db.constructable import ConstructableFromORM
 from svs_core.db.models import UserModel
 

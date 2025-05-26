@@ -57,7 +57,7 @@
     "docker-compose.yml"
   ],
   "name": "Library DevContainer",
-  "postAttachCommand": "pip install -r requirements.txt && pre-commit install && pre-commit autoupdate",
+  "postAttachCommand": "pip install -r requirements.txt && pre-commit install",
   "remoteUser": "dev",
   "service": "devcontainer",
   "shutdownAction": "stopCompose",

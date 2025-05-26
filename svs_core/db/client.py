@@ -1,8 +1,9 @@
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
 from contextlib import contextmanager
 from typing import Generator, Optional
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from svs_core.db.models import UserModel
 from svs_core.users.user import User
