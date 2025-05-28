@@ -25,7 +25,6 @@ class User(ConstructableFromORM):
         _orm_check: bool = False,
     ):
         super().__init__(id, created_at, updated_at, _orm_check=_orm_check)
-        self.id = id
         self.name = name
 
     @staticmethod
