@@ -12,8 +12,8 @@ class ConstructableFromORM(ABC):
 
     Attributes:
         id (int): The unique identifier for the model.
-        created_at (str): The timestamp when the object was created.
-        updated_at (str): The timestamp when the object was last updated.
+        created_at (datetime): The timestamp when the object was created.
+        updated_at (datetime): The timestamp when the object was last updated.
 
     """
 

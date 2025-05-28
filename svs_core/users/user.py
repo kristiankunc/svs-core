@@ -11,8 +11,11 @@ class User(ConstructableFromORM):
     Represents a user in the system.
 
     Attributes:
-        id (int): The unique identifier of the user.
+        id (int): The unique identifier for the user.
+        created_at (datetime): The timestamp when the user was created.
+        updated_at (datetime): The timestamp when the user was last updated.
         name (str): The name of the user.
+
     """
 
     def __init__(

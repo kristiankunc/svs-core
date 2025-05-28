@@ -1,3 +1,3 @@
 # Welcome to svs-core docs
 
-[API Reference](/api-reference)
+[API Reference](api-reference)
