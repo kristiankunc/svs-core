@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import cast
 
 from svs_core.db.constructable import ConstructableFromORM
@@ -17,11 +18,13 @@ class User(ConstructableFromORM):
     def __init__(
         self,
         id: int,
+        created_at: datetime,
+        updated_at: datetime,
         name: str,
         *,
         _orm_check: bool = False,
     ):
-        super().__init__(_orm_check=_orm_check)
+        super().__init__(id, created_at, updated_at, _orm_check=_orm_check)
         self.id = id
         self.name = name
 
@@ -31,6 +34,8 @@ class User(ConstructableFromORM):
 
         user = User(
             id=model.id,
+            created_at=model.created_at,
+            updated_at=model.updated_at,
             name=model.name,
             _orm_check=True,
         )

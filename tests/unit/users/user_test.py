@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -32,7 +33,13 @@ class TestUser:
 
         user_id: int = 1
         user_name: str = "test_user_to_delete"
-        user: User = User(id=user_id, name=user_name, _orm_check=True)
+        user: User = User(
+            id=user_id,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            name=user_name,
+            _orm_check=True,
+        )
 
         user.delete_self()
 

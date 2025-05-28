@@ -67,6 +67,8 @@ class DBClient:
 
             user = User(
                 id=model.id,
+                created_at=model.created_at,
+                updated_at=model.updated_at,
                 name=model.name,
                 _orm_check=True,
             )

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 from pytest_mock import MockerFixture
 
@@ -37,7 +39,13 @@ class TestUserManager:
 
         def mock_get_user_by_name(username: str) -> User | None:
             if username == "existinguser":
-                return User(id=1, name="existinguser", _orm_check=True)
+                return User(
+                    id=1,
+                    created_at=datetime.now(),
+                    updated_at=datetime.now(),
+                    name="existinguser",
+                    _orm_check=True,
+                )
             return None
 
         mocker.patch(
@@ -59,7 +67,13 @@ class TestUserManager:
         )
         mock_db_create_user = mocker.patch(
             "svs_core.users.manager.DBClient.create_user",
-            return_value=User(id=1, name="newuser", _orm_check=True),
+            return_value=User(
+                id=1,
+                created_at=datetime.now(),
+                updated_at=datetime.now(),
+                name="newuser",
+                _orm_check=True,
+            ),
         )
         mock_docker_create_network = mocker.patch(
             "svs_core.users.manager.DockerNetworkManager.create_network"
@@ -100,7 +114,13 @@ class TestUserManager:
     def test_get_by_name_success(self, mocker: MockerFixture) -> None:
         """Tests retrieving an existing user by name."""
 
-        expected_user = User(id=1, name="testuser", _orm_check=True)
+        expected_user = User(
+            id=1,
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+            name="testuser",
+            _orm_check=True,
+        )
         mocker.patch(
             "svs_core.users.manager.DBClient.get_user_by_name",
             return_value=expected_user,
