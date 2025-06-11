@@ -1,9 +1,4 @@
 import subprocess
-from typing import Generator
-
-import pytest
-from sqlalchemy import inspect, text
-from sqlalchemy.orm import Session
 
 
 def pytest_sessionstart() -> None:
@@ -11,13 +6,12 @@ def pytest_sessionstart() -> None:
     subprocess.run(["pip", "install", "-e", "."], check=True)
 
 
+"""
 @pytest.fixture(scope="function")
 def setup_db() -> None:
-    """
     Fixture that sets up the database before tests run.
 
     It drops all tables in the database and recreates the ones defined in the models.
-    """
 
     from svs_core.db.client import engine
     from svs_core.db.models import Base
@@ -36,7 +30,6 @@ def setup_db() -> None:
 
 @pytest.fixture(scope="function")
 def db_session(setup_db: None) -> Generator[Session, None, None]:
-    """
     Fixture that provides a database session for tests.
 
     This fixture is used to ensure that each test has a clean database session.
@@ -45,9 +38,9 @@ def db_session(setup_db: None) -> Generator[Session, None, None]:
 
     Yields:
         Session: A SQLAlchemy session object for database operations.
-    """
 
     from svs_core.db.client import DBClient
 
     with DBClient.get_db_session() as session:
         yield session
+"""
