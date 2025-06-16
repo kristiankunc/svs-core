@@ -6,7 +6,6 @@ ruff
 mypy
 pre-commit
 pytest_mock
-psycopg[binary]
-SQLAlchemy
-alembic
 docker
+tortoise-orm[psycopg]
+aerich[toml]

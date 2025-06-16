@@ -10,10 +10,6 @@ dependencies = []
 [tool.setuptools]
 packages = ["svs_core"]
 
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
 [tool.ruff]
 line-length = 88
 target-version = "py311"
@@ -35,8 +31,9 @@ section-order = [
 [tool.mypy]
 python_version = "3.11"
 ignore_missing_imports = true
-disallow_untyped_decorators = false
 strict = true
+warn_unused_ignores = false
+check_untyped_defs = true
 exclude = ["^alembic/"]
 
 [[tool.mypy.overrides]]
@@ -53,4 +50,13 @@ line_length = 88
 
 [tool.black]
 line-length = 88
-target-version = ['py311']
+target-version = ["py311"]
+
+[tool.aerich]
+tortoise_orm = "svs_core.db.client.TORTOISE_ORM"
+location = "./svs_core/db/migrations"
+src_folder = "./svs_core"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
