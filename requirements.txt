@@ -9,3 +9,5 @@ pytest_mock
 docker
 tortoise-orm[psycopg]
 aerich[toml]
+black
+isort
