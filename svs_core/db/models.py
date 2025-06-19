@@ -13,7 +13,7 @@ T = TypeVar("T", bound="OrmBase")
 class OrmBase(ABC):
     """Base class for objects tied to an ORM model."""
 
-    _model_cls: Model = None  # type: ignore[assignment]
+    _model_cls: Type["BaseModel"] = None  # type: ignore[assignment]
     _instances: WeakSet["OrmBase"] = WeakSet()
 
     def __init__(self, model: "BaseModel"):
