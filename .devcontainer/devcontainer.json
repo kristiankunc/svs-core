@@ -9,18 +9,18 @@
         "tamasfe.even-better-toml",
         "ms-python.mypy-type-checker",
         "ms-ossdata.vscode-pgsql",
-        "redhat.vscode-yaml",
-        "esbenp.prettier-vscode"
+        "redhat.vscode-yaml"
       ],
       "settings": {
         "[json]": {
-          "editor.defaultFormatter": "esbenp.prettier-vscode"
+          "editor.defaultFormatter": null
         },
         "[jsonc]": {
-          "editor.defaultFormatter": "esbenp.prettier-vscode"
+          "editor.defaultFormatter": null
         },
         "[python]": {
-          "editor.defaultFormatter": "charliermarsh.ruff"
+          "editor.defaultFormatter": null,
+          "editor.formatOnSave": false
         },
         "[yaml]": {
           "editor.defaultFormatter": "redhat.vscode-yaml"
@@ -29,20 +29,28 @@
           "editor.defaultFormatter": "redhat.vscode-yaml"
         },
         "editor.codeActionsOnSave": {
-          "source.fixAll": "explicit"
+          "source.fixAll": "always",
+          "source.organizeImports": "always"
         },
         "editor.formatOnSave": true,
+        "mypy-type-checker.path": [
+          "/home/dev/.venv/bin/mypy"
+        ],
+        "mypy-type-checker.preferDaemon": true,
+        "mypy-type-checker.reportingScope": "workspace",
         "python.analysis.autoImportCompletions": true,
-        "python.analysis.diagnosticMode": "workspace",
         "python.analysis.exclude": [
-          "**/alembic/**",
-          "conftest.py"
+          "**.py"
         ],
         "python.analysis.indexing": true,
-        "python.analysis.typeCheckingMode": "strict",
+        "python.analysis.typeCheckingMode": "off",
         "python.defaultInterpreterPath": "/home/dev/.venv/bin/python",
         "python.formatting.provider": "none",
         "python.linting.enabled": true,
+        "python.linting.mypyArgs": [
+          "--config-file",
+          "mypy.ini"
+        ],
         "python.linting.mypyEnabled": true,
         "python.linting.ruffEnabled": true,
         "python.testing.pytestArgs": [

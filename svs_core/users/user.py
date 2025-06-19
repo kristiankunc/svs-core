@@ -1,54 +1,24 @@
-from datetime import datetime
-from typing import cast
+from typing import Optional
 
-from svs_core.db.constructable import ConstructableFromORM
-from svs_core.db.models import UserModel
-from svs_core.docker.network import DockerNetworkManager
+from svs_core.db.models import OrmBase, UserModel
 
 
-class User(ConstructableFromORM):
-    """
-    Represents a user in the system.
+class User(OrmBase):
+    _model_cls = UserModel
 
-    Attributes:
-        id (int): The unique identifier for the user.
-        created_at (datetime): The timestamp when the user was created.
-        updated_at (datetime): The timestamp when the user was last updated.
-        name (str): The name of the user.
-
-    """
-
-    def __init__(
-        self,
-        id: int,
-        created_at: datetime,
-        updated_at: datetime,
-        name: str,
-        *,
-        _orm_check: bool = False,
-    ):
-        super().__init__(id, created_at, updated_at, _orm_check=_orm_check)
+    def __init__(self, model: UserModel, name: str, email: str, password_raw: str):
+        super().__init__(model)
+        self._model = model
         self.name = name
+        self.email = email
+        self.password = password_raw  # TODO: hash password
 
-    @staticmethod
-    def from_orm(model: object, **kwargs: object) -> "User":
-        model = cast(UserModel, model)
+    @classmethod
+    async def create(cls, name: str, email: str, password_raw: str) -> "User":
+        model = UserModel(name=name, email=email, password=password_raw)
+        await model.save()
+        return cls(model=model, name=name, email=email, password_raw=password_raw)
 
-        user = User(
-            id=model.id,
-            created_at=model.created_at,
-            updated_at=model.updated_at,
-            name=model.name,
-            _orm_check=True,
-        )
-        return user
-
-    def delete_self(self) -> None:
-        """Deletes the user"""
-
-        from svs_core.db.client import DBClient
-
-        DBClient.delete_user(self.id)
-        DockerNetworkManager.delete_network(self.name)
-
-        ## TODO: destruct properly
+    @classmethod
+    async def get_by_email(cls, email: str) -> Optional["User"]:
+        return await cls._get("email", email)

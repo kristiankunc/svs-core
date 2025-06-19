@@ -40,5 +40,3 @@ ENV PATH="/home/$USERNAME/.venv/bin:$PATH"
 
 # Copy project files
 COPY --chown=dev:dev . .
-
-COPY ./entrypoint.sh /etc/devcontainer/entrypoint.sh

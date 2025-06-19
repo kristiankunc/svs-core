@@ -33,7 +33,9 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     logger.propagate = False
 
     class UTCFormatter(logging.Formatter):
-        converter = time.gmtime
+        @staticmethod
+        def converter(timestamp: float | None) -> time.struct_time:
+            return time.gmtime(timestamp)
 
     formatter = UTCFormatter("%(asctime)s: [%(levelname)s] %(name)s %(message)s")
     handler: logging.Handler
