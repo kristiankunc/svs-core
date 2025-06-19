@@ -5,7 +5,7 @@ from weakref import WeakSet
 
 from tortoise import BaseDBAsyncClient, fields
 from tortoise.models import Model
-from tortoise.signals import post_save  # type: ignore[import-untyped]
+from tortoise.signals import post_save
 
 T = TypeVar("T", bound="OrmBase")
 
@@ -52,7 +52,7 @@ class BaseModel(Model):
     created_at = fields.DatetimeField(auto_now_add=True, null=False)
     updated_at = fields.DatetimeField(auto_now=True, null=False)
 
-    class Meta:  # type: ignore[override]
+    class Meta:
         abstract = True
 
 
@@ -61,11 +61,11 @@ class UserModel(BaseModel):
     email = fields.CharField(max_length=255, unique=True, null=False)
     password = fields.CharField(max_length=255, null=True)
 
-    class Meta:  # type: ignore[override]
+    class Meta:
         table = "users"
 
 
-@post_save(BaseModel)  # type: ignore[no-redef]
+@post_save(BaseModel)
 async def signal_post_save(
     sender: type[BaseModel],
     instance: BaseModel,
@@ -74,7 +74,7 @@ async def signal_post_save(
     update_fields: list[str],
 ) -> None:
     for subclass in OrmBase.__subclasses__():
-        if subclass._model_cls is sender:  # type: ignore[attr-defined]
+        if subclass._model_cls is sender:
             for obj in subclass.get_instances():
-                if obj._model.id == instance.id:  # type: ignore[attr-defined]
-                    obj._model = instance  # type: ignore[attr-defined]
+                if obj._model.id == instance.id:
+                    obj._model = instance
