@@ -11,3 +11,4 @@ tortoise-orm[psycopg]
 aerich[toml]
 black
 isort
+bcrypt
