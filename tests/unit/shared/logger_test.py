@@ -4,7 +4,6 @@ import time
 from pathlib import Path
 
 import pytest
-from pytest import CaptureFixture, MonkeyPatch
 
 from svs_core.shared.logger import clear_loggers, get_logger
 
@@ -36,7 +35,9 @@ class TestLogger:
         assert default_logger.name == "unknown"
 
     @pytest.mark.unit
-    def test_stream_handler_in_development(self, capsys: CaptureFixture[str]) -> None:
+    def test_stream_handler_in_development(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
         """Test that the logger outputs to stdout in development mode."""
 
         os.environ.pop("ENV", None)
@@ -51,7 +52,7 @@ class TestLogger:
 
     @pytest.mark.unit
     def test_file_handler_in_production(
-        self, tmp_path: Path, monkeypatch: MonkeyPatch
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test that the logger outputs to a file in production mode."""
 

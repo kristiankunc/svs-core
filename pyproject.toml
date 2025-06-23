@@ -17,8 +17,9 @@ ignore = ["E712"]
 
 [tool.ruff.isort]
 known-first-party = ["svs_core"]
+known-third-party = ["pytest"]
 combine-as-imports = true
-force-sort-within-sections = true
+force-sort-within-sections = false
 lines-between-types = 1
 section-order = [
     "future",
