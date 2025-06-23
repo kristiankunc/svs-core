@@ -64,6 +64,9 @@
   "dockerComposeFile": [
     "docker-compose.yml"
   ],
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
   "name": "Library DevContainer",
   "postAttachCommand": "pip install -r requirements.txt && pre-commit install",
   "remoteUser": "dev",

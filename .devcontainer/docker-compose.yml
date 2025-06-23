@@ -5,6 +5,7 @@ services:
             dockerfile: Dockerfile
         volumes:
             - ..:/home/dev/app:cached
+            - /var/run/docker.sock:/var/run/docker.sock
         environment:
             - GPG_AGENT_INFO=/home/dev/.gnupg/S.gpg-agent
         env_file:
