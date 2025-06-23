@@ -1,23 +1,24 @@
 import logging
 import os
 import time
-from typing import Any
+from pathlib import Path
 
 import pytest
+from pytest import CaptureFixture, MonkeyPatch
 
 from svs_core.shared.logger import clear_loggers, get_logger
 
 
 class TestLogger:
     @pytest.fixture(autouse=True)
-    def reset_logger(self) -> None:
+    def reset_logger(self):
         clear_loggers()
 
         if "ENV" in os.environ:
             del os.environ["ENV"]
 
     @pytest.mark.unit
-    def test_get_logger_returns_same_instance(self) -> None:
+    def test_get_logger_returns_same_instance(self):
         """Test that get_logger returns the same instance for the same name."""
 
         logger1 = get_logger("test")
@@ -26,7 +27,7 @@ class TestLogger:
         assert logger1 is logger2
 
     @pytest.mark.unit
-    def test_get_logger_default_name(self) -> None:
+    def test_get_logger_default_name(self):
         """Test that get_logger returns a logger with the default name if none is provided."""
 
         default_logger = get_logger()
@@ -35,7 +36,7 @@ class TestLogger:
         assert default_logger.name == "unknown"
 
     @pytest.mark.unit
-    def test_stream_handler_in_development(self, capsys: Any) -> None:
+    def test_stream_handler_in_development(self, capsys: CaptureFixture[str]) -> None:
         """Test that the logger outputs to stdout in development mode."""
 
         os.environ.pop("ENV", None)
@@ -49,7 +50,9 @@ class TestLogger:
         assert "hello dev" in captured.out
 
     @pytest.mark.unit
-    def test_file_handler_in_production(self, tmp_path: Any, monkeypatch: Any) -> None:
+    def test_file_handler_in_production(
+        self, tmp_path: Path, monkeypatch: MonkeyPatch
+    ) -> None:
         """Test that the logger outputs to a file in production mode."""
 
         monkeypatch.setenv("ENV", "production")

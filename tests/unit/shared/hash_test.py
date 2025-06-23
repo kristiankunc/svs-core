@@ -29,7 +29,7 @@ class TestHash:
         password = "samepassword"
         hash1 = hash_password(password)
         hash2 = hash_password(password)
-        # bcrypt uses a random salt, so hashes should be different
+
         assert hash1 != hash2
 
     @pytest.mark.unit
