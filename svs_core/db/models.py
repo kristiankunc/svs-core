@@ -81,8 +81,7 @@ class BaseModel(Model):
 
 
 class UserModel(BaseModel):
-    name = fields.CharField(max_length=255, null=False)
-    email = fields.CharField(max_length=255, unique=True, null=False)
+    name = fields.CharField(max_length=255, null=False, unique=True)
     password = fields.CharField(max_length=255, null=True)
 
     class Meta:
