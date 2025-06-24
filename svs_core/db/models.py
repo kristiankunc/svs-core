@@ -65,7 +65,6 @@ class OrmBase(ABC):
         if not isinstance(model, BaseModel):
             raise TypeError("Model is not an instance of BaseModel")
 
-        print(model.__dict__)
         return cls(model=model, **model.__dict__)
 
     def __str__(self) -> str:
