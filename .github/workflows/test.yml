@@ -54,7 +54,7 @@ jobs:
 
       - name: Set database URL
         run: |
-          echo "TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" >> $GITHUB_ENV
+          echo "TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/testdb" >> $GITHUB_ENV
           echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" >> $GITHUB_ENV
 
       - name: Setup PostgreSQL
