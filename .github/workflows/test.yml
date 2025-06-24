@@ -61,8 +61,10 @@ jobs:
         uses: ikalnytskyi/action-setup-postgres@v7
 
       - name: Create test database
+        env:
+          PGSERVICE: "${{ steps.postgres.outputs.service-name }}"
         run: |
-          psql -U postgres -c "CREATE DATABASE testdb;"
+          createdb --owner postgres testdb
 
       - name: Set up Python and install dependencies
         run: |
