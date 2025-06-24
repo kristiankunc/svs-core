@@ -12,3 +12,5 @@ aerich[toml]
 black
 isort
 bcrypt
+pytest-asyncio
+asyncpg

@@ -1,3 +1,4 @@
+import os
 from abc import ABC
 from datetime import datetime
 from typing import Any, Optional, Type, TypeVar
@@ -6,6 +7,25 @@ from weakref import WeakSet
 from tortoise import BaseDBAsyncClient, fields
 from tortoise.models import Model
 from tortoise.signals import post_save
+
+from svs_core.shared.logger import get_logger
+
+DB_URL = os.getenv("DATABASE_URL")
+if not DB_URL:
+    get_logger(__name__).error(
+        "DATABASE_URL environment variable is not set. Using default SQLite in-memory database."
+    )
+
+
+TORTOISE_ORM = {
+    "connections": {"default": DB_URL},
+    "apps": {
+        "models": {
+            "models": ["aerich.models", "svs_core.db.models"],
+            "default_connection": "default",
+        },
+    },
+}
 
 T = TypeVar("T", bound="OrmBase")
 
@@ -44,11 +64,16 @@ class OrmBase(ABC):
         model = models[0]
         if not isinstance(model, BaseModel):
             raise TypeError("Model is not an instance of BaseModel")
+
+        print(model.__dict__)
         return cls(model=model, **model.__dict__)
+
+    def __str__(self) -> str:
+        return str(self.__dict__)
 
 
 class BaseModel(Model):
-    id = fields.IntField(pk=True, null=False)
+    id = fields.IntField(primary_key=True, null=False)
     created_at = fields.DatetimeField(auto_now_add=True, null=False)
     updated_at = fields.DatetimeField(auto_now=True, null=False)
 
