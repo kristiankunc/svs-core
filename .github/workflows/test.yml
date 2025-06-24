@@ -67,15 +67,12 @@ jobs:
         run: |
           createdb --owner postgres testdb
 
-      - name: Set up Python and install dependencies
+      - name: Install self
         run: |
-          python3 -m venv .venv
-          .venv/bin/pip install --upgrade pip
-          .venv/bin/pip install -e .
-          .venv/bin/pip install -r requirements.txt
+          python -m pip install -e .
 
       - name: Run unit tests
-        run: .venv/bin/python -m pytest -m unit
+        run: pytest -m unit
 
       - name: Run integration tests
-        run: .venv/bin/python -m pytest -m integration
+        run: pytest -m integration
