@@ -52,8 +52,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: Set database URL
+        run: |
+          echo "TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" >> $GITHUB_ENV
+
       - name: Setup PostgreSQL
         uses: ikalnytskyi/action-setup-postgres@v7
+
+      - name: Create test database
+        run: |
+          psql -U postgres -c "CREATE DATABASE testdb;"
 
       - name: Set up Python and install dependencies
         run: |
@@ -61,11 +70,6 @@ jobs:
           .venv/bin/pip install --upgrade pip
           .venv/bin/pip install -e .
           .venv/bin/pip install -r requirements.txt
-
-      - name: Set database URL
-        run: |
-          echo "TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" >> $GITHUB_ENV
-          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres" >> $GITHUB_ENV
 
       - name: Run unit tests
         run: .venv/bin/python -m pytest -m unit

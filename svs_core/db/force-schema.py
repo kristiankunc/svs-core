@@ -3,7 +3,7 @@ import asyncio
 
 from tortoise import Tortoise
 
-from svs_core.db.client import TORTOISE_ORM
+from svs_core.db.models import TORTOISE_ORM
 
 
 async def _init() -> None:
