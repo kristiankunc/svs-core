@@ -67,6 +67,11 @@ class OrmBase(ABC):
 
         return cls(model=model, **model.__dict__)
 
+    @classmethod
+    async def _exists(cls: Type[T], key: str, value: Any) -> bool:
+        models = await cls._model_cls.filter(**{key: value})
+        return len(models) > 0
+
     def __str__(self) -> str:
         return str(self.__dict__)
 
