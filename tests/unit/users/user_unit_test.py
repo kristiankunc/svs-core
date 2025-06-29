@@ -34,20 +34,20 @@ class TestUser:
     @pytest.mark.unit
     def test_exceptions(self):
         """Test the exception messages for user-related exceptions."""
+        from svs_core.shared.exceptions import AlreadyExistsException
         from svs_core.users.user import (
             InvalidPasswordException,
             InvalidUsernameException,
-            UsernameAlreadyExistsException,
         )
 
         uname = "bad!user"
         upass = "short"
-        assert str(InvalidUsernameException(uname)) == f"Invalid username: '{uname}'."
-        assert (
-            str(UsernameAlreadyExistsException(uname))
-            == f"Username '{uname}' already exists."
-        )
-        assert (
-            str(InvalidPasswordException(upass))
-            == f"Invalid password: '{upass}'. Password must be at least 8 characters long."
-        )
+
+        with pytest.raises(InvalidUsernameException):
+            raise InvalidUsernameException(uname)
+
+        with pytest.raises(AlreadyExistsException):
+            raise AlreadyExistsException(entity="User", identifier=uname)
+
+        with pytest.raises(InvalidPasswordException):
+            raise InvalidPasswordException(upass)

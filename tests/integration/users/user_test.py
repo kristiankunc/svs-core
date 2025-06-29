@@ -1,11 +1,11 @@
 import pytest
 from tortoise.contrib.test import TestCase
 
+from svs_core.shared.exceptions import AlreadyExistsException
 from svs_core.users.user import (
     InvalidPasswordException,
     InvalidUsernameException,
     User,
-    UsernameAlreadyExistsException,
 )
 
 
@@ -19,7 +19,7 @@ class TestUserIntegration(TestCase):
     async def test_create_user_duplicate(self):
         """Test creating a user with a duplicate username."""
         await User.create(name="dupeuser", password="password123")
-        with pytest.raises(UsernameAlreadyExistsException):
+        with pytest.raises(AlreadyExistsException):
             await User.create(name="dupeuser", password="password123")
 
     async def test_create_user_invalid_username(self):
