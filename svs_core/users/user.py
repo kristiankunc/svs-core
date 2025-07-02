@@ -73,7 +73,7 @@ class User(OrmBase):
         Args:
             name (str): The username of the user to delete.
         Raises:
-            SVSException: If the user does not exist.
+            NotFoundException: If the user with the given name does not exist.
         """
         user = await cls.get_by_name(name)
         if not user:
