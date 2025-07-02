@@ -45,3 +45,6 @@ src_folder = "./svs_core"
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[project.scripts]
+svs = "svs_core.__main__:main"
