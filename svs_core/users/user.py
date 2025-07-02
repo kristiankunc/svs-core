@@ -2,7 +2,7 @@ import re
 from typing import Any, Optional
 
 from svs_core.db.models import OrmBase, UserModel
-from svs_core.shared.exceptions import SVSException
+from svs_core.shared.exceptions import NotFoundException, SVSException
 from svs_core.shared.hash import hash_password
 
 
@@ -68,6 +68,19 @@ class User(OrmBase):
         return cls(model=model, name=name, password=model.password)
 
     @classmethod
+    async def delete(cls, name: str) -> None:
+        """Deletes a user by name.
+        Args:
+            name (str): The username of the user to delete.
+        Raises:
+            NotFoundException: If the user with the given name does not exist.
+        """
+        user = await cls.get_by_name(name)
+        if not user:
+            raise NotFoundException(f"User with name '{name}' not found.")
+        await user._model.delete()
+
+    @classmethod
     async def get_by_name(cls, name: str) -> Optional["User"]:
         return await cls._get("name", name)
 
@@ -130,3 +143,6 @@ class User(OrmBase):
         # self.password is stored as str, decode to bytes for bcrypt
         hashed = self.password.encode("utf-8")
         return check_password(password, hashed)
+
+    def __str__(self) -> str:
+        return f"User(name={self.name}, id={self.id})"
