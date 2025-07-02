@@ -2,12 +2,11 @@ import asyncio
 
 import typer
 
-from svs_core.shared.exceptions import NotFoundException
+from svs_core.shared.exceptions import AlreadyExistsException, NotFoundException
 from svs_core.users.user import (
     InvalidPasswordException,
     InvalidUsernameException,
     User,
-    UsernameAlreadyExistsException,
 )
 
 user_app = typer.Typer(help="Manage users")
@@ -24,7 +23,7 @@ def create(name: str, password: str) -> None:
         except (
             InvalidUsernameException,
             InvalidPasswordException,
-            UsernameAlreadyExistsException,
+            AlreadyExistsException,
         ) as e:
             typer.echo(f"❌ {e}", err=True)
 
