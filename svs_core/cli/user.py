@@ -26,7 +26,7 @@ def create(name: str, password: str) -> None:
             InvalidPasswordException,
             UsernameAlreadyExistsException,
         ) as e:
-            typer.echo(f"❌ {e}")
+            typer.echo(f"❌ {e}", err=True)
 
     asyncio.run(_create())
 
@@ -40,7 +40,7 @@ def delete(name: str) -> None:
             await User.delete(name)
             typer.echo(f"✅ User '{name}' deleted successfully.")
         except NotFoundException as e:
-            typer.echo(f"❌ {e}")
+            typer.echo(f"❌ {e}", err=True)
 
     asyncio.run(_delete())
 
@@ -54,7 +54,7 @@ def get(name: str) -> None:
         if user:
             typer.echo(f"👤 User found: {user.name}")
         else:
-            typer.echo("❌ User not found.")
+            typer.echo("❌ User not found.", err=True)
 
     asyncio.run(_get())
 
@@ -66,13 +66,13 @@ def check_password(name: str, password: str) -> None:
     async def _check():
         user = await User.get_by_name(name)
         if not user:
-            typer.echo("❌ User not found.")
+            typer.echo("❌ User not found.", err=True)
             return
 
         if await user.check_password(password):
             typer.echo("✅ Password is correct.")
         else:
-            typer.echo("❌ Incorrect password.")
+            typer.echo("❌ Incorrect password.", err=True)
 
     asyncio.run(_check())
 
@@ -84,11 +84,10 @@ def list_users() -> None:
     async def _list():
         users = await User.get_all()
         if not users:
-            typer.echo("No users found.")
+            typer.echo("No users found.", err=True)
             return
 
-        typer.echo("👥 Users:")
-        for user in users:
-            typer.echo(f"- {user}")
+        typer.echo(f"👥 Total users: {len(users)}")
+        typer.echo("\n".join(f"- {user}" for user in users))
 
     asyncio.run(_list())
