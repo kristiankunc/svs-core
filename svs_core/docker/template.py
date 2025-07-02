@@ -41,6 +41,9 @@ class Template(OrmBase):
         name = name.lower().strip()
         dockerfile = dockerfile.strip()
 
+        if not name or dockerfile:
+            raise ValueError("Provided values cannot be empty")
+
         if await cls._exists("name", name):
             raise AlreadyExistsException(entity="Template", identifier=name)
 
