@@ -72,6 +72,12 @@ class OrmBase(ABC):
         models = await cls._model_cls.filter(**{key: value})
         return len(models) > 0
 
+    @classmethod
+    async def get_all(cls: Type[T]) -> list[T]:
+        """Get all instances of the model."""
+        models = await cls._model_cls.all()
+        return [cls(model=model, **model.__dict__) for model in models]
+
     def __str__(self) -> str:
         return str(self.__dict__)
 
