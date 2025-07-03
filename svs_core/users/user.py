@@ -54,7 +54,7 @@ class User(OrmBase):
             password (str): The password for the new user.
         Raises:
             AlreadyExistsException: If the username already exists.
-            InvalidUsernameError: If the username is invalid.
+            InvalidUsernameException: If the username is invalid.
         Returns:
             User: The created user instance.
         """

@@ -14,7 +14,7 @@ async def send_http_request(
     json: Optional[dict[str, object]] = None,
 ) -> httpx.Response:
     """
-    Sends an HTTP request and returns the response as text by default.
+    Sends an HTTP request and returns the response.
 
     Args:
         method (str): HTTP method (GET, POST, PUT, DELETE).
