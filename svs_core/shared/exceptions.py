@@ -4,7 +4,6 @@ class SVSException(Exception):
     pass
 
 
-
 class AlreadyExistsException(SVSException):
     """Exception raised when an entity already exists."""
 
@@ -12,6 +11,7 @@ class AlreadyExistsException(SVSException):
         super().__init__(f"{entity} with identifier '{identifier}' already exists.")
         self.entity = entity
         self.identifier = identifier
+
 
 class NotFoundException(SVSException):
     """Exception raised when an item is not found."""
