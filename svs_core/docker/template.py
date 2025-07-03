@@ -37,7 +37,7 @@ class Template(OrmBase):
         name: str,
         dockerfile: str,
         description: Optional[str] = None,
-        exposed_ports: list[int] = [],
+        exposed_ports: Optional[list[int]] = None,
     ) -> "Template":
         """Creates a new template with the given name, dockerfile, description, and exposed ports."""
         name = name.lower().strip()
