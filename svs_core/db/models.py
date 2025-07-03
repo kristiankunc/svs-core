@@ -78,6 +78,11 @@ class OrmBase(ABC):
         models = await cls._model_cls.all()
         return [cls(model=model, **model.__dict__) for model in models]
 
+    @classmethod
+    async def get_by_id(cls: Type[T], id: int) -> Optional[T]:
+        """Retrieves an instance by its ID."""
+        return await cls._get("id", id)
+
     def __str__(self) -> str:
         return str(self.__dict__)
 
@@ -100,7 +105,7 @@ class UserModel(BaseModel):
 
 
 class TemplateModel(BaseModel):
-    name = fields.CharField(max_length=255, null=False, unique=True)
+    name = fields.CharField(max_length=255, null=False)
     dockerfile = fields.TextField(null=False)
     description = fields.TextField(null=True)
     exposed_ports: Optional[list[int]] = fields.JSONField(null=True)

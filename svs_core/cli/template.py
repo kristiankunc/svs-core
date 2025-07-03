@@ -42,17 +42,18 @@ def create(
 
 
 @app.command("get")
-def get(name: str = typer.Argument(..., help="Template name")) -> None:
-    """Get a template by name."""
+def get(id: int = typer.Argument(..., help="Template ID")) -> None:
+    """Get a template by id."""
 
     async def _get():
-        template = await Template.get_by_name(name)
-        if template:
-            typer.echo(
-                f"Template: {template.name}\nDescription: {template.description}\nExposed Ports: {template.exposed_ports}\nDockerfile:\n{template.dockerfile}"
-            )
-        else:
-            typer.echo("❌ Template not found.", err=True)
+        try:
+            template = await Template.get_by_id(id)
+            if not template:
+                typer.echo(f"❌ Template with ID '{id}' not found.", err=True)
+                return
+            typer.echo(template)
+        except Exception as e:
+            typer.echo(f"❌ {e}", err=True)
 
     asyncio.run(_get())
 

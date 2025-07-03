@@ -1,7 +1,6 @@
 from typing import Any, Optional
 
 from svs_core.db.models import OrmBase, TemplateModel
-from svs_core.shared.exceptions import AlreadyExistsException
 from svs_core.shared.github import destruct_github_url
 from svs_core.shared.http import send_http_request
 
@@ -29,6 +28,9 @@ class Template(OrmBase):
     def exposed_ports(self) -> Optional[Any]:
         return self._model.exposed_ports
 
+    def __str__(self) -> str:
+        return f"Template(name={self.name}, dockerfile={self.dockerfile}, description={self.description}, exposed_ports={self.exposed_ports})"
+
     @classmethod
     async def create(
         cls,
@@ -44,9 +46,6 @@ class Template(OrmBase):
         if not name or not dockerfile:
             raise ValueError("Provided values cannot be empty")
 
-        if await cls._exists("name", name):
-            raise AlreadyExistsException(entity="Template", identifier=name)
-
         print(
             f"Creating template {name}, dockerfile={dockerfile}, description={description}, exposed_ports={exposed_ports}"
         )
@@ -59,19 +58,6 @@ class Template(OrmBase):
         )
 
         return cls(model=model)
-
-    @classmethod
-    async def get_by_name(cls, name: str) -> Optional["Template"]:
-        """Retrieves a template by its name.
-        Args:
-            name (str): The name of the template.
-        Returns:
-            Optional[Template]: The template instance if found, otherwise None.
-        Raises:
-            ValueError: If the name is empty or contains only whitespace.
-        """
-        name = name.lower().strip()
-        return await cls._get("name", name)
 
     @classmethod
     async def discover_from_github(cls, repo_url: str) -> list["Template"]:
