@@ -9,10 +9,10 @@ from svs_core.users.user import (
     User,
 )
 
-user_app = typer.Typer(help="Manage users")
+app = typer.Typer(help="Manage users")
 
 
-@user_app.command("create")
+@app.command("create")
 def create(name: str, password: str) -> None:
     """Create a new user"""
 
@@ -30,7 +30,7 @@ def create(name: str, password: str) -> None:
     asyncio.run(_create())
 
 
-@user_app.command("delete")
+@app.command("delete")
 def delete(name: str) -> None:
     """Delete a user by name"""
 
@@ -44,7 +44,7 @@ def delete(name: str) -> None:
     asyncio.run(_delete())
 
 
-@user_app.command("get")
+@app.command("get")
 def get(name: str) -> None:
     """Get a user by name"""
 
@@ -58,7 +58,7 @@ def get(name: str) -> None:
     asyncio.run(_get())
 
 
-@user_app.command("check-password")
+@app.command("check-password")
 def check_password(name: str, password: str) -> None:
     """Check if a password matches the stored hash"""
 
@@ -76,7 +76,7 @@ def check_password(name: str, password: str) -> None:
     asyncio.run(_check())
 
 
-@user_app.command("list")
+@app.command("list")
 def list_users() -> None:
     """List all users"""
 

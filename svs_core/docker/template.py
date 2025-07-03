@@ -35,25 +35,28 @@ class Template(OrmBase):
         name: str,
         dockerfile: str,
         description: Optional[str] = None,
-        exposed_ports: Any = None,
+        exposed_ports: list[int] = [],
     ) -> "Template":
         """Creates a new template with the given name, dockerfile, description, and exposed ports."""
         name = name.lower().strip()
         dockerfile = dockerfile.strip()
 
-        if not name or dockerfile:
+        if not name or not dockerfile:
             raise ValueError("Provided values cannot be empty")
 
         if await cls._exists("name", name):
             raise AlreadyExistsException(entity="Template", identifier=name)
 
-        model = TemplateModel(
+        print(
+            f"Creating template {name}, dockerfile={dockerfile}, description={description}, exposed_ports={exposed_ports}"
+        )
+
+        model = await TemplateModel.create(
             name=name,
             dockerfile=dockerfile,
             description=description,
             exposed_ports=exposed_ports,
         )
-        await model.create()
 
         return cls(model=model)
 

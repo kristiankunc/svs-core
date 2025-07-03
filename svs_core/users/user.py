@@ -2,9 +2,11 @@ import re
 from typing import Any, Optional
 
 from svs_core.db.models import OrmBase, UserModel
-
-from svs_core.shared.exceptions import AlreadyExistsException, SVSException
-from svs_core.shared.exceptions import AlreadyExistsException, NotFoundException, SVSException
+from svs_core.shared.exceptions import (
+    AlreadyExistsException,
+    NotFoundException,
+    SVSException,
+)
 from svs_core.shared.hash import hash_password
 from svs_core.shared.logger import get_logger
 
@@ -66,8 +68,9 @@ class User(OrmBase):
         if await cls.username_exists(name):
             raise AlreadyExistsException(entity="User", identifier=name)
 
-        model = UserModel(name=name, password=hash_password(password).decode("utf-8"))
-        await model.save()
+        model = await UserModel.create(
+            name=name, password=hash_password(password).decode("utf-8")
+        )
         get_logger(__name__).info(f"Created user: {name}")
         return cls(model=model)
 
