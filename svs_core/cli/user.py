@@ -2,19 +2,21 @@ import asyncio
 
 import typer
 
-from svs_core.shared.exceptions import NotFoundException
+from svs_core.shared.exceptions import AlreadyExistsException, NotFoundException
 from svs_core.users.user import (
     InvalidPasswordException,
     InvalidUsernameException,
     User,
-    UsernameAlreadyExistsException,
 )
 
-user_app = typer.Typer(help="Manage users")
+app = typer.Typer(help="Manage users")
 
 
-@user_app.command("create")
-def create(name: str, password: str) -> None:
+@app.command("create")
+def create(
+    name: str = typer.Argument(..., help="Username of the new user"),
+    password: str = typer.Argument(..., help="Password for the new user"),
+) -> None:
     """Create a new user"""
 
     async def _create():
@@ -24,15 +26,17 @@ def create(name: str, password: str) -> None:
         except (
             InvalidUsernameException,
             InvalidPasswordException,
-            UsernameAlreadyExistsException,
+            AlreadyExistsException,
         ) as e:
             typer.echo(f"❌ {e}", err=True)
 
     asyncio.run(_create())
 
 
-@user_app.command("delete")
-def delete(name: str) -> None:
+@app.command("delete")
+def delete(
+    name: str = typer.Argument(..., help="Username of the user to delete")
+) -> None:
     """Delete a user by name"""
 
     async def _delete():
@@ -45,8 +49,10 @@ def delete(name: str) -> None:
     asyncio.run(_delete())
 
 
-@user_app.command("get")
-def get(name: str) -> None:
+@app.command("get")
+def get(
+    name: str = typer.Argument(..., help="Username of the user to retrieve")
+) -> None:
     """Get a user by name"""
 
     async def _get():
@@ -59,8 +65,13 @@ def get(name: str) -> None:
     asyncio.run(_get())
 
 
-@user_app.command("check-password")
-def check_password(name: str, password: str) -> None:
+@app.command("check-password")
+def check_password(
+    name: str = typer.Argument(..., help="Username of the user"),
+    password: str = typer.Argument(
+        ..., help="Password to check against the stored hash"
+    ),
+) -> None:
     """Check if a password matches the stored hash"""
 
     async def _check():
@@ -77,7 +88,7 @@ def check_password(name: str, password: str) -> None:
     asyncio.run(_check())
 
 
-@user_app.command("list")
+@app.command("list")
 def list_users() -> None:
     """List all users"""
 

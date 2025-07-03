@@ -2,16 +2,13 @@ import re
 from typing import Any, Optional
 
 from svs_core.db.models import OrmBase, UserModel
-from svs_core.shared.exceptions import NotFoundException, SVSException
+from svs_core.shared.exceptions import (
+    AlreadyExistsException,
+    NotFoundException,
+    SVSException,
+)
 from svs_core.shared.hash import hash_password
-
-
-class UsernameAlreadyExistsException(SVSException):
-    """Exception raised when trying to create a user with an existing username."""
-
-    def __init__(self, username: str):
-        super().__init__(f"Username '{username}' already exists.")
-        self.username = username
+from svs_core.shared.logger import get_logger
 
 
 class InvalidUsernameException(SVSException):
@@ -33,13 +30,21 @@ class InvalidPasswordException(SVSException):
 
 
 class User(OrmBase):
+    """User class representing a user in the system."""
+
     _model_cls = UserModel
 
-    def __init__(self, model: UserModel, name: str, password: str, **_: Any):
+    def __init__(self, model: UserModel, **_: Any):
         super().__init__(model)
-        self._model = model
-        self.name = name
-        self.password = password
+        self._model: UserModel = model
+
+    @property
+    def name(self) -> str:
+        return self._model.name
+
+    @property
+    def password(self) -> str:
+        return self._model.password
 
     @classmethod
     async def create(cls, name: str, password: str) -> "User":
@@ -48,8 +53,8 @@ class User(OrmBase):
             name (str): The username for the new user.
             password (str): The password for the new user.
         Raises:
-            UsernameAlreadyExistsError: If the username already exists.
-            InvalidUsernameError: If the username is invalid.
+            AlreadyExistsException: If the username already exists.
+            InvalidUsernameException: If the username is invalid.
         Returns:
             User: The created user instance.
         """
@@ -61,11 +66,13 @@ class User(OrmBase):
         if not cls.is_password_valid(password):
             raise InvalidPasswordException(password)
         if await cls.username_exists(name):
-            raise UsernameAlreadyExistsException(name)
+            raise AlreadyExistsException(entity="User", identifier=name)
 
-        model = UserModel(name=name, password=hash_password(password).decode("utf-8"))
-        await model.save()
-        return cls(model=model, name=name, password=model.password)
+        model = await UserModel.create(
+            name=name, password=hash_password(password).decode("utf-8")
+        )
+        get_logger(__name__).info(f"Created user: {name}")
+        return cls(model=model)
 
     @classmethod
     async def delete(cls, name: str) -> None:
@@ -140,7 +147,6 @@ class User(OrmBase):
         """
         from svs_core.shared.hash import check_password
 
-        # self.password is stored as str, decode to bytes for bcrypt
         hashed = self.password.encode("utf-8")
         return check_password(password, hashed)
 
