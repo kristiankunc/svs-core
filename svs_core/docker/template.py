@@ -66,18 +66,20 @@ class Template(OrmBase):
         Args:
             repo_url (str): The URL of the GitHub repository.
         Returns:
-            Template: The discovered template.
+            list[Template]: The discovered templates.
         Raises:
             ValueError: If the repository URL is invalid or does not contain a Dockerfile.
         """
 
         repo = destruct_github_url(repo_url)
-        directory_contents = (
-            await send_http_request(
-                method="GET",
-                url=f"https://api.github.com/repos/{repo.owner}/{repo.name}/contents/{repo.path or ''}/Dockerfile",
-            )
-        ).json()
+        response = await send_http_request(
+            method="GET",
+            url=f"https://api.github.com/repos/{repo.owner}/{repo.name}/contents/{repo.path or ''}",
+        )
+        directory_contents = response.json()
+
+        if isinstance(directory_contents, dict):
+            directory_contents = [directory_contents]
 
         templates: list["Template"] = []
         for file in directory_contents:
