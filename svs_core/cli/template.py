@@ -68,6 +68,8 @@ def list_templates() -> None:
             typer.echo("No templates found.")
             return
         for t in templates:
-            typer.echo(f"- {t.name}{f' (desc: {t.description})' if t.description else ''}")
+            typer.echo(
+                f"- {t.name}{f' (desc: {t.description})' if t.description else ''}"
+            )
 
     asyncio.run(_list())
