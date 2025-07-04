@@ -70,7 +70,7 @@ jobs:
 
       - name: Build & Start Containers
         run: |
-          docker compose -f .github/workflows/docker-compose.yml up -d --build
+          docker compose -f .github/extra/docker-compose.yml up -d --build
 
       - name: Install dependencies
         run: |
