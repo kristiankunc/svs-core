@@ -46,8 +46,8 @@ jobs:
 
       - name: Load environment variables from .env into GITHUB_ENV
         run: |
-          export $(grep -v '^#' .github/workflows/.env.ci | xargs)
-          grep -v '^#' .github/workflows/.env.ci >> $GITHUB_ENV
+          export $(grep -v '^#' .github/extra/.env.ci | xargs)
+          grep -v '^#' .github/extra/.env.ci >> $GITHUB_ENV
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -70,7 +70,7 @@ jobs:
 
       - name: Build & Start Containers
         run: |
-          docker compose up -d --build -f .github/workflows/docker-compose.yml
+          docker compose -f .github/workflows/docker-compose.yml up -d --build
 
       - name: Install dependencies
         run: |
