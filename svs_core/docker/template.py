@@ -29,7 +29,7 @@ class Template(OrmBase):
         return self._model.exposed_ports
 
     def __str__(self) -> str:
-        return f"Template(name={self.name}, dockerfile={self.dockerfile}, description={self.description}, exposed_ports={self.exposed_ports})"
+        return f"Template(id={self.id}, name={self.name}, description={self.description}, exposed_ports={self.exposed_ports})"
 
     @classmethod
     async def create(
@@ -45,10 +45,6 @@ class Template(OrmBase):
 
         if not name or not dockerfile:
             raise ValueError("Provided values cannot be empty")
-
-        print(
-            f"Creating template {name}, dockerfile={dockerfile}, description={description}, exposed_ports={exposed_ports}"
-        )
 
         model = await TemplateModel.create(
             name=name,

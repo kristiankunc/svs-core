@@ -151,4 +151,4 @@ class User(OrmBase):
         return check_password(password, hashed)
 
     def __str__(self) -> str:
-        return f"User(name={self.name}, id={self.id})"
+        return f"User(id={self.id}, name={self.name})"

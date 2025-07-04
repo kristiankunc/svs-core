@@ -58,6 +58,15 @@ class OrmBase(ABC):
 
     @classmethod
     async def _get(cls: Type[T], key: str, value: Any) -> Optional[T]:
+        """
+        Retrieves an instance by a specific key and value.
+
+        Args:
+            key (str): The field name to filter by.
+            value (Any): The value to match against the field.
+        Returns:
+            Optional[T]: An instance of the class if found, otherwise None.
+        """
         models = await cls._model_cls.filter(**{key: value})
         if len(models) != 1:
             return None
@@ -65,23 +74,76 @@ class OrmBase(ABC):
         if not isinstance(model, BaseModel):
             raise TypeError("Model is not an instance of BaseModel")
 
-        return cls(model=model, **model.__dict__)
+        return cls(model=model)
 
     @classmethod
     async def _exists(cls: Type[T], key: str, value: Any) -> bool:
+        """
+        Checks if an instance with the given key and value exists.
+        Args:
+            key (str): The field name to check.
+            value (Any): The value to check for.
+        Returns:
+            bool: True if an instance exists, False otherwise.
+        """
+
         models = await cls._model_cls.filter(**{key: value})
         return len(models) > 0
 
     @classmethod
     async def get_all(cls: Type[T]) -> list[T]:
-        """Retrieves all instances of the model."""
-        models = await cls._model_cls.all()
-        return [cls(model=model, **model.__dict__) for model in models]
+        """
+        Retrieves all instances of the class, with all related fields prefetched.
+
+        Returns:
+            list[T]: A list of instances of the class.
+        """
+        related_fields = []
+        for field_name, field in cls._model_cls._meta.fields_map.items():
+            if isinstance(
+                field,
+                (
+                    fields.relational.ForeignKeyFieldInstance,
+                    fields.relational.BackwardFKRelation,
+                ),
+            ):
+                related_fields.append(field_name)
+
+        query = cls._model_cls.all().prefetch_related(*related_fields)
+        models = await query
+        return [cls(model=model) for model in models]
 
     @classmethod
     async def get_by_id(cls: Type[T], id: int) -> Optional[T]:
-        """Retrieves an instance by its ID."""
-        return await cls._get("id", id)
+        """
+        Retrieves an instance by its ID, with all related fields prefetched.
+
+        Args:
+            id (int): The ID of the instance to retrieve.
+        Returns:
+            Optional[T]: An instance of the class if found, otherwise None.
+        """
+
+        related_fields = []
+        for field_name, field in cls._model_cls._meta.fields_map.items():
+            if isinstance(
+                field,
+                (
+                    fields.relational.ForeignKeyFieldInstance,
+                    fields.relational.BackwardFKRelation,
+                ),
+            ):
+                related_fields.append(field_name)
+
+        query = cls._model_cls.filter(id=id)
+        if related_fields:
+            query = query.prefetch_related(*related_fields)
+
+        models = await query
+        if not models:
+            return None
+        model = models[0]
+        return cls(model=model)
 
     def __str__(self) -> str:
         return str(self.__dict__)
@@ -100,6 +162,8 @@ class UserModel(BaseModel):
     name = fields.CharField(max_length=255, null=False, unique=True)
     password = fields.CharField(max_length=255, null=True)
 
+    services: fields.ReverseRelation["ServiceModel"]
+
     class Meta:
         table = "users"
 
@@ -110,8 +174,24 @@ class TemplateModel(BaseModel):
     description = fields.TextField(null=True)
     exposed_ports: Optional[list[int]] = fields.JSONField(null=True)
 
+    services: fields.ReverseRelation["ServiceModel"]
+
     class Meta:
         table = "templates"
+
+
+class ServiceModel(BaseModel):
+    name = fields.CharField(max_length=255, null=False)
+    container_id = fields.CharField(max_length=255, null=True, default=None)
+    template: fields.ForeignKeyRelation["TemplateModel"] = fields.ForeignKeyField(
+        "models.TemplateModel", related_name="services", to_field="id", null=False
+    )
+    user: fields.ForeignKeyRelation["UserModel"] = fields.ForeignKeyField(
+        "models.UserModel", related_name="services", to_field="id", null=False
+    )
+
+    class Meta:
+        table = "services"
 
 
 @post_save(BaseModel)
