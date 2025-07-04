@@ -44,6 +44,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Load environment variables from .env into GITHUB_ENV
+        run: |
+          export $(grep -v '^#' .github/workflows/.env.ci | xargs)
+          grep -v '^#' .env >> $GITHUB_ENV
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -75,10 +80,6 @@ jobs:
 
       - name: Run unit tests
         run: python -m pytest -m unit
-        env_files:
-          - .github/workflows/.env.ci
 
       - name: Run integration tests
         run: python -m pytest -m integration
-        env_files:
-          - .github/workflows/.env.ci
