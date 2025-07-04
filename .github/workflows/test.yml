@@ -47,7 +47,7 @@ jobs:
       - name: Load environment variables from .env into GITHUB_ENV
         run: |
           export $(grep -v '^#' .github/workflows/.env.ci | xargs)
-          grep -v '^#' .env >> $GITHUB_ENV
+          grep -v '^#' .github/workflows/.env.ci >> $GITHUB_ENV
 
       - name: Set up Python
         uses: actions/setup-python@v5
