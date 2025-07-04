@@ -183,6 +183,8 @@ class TemplateModel(BaseModel):
 class ServiceModel(BaseModel):
     name = fields.CharField(max_length=255, null=False)
     container_id = fields.CharField(max_length=255, null=True, default=None)
+    domain = fields.CharField(max_length=255, null=True, default=None)
+
     template: fields.ForeignKeyRelation["TemplateModel"] = fields.ForeignKeyField(
         "models.TemplateModel", related_name="services", to_field="id", null=False
     )

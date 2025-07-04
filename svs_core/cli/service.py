@@ -13,6 +13,7 @@ def create(
     name: str = typer.Argument(..., help="Service name"),
     template_id: int = typer.Argument(..., help="Template ID"),
     user_id: int = typer.Argument(..., help="User ID"),
+    domain: str = typer.Option(None, help="Domain for the service"),
 ) -> None:
     """Create a new service."""
 
@@ -22,6 +23,7 @@ def create(
                 name=name,
                 template_id=template_id,
                 user_id=user_id,
+                domain=domain,
             )
             typer.echo(f"✅ Service '{service.name}' created successfully.")
         except AlreadyExistsException as e:
