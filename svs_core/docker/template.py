@@ -39,7 +39,18 @@ class Template(OrmBase):
         description: Optional[str] = None,
         exposed_ports: Optional[list[int]] = None,
     ) -> "Template":
-        """Creates a new template with the given name, dockerfile, description, and exposed ports."""
+        """Creates a new template with the given name, dockerfile, description, and exposed ports.
+
+        Args:
+            name (str): The name of the template.
+            dockerfile (str): The Dockerfile content.
+            description (Optional[str]): A description of the template.
+            exposed_ports (Optional[list[int]]): A list of exposed ports.
+        Returns:
+            Template: The created template instance.
+        Raises:
+            ValueError: If the name or dockerfile is empty.
+        """
         name = name.lower().strip()
         dockerfile = dockerfile.strip()
 

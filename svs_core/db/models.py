@@ -145,6 +145,12 @@ class OrmBase(ABC):
         model = models[0]
         return cls(model=model)
 
+    async def delete(self) -> None:
+        """
+        Deletes the instance from the database.
+        """
+        await self._model.delete()
+
     def __str__(self) -> str:
         return str(self.__dict__)
 
