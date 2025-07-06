@@ -56,6 +56,66 @@ class Template(OrmBase):
         return cls(model=model)
 
     @classmethod
+    async def parse_dockerfile(
+        cls, dockerfile: str
+    ) -> tuple[str, Optional[str], list[int]]:
+        """Parses a Dockerfile to extract the name, description, and exposed ports.
+
+        Args:
+            dockerfile (str): The Dockerfile content.
+        Returns:
+            tuple[str, Optional[str], list[int]]: A tuple containing the name, description, and exposed ports.
+        """
+        lines = dockerfile.splitlines()
+        name = None
+        description = None
+        exposed_ports: list[int] = []
+
+        for line in lines:
+            line = line.strip()
+            if line.startswith("# NAME="):
+                name = line[len("# NAME=") :].strip()
+            elif line.startswith("# DESCRIPTION="):
+                description = line[len("# DESCRIPTION=") :].strip()
+            elif line.startswith("# PROXY_PORTS="):
+                ports = line[len("# PROXY_PORTS=") :].strip().split(",")
+                exposed_ports.extend(
+                    int(port.strip()) for port in ports if port.strip().isdigit()
+                )
+
+        if not name:
+            raise ValueError("Dockerfile does not have a valid name.")
+
+        return name, description, exposed_ports
+
+    @classmethod
+    async def import_from_url(cls, url: str) -> "Template":
+        """Imports a template from a URL.
+
+        Args:
+            url (str): The URL of the Dockerfile.
+        Returns:
+            Template: The imported template.
+        Raises:
+            ValueError: If the URL is invalid or does not point to a Dockerfile.
+        """
+        response = await send_http_request(method="GET", url=url)
+        if response.status_code != 200:
+            raise ValueError(f"Failed to fetch Dockerfile from {url}")
+
+        dockerfile_content = response.text
+        name, description, exposed_ports = await cls.parse_dockerfile(
+            dockerfile_content
+        )
+
+        return await cls.create(
+            name=name,
+            dockerfile=dockerfile_content,
+            description=description,
+            exposed_ports=exposed_ports,
+        )
+
+    @classmethod
     async def discover_from_github(cls, repo_url: str) -> list["Template"]:
         """Discovers a template from a GitHub repository.
 
@@ -84,28 +144,11 @@ class Template(OrmBase):
                     await send_http_request(method="GET", url=file["download_url"])
                 ).text
 
-                lines = file_content.splitlines()
-                name = None
-                description = None
-                exposed_ports: list[int] = []
-                for line in lines:
-                    line = line.strip()
-                    if line.startswith("# NAME="):
-                        name = line[len("# NAME=") :].strip()
-                    elif line.startswith("# DESCRIPTION="):
-                        description = line[len("# DESCRIPTION=") :].strip()
-                    elif line.startswith("# PROXY_PORTS="):
-                        ports = line[len("# PROXY_PORTS=") :].strip().split(",")
-                        exposed_ports.extend(
-                            int(port.strip())
-                            for port in ports
-                            if port.strip().isdigit()
-                        )
+                # Use the parse_dockerfile method to extract details
+                name, description, exposed_ports = await cls.parse_dockerfile(
+                    file_content
+                )
 
-                if not name:
-                    raise ValueError(
-                        f"Template in {repo_url} does not have a valid name in the Dockerfile."
-                    )
                 templates.append(
                     await cls.create(
                         name=name,
