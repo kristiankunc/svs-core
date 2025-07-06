@@ -44,10 +44,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Load environment variables from .env into GITHUB_ENV
+      - name: Load environment variables from .env.ci
         run: |
-          export $(grep -v '^#' .github/extra/.env.ci | xargs)
-          grep -v '^#' .github/extra/.env.ci >> $GITHUB_ENV
+          set -a
+          source .github/extra/.env.ci
+          set +a
 
       - name: Set up Python
         uses: actions/setup-python@v5
