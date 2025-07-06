@@ -49,6 +49,7 @@ jobs:
         with:
           path: .github/extra
           filenames: .env.ci
+          expand: true
 
       - name: DEBUG - Print specific environment variables
         run: |
