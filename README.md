@@ -13,8 +13,10 @@ Under the hood, all services will be managed using Docker containers, which allo
 ## Technology overview
 
 Every service will run a Docker container and all of users' services will be on the same Docker network, allowing them to communicate with each other easily without
-i. exposing them to other users on the same server
-ii. having to use compose stacks and custom networks to allow cross-service communication.
+
+1. exposing them to other users on the same server
+2. having to use compose stacks and custom networks to allow cross-service communication.
+
 Direct SSH access to the containers will be provided but handled by additional authentication as to avoid having to create system accounts for each user.
 
 ## Features
@@ -24,7 +26,7 @@ Currently, the library is in early development and has the following features:
 -   [x] User management
 -   [x] Docker network management
 -   [ ] Service management
--   [ ] Service templates
+-   [x] Service templates
 -   [ ] CI/CD integration
 -   [ ] DB/System sync issues + recovery
 -   [ ] Remote SSH access
@@ -38,7 +40,8 @@ The easiest way to achieve a reproducible environment is to use the included dev
 The local devcontainer config creates the following compose stack:
 
 1. A `debian` container for the development environment.
-1. A `postgres` database container for storing service data.
+2. A `postgres` database container for storing service data.
+3. A `caddy` container to act as a HTTP proxy
 
 This guide assumes you have chosen to use the devcontainer setup.
 
