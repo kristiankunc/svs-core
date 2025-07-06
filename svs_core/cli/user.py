@@ -2,7 +2,7 @@ import asyncio
 
 import typer
 
-from svs_core.shared.exceptions import AlreadyExistsException, NotFoundException
+from svs_core.shared.exceptions import AlreadyExistsException
 from svs_core.users.user import (
     InvalidPasswordException,
     InvalidUsernameException,
@@ -31,22 +31,6 @@ def create(
             typer.echo(f"❌ {e}", err=True)
 
     asyncio.run(_create())
-
-
-@app.command("delete")
-def delete(
-    name: str = typer.Argument(..., help="Username of the user to delete")
-) -> None:
-    """Delete a user by name"""
-
-    async def _delete():
-        try:
-            await User.delete(name)
-            typer.echo(f"✅ User '{name}' deleted successfully.")
-        except NotFoundException as e:
-            typer.echo(f"❌ {e}", err=True)
-
-    asyncio.run(_delete())
 
 
 @app.command("get")
