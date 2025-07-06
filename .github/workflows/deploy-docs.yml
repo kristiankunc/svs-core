@@ -7,7 +7,7 @@ on:
     paths:
       - "docs/**"
       - "mkdocs.yml"
-      - ".github/deploy-docs.yml"
+      - ".github/workflows/deploy-docs.yml"
 
   workflow_dispatch:
 
