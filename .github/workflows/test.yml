@@ -51,13 +51,6 @@ jobs:
           filenames: .env.ci
           expand: true
 
-      - name: DEBUG - Print specific environment variables
-        run: |
-          echo "Environment Variables:"
-          for var in POSTGRES_USER POSTGRES_PASSWORD POSTGRES_DB POSTGRES_HOST PGPORT DATABASE_URL TEST_DATABASE_URL; do
-            echo "$var=${!var}"
-          done
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
