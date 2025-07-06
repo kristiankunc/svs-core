@@ -48,7 +48,7 @@ jobs:
         uses: aarcangeli/load-dotenv@v1
         with:
           path: .github/extra
-          file: .env.ci
+          filenames: .env.ci
 
       - name: Set up Python
         uses: actions/setup-python@v5
