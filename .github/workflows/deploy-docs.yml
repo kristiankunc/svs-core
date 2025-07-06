@@ -26,7 +26,11 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install mkdocs mkdocs-material mkdocstrings[python]
+          pip install mkdocs mkdocs-material mkdocstrings[python] typer
+
+      - name: Compile CLI docs
+        run: |
+          python docs/compile-cli.py
 
       - name: Deploy to GitHub Pages
         run: |

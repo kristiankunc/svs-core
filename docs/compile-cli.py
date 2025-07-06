@@ -1,0 +1,40 @@
+# Uses typer docs utility to compile CLI documentation from Python files.
+# Appends the docs to a specfied OUTPUT_FILE
+
+import os
+
+OUTPUT_FILE = "docs/cli.md"
+
+
+def get_all_cli_files(directory: str) -> list[str]:
+    cli_files = []
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith(".py") and not file.startswith("__"):
+                cli_files.append(os.path.join(root, file))
+    return cli_files
+
+
+def generate_docs(file: str) -> str:
+    filename = os.path.splitext(os.path.basename(file))[0]
+    output = os.popen(f"typer {file} utils docs --name {filename.capitalize()}").read()
+    return output
+
+
+def downgrade_headings(docs: str) -> str:
+    return "\n".join(
+        f"#{line}" if line.startswith("#") else line for line in docs.splitlines()
+    )
+
+
+if __name__ == "__main__":
+    files = get_all_cli_files("svs_core/cli")
+
+    docs = ""
+    for file in files:
+        docs += generate_docs(file)
+
+    docs = downgrade_headings(docs)
+
+    with open(OUTPUT_FILE, "a") as f:
+        f.write(f"\n{docs}")

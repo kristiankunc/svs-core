@@ -3,6 +3,7 @@ site_url: https://svs.kristn.co.uk
 
 nav:
   - Home: index.md
+  - CLI: cli.md
 
 theme:
   name: material
@@ -25,19 +26,17 @@ plugins:
   - search:
       lang: en
       separator: '[\s\-]+'
-      prebuild_index: true
-      type: default
   - mkdocstrings:
       handlers:
         python:
           options:
             docstring_style: google
             merge_init_into_class: true
-            group_by_category: true
+            group_by_category: false
             show_root_toc_entry: true
             members_order: source
+            show_source: true
             extra:
-              show_inherited_members: true
               show_private_members: true
               show_special_members: true
-              show_source: true
+              show_inherited_members: true
