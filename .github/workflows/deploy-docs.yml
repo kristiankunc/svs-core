@@ -28,6 +28,10 @@ jobs:
         run: |
           pip install mkdocs mkdocs-material mkdocstrings[python] typer
 
+      - name: Install self
+        run: |
+          pip install -e .
+
       - name: Compile CLI docs
         run: |
           python docs/compile-cli.py
