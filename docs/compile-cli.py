@@ -30,6 +30,8 @@ def downgrade_headings(docs: str) -> str:
 if __name__ == "__main__":
     files = get_all_cli_files("svs_core/cli")
 
+    print(f"Discovered {files}")
+    
     docs = ""
     for file in files:
         docs += generate_docs(file)
