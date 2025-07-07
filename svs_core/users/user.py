@@ -77,6 +77,13 @@ class User(OrmBase):
         get_logger(__name__).info(f"Created user: {name}")
         return cls(model=model)
 
+    async def delete(self) -> None:
+        """Deletes the user and associated resources."""
+
+        await self._model.delete()
+        DockerNetworkManager.delete_network(self.name)
+        get_logger(__name__).info(f"Deleted user: {self.name}")
+
     @classmethod
     async def get_by_name(cls, name: str) -> Optional["User"]:
         return await cls._get("name", name)
