@@ -7,18 +7,12 @@ TEMPLATE_FILE = "docs/cli.md.template"
 OUTPUT_FILE = "docs/cli.md"
 
 
-def get_all_cli_files(directory: str) -> list[str]:
-    cli_files = []
-    for root, _, files in os.walk(directory):
-        for file in files:
-            if file.endswith(".py") and not file.startswith("__"):
-                cli_files.append(os.path.join(root, file))
-    return cli_files
-
-
 def generate_docs(file: str) -> str:
-    filename = os.path.splitext(os.path.basename(file))[0]
-    output = os.popen(f"typer {file} utils docs --name {filename.capitalize()}").read()
+    output = (
+        os.popen(f"typer {file} utils docs --name svs")
+        .read()
+        .replace("SVS CLI\n\n", "")
+    )
     return output
 
 
@@ -29,15 +23,7 @@ def downgrade_headings(docs: str) -> str:
 
 
 if __name__ == "__main__":
-    files = ["svs_core/__main__.py"]
-
-    files += get_all_cli_files("svs_core/cli")
-
-    print(f"Discovered {files}")
-
-    docs = ""
-    for file in files:
-        docs += generate_docs(file)
+    docs = generate_docs("svs_core/__main__.py")
 
     docs = downgrade_headings(docs)
 
