@@ -1,8 +1,9 @@
 # Uses typer docs utility to compile CLI documentation from Python files.
-# Appends the docs to a specfied OUTPUT_FILE
+# Dumps the output into a markdown file append to the template file.
 
 import os
 
+TEMPLATE_FILE = "docs/cli.md.template"
 OUTPUT_FILE = "docs/cli.md"
 
 
@@ -28,7 +29,9 @@ def downgrade_headings(docs: str) -> str:
 
 
 if __name__ == "__main__":
-    files = get_all_cli_files("svs_core/cli")
+    files = ["svs_core/__main__.py"]
+
+    files += get_all_cli_files("svs_core/cli")
 
     print(f"Discovered {files}")
 
@@ -38,5 +41,10 @@ if __name__ == "__main__":
 
     docs = downgrade_headings(docs)
 
+    with open(TEMPLATE_FILE, "r") as template_file:
+        template_content = template_file.read()
+
     with open(OUTPUT_FILE, "a") as f:
-        f.write(f"\n{docs}")
+        f.write(template_content)
+        f.write("\n")
+        f.write(docs)
