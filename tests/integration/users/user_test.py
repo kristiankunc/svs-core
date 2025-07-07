@@ -1,6 +1,8 @@
+import docker
 import pytest
 from tortoise.contrib.test import TestCase
 
+from svs_core.docker.base import get_docker_client
 from svs_core.shared.exceptions import AlreadyExistsException
 from svs_core.users.user import (
     InvalidPasswordException,
@@ -50,3 +52,24 @@ class TestUserIntegration(TestCase):
         user = await User.create(name="pwtest", password="password123")
         assert await user.check_password("password123") is True
         assert await user.check_password("wrongpass") is False
+
+    @pytest.mark.integration
+    async def test_user_creation_creates_docker_network(self):
+        """Test that creating a user also creates a Docker network with the user's name."""
+        username = "dockernetuser"
+        password = "password123"
+        client = get_docker_client()
+
+        try:
+            net = client.networks.get(username)
+            net.remove()
+        except docker.errors.NotFound:
+            pass
+
+        await User.create(name=username, password=password)
+
+        network = client.networks.get(username)
+        assert network is not None
+        assert network.name == username
+
+        network.remove()
