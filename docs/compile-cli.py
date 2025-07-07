@@ -2,16 +2,17 @@
 # Dumps the output into a markdown file append to the template file.
 
 import os
+import re
 
 TEMPLATE_FILE = "docs/cli.md.template"
 OUTPUT_FILE = "docs/cli.md"
 
 
 def generate_docs(file: str) -> str:
-    output = (
-        os.popen(f"typer {file} utils docs --name svs")
-        .read()
-        .replace("SVS CLI\n\n", "")
+    output = os.popen(f"typer {file} utils docs --name svs").read()
+    output = output.replace("SVS CLI\n\n", "")
+    output = re.sub(
+        r".*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}: \[[A-Z]+\].*\n?", "", output
     )
     return output
 
