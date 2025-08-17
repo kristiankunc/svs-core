@@ -1,9 +1,7 @@
 import os
 from urllib.parse import urlparse, urlunparse
 
-import pytest
 import pytest_asyncio
-from dotenv import load_dotenv
 from tortoise import Tortoise
 
 # TODO: Analyze this
@@ -55,12 +53,6 @@ async def _ensure_postgres_database(db_url: str) -> None:
         pass  # Non-fatal: test will surface connection issue
     finally:
         await conn.close()
-
-
-@pytest.fixture(autouse=True)
-def load_env():
-    """Load environment variables from .env file if it exists."""
-    load_dotenv(override=True)
 
 
 @pytest_asyncio.fixture(autouse=True)
