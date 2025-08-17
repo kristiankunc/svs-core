@@ -1,5 +1,4 @@
 import pytest
-from tortoise.contrib.test import TestCase
 
 from svs_core.shared.exceptions import AlreadyExistsException
 from svs_core.users.user import (
@@ -9,7 +8,8 @@ from svs_core.users.user import (
 )
 
 
-class TestUserIntegration(TestCase):
+class TestUserIntegration:
+    @pytest.mark.asyncio
     @pytest.mark.integration
     async def test_create_user_success(self):
         """Test creating a user with valid parameters."""
@@ -17,6 +17,7 @@ class TestUserIntegration(TestCase):
         assert user.name == "testuser"
         assert await User.get_by_name("testuser") is not None
 
+    @pytest.mark.asyncio
     @pytest.mark.integration
     async def test_create_user_duplicate(self):
         """Test creating a user with a duplicate username."""
@@ -24,18 +25,21 @@ class TestUserIntegration(TestCase):
         with pytest.raises(AlreadyExistsException):
             await User.create(name="dupeuser", password="password123")
 
+    @pytest.mark.asyncio
     @pytest.mark.integration
     async def test_create_user_invalid_username(self):
         """Test creating a user with an invalid username."""
         with pytest.raises(InvalidUsernameException):
             await User.create(name="invalid@user", password="password123")
 
+    @pytest.mark.asyncio
     @pytest.mark.integration
     async def test_create_user_invalid_password(self):
         """Test creating a user with an invalid password."""
         with pytest.raises(InvalidPasswordException):
             await User.create(name="validuser2", password="short")
 
+    @pytest.mark.asyncio
     @pytest.mark.integration
     async def test_get_by_name(self):
         """Test retrieving a user by name."""
@@ -44,6 +48,7 @@ class TestUserIntegration(TestCase):
         assert user is not None
         assert user.name == "findme"
 
+    @pytest.mark.asyncio
     @pytest.mark.integration
     async def test_check_password(self):
         """Test checking the password for a user."""
