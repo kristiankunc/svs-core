@@ -10,6 +10,9 @@ repos:
                 - --autofix
                 - --indent
                 - "\t"
+          - id: requirements-txt-fixer
+          - id: check-docstring-first
+          - id: check-toml
 
     - repo: https://github.com/psf/black
       rev: 25.1.0
