@@ -1,5 +1,4 @@
 import asyncio
-
 from datetime import datetime
 
 import pytest
@@ -35,7 +34,7 @@ class TestOrmBase:
     @pytest.mark.integration
     async def test_signal_post_save_updates_instance(self):
         """Test that the post_save signal updates the instance."""
-        
+
         user = await User.create(name="TestUser", password="password")
         user._model.name = "Changed Name"
         await user._model.save()

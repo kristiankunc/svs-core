@@ -1,12 +1,11 @@
 import os
-
 from urllib.parse import urlparse, urlunparse
 
 import pytest_asyncio
-
 from tortoise import Tortoise
 
 # TODO: Analyze this
+
 
 async def _ensure_postgres_database(db_url: str) -> None:
     """Ensure the target Postgres database exists; create it if missing.

@@ -144,9 +144,7 @@ class TestTemplate:
             "svs_core.docker.template.send_http_request", fake_send_http_request
         )
 
-        templates = await Template.discover_from_github(
-            "https://github.com/owner/repo"
-        )
+        templates = await Template.discover_from_github("https://github.com/owner/repo")
         assert len(templates) == 1
         t = templates[0]
         assert t.name == "github-template"
@@ -179,7 +177,5 @@ class TestTemplate:
             "svs_core.docker.template.send_http_request", fake_send_http_request
         )
 
-        templates = await Template.discover_from_github(
-            "https://github.com/owner/repo"
-        )
+        templates = await Template.discover_from_github("https://github.com/owner/repo")
         assert templates == []
