@@ -4,9 +4,7 @@
 import asyncio
 import sys
 
-from tortoise import Tortoise
-
-from svs_core.db.models import TORTOISE_ORM
+from dotenv import load_dotenv
 
 
 async def init() -> None:
@@ -28,6 +26,12 @@ async def clear() -> None:
 
 
 if __name__ == "__main__":
+    load_dotenv()
+
+    from tortoise import Tortoise
+
+    from svs_core.db.models import TORTOISE_ORM
+
     action = sys.argv[1] if len(sys.argv) > 1 else None
 
     if action not in ["init", "clear"]:

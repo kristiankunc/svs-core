@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 
 import asyncio
+import os
 
 import typer
-from tortoise import Tortoise
+
+if not os.getenv("DATABASE_URL"):
+    from dotenv import load_dotenv
+
+    load_dotenv()
 
 from svs_core.cli.service import app as service_app
 from svs_core.cli.template import app as template_app
 from svs_core.cli.user import app as user_app
-from svs_core.db.models import TORTOISE_ORM
 
 app = typer.Typer(help="SVS CLI")
 
@@ -18,6 +22,10 @@ app.add_typer(service_app, name="service")
 
 
 def main() -> None:
+    from tortoise import Tortoise
+
+    from svs_core.db.models import TORTOISE_ORM
+
     asyncio.run(Tortoise.init(config=TORTOISE_ORM))
     app()
 

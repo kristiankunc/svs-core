@@ -12,9 +12,8 @@ from svs_core.shared.logger import get_logger
 
 DB_URL = os.getenv("DATABASE_URL")
 if not DB_URL:
-    get_logger(__name__).error(
-        "DATABASE_URL environment variable is not set. Using default SQLite in-memory database."
-    )
+    get_logger(__name__).error("DATABASE_URL environment variable is not set.")
+    exit(1)
 
 
 TORTOISE_ORM = {

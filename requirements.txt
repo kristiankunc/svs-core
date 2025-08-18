@@ -13,6 +13,7 @@ pre-commit
 pytest
 pytest-asyncio
 pytest_mock
+python-dotenv
 ruff
 tortoise-orm[psycopg]
 typer
