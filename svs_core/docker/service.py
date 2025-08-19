@@ -53,6 +53,7 @@ class Service(OrmBase):
         Returns:
             Service: The created service instance.
         """
+
         name = name.strip()
         model = await ServiceModel.create(
             name=name,
@@ -60,4 +61,5 @@ class Service(OrmBase):
             user_id=user_id,
             domain=domain,
         )
+
         return cls(model=model)
