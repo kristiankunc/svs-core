@@ -2,10 +2,8 @@ import re
 from typing import Any, Optional
 
 from svs_core.db.models import OrmBase, UserModel
-from svs_core.shared.exceptions import (
-    AlreadyExistsException,
-    SVSException,
-)
+from svs_core.docker.network import DockerNetworkManager
+from svs_core.shared.exceptions import AlreadyExistsException, SVSException
 from svs_core.shared.hash import hash_password
 from svs_core.shared.logger import get_logger
 
@@ -70,6 +68,9 @@ class User(OrmBase):
         model = await UserModel.create(
             name=name, password=hash_password(password).decode("utf-8")
         )
+
+        DockerNetworkManager.create_network(name)
+
         get_logger(__name__).info(f"Created user: {name}")
         return cls(model=model)
 
