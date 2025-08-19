@@ -1,7 +1,6 @@
 from typing import Any, Optional
 
 from svs_core.db.models import OrmBase, TemplateModel
-from svs_core.docker.image import DockerImageManager
 from svs_core.shared.github import destruct_github_url
 from svs_core.shared.http import send_http_request
 
@@ -57,8 +56,6 @@ class Template(OrmBase):
 
         if not name or not dockerfile:
             raise ValueError("Provided values cannot be empty")
-
-        DockerImageManager.build_from_dockerfile(dockerfile, name)
 
         model = await TemplateModel.create(
             name=name,
