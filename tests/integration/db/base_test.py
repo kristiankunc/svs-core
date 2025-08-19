@@ -2,8 +2,18 @@ import asyncio
 from datetime import datetime
 
 import pytest
+from pytest_mock import MockerFixture
 
 from svs_core.users.user import User
+
+
+# Automatically mock the docker network creation
+@pytest.fixture(autouse=True)
+def create_network_mock(mocker: MockerFixture) -> MockerFixture:
+    return mocker.patch(
+        "svs_core.docker.network.DockerNetworkManager.create_network",
+        return_value=None,
+    )
 
 
 class TestOrmBase:
