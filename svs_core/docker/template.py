@@ -1,8 +1,14 @@
-from typing import Any, Optional
+from typing import Any, List
 
-from svs_core.db.models import OrmBase, TemplateModel
-from svs_core.shared.github import destruct_github_url
-from svs_core.shared.http import send_http_request
+from svs_core.db.models import OrmBase, TemplateModel, TemplateType
+from svs_core.docker.image import DockerImageManager
+from svs_core.docker.json_properties import (
+    EnvVariable,
+    ExposedPort,
+    Healthcheck,
+    Label,
+    Volume,
+)
 
 
 class Template(OrmBase):
@@ -17,156 +23,324 @@ class Template(OrmBase):
         return self._model.name
 
     @property
-    def dockerfile(self) -> str:
+    def type(self) -> TemplateType:
+        return self._model.type
+
+    @property
+    def image(self) -> str | None:
+        return self._model.image
+
+    @property
+    def dockerfile(self) -> str | None:
         return self._model.dockerfile
 
     @property
-    def description(self) -> Optional[str]:
+    def description(self) -> str | None:
         return self._model.description
 
     @property
-    def exposed_ports(self) -> Optional[Any]:
-        return self._model.exposed_ports
+    def default_env(self) -> List[EnvVariable]:
+        env_dict = self._model.default_env or {}
+        return [EnvVariable(key=key, value=value) for key, value in env_dict.items()]
+
+    @property
+    def default_ports(self) -> List[ExposedPort]:
+        ports_list = self._model.default_ports or []
+        result = []
+        for port in ports_list:
+            container_port = port.get("container")
+            if container_port is not None:
+                result.append(
+                    ExposedPort(
+                        container_port=int(container_port),
+                        host_port=(
+                            int(port["host"]) if port.get("host") is not None else None
+                        ),
+                    )
+                )
+        return result
+
+    @property
+    def default_volumes(self) -> List[Volume]:
+        volumes_list = self._model.default_volumes or []
+        return [
+            Volume(
+                container_path=str(volume["container"]),
+                host_path=(
+                    str(volume["host"]) if volume.get("host") is not None else None
+                ),
+            )
+            for volume in volumes_list
+        ]
+
+    @property
+    def start_cmd(self) -> str | None:
+        return self._model.start_cmd
+
+    @property
+    def healthcheck(self) -> Healthcheck | None:
+        healthcheck_dict = self._model.healthcheck or {}
+        if not healthcheck_dict or "test" not in healthcheck_dict:
+            return None
+
+        return Healthcheck(
+            test=healthcheck_dict.get("test", []),
+            interval=healthcheck_dict.get("interval"),
+            timeout=healthcheck_dict.get("timeout"),
+            retries=healthcheck_dict.get("retries"),
+            start_period=healthcheck_dict.get("start_period"),
+        )
+
+    @property
+    def labels(self) -> List[Label]:
+        labels_dict = self._model.labels or {}
+        return [Label(key=key, value=value) for key, value in labels_dict.items()]
+
+    @property
+    def args(self) -> list[str]:
+        return self._model.args or []
 
     def __str__(self) -> str:
-        return f"Template(id={self.id}, name={self.name}, description={self.description}, exposed_ports={self.exposed_ports})"
+        env_vars = [f"{env.key}={env.value}" for env in self.default_env]
+        ports = [
+            f"{port.container_port}:{port.host_port}" for port in self.default_ports
+        ]
+        volumes = [
+            f"{vol.container_path}:{vol.host_path or 'None'}"
+            for vol in self.default_volumes
+        ]
+        labels = [f"{label.key}={label.value}" for label in self.labels]
+
+        healthcheck_str = "None"
+        if self.healthcheck:
+            test_str = " ".join(self.healthcheck.test)
+            healthcheck_str = f"test='{test_str}'"
+
+        return (
+            f"Template(id={self.id}, name={self.name}, type={self.type}, image={self.image}, "
+            f"dockerfile={self.dockerfile}, description={self.description}, "
+            f"default_env=[{', '.join(env_vars)}], "
+            f"default_ports=[{', '.join(ports)}], "
+            f"default_volumes=[{', '.join(volumes)}], "
+            f"start_cmd={self.start_cmd}, "
+            f"healthcheck={healthcheck_str}, "
+            f"labels=[{', '.join(labels)}], "
+            f"args={self.args})"
+        )
 
     @classmethod
     async def create(
         cls,
         name: str,
-        dockerfile: str,
-        description: Optional[str] = None,
-        exposed_ports: Optional[list[int]] = None,
+        type: TemplateType = TemplateType.IMAGE,
+        image: str | None = None,
+        dockerfile: str | None = None,
+        description: str | None = None,
+        default_env: dict[str, str] | None = None,
+        default_ports: list[dict[str, Any]] | None = None,
+        default_volumes: list[dict[str, Any]] | None = None,
+        start_cmd: str | None = None,
+        healthcheck: dict[str, Any] | None = None,
+        labels: dict[str, str] | None = None,
+        args: list[str] | None = None,
     ) -> "Template":
-        """Creates a new template with the given name, dockerfile, description, and exposed ports.
+        """Creates a new template with all supported attributes."""
+        # Validate name
+        name = name.strip()
+        if not name:
+            raise ValueError("Template name cannot be empty")
 
-        Args:
-            name (str): The name of the template.
-            dockerfile (str): The Dockerfile content.
-            description (Optional[str]): A description of the template.
-            exposed_ports (Optional[list[int]]): A list of exposed ports.
-        Returns:
-            Template: The created template instance.
-        Raises:
-            ValueError: If the name or dockerfile is empty.
-        """
-        name = name.lower().strip()
-        dockerfile = dockerfile.strip()
+        # Validate type-specific requirements
+        if type == TemplateType.IMAGE:
+            if not image:
+                raise ValueError("Image type templates must specify an image")
+        elif type == TemplateType.BUILD:
+            if not dockerfile:
+                raise ValueError("Build type templates must specify a dockerfile")
 
-        if not name or not dockerfile:
-            raise ValueError("Provided values cannot be empty")
+        # Validate image format if provided
+        if image is not None:
+            image = image.strip()
+            if not image:
+                raise ValueError("Image cannot be empty if provided")
+
+        # Validate dockerfile if provided
+        if dockerfile is not None and not dockerfile.strip():
+            raise ValueError("Dockerfile cannot be empty if provided")
+
+        # Validate default_env
+        if default_env is not None:
+            for key, value in default_env.items():
+                if not isinstance(key, str) or not isinstance(value, str):
+                    raise ValueError(
+                        f"Default environment keys and values must be strings: {key}={value}"
+                    )
+                if not key:
+                    raise ValueError("Default environment keys cannot be empty")
+
+        # Validate default_ports
+        if default_ports is not None:
+            for port in default_ports:
+                if not isinstance(port, dict):
+                    raise ValueError(f"Port specification must be a dictionary: {port}")
+                if "container" not in port:
+                    raise ValueError(
+                        f"Port specification must contain a 'container' field: {port}"
+                    )
+                if (
+                    not isinstance(port["container"], int)
+                    and port["container"] is not None
+                ):
+                    raise ValueError(
+                        f"Container port must be an integer or None: {port}"
+                    )
+                if (
+                    "host" in port
+                    and port["host"] is not None
+                    and not isinstance(port["host"], int)
+                ):
+                    raise ValueError(
+                        f"Host port must be an integer or None if specified: {port}"
+                    )
+
+        # Validate default_volumes
+        if default_volumes is not None:
+            for volume in default_volumes:
+                if not isinstance(volume, dict):
+                    raise ValueError(
+                        f"Volume specification must be a dictionary: {volume}"
+                    )
+                if "container" not in volume:
+                    raise ValueError(
+                        f"Volume specification must contain a 'container' field: {volume}"
+                    )
+                if not isinstance(volume["container"], str):
+                    raise ValueError(f"Container path must be a string: {volume}")
+                if (
+                    "host" in volume
+                    and volume["host"] is not None
+                    and not isinstance(volume["host"], str)
+                ):
+                    raise ValueError(
+                        f"Host path must be a string or None if specified: {volume}"
+                    )
+
+        # Validate start_cmd
+        if start_cmd is not None and not isinstance(start_cmd, str):
+            raise ValueError(f"Start command must be a string: {start_cmd}")
+
+        # Validate healthcheck
+        if healthcheck is not None:
+            required_keys = ["test"]
+            for key in required_keys:
+                if key not in healthcheck:
+                    raise ValueError(f"Healthcheck must contain a '{key}' field")
+
+        # Validate labels
+        if labels is not None:
+            for key, value in labels.items():
+                if not isinstance(key, str) or not isinstance(value, str):
+                    raise ValueError(
+                        f"Label keys and values must be strings: {key}={value}"
+                    )
+                if not key:
+                    raise ValueError("Label keys cannot be empty")
+
+        # Validate args
+        if args is not None:
+            if not isinstance(args, list):
+                raise ValueError(f"Arguments must be a list of strings: {args}")
+            for arg in args:
+                if not isinstance(arg, str):
+                    raise ValueError(f"Argument must be a string: {arg}")
+                if not arg:
+                    raise ValueError("Arguments cannot be empty strings")
 
         model = await TemplateModel.create(
             name=name,
+            type=type,
+            image=image,
             dockerfile=dockerfile,
             description=description,
-            exposed_ports=exposed_ports,
+            default_env=default_env,
+            default_ports=default_ports,
+            default_volumes=default_volumes,
+            start_cmd=start_cmd,
+            healthcheck=healthcheck,
+            labels=labels,
+            args=args,
         )
+
+        # TODO: remove type gymnastics
+        if (
+            type == TemplateType.IMAGE
+            and image is not None
+            and not DockerImageManager.exists(image)
+        ):
+            DockerImageManager.pull(image)
+
+        elif type == TemplateType.BUILD and dockerfile is not None:
+            DockerImageManager.build_from_dockerfile(name, dockerfile)
 
         return cls(model=model)
 
     @classmethod
-    async def parse_dockerfile(
-        cls, dockerfile: str
-    ) -> tuple[str, Optional[str], list[int]]:
-        """Parses a Dockerfile to extract the name, description, and exposed ports.
-
-        Args:
-            dockerfile (str): The Dockerfile content.
-        Returns:
-            tuple[str, Optional[str], list[int]]: A tuple containing the name, description, and exposed ports.
+    async def import_from_json(cls, data: dict[str, Any]) -> "Template":
         """
-        lines = dockerfile.splitlines()
-        name = None
-        description = None
-        exposed_ports: list[int] = []
-
-        for line in lines:
-            line = line.strip()
-            if line.startswith("# NAME="):
-                name = line[len("# NAME=") :].strip()
-            elif line.startswith("# DESCRIPTION="):
-                description = line[len("# DESCRIPTION=") :].strip()
-            elif line.startswith("# PROXY_PORTS="):
-                ports = line[len("# PROXY_PORTS=") :].strip().split(",")
-                exposed_ports.extend(
-                    int(port.strip()) for port in ports if port.strip().isdigit()
-                )
-
-        if not name:
-            raise ValueError("Dockerfile does not have a valid name.")
-
-        return name, description, exposed_ports
-
-    @classmethod
-    async def import_from_url(cls, url: str) -> "Template":
-        """Imports a template from a URL.
+        Creates a Template instance from a JSON/dict object.
+        Relies on the existing create factory method.
 
         Args:
-            url (str): The URL of the Dockerfile.
+            data (dict[str, Any]): The JSON data dictionary containing template attributes.
+
         Returns:
-            Template: The imported template.
+            Template: A new Template instance created from the JSON data.
+
         Raises:
-            ValueError: If the URL is invalid or does not point to a Dockerfile.
+            ValueError: If the data is invalid or missing required fields.
         """
-        response = await send_http_request(method="GET", url=url)
-        if response.status_code != 200:
-            raise ValueError(f"Failed to fetch Dockerfile from {url}")
+        # Validate input
+        if not isinstance(data, dict):
+            raise ValueError(
+                f"Template import data must be a dictionary, got {type(data)}"
+            )
 
-        dockerfile_content = response.text
-        name, description, exposed_ports = await cls.parse_dockerfile(
-            dockerfile_content
-        )
+        # Validate required fields
+        if "name" not in data:
+            raise ValueError("Template import data must contain a 'name' field")
 
+        # Validate template type
+        template_type = data.get("type", "image")
+        try:
+            template_type = TemplateType(template_type)
+        except ValueError:
+            valid_types = [t.value for t in TemplateType]
+            raise ValueError(
+                f"Invalid template type: {template_type}. Must be one of: {valid_types}"
+            )
+
+        # Validate type-specific fields
+        if template_type == TemplateType.IMAGE and "image" not in data:
+            raise ValueError(
+                "Image type templates must specify an 'image' field in import data"
+            )
+        elif template_type == TemplateType.BUILD and "dockerfile" not in data:
+            raise ValueError(
+                "Build type templates must specify a 'dockerfile' field in import data"
+            )
+
+        # Delegate to create method for further validation
         return await cls.create(
-            name=name,
-            dockerfile=dockerfile_content,
-            description=description,
-            exposed_ports=exposed_ports,
+            name=data.get("name", ""),
+            type=template_type,
+            image=data.get("image"),
+            dockerfile=data.get("dockerfile"),
+            description=data.get("description"),
+            default_env=data.get("default_env"),
+            default_ports=data.get("default_ports"),
+            default_volumes=data.get("default_volumes"),
+            start_cmd=data.get("start_cmd"),
+            healthcheck=data.get("healthcheck"),
+            labels=data.get("labels"),
+            args=data.get("args"),
         )
-
-    @classmethod
-    async def discover_from_github(cls, repo_url: str) -> list["Template"]:
-        """Discovers a template from a GitHub repository.
-
-        Args:
-            repo_url (str): The URL of the GitHub repository.
-        Returns:
-            list[Template]: The discovered templates.
-        Raises:
-            ValueError: If the repository URL is invalid or does not contain a Dockerfile.
-        """
-
-        repo = destruct_github_url(repo_url)
-        response = await send_http_request(
-            method="GET",
-            url=f"https://api.github.com/repos/{repo.owner}/{repo.name}/contents/{repo.path or ''}",
-        )
-        directory_contents = response.json()
-
-        if isinstance(directory_contents, dict):
-            directory_contents = [directory_contents]
-
-        templates: list["Template"] = []
-        for file in directory_contents:
-            if file["name"].endswith(".Dockerfile"):
-                file_content = (
-                    await send_http_request(method="GET", url=file["download_url"])
-                ).text
-
-                # Use the parse_dockerfile method to extract details
-                name, description, exposed_ports = await cls.parse_dockerfile(
-                    file_content
-                )
-
-                templates.append(
-                    await cls.create(
-                        name=name,
-                        dockerfile=file_content,
-                        description=description,
-                        exposed_ports=exposed_ports,
-                    )
-                )
-
-        return templates

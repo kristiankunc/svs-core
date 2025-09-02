@@ -1,4 +1,5 @@
 from typing import List
+from uuid import uuid4
 
 import pytest
 from docker.models.networks import Network
@@ -7,7 +8,7 @@ from svs_core.docker.network import DockerNetworkManager
 
 
 class TestDockerNetworkManager:
-    TEST_NETWORK_NAME = "test_network"
+    TEST_NETWORK_NAME = f"svs_test_network_{uuid4().hex[:8]}"
 
     @pytest.mark.integration
     def test_create_and_delete_network(self) -> None:

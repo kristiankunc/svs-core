@@ -1,6 +1,7 @@
 import os
 from abc import ABC
 from datetime import datetime
+from enum import Enum
 from typing import Any, Optional, Type, TypeVar
 from weakref import WeakSet
 
@@ -167,11 +168,37 @@ class UserModel(BaseModel):
         table = "users"
 
 
+class TemplateType(str, Enum):
+    IMAGE = "image"  # e.g. nginx:stable, wordpress:latest
+    BUILD = "build"  # requires dockerfile/source
+
+
 class TemplateModel(BaseModel):
     name = fields.CharField(max_length=255, null=False)
-    dockerfile = fields.TextField(null=False)
+
+    # IMAGE vs BUILD
+    type = fields.CharEnumField(TemplateType, default=TemplateType.IMAGE)
+
+    # For IMAGE templates
+    image = fields.CharField(max_length=255, null=True, default=None)
+
+    # For BUILD templates
+    dockerfile = fields.TextField(null=True, default=None)
+
     description = fields.TextField(null=True)
-    exposed_ports: Optional[list[int]] = fields.JSONField(null=True)
+
+    # Defaults applied when creating services
+    default_env: dict[str, str] = fields.JSONField(null=True, default=dict)
+    default_ports: list[dict[str, Any]] = fields.JSONField(
+        null=True, default=list
+    )  # [{ "container": 80, "host": None }]
+    default_volumes: list[dict[str, Any]] = fields.JSONField(
+        null=True, default=list
+    )  # [{ "container": "/usr/share/nginx/html", "host": None }]
+    start_cmd = fields.CharField(max_length=512, null=True, default=None)
+    healthcheck: dict[str, Any] = fields.JSONField(null=True, default=dict)
+    labels: dict[str, str] = fields.JSONField(null=True, default=dict)
+    args: list[str] = fields.JSONField(null=True, default=list)
 
     services: fields.ReverseRelation["ServiceModel"]
 
@@ -181,9 +208,29 @@ class TemplateModel(BaseModel):
 
 class ServiceModel(BaseModel):
     name = fields.CharField(max_length=255, null=False)
+
+    # Docker runtime tracking
     container_id = fields.CharField(max_length=255, null=True, default=None)
+    image = fields.CharField(
+        max_length=255, null=True, default=None
+    )  # actual image used
     domain = fields.CharField(max_length=255, null=True, default=None)
 
+    # Resolved runtime config
+    env: dict[str, str] = fields.JSONField(null=True, default=dict)
+    exposed_ports: list[dict[str, Any]] = fields.JSONField(null=True, default=list)
+    volumes: list[dict[str, Any]] = fields.JSONField(null=True, default=list)
+    command = fields.CharField(max_length=512, null=True, default=None)
+    labels: dict[str, str] = fields.JSONField(null=True, default=dict)
+    args: list[str] = fields.JSONField(null=True, default=list)
+    healthcheck: dict[str, Any] = fields.JSONField(null=True, default=dict)
+    networks: list[str] = fields.JSONField(null=True, default=list)
+
+    # State
+    status = fields.CharField(max_length=64, null=True, default="created")
+    exit_code = fields.IntField(null=True, default=None)
+
+    # Relations
     template: fields.ForeignKeyRelation["TemplateModel"] = fields.ForeignKeyField(
         "models.TemplateModel", related_name="services", to_field="id", null=False
     )
@@ -207,4 +254,5 @@ async def signal_post_save(
         if subclass._model_cls is sender:
             for obj in subclass.get_instances():
                 if obj._model.id == instance.id:
+                    obj._model = instance
                     obj._model = instance
