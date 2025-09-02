@@ -1,5 +1,5 @@
 {
-	"args": {},
+	"args": [],
 	"default_env": {},
 	"default_ports": [
 		{
@@ -24,16 +24,16 @@
 	"description": "A minimal NGINX web server with default config",
 	"dockerfile": null,
 	"healthcheck": {
-		"interval": "30s",
+		"interval": "30",
 		"retries": 3,
-		"start_period": "5s",
+		"start_period": "5",
 		"test": [
 			"CMD",
 			"curl",
 			"-f",
 			"http://localhost/"
 		],
-		"timeout": "10s"
+		"timeout": "10"
 	},
 	"image": "nginx:latest",
 	"name": "nginx-webserver",

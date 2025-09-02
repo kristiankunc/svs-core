@@ -1,6 +1,14 @@
-from typing import Any
+from typing import Any, List
 
 from svs_core.db.models import OrmBase, TemplateModel, TemplateType
+from svs_core.docker.image import DockerImageManager
+from svs_core.docker.json_properties import (
+    EnvVariable,
+    ExposedPort,
+    Healthcheck,
+    Label,
+    Volume,
+)
 
 
 class Template(OrmBase):
@@ -31,39 +39,93 @@ class Template(OrmBase):
         return self._model.description
 
     @property
-    def default_env(self) -> dict[str, str]:
-        return self._model.default_env or {}
+    def default_env(self) -> List[EnvVariable]:
+        env_dict = self._model.default_env or {}
+        return [EnvVariable(key=key, value=value) for key, value in env_dict.items()]
 
     @property
-    def default_ports(self) -> list[dict[str, Any]]:
-        return self._model.default_ports or []
+    def default_ports(self) -> List[ExposedPort]:
+        ports_list = self._model.default_ports or []
+        result = []
+        for port in ports_list:
+            container_port = port.get("container")
+            if container_port is not None:
+                result.append(
+                    ExposedPort(
+                        container_port=int(container_port),
+                        host_port=(
+                            int(port["host"]) if port.get("host") is not None else None
+                        ),
+                    )
+                )
+        return result
 
     @property
-    def default_volumes(self) -> list[dict[str, Any]]:
-        return self._model.default_volumes or []
+    def default_volumes(self) -> List[Volume]:
+        volumes_list = self._model.default_volumes or []
+        return [
+            Volume(
+                container_path=str(volume["container"]),
+                host_path=(
+                    str(volume["host"]) if volume.get("host") is not None else None
+                ),
+            )
+            for volume in volumes_list
+        ]
 
     @property
     def start_cmd(self) -> str | None:
         return self._model.start_cmd
 
     @property
-    def healthcheck(self) -> dict[str, Any]:
-        return self._model.healthcheck or {}
+    def healthcheck(self) -> Healthcheck | None:
+        healthcheck_dict = self._model.healthcheck or {}
+        if not healthcheck_dict or "test" not in healthcheck_dict:
+            return None
+
+        return Healthcheck(
+            test=healthcheck_dict.get("test", []),
+            interval=healthcheck_dict.get("interval"),
+            timeout=healthcheck_dict.get("timeout"),
+            retries=healthcheck_dict.get("retries"),
+            start_period=healthcheck_dict.get("start_period"),
+        )
 
     @property
-    def labels(self) -> dict[str, str]:
-        return self._model.labels or {}
+    def labels(self) -> List[Label]:
+        labels_dict = self._model.labels or {}
+        return [Label(key=key, value=value) for key, value in labels_dict.items()]
 
     @property
-    def args(self) -> dict[str, str]:
-        return self._model.args or {}
+    def args(self) -> list[str]:
+        return self._model.args or []
 
     def __str__(self) -> str:
+        env_vars = [f"{env.key}={env.value}" for env in self.default_env]
+        ports = [
+            f"{port.container_port}:{port.host_port}" for port in self.default_ports
+        ]
+        volumes = [
+            f"{vol.container_path}:{vol.host_path or 'None'}"
+            for vol in self.default_volumes
+        ]
+        labels = [f"{label.key}={label.value}" for label in self.labels]
+
+        healthcheck_str = "None"
+        if self.healthcheck:
+            test_str = " ".join(self.healthcheck.test)
+            healthcheck_str = f"test='{test_str}'"
+
         return (
             f"Template(id={self.id}, name={self.name}, type={self.type}, image={self.image}, "
-            f"dockerfile={self.dockerfile}, description={self.description}, default_env={self.default_env}, "
-            f"default_ports={self.default_ports}, default_volumes={self.default_volumes}, start_cmd={self.start_cmd}, "
-            f"healthcheck={self.healthcheck}, labels={self.labels}, args={self.args})"
+            f"dockerfile={self.dockerfile}, description={self.description}, "
+            f"default_env=[{', '.join(env_vars)}], "
+            f"default_ports=[{', '.join(ports)}], "
+            f"default_volumes=[{', '.join(volumes)}], "
+            f"start_cmd={self.start_cmd}, "
+            f"healthcheck={healthcheck_str}, "
+            f"labels=[{', '.join(labels)}], "
+            f"args={self.args})"
         )
 
     @classmethod
@@ -80,12 +142,119 @@ class Template(OrmBase):
         start_cmd: str | None = None,
         healthcheck: dict[str, Any] | None = None,
         labels: dict[str, str] | None = None,
-        args: dict[str, str] | None = None,
+        args: list[str] | None = None,
     ) -> "Template":
         """Creates a new template with all supported attributes."""
+        # Validate name
         name = name.strip()
         if not name:
             raise ValueError("Template name cannot be empty")
+
+        # Validate type-specific requirements
+        if type == TemplateType.IMAGE:
+            if not image:
+                raise ValueError("Image type templates must specify an image")
+        elif type == TemplateType.BUILD:
+            if not dockerfile:
+                raise ValueError("Build type templates must specify a dockerfile")
+
+        # Validate image format if provided
+        if image is not None:
+            image = image.strip()
+            if not image:
+                raise ValueError("Image cannot be empty if provided")
+
+        # Validate dockerfile if provided
+        if dockerfile is not None and not dockerfile.strip():
+            raise ValueError("Dockerfile cannot be empty if provided")
+
+        # Validate default_env
+        if default_env is not None:
+            for key, value in default_env.items():
+                if not isinstance(key, str) or not isinstance(value, str):
+                    raise ValueError(
+                        f"Default environment keys and values must be strings: {key}={value}"
+                    )
+                if not key:
+                    raise ValueError("Default environment keys cannot be empty")
+
+        # Validate default_ports
+        if default_ports is not None:
+            for port in default_ports:
+                if not isinstance(port, dict):
+                    raise ValueError(f"Port specification must be a dictionary: {port}")
+                if "container" not in port:
+                    raise ValueError(
+                        f"Port specification must contain a 'container' field: {port}"
+                    )
+                if (
+                    not isinstance(port["container"], int)
+                    and port["container"] is not None
+                ):
+                    raise ValueError(
+                        f"Container port must be an integer or None: {port}"
+                    )
+                if (
+                    "host" in port
+                    and port["host"] is not None
+                    and not isinstance(port["host"], int)
+                ):
+                    raise ValueError(
+                        f"Host port must be an integer or None if specified: {port}"
+                    )
+
+        # Validate default_volumes
+        if default_volumes is not None:
+            for volume in default_volumes:
+                if not isinstance(volume, dict):
+                    raise ValueError(
+                        f"Volume specification must be a dictionary: {volume}"
+                    )
+                if "container" not in volume:
+                    raise ValueError(
+                        f"Volume specification must contain a 'container' field: {volume}"
+                    )
+                if not isinstance(volume["container"], str):
+                    raise ValueError(f"Container path must be a string: {volume}")
+                if (
+                    "host" in volume
+                    and volume["host"] is not None
+                    and not isinstance(volume["host"], str)
+                ):
+                    raise ValueError(
+                        f"Host path must be a string or None if specified: {volume}"
+                    )
+
+        # Validate start_cmd
+        if start_cmd is not None and not isinstance(start_cmd, str):
+            raise ValueError(f"Start command must be a string: {start_cmd}")
+
+        # Validate healthcheck
+        if healthcheck is not None:
+            required_keys = ["test"]
+            for key in required_keys:
+                if key not in healthcheck:
+                    raise ValueError(f"Healthcheck must contain a '{key}' field")
+
+        # Validate labels
+        if labels is not None:
+            for key, value in labels.items():
+                if not isinstance(key, str) or not isinstance(value, str):
+                    raise ValueError(
+                        f"Label keys and values must be strings: {key}={value}"
+                    )
+                if not key:
+                    raise ValueError("Label keys cannot be empty")
+
+        # Validate args
+        if args is not None:
+            if not isinstance(args, list):
+                raise ValueError(f"Arguments must be a list of strings: {args}")
+            for arg in args:
+                if not isinstance(arg, str):
+                    raise ValueError(f"Argument must be a string: {arg}")
+                if not arg:
+                    raise ValueError("Arguments cannot be empty strings")
 
         model = await TemplateModel.create(
             name=name,
@@ -101,6 +270,18 @@ class Template(OrmBase):
             labels=labels,
             args=args,
         )
+
+        # TODO: remove type gymnastics
+        if (
+            type == TemplateType.IMAGE
+            and image is not None
+            and not DockerImageManager.exists(image)
+        ):
+            DockerImageManager.pull(image)
+
+        elif type == TemplateType.BUILD and dockerfile is not None:
+            DockerImageManager.build_from_dockerfile(name, dockerfile)
+
         return cls(model=model)
 
     @classmethod
@@ -108,10 +289,50 @@ class Template(OrmBase):
         """
         Creates a Template instance from a JSON/dict object.
         Relies on the existing create factory method.
+
+        Args:
+            data (dict[str, Any]): The JSON data dictionary containing template attributes.
+
+        Returns:
+            Template: A new Template instance created from the JSON data.
+
+        Raises:
+            ValueError: If the data is invalid or missing required fields.
         """
+        # Validate input
+        if not isinstance(data, dict):
+            raise ValueError(
+                f"Template import data must be a dictionary, got {type(data)}"
+            )
+
+        # Validate required fields
+        if "name" not in data:
+            raise ValueError("Template import data must contain a 'name' field")
+
+        # Validate template type
+        template_type = data.get("type", "image")
+        try:
+            template_type = TemplateType(template_type)
+        except ValueError:
+            valid_types = [t.value for t in TemplateType]
+            raise ValueError(
+                f"Invalid template type: {template_type}. Must be one of: {valid_types}"
+            )
+
+        # Validate type-specific fields
+        if template_type == TemplateType.IMAGE and "image" not in data:
+            raise ValueError(
+                "Image type templates must specify an 'image' field in import data"
+            )
+        elif template_type == TemplateType.BUILD and "dockerfile" not in data:
+            raise ValueError(
+                "Build type templates must specify a 'dockerfile' field in import data"
+            )
+
+        # Delegate to create method for further validation
         return await cls.create(
             name=data.get("name", ""),
-            type=TemplateType(data.get("type", "image")),
+            type=template_type,
             image=data.get("image"),
             dockerfile=data.get("dockerfile"),
             description=data.get("description"),

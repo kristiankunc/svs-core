@@ -198,7 +198,7 @@ class TemplateModel(BaseModel):
     start_cmd = fields.CharField(max_length=512, null=True, default=None)
     healthcheck: dict[str, Any] = fields.JSONField(null=True, default=dict)
     labels: dict[str, str] = fields.JSONField(null=True, default=dict)
-    args: dict[str, str] = fields.JSONField(null=True, default=dict)
+    args: list[str] = fields.JSONField(null=True, default=list)
 
     services: fields.ReverseRelation["ServiceModel"]
 
@@ -222,7 +222,7 @@ class ServiceModel(BaseModel):
     volumes: list[dict[str, Any]] = fields.JSONField(null=True, default=list)
     command = fields.CharField(max_length=512, null=True, default=None)
     labels: dict[str, str] = fields.JSONField(null=True, default=dict)
-    args: dict[str, str] = fields.JSONField(null=True, default=dict)
+    args: list[str] = fields.JSONField(null=True, default=list)
     healthcheck: dict[str, Any] = fields.JSONField(null=True, default=dict)
     networks: list[str] = fields.JSONField(null=True, default=list)
 
