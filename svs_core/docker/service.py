@@ -1,6 +1,6 @@
 from typing import Any, List
 
-from svs_core.db.models import OrmBase, ServiceModel, TemplateModel
+from svs_core.db.models import OrmBase, ServiceModel, ServiceStatus, TemplateModel
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.json_properties import (
     EnvVariable,
@@ -561,5 +561,5 @@ class Service(OrmBase):
             raise ValueError(f"Container with ID {self.container_id} not found")
 
         container.start()
-        self._model.status = "running"
+        self._model.status = ServiceStatus.RUNNING
         await self._model.save()
