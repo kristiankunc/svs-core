@@ -1,8 +1,6 @@
 from typing import Any, Optional
 
 from svs_core.db.models import OrmBase, TemplateModel
-from svs_core.shared.github import destruct_github_url
-from svs_core.shared.http import send_http_request
 
 
 class Template(OrmBase):
@@ -25,11 +23,40 @@ class Template(OrmBase):
         return self._model.description
 
     @property
-    def exposed_ports(self) -> Optional[Any]:
+    def exposed_ports(self) -> Optional[list[int]]:
         return self._model.exposed_ports
 
+    @property
+    def env(self) -> Optional[dict[str, str]]:
+        return self._model.env
+
+    @property
+    def volumes(self) -> Optional[list[str]]:
+        return self._model.volumes
+
+    @property
+    def entrypoint(self) -> Optional[str]:
+        return self._model.entrypoint
+
+    @property
+    def cmd(self) -> Optional[list[str]]:
+        return self._model.cmd
+
+    @property
+    def healthcheck(self) -> Optional[dict[str, Any]]:
+        return self._model.healthcheck
+
+    @property
+    def labels(self) -> Optional[dict[str, str]]:
+        return self._model.labels
+
     def __str__(self) -> str:
-        return f"Template(id={self.id}, name={self.name}, description={self.description}, exposed_ports={self.exposed_ports})"
+        return (
+            f"Template(id={self.id}, name={self.name}, "
+            f"description={self.description}, exposed_ports={self.exposed_ports}, "
+            f"env={self.env}, volumes={self.volumes}, entrypoint={self.entrypoint}, "
+            f"cmd={self.cmd}, healthcheck={self.healthcheck}, labels={self.labels})"
+        )
 
     @classmethod
     async def create(
@@ -38,19 +65,14 @@ class Template(OrmBase):
         dockerfile: str,
         description: Optional[str] = None,
         exposed_ports: Optional[list[int]] = None,
+        env: Optional[dict[str, str]] = None,
+        volumes: Optional[list[str]] = None,
+        entrypoint: Optional[str] = None,
+        cmd: Optional[list[str]] = None,
+        healthcheck: Optional[dict[str, Any]] = None,
+        labels: Optional[dict[str, str]] = None,
     ) -> "Template":
-        """Creates a new template with the given name, dockerfile, description, and exposed ports.
-
-        Args:
-            name (str): The name of the template.
-            dockerfile (str): The Dockerfile content.
-            description (Optional[str]): A description of the template.
-            exposed_ports (Optional[list[int]]): A list of exposed ports.
-        Returns:
-            Template: The created template instance.
-        Raises:
-            ValueError: If the name or dockerfile is empty.
-        """
+        """Creates a new template with all supported attributes."""
         name = name.lower().strip()
         dockerfile = dockerfile.strip()
 
@@ -62,111 +84,12 @@ class Template(OrmBase):
             dockerfile=dockerfile,
             description=description,
             exposed_ports=exposed_ports,
+            env=env,
+            volumes=volumes,
+            entrypoint=entrypoint,
+            cmd=cmd,
+            healthcheck=healthcheck,
+            labels=labels,
         )
 
         return cls(model=model)
-
-    @classmethod
-    async def parse_dockerfile(
-        cls, dockerfile: str
-    ) -> tuple[str, Optional[str], list[int]]:
-        """Parses a Dockerfile to extract the name, description, and exposed ports.
-
-        Args:
-            dockerfile (str): The Dockerfile content.
-        Returns:
-            tuple[str, Optional[str], list[int]]: A tuple containing the name, description, and exposed ports.
-        """
-        lines = dockerfile.splitlines()
-        name = None
-        description = None
-        exposed_ports: list[int] = []
-
-        for line in lines:
-            line = line.strip()
-            if line.startswith("# NAME="):
-                name = line[len("# NAME=") :].strip()
-            elif line.startswith("# DESCRIPTION="):
-                description = line[len("# DESCRIPTION=") :].strip()
-            elif line.startswith("# PROXY_PORTS="):
-                ports = line[len("# PROXY_PORTS=") :].strip().split(",")
-                exposed_ports.extend(
-                    int(port.strip()) for port in ports if port.strip().isdigit()
-                )
-
-        if not name:
-            raise ValueError("Dockerfile does not have a valid name.")
-
-        return name, description, exposed_ports
-
-    @classmethod
-    async def import_from_url(cls, url: str) -> "Template":
-        """Imports a template from a URL.
-
-        Args:
-            url (str): The URL of the Dockerfile.
-        Returns:
-            Template: The imported template.
-        Raises:
-            ValueError: If the URL is invalid or does not point to a Dockerfile.
-        """
-        response = await send_http_request(method="GET", url=url)
-        if response.status_code != 200:
-            raise ValueError(f"Failed to fetch Dockerfile from {url}")
-
-        dockerfile_content = response.text
-        name, description, exposed_ports = await cls.parse_dockerfile(
-            dockerfile_content
-        )
-
-        return await cls.create(
-            name=name,
-            dockerfile=dockerfile_content,
-            description=description,
-            exposed_ports=exposed_ports,
-        )
-
-    @classmethod
-    async def discover_from_github(cls, repo_url: str) -> list["Template"]:
-        """Discovers a template from a GitHub repository.
-
-        Args:
-            repo_url (str): The URL of the GitHub repository.
-        Returns:
-            list[Template]: The discovered templates.
-        Raises:
-            ValueError: If the repository URL is invalid or does not contain a Dockerfile.
-        """
-
-        repo = destruct_github_url(repo_url)
-        response = await send_http_request(
-            method="GET",
-            url=f"https://api.github.com/repos/{repo.owner}/{repo.name}/contents/{repo.path or ''}",
-        )
-        directory_contents = response.json()
-
-        if isinstance(directory_contents, dict):
-            directory_contents = [directory_contents]
-
-        templates: list["Template"] = []
-        for file in directory_contents:
-            if file["name"].endswith(".Dockerfile"):
-                file_content = (
-                    await send_http_request(method="GET", url=file["download_url"])
-                ).text
-
-                # Use the parse_dockerfile method to extract details
-                name, description, exposed_ports = await cls.parse_dockerfile(
-                    file_content
-                )
-
-                templates.append(
-                    await cls.create(
-                        name=name,
-                        dockerfile=file_content,
-                        description=description,
-                        exposed_ports=exposed_ports,
-                    )
-                )
-
-        return templates

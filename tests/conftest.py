@@ -92,3 +92,5 @@ async def initialize_tests():
     yield
 
     await Tortoise.close_connections()
+
+    await Tortoise.close_connections()
