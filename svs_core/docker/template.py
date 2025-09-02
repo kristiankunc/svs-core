@@ -1,6 +1,6 @@
-from typing import Any, Optional
+from typing import Any
 
-from svs_core.db.models import OrmBase, TemplateModel
+from svs_core.db.models import OrmBase, TemplateModel, TemplateType
 
 
 class Template(OrmBase):
@@ -15,81 +15,90 @@ class Template(OrmBase):
         return self._model.name
 
     @property
-    def dockerfile(self) -> str:
+    def type(self) -> TemplateType:
+        return self._model.type
+
+    @property
+    def image(self) -> str | None:
+        return self._model.image
+
+    @property
+    def dockerfile(self) -> str | None:
         return self._model.dockerfile
 
     @property
-    def description(self) -> Optional[str]:
+    def description(self) -> str | None:
         return self._model.description
 
     @property
-    def exposed_ports(self) -> Optional[list[int]]:
-        return self._model.exposed_ports
+    def default_env(self) -> dict[str, str]:
+        return self._model.default_env or {}
 
     @property
-    def env(self) -> Optional[dict[str, str]]:
-        return self._model.env
+    def default_ports(self) -> list[dict[str, Any]]:
+        return self._model.default_ports or []
 
     @property
-    def volumes(self) -> Optional[list[str]]:
-        return self._model.volumes
+    def default_volumes(self) -> list[dict[str, Any]]:
+        return self._model.default_volumes or []
 
     @property
-    def entrypoint(self) -> Optional[str]:
-        return self._model.entrypoint
+    def start_cmd(self) -> str | None:
+        return self._model.start_cmd
 
     @property
-    def cmd(self) -> Optional[list[str]]:
-        return self._model.cmd
+    def healthcheck(self) -> dict[str, Any]:
+        return self._model.healthcheck or {}
 
     @property
-    def healthcheck(self) -> Optional[dict[str, Any]]:
-        return self._model.healthcheck
+    def labels(self) -> dict[str, str]:
+        return self._model.labels or {}
 
     @property
-    def labels(self) -> Optional[dict[str, str]]:
-        return self._model.labels
+    def args(self) -> dict[str, str]:
+        return self._model.args or {}
 
     def __str__(self) -> str:
         return (
-            f"Template(id={self.id}, name={self.name}, "
-            f"description={self.description}, exposed_ports={self.exposed_ports}, "
-            f"env={self.env}, volumes={self.volumes}, entrypoint={self.entrypoint}, "
-            f"cmd={self.cmd}, healthcheck={self.healthcheck}, labels={self.labels})"
+            f"Template(id={self.id}, name={self.name}, type={self.type}, image={self.image}, "
+            f"dockerfile={self.dockerfile}, description={self.description}, default_env={self.default_env}, "
+            f"default_ports={self.default_ports}, default_volumes={self.default_volumes}, start_cmd={self.start_cmd}, "
+            f"healthcheck={self.healthcheck}, labels={self.labels}, args={self.args})"
         )
 
     @classmethod
     async def create(
         cls,
         name: str,
-        dockerfile: str,
-        description: Optional[str] = None,
-        exposed_ports: Optional[list[int]] = None,
-        env: Optional[dict[str, str]] = None,
-        volumes: Optional[list[str]] = None,
-        entrypoint: Optional[str] = None,
-        cmd: Optional[list[str]] = None,
-        healthcheck: Optional[dict[str, Any]] = None,
-        labels: Optional[dict[str, str]] = None,
+        type: TemplateType = TemplateType.IMAGE,
+        image: str | None = None,
+        dockerfile: str | None = None,
+        description: str | None = None,
+        default_env: dict[str, str] | None = None,
+        default_ports: list[dict[str, Any]] | None = None,
+        default_volumes: list[dict[str, Any]] | None = None,
+        start_cmd: str | None = None,
+        healthcheck: dict[str, Any] | None = None,
+        labels: dict[str, str] | None = None,
+        args: dict[str, str] | None = None,
     ) -> "Template":
         """Creates a new template with all supported attributes."""
-        name = name.lower().strip()
-        dockerfile = dockerfile.strip()
-
-        if not name or not dockerfile:
-            raise ValueError("Provided values cannot be empty")
+        name = name.strip()
+        if not name:
+            raise ValueError("Template name cannot be empty")
 
         model = await TemplateModel.create(
             name=name,
+            type=type,
+            image=image,
             dockerfile=dockerfile,
             description=description,
-            exposed_ports=exposed_ports,
-            env=env,
-            volumes=volumes,
-            entrypoint=entrypoint,
-            cmd=cmd,
+            default_env=default_env,
+            default_ports=default_ports,
+            default_volumes=default_volumes,
+            start_cmd=start_cmd,
             healthcheck=healthcheck,
             labels=labels,
+            args=args,
         )
-
         return cls(model=model)

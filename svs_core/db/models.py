@@ -218,7 +218,7 @@ class ServiceModel(BaseModel):
 
     # Resolved runtime config
     env: dict[str, str] = fields.JSONField(null=True, default=dict)
-    ports: list[dict[str, Any]] = fields.JSONField(null=True, default=list)
+    exposed_ports: list[dict[str, Any]] = fields.JSONField(null=True, default=list)
     volumes: list[dict[str, Any]] = fields.JSONField(null=True, default=list)
     command = fields.CharField(max_length=512, null=True, default=None)
     labels: dict[str, str] = fields.JSONField(null=True, default=dict)
