@@ -102,3 +102,24 @@ class Template(OrmBase):
             args=args,
         )
         return cls(model=model)
+
+    @classmethod
+    async def import_from_json(cls, data: dict[str, Any]) -> "Template":
+        """
+        Creates a Template instance from a JSON/dict object.
+        Relies on the existing create factory method.
+        """
+        return await cls.create(
+            name=data.get("name", ""),
+            type=TemplateType(data.get("type", "image")),
+            image=data.get("image"),
+            dockerfile=data.get("dockerfile"),
+            description=data.get("description"),
+            default_env=data.get("default_env"),
+            default_ports=data.get("default_ports"),
+            default_volumes=data.get("default_volumes"),
+            start_cmd=data.get("start_cmd"),
+            healthcheck=data.get("healthcheck"),
+            labels=data.get("labels"),
+            args=data.get("args"),
+        )

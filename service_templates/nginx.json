@@ -1,0 +1,42 @@
+{
+	"args": {},
+	"default_env": {},
+	"default_ports": [
+		{
+			"container": 80,
+			"host": null
+		},
+		{
+			"container": 443,
+			"host": null
+		}
+	],
+	"default_volumes": [
+		{
+			"container": "/usr/share/nginx/html",
+			"host": null
+		},
+		{
+			"container": "/etc/nginx/conf.d",
+			"host": null
+		}
+	],
+	"description": "A minimal NGINX web server with default config",
+	"dockerfile": null,
+	"healthcheck": {
+		"interval": "30s",
+		"retries": 3,
+		"start_period": "5s",
+		"test": [
+			"CMD",
+			"curl",
+			"-f",
+			"http://localhost/"
+		],
+		"timeout": "10s"
+	},
+	"image": "nginx:latest",
+	"name": "nginx-webserver",
+	"start_cmd": null,
+	"type": "image"
+}
