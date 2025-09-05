@@ -2,6 +2,7 @@ import asyncio
 import os
 import platform
 import sys
+from asyncio.windows_events import WindowsSelectorEventLoopPolicy
 from urllib.parse import urlparse, urlunparse
 
 import pytest
@@ -10,6 +11,7 @@ from tortoise import Tortoise
 
 # Fix for Windows asyncio issues - ensure this is set globally
 if sys.platform == "win32" or platform.system() == "Windows":
+    asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 # Set the default scope for pytest-asyncio fixtures to function level
@@ -90,9 +92,9 @@ async def _ensure_postgres_database(db_url: str, drop_if_exists: bool = False) -
 # This is important for Windows compatibility
 @pytest.fixture
 def event_loop():
-    """Create a new event loop for each test function."""
     # For Windows, explicitly use WindowsSelectorEventLoop for network operations
     if sys.platform == "win32" or platform.system() == "Windows":
+        asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
     # Create and set a new loop for each test
