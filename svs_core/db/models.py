@@ -206,6 +206,14 @@ class TemplateModel(BaseModel):
         table = "templates"
 
 
+class ServiceStatus(str, Enum):
+    CREATED = "created"
+    RUNNING = "running"
+    STOPPED = "stopped"
+    EXITED = "exited"
+    ERROR = "error"
+
+
 class ServiceModel(BaseModel):
     name = fields.CharField(max_length=255, null=False)
 
@@ -227,7 +235,7 @@ class ServiceModel(BaseModel):
     networks: list[str] = fields.JSONField(null=True, default=list)
 
     # State
-    status = fields.CharField(max_length=64, null=True, default="created")
+    status = fields.CharEnumField(ServiceStatus, default=ServiceStatus.CREATED)
     exit_code = fields.IntField(null=True, default=None)
 
     # Relations
