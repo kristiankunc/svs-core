@@ -1,0 +1,36 @@
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Django Tailwind</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        {% tailwind_css %}
+    </head>
+    <body class="bg-gray-50 text-black font-serif leading-normal tracking-normal">
+        <!-- Navigation bar -->
+        <nav class="bg-white shadow-md">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="text-lg font-semibold">
+                    <a href="/" class="text-gray-800 hover:text-gray-600">SVS</a>
+                </div>
+                <div>
+                    {% if user %}
+                        <span class="mr-4">{{ user.name }}</span>
+                        <a href="{% url 'logout' %}"
+                           class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">Logout</a>
+                    {% else %}
+                        <a href="{% url 'login' %}"
+                           class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+        <div class="container mx-auto">
+            {% block content %}{% endblock %}
+        </div>
+    </body>
+</html>

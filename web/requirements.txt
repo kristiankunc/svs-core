@@ -1,0 +1,7 @@
+django
+django-tailwind
+django-tailwind[reload]
+python-dotenv
+uvicorn[standard]
+watchgod
+whitenoise

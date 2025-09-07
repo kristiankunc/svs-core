@@ -38,9 +38,17 @@ repos:
       hooks:
           - id: mdformat
 
+    - repo: https://github.com/djlint/djlint
+      rev: v1.36.4
+      hooks:
+          - id: djlint
+            args: ["--lint", "--reformat"]
+            files: \.html$
+
     - repo: https://github.com/pre-commit/mirrors-mypy
       rev: v1.16.1
       hooks:
           - id: mypy
             args: ["--config-file", "mypy.ini"]
+            files: ^(svs_core|tests|docs)/
             language: system
