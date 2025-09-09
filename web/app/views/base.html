@@ -14,8 +14,14 @@
         <!-- Navigation bar -->
         <nav class="bg-white shadow-md">
             <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-                <div class="text-lg font-semibold">
-                    <a href="/" class="text-gray-800 hover:text-gray-600">SVS</a>
+                <div class="flex items-center space-x-6">
+                    <div class="text-lg font-semibold">
+                        <a href="/" class="text-gray-800 hover:text-gray-600">SVS</a>
+                    </div>
+                    <div class="hidden md:flex space-x-4">
+                        <a href="{% url 'templates' %}"
+                           class="text-gray-600 hover:text-gray-900">Templates</a>
+                    </div>
                 </div>
                 <div>
                     {% if user %}

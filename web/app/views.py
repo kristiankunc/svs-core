@@ -1,5 +1,7 @@
+from django.http import Http404
 from django.shortcuts import redirect, render
 
+from svs_core.docker.template import Template
 from svs_core.users.user import User
 
 
@@ -41,3 +43,18 @@ async def login(request):
 def logout(request):
     request.session.flush()
     return redirect("index")
+
+
+async def templates(request):
+    templates = await Template.get_all()
+    return render(request, "templates.html", {"templates": templates})
+
+
+async def template_detail(request, template_id):
+    try:
+        template = await Template.get_by_id(template_id)
+        if not template:
+            raise Http404("Template not found")
+        return render(request, "template_detail.html", {"template": template})
+    except Exception as e:
+        raise Http404(f"Template not found: {e}")
