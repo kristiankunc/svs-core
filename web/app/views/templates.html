@@ -1,47 +1,25 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="py-8">
-        <h1 class="text-3xl font-bold mb-6">Templates</h1>
+        <h1 class="mb-6">Templates</h1>
         {% if templates %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for template in templates %}
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                        <div class="p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <h2 class="text-xl font-bold">{{ template.name }}</h2>
-                                <span class="px-3 py-1 text-xs font-semibold rounded-full {% if template.type == 'image' %} bg-blue-100 text-blue-800 {% else %} bg-green-100 text-green-800 {% endif %}">
-                                    {{ template.type }}
-                                </span>
-                            </div>
-                            <p class="text-gray-600 mb-4 line-clamp-2">
-                                {% if template.description %}
-                                    {{ template.description }}
-                                {% else %}
-                                    No description provided.
-                                {% endif %}
-                            </p>
-                            <div class="text-sm text-gray-500 mb-4">
-                                {% if template.type == 'image' %}
-                                    <p>
-                                        <span class="font-semibold">Image:</span> {{ template.image|default:"N/A" }}
-                                    </p>
-                                {% else %}
-                                    <p>
-                                        <span class="font-semibold">Build template</span> with custom Dockerfile
-                                    </p>
-                                {% endif %}
-                            </div>
-                            <a href="{% url 'template_detail' template.id %}"
-                               class="block w-full text-center bg-blue-500 hover:bg-blue-600 text-white py-2 rounded">
-                                View Details
-                            </a>
-                        </div>
-                    </div>
+                    <c-card class="w-[380px]">
+                    <c-card.header>
+                    <c-card.title>{{ template.name }}</c-card.title>
+                    {% if template.description %}<c-card.description> {{ template.description }} </c-card.description>{% endif %}
+                    </c-card.header>
+                    <c-card.content class="flex justify-center">
+                    <a href="{% url 'template_detail' template.id %}" class="w-full">
+                        <c-button class="w-full">View details</c-button>
+                    </a>
+                    </c-card.content>
+                    <c-card.footer>
+                    <small class="text-gray-400">Created on {{ template.created_at|date:"F j, Y" }}</small>
+                    </c-card.footer>
+                    </c-card>
                 {% endfor %}
-            </div>
-        {% else %}
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-                <p class="text-yellow-700">No templates found. Create a template to get started.</p>
             </div>
         {% endif %}
     </div>

@@ -1,3 +1,4 @@
+from app.lib.user import get_user_if_authenticated
 from django.http import Http404
 from django.shortcuts import redirect, render
 
@@ -12,14 +13,7 @@ async def index(request):
         request.session["is_authenticated"] = True
         request.session.set_expiry(3600)
 
-    user = None
-    if request.session.get("is_authenticated", False):
-        user = await User.get_by_name(request.session["username"])
-
-    print(f"Session: {request.session.items()}", flush=True)
-
-    print(f"User: {user}", flush=True)
-
+    user = await get_user_if_authenticated(request)
     return render(request, "index.html", {"user": user})
 
 
@@ -52,21 +46,19 @@ def logout(request):
 
 
 async def templates(request):
-    user = None
-    if request.session.get("is_authenticated", False):
-        user = await User.get_by_name(request.session["username"])
     templates = await Template.get_all()
+
+    user = await get_user_if_authenticated(request)
     return render(request, "templates.html", {"templates": templates, "user": user})
 
 
 async def template_detail(request, template_id):
     try:
-        user = None
-        if request.session.get("is_authenticated", False):
-            user = await User.get_by_name(request.session["username"])
         template = await Template.get_by_id(template_id)
         if not template:
             raise Http404("Template not found")
+
+        user = await get_user_if_authenticated(request)
         return render(
             request, "template_detail.html", {"template": template, "user": user}
         )
