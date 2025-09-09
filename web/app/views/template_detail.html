@@ -129,6 +129,11 @@
                 {% endif %}
             </div>
         </div>
+        {% if user %}
+            <div class="flex justify-end mt-6">
+                <c-button>Use this template</c-button>
+            </div>
+        {% endif %}
         </c-card.content>
         <c-card.footer class="text-sm text-gray-500"> Created on {{ template.created_at|date:"F j, Y" }} </c-card.footer>
         </c-card>
