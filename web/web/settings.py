@@ -1,5 +1,4 @@
 from pathlib import Path
-from shutil import which
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,14 +29,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "app",
-    "tailwind",
-    "theme",
     "django_cotton",
 ]
-
-
-if DEBUG:
-    INSTALLED_APPS += ["django_browser_reload"]
 
 
 MIDDLEWARE = [
@@ -50,11 +43,6 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
-
-if DEBUG:
-    MIDDLEWARE += [
-        "django_browser_reload.middleware.BrowserReloadMiddleware",
-    ]
 
 ROOT_URLCONF = "web.urls"
 
@@ -112,7 +100,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"  # for collectstatic if needed
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-TAILWIND_APP_NAME = "theme"
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 CACHES = {
@@ -121,5 +108,3 @@ CACHES = {
         "LOCATION": "unique-sessions",
     }
 }
-
-NPM_BIN_PATH = which("npm")

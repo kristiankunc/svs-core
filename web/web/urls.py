@@ -16,9 +16,7 @@ Including another URLconf
 """
 
 from app.views import index, login, logout, template_detail, templates
-from django.urls import include, path
-
-from web import settings
+from django.urls import path
 
 urlpatterns = [
     path("", index, name="index"),
@@ -27,8 +25,3 @@ urlpatterns = [
     path("templates/", templates, name="templates"),
     path("templates/<int:template_id>/", template_detail, name="template_detail"),
 ]
-
-if settings.DEBUG:
-    urlpatterns += [
-        path("__reload__/", include("django_browser_reload.urls")),
-    ]
