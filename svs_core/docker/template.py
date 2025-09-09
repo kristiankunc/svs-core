@@ -272,12 +272,15 @@ class Template(OrmBase):
         )
 
         # TODO: remove type gymnastics
-        if (
-            type == TemplateType.IMAGE
-            and image is not None
-            and not DockerImageManager.exists(image)
-        ):
-            DockerImageManager.pull(image)
+        if type == TemplateType.IMAGE and image is not None:
+            # Parse the image name to handle tags correctly
+            if ":" in image:
+                image_name, tag = image.split(":", 1)
+                if not DockerImageManager.exists(image_name, tag):
+                    DockerImageManager.pull(image_name, tag)
+            else:
+                if not DockerImageManager.exists(image):
+                    DockerImageManager.pull(image, "latest")
 
         elif type == TemplateType.BUILD and dockerfile is not None:
             DockerImageManager.build_from_dockerfile(name, dockerfile)

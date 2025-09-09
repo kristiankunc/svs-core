@@ -1,0 +1,3 @@
+Procfile.tailwind
+node_modules
+static/css/output.css

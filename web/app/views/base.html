@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>SVS - Service Manager</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <meta name="description" content="SVS Service Manager" />
+        <meta name="keywords" content="service, docker, container, management" />
+        <link rel="stylesheet" href="{% static 'css/output.css' %}" />
+        <script defer
+                src="https://cdn.jsdelivr.net/npm/alpinejs@3.15.0/dist/cdn.min.js"></script>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+              rel="stylesheet" />
+    </head>
+    <body class="bg-gray-50 text-black font-sans leading-normal tracking-normal">
+        <!-- Navigation bar -->
+        <nav class="bg-white shadow-md">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-6">
+                    <div class="text-lg font-semibold">
+                        <a href="/" class="text-gray-800 hover:text-gray-600">SVS</a>
+                    </div>
+                    <div class="hidden md:flex space-x-4">
+                        <a href="{% url 'templates' %}"
+                           class="text-gray-600 hover:text-gray-900">Templates</a>
+                    </div>
+                </div>
+                <div>
+                    {% if user %}
+                        <span class="mr-4">{{ user.name }}</span>
+                        <a href="{% url 'logout' %}">
+                            <c-button variant="destructive">Logout</c-button>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'login' %}">
+                            <c-button>Login</c-button>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+        <div class="container mx-auto">
+            {% block content %}{% endblock %}
+        </div>
+    </body>
+</html>
