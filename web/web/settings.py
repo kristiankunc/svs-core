@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "app",
     "tailwind",
     "theme",
+    "django_cotton",
 ]
 
 

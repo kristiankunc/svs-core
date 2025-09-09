@@ -1,4 +1,5 @@
 django
+django-cotton
 django-tailwind
 django-tailwind[reload]
 python-dotenv
