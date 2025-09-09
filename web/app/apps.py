@@ -10,7 +10,16 @@ class AppConfig(AppConfig):
     name = "app"
 
     def ready(self):
-        asyncio.create_task(self.init_tortoise())
+        try:
+            loop = asyncio.get_running_loop()
+            asyncio.create_task(self.init_tortoise())
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                loop.run_until_complete(self.init_tortoise())
+            finally:
+                loop.close()
 
     async def init_tortoise(self):
         await init_db()
