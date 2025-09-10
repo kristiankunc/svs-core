@@ -15,13 +15,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from app.views import index, login, logout, template_detail, templates
-from django.urls import path
+# Import views directly
+from app.views import auth, base, templates
 
-urlpatterns = [
-    path("", index, name="index"),
-    path("login/", login, name="login"),
-    path("logout/", logout, name="logout"),
-    path("templates/", templates, name="templates"),
-    path("templates/<int:template_id>/", template_detail, name="template_detail"),
-]
+# Combine URL patterns from all views
+urlpatterns = base.views + auth.views + templates.views
