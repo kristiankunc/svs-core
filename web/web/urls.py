@@ -15,8 +15,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-# Import views directly
-from app.views import auth, base, templates
+from app.views import auth, base, service, templates
 
-# Combine URL patterns from all views
-urlpatterns = base.views + auth.views + templates.views
+urlpatterns = base.views + auth.views + templates.views + service.views

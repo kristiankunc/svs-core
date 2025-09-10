@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="py-8">
+    <div>
         <div class="mb-6 flex items-center">
             <h1>Template: {{ template.name }}</h1>
         </div>
@@ -131,7 +131,9 @@
         </div>
         {% if user %}
             <div class="flex justify-end mt-6">
-                <c-button>Use this template</c-button>
+                <a href="{% url 'instantiate_template' template.id %}">
+                    <c-button>Use this template</c-button>
+                </a>
             </div>
         {% endif %}
         </c-card.content>

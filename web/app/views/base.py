@@ -11,8 +11,9 @@ async def index(request):
         request.session["is_authenticated"] = True
         request.session.set_expiry(3600)
 
-    user = await get_user_if_authenticated(request)
-    return render(request, "index.html", {"user": user})
+    return render(
+        request, "index.html", {"user": await get_user_if_authenticated(request)}
+    )
 
 
 views = [
