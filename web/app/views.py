@@ -49,7 +49,9 @@ async def templates(request):
     templates = await Template.get_all()
 
     user = await get_user_if_authenticated(request)
-    return render(request, "templates.html", {"templates": templates, "user": user})
+    return render(
+        request, "template/templates.html", {"templates": templates, "user": user}
+    )
 
 
 async def template_detail(request, template_id):
@@ -60,7 +62,9 @@ async def template_detail(request, template_id):
 
         user = await get_user_if_authenticated(request)
         return render(
-            request, "template_detail.html", {"template": template, "user": user}
+            request,
+            "template/template_detail.html",
+            {"template": template, "user": user},
         )
     except Exception as e:
         raise Http404(f"Template not found: {e}")
