@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+    <div>
+        <h1 class="mb-6">Templates</h1>
+        {% if templates %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for template in templates %}
+                    <c-card class="w-[380px]">
+                    <c-card.header>
+                    <c-card.title>{{ template.name }}</c-card.title>
+                    {% if template.description %}<c-card.description> {{ template.description }} </c-card.description>{% endif %}
+                    </c-card.header>
+                    <c-card.content class="flex justify-center">
+                    <a href="{% url 'template_detail' template.id %}" class="w-full">
+                        <c-button class="w-full">View details</c-button>
+                    </a>
+                    </c-card.content>
+                    <c-card.footer>
+                    <small class="text-gray-400">Created on {{ template.created_at|date:"F j, Y" }}</small>
+                    </c-card.footer>
+                    </c-card>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
