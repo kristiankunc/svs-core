@@ -12,6 +12,7 @@ mypy
 pre-commit
 pytest
 pytest-asyncio
+pytest-cov
 pytest-dotenv
 pytest_mock
 python-dotenv
