@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import sys
 
 import typer
 
@@ -21,6 +22,11 @@ app.add_typer(setup_app, name="setup")
 
 
 def main() -> None:
+    # Skip database initialization if command is init
+    if len(sys.argv) > 1 and "init" in sys.argv:
+        app()
+        return
+
     from tortoise import Tortoise
 
     from svs_core.db.models import TORTOISE_ORM

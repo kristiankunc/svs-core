@@ -1,3 +1,101 @@
+from subprocess import CalledProcessError
+
 import typer
 
-app = typer.Typer(help="Initialize SVS")
+from svs_core.shared.shell import run_command
+
+app = typer.Typer(help="Setup SVS")
+
+
+def confirm():
+    answer = typer.prompt("Are you sure you want to proceed? (y/n)")
+    if answer.lower() != "y":
+        raise typer.Abort()
+
+
+def verify_prerequisites():
+    """Verify system prerequisites"""
+    # Debian check
+
+    try:
+        run_command("ls -f /etc/debian_version", check=True)
+        typer.echo("✅ System is Debian-based.")
+    except CalledProcessError:
+        typer.echo(
+            "❌ This setup script is designed for Debian-based systems.", err=True
+        )
+        confirm()
+
+    # docker check
+    try:
+        run_command("docker --version", check=True)
+        typer.echo("✅ Docker is installed.")
+    except CalledProcessError:
+        typer.echo("❌ Docker is not installed or not in PATH.", err=True)
+        confirm()
+
+    # Containers check
+    try:
+        run_command(
+            "docker ps --filter 'name=svs-db' --filter 'name=caddy' --format '{{.Names}}' | grep -E 'svs-db|caddy'",
+            check=True,
+        )
+        typer.echo("✅ Required Docker containers are running.")
+    except CalledProcessError:
+        typer.echo(
+            "❌ Required Docker containers 'svs-db' and 'caddy' are not running.",
+            err=True,
+        )
+        confirm()
+
+
+def permissions_setup():
+    """Set up necessary permissions"""
+
+    # create svs-users group
+    try:
+        run_command("getent group svs-users || sudo groupadd svs-users", check=True)
+        typer.echo("✅ Group 'svs-users' exists or created.")
+    except CalledProcessError:
+        typer.echo("❌ Failed to create or verify 'svs-users' group.", err=True)
+        raise typer.Abort()
+
+    # create svs-admins group
+    try:
+        run_command("getent group svs-admins || sudo groupadd svs-admins", check=True)
+        typer.echo("✅ Group 'svs-admins' exists or created.")
+    except CalledProcessError:
+        typer.echo("❌ Failed to create or verify 'svs-admins' group.", err=True)
+        raise typer.Abort()
+
+
+def env_setup():
+    """Set up environment variables"""
+
+    try:
+        run_command("test -f /etc/svs/.env", check=True)
+        typer.echo("✅ /etc/svs/.env already exists.")
+    except CalledProcessError:
+        try:
+            run_command("touch /etc/svs/.env", check=True)
+            run_command("sudo chown root:svs-admins /etc/svs/.env", check=True)
+            run_command("sudo chmod 640 /etc/svs/.env", check=True)
+            typer.echo(
+                "✅ /etc/svs/.env created and permissions set., manually edit it and re-run the command."
+            )
+            typer.Exit()
+        except CalledProcessError:
+            typer.echo(
+                "❌ Failed to create or set permissions for /etc/svs/.env.", err=True
+            )
+            raise typer.Abort()
+
+
+@app.command("init")
+def init() -> None:
+    """Initialize the SVS environment"""
+    typer.echo("Initializing SVS environment...")
+
+    verify_prerequisites()
+    permissions_setup()
+    env_setup()
