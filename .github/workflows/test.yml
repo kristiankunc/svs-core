@@ -149,6 +149,7 @@ jobs:
                       🚀 A new TestPyPI release is available for this PR!
 
                       **Version:** `${{ env.PACKAGE_VERSION }}`
+                      **Commit:** `${{ github.sha }}`
                       **Install with:**
                       ```bash
                       pip install --extra-index-url https://test.pypi.org/simple/ svs_core==${{ env.PACKAGE_VERSION }}
