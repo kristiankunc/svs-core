@@ -32,16 +32,21 @@ def verify_prerequisites():
         typer.echo("❌ Docker is not installed or not in PATH.", err=True)
         confirm()
 
-    # Containers check
     try:
-        run_command(
-            "docker ps --filter 'name=svs-db' --filter 'name=caddy' --format '{{.Names}}' | grep -E 'svs-db|caddy'",
-            check=True,
+        result = run_command(
+            "docker ps --filter 'name=svs-db' --filter 'name=caddy' --format '{{.Names}}'"
         )
-        typer.echo("✅ Required Docker containers are running.")
+        if "svs-db" in result.stdout and "caddy" in result.stdout:
+            typer.echo("✅ Required Docker containers are running.")
+        else:
+            typer.echo(
+                "❌ Required Docker containers 'svs-db' and 'caddy' are not running.",
+                err=True,
+            )
+            confirm()
     except Exception:
         typer.echo(
-            "❌ Required Docker containers 'svs-db' and 'caddy' are not running.",
+            "❌ Failed to check Docker containers status.",
             err=True,
         )
         confirm()
@@ -75,13 +80,14 @@ def env_setup():
         typer.echo("✅ /etc/svs/.env already exists.")
     except Exception:
         try:
-            run_command("touch /etc/svs/.env", check=True)
+            run_command("sudo mkdir -p /etc/svs", check=True)
+            run_command("sudo touch /etc/svs/.env", check=True)
             run_command("sudo chown root:svs-admins /etc/svs/.env", check=True)
             run_command("sudo chmod 640 /etc/svs/.env", check=True)
             typer.echo(
-                "✅ /etc/svs/.env created and permissions set., manually edit it and re-run the command."
+                "✅ /etc/svs/.env created and permissions set. Please manually edit it and re-run the command."
             )
-            typer.Exit()
+            raise typer.Exit()
         except Exception:
             typer.echo(
                 "❌ Failed to create or set permissions for /etc/svs/.env.", err=True
