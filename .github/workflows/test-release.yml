@@ -23,9 +23,9 @@ jobs:
             - name: Set dynamic version
               run: |
                   PR_NUMBER=${{ github.event.pull_request.number }}
-                  SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+                  TIMESTAMP=$(date +%Y%m%d%H%M%S)
                   CURRENT_VERSION=$(grep -Po '(?<=^version = ")[^"]+' pyproject.toml)
-                  VERSION="${CURRENT_VERSION}.dev${PR_NUMBER}.post${SHORT_SHA}"
+                  VERSION="${CURRENT_VERSION}.dev${PR_NUMBER}${TIMESTAMP}"
                   echo "PACKAGE_VERSION=$VERSION" >> $GITHUB_ENV
                   sed -i "s/^version = .*/version = \"${VERSION}\"/" pyproject.toml
 
