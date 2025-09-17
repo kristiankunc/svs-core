@@ -36,7 +36,14 @@ dev = [
 docs = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
 
 [tool.setuptools]
-packages = ["svs_core"]
+package-dir = { "" = "." }
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["svs_core", "svs_core.*"]
+
+[tool.setuptools.package-data]
+svs_core = ["**/*"]
 
 [tool.ruff]
 line-length = 88
