@@ -3,6 +3,7 @@ import os
 
 import pytest
 import pytest_asyncio
+from pytest_mock import MockerFixture
 from tortoise import Tortoise
 
 
@@ -77,3 +78,16 @@ async def initialize_tortoise():
 
     yield
     await Tortoise.close_connections()
+
+
+@pytest.fixture(autouse=True)
+def mock_system_user_manager(mocker: MockerFixture) -> MockerFixture:
+    """Automatically mock SystemUserManager methods to prevent actual system user creation/deletion."""
+    mocker.patch(
+        "svs_core.users.system.SystemUserManager.create_user",
+        return_value=None,
+    )
+    return mocker.patch(
+        "svs_core.users.system.SystemUserManager.delete_user",
+        return_value=None,
+    )

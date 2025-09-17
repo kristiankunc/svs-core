@@ -6,12 +6,27 @@ from pytest_mock import MockerFixture
 
 from svs_core.users.user import User
 
+# TODO: use a in-place model for testing OrmBase instead of User
+
 
 # Automatically mock the docker network creation
 @pytest.fixture(autouse=True)
 def create_network_mock(mocker: MockerFixture) -> MockerFixture:
     return mocker.patch(
         "svs_core.docker.network.DockerNetworkManager.create_network",
+        return_value=None,
+    )
+
+
+# Automatically mock system user management
+@pytest.fixture(autouse=True)
+def system_user_mock(mocker: MockerFixture) -> MockerFixture:
+    mocker.patch(
+        "svs_core.users.system.SystemUserManager.create_user",
+        return_value=None,
+    )
+    return mocker.patch(
+        "svs_core.users.system.SystemUserManager.delete_user",
         return_value=None,
     )
 
