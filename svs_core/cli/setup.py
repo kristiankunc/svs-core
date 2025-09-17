@@ -1,3 +1,5 @@
+import os
+
 import typer
 
 from svs_core.shared.shell import run_command
@@ -73,8 +75,9 @@ def permissions_setup():
 
     # add current user to svs-admins
     try:
-        run_command("sudo usermod -aG svs-admins $USER", check=True)
-        typer.echo("✅ User added to 'svs-admins' group.")
+        username = os.getlogin()
+        run_command(f"sudo usermod -aG svs-admins {username}", check=True)
+        typer.echo(f"✅ User '{username}' added to 'svs-admins' group.")
     except Exception:
         typer.echo("❌ Failed to add user to 'svs-admins' group.", err=True)
         raise typer.Abort()
