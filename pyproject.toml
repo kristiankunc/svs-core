@@ -2,13 +2,48 @@
 name = "svs_core"
 version = "0.1.0"
 description = "Core library for SVS"
-authors = [{ name = "Your Name", email = "you@example.com" }]
+authors = [{ name = "Kristián Kunc", email = "diist7i4c@mozmail.com" }]
 readme = "README.md"
-requires-python = ">=3.8"
-dependencies = []
+requires-python = ">=3.11"
+dependencies = [
+    "asyncpg",
+    "bcrypt",
+    "docker",
+    "httpx",
+    "python-dotenv",
+    "tortoise-orm[psycopg]",
+    "typer",
+    "aerich[toml]",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "isort",
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocstrings[python]",
+    "mypy",
+    "pre-commit",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "pytest-dotenv",
+    "pytest_mock",
+    "ruff",
+    "twine",
+]
+docs = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
 
 [tool.setuptools]
-packages = ["svs_core"]
+package-dir = { "" = "." }
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["svs_core", "svs_core.*"]
+
+[tool.setuptools.package-data]
+svs_core = ["**/*"]
 
 [tool.ruff]
 line-length = 88

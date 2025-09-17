@@ -1,26 +1,8 @@
 services:
-    devcontainer:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        volumes:
-            - ..:/home/dev/app:cached
-            - /var/run/docker.sock:/var/run/docker.sock
-        environment:
-            - GPG_AGENT_INFO=/home/dev/.gnupg/S.gpg-agent
-        env_file:
-            - .env
-        depends_on:
-            - db
-        user: dev
-        working_dir: /home/dev/app
-        tty: true
-        stdin_open: true
-        privileged: true
-
     db:
         image: postgres:latest
         restart: unless-stopped
+        container_name: svs-db
         env_file:
             - .env
         ports:
