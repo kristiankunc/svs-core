@@ -150,7 +150,7 @@ jobs:
                       **Version:** `${{ env.PACKAGE_VERSION }}`
                       **Install with:**
                       ```bash
-                      pip install --index-url https://test.pypi.org/simple/ svs_core==${{ env.PACKAGE_VERSION }}
+                      pip install --extra-index-url https://test.pypi.org/simple/ svs_core==${{ env.PACKAGE_VERSION }}
                       ```
 
                       [View on TestPyPI](https://test.pypi.org/project/svs_core/${{ env.PACKAGE_VERSION }}/)
