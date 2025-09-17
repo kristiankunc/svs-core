@@ -1,0 +1,58 @@
+name: Publish to TestPyPI
+
+on:
+    pull_request:
+        branches: ["main"]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+
+            - name: Install build tools
+              run: pip install build twine
+
+            - name: Set dynamic version
+              run: |
+                  PR_NUMBER=${{ github.event.pull_request.number }}
+                  SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+                  VERSION="0.1.0.dev0+pr${PR_NUMBER}.${SHORT_SHA}"
+                  echo "PACKAGE_VERSION=$VERSION" >> $GITHUB_ENV
+                  sed -i "s/^version = .*/version = \"${VERSION}\"/" pyproject.toml
+
+            - name: Build package
+              run: python -m build
+
+            - name: Upload to TestPyPI
+              env:
+                  TWINE_USERNAME: "__token__"
+                  TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+              run: |
+                  python -m twine upload \
+                    --repository-url https://test.pypi.org/legacy/ \
+                    --skip-existing dist/*
+
+            - name: Comment with install instructions
+              uses: peter-evans/create-or-update-comment@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  issue-number: ${{ github.event.pull_request.number }}
+                  body: |
+                      🚀 A new TestPyPI release is available for this PR!
+
+                      **Version:** `${{ env.PACKAGE_VERSION }}`
+                      **Install with:**
+                      ```bash
+                      pip install --index-url https://test.pypi.org/simple/ mypackage==${{ env.PACKAGE_VERSION }}
+                      ```
+
+                      [View on TestPyPI](https://test.pypi.org/project/mypackage/${{ env.PACKAGE_VERSION }}/)
+                  edit-mode: replace
