@@ -50,6 +50,14 @@ jobs:
                     --repository testpypi \
                     --skip-existing dist/*
 
+            - name: Find previous comment
+              id: find-comment
+              uses: peter-evans/find-comment@v3
+              with:
+                  issue-number: ${{ github.event.pull_request.number }}
+                  comment-author: "github-actions[bot]"
+                  body-includes: "A new TestPyPI release is available for this PR!"
+
             - name: Comment with install instructions
               uses: peter-evans/create-or-update-comment@v4
               with:
@@ -66,3 +74,4 @@ jobs:
 
                       [View on TestPyPI](https://test.pypi.org/project/svs_core/${{ env.PACKAGE_VERSION }}/)
                   edit-mode: replace
+                  comment-id: ${{ steps.find-comment.outputs.comment-id }}
