@@ -71,6 +71,14 @@ def permissions_setup():
         typer.echo("❌ Failed to create or verify 'svs-admins' group.", err=True)
         raise typer.Abort()
 
+    # add current user to svs-admins
+    try:
+        run_command("sudo usermod -aG svs-admins $USER", check=True)
+        typer.echo("✅ User added to 'svs-admins' group.")
+    except Exception:
+        typer.echo("❌ Failed to add user to 'svs-admins' group.", err=True)
+        raise typer.Abort()
+
 
 def env_setup():
     """Set up environment variables"""
@@ -78,6 +86,7 @@ def env_setup():
     try:
         run_command("test -f /etc/svs/.env", check=True)
         typer.echo("✅ /etc/svs/.env already exists.")
+
     except Exception:
         try:
             run_command("sudo mkdir -p /etc/svs", check=True)
@@ -87,12 +96,13 @@ def env_setup():
             typer.echo(
                 "✅ /etc/svs/.env created and permissions set. Please manually edit it and re-run the command."
             )
-            raise typer.Exit()
         except Exception:
             typer.echo(
                 "❌ Failed to create or set permissions for /etc/svs/.env.", err=True
             )
             raise typer.Abort()
+
+    raise typer.Exit()
 
 
 @app.command("init")
