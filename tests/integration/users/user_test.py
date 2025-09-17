@@ -14,10 +14,22 @@ def create_network_mock(mocker: MockerFixture) -> MockerFixture:
     )
 
 
+@pytest.fixture(autouse=True)
+def system_user_mock(mocker: MockerFixture) -> MockerFixture:
+    mocker.patch(
+        "svs_core.users.system.SystemUserManager.create_user",
+        return_value=None,
+    )
+    return mocker.patch(
+        "svs_core.users.system.SystemUserManager.delete_user",
+        return_value=None,
+    )
+
+
 class TestUserIntegration:
     @pytest.mark.asyncio
     @pytest.mark.integration
-    async def test_create_user_success(self, create_network_mock):
+    async def test_create_user_success(self, create_network_mock, system_user_mock):
         """Test creating a user with valid parameters."""
 
         user = await User.create(name="testuser", password="password123")
@@ -25,6 +37,8 @@ class TestUserIntegration:
         assert user.name == "testuser"
         assert await User.get_by_name("testuser") is not None
         create_network_mock.assert_called_once_with("testuser")
+        # Verify system user creation was called with correct parameters
+        system_user_mock.assert_called_once_with("testuser", "password123")
 
     @pytest.mark.asyncio
     @pytest.mark.integration

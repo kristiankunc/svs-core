@@ -6,6 +6,7 @@ from svs_core.docker.network import DockerNetworkManager
 from svs_core.shared.exceptions import AlreadyExistsException, SVSException
 from svs_core.shared.hash import hash_password
 from svs_core.shared.logger import get_logger
+from svs_core.users.system import SystemUserManager
 
 
 class InvalidUsernameException(SVSException):
@@ -70,6 +71,7 @@ class User(OrmBase):
         )
 
         DockerNetworkManager.create_network(name)
+        SystemUserManager.create_user(name, password)
 
         get_logger(__name__).info(f"Created user: {name}")
         return cls(model=model)
