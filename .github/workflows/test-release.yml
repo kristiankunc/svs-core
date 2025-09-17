@@ -24,7 +24,8 @@ jobs:
               run: |
                   PR_NUMBER=${{ github.event.pull_request.number }}
                   SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-                  VERSION="0.1.0.dev0+pr${PR_NUMBER}.${SHORT_SHA}"
+                  CURRENT_VERSION=$(python -c "import tomli; print(tomli.load(open('pyproject.toml'))['project']['version'])")
+                  VERSION="${CURRENT_VERSION}.dev${PR_NUMBER}.post${SHORT_SHA}"
                   echo "PACKAGE_VERSION=$VERSION" >> $GITHUB_ENV
                   sed -i "s/^version = .*/version = \"${VERSION}\"/" pyproject.toml
 
