@@ -6,6 +6,8 @@ import sys
 
 from dotenv import load_dotenv
 
+from svs_core.docker.network import DockerNetworkManager
+
 
 async def init() -> None:
     await Tortoise.init(config=TORTOISE_ORM)
@@ -25,6 +27,19 @@ async def clear() -> None:
     await init()
 
 
+async def dev_seed() -> None:
+    await Tortoise.init(config=TORTOISE_ORM)
+    from svs_core.users.user import User
+
+    try:
+        DockerNetworkManager.delete_network("testuser")
+    except Exception:
+        pass
+
+    user = await User.create(name="testuser", password="12345678")
+    print(user)
+
+
 if __name__ == "__main__":
     load_dotenv()
 
@@ -35,7 +50,7 @@ if __name__ == "__main__":
     action = sys.argv[1] if len(sys.argv) > 1 else None
 
     if action not in ["init", "clear"]:
-        print("Usage: manage.py <init|clear>")
+        print("Usage: manage.py <init|clear|dev-seed>")
         sys.exit(1)
 
     match action:
@@ -44,3 +59,6 @@ if __name__ == "__main__":
 
         case "clear":
             asyncio.run(clear())
+
+        case "dev-seed":
+            asyncio.run(dev_seed())
