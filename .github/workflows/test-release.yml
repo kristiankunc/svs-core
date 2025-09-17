@@ -24,12 +24,17 @@ jobs:
             - name: Install build tools
               run: pip install build twine
 
-            - name: Set dynamic version
+            - name: Set dynamic version with patch bump
               run: |
                   PR_NUMBER=${{ github.event.pull_request.number }}
                   TIMESTAMP=$(date +%Y%m%d%H%M%S)
                   CURRENT_VERSION=$(grep -Po '(?<=^version = ")[^"]+' pyproject.toml)
-                  VERSION="${CURRENT_VERSION}.dev${PR_NUMBER}${TIMESTAMP}"
+                  MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
+                  MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
+                  PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
+                  BUMPED_PATCH=$((PATCH + 1))
+                  NEW_VERSION="${MAJOR}.${MINOR}.${BUMPED_PATCH}"
+                  VERSION="${NEW_VERSION}.dev${PR_NUMBER}${TIMESTAMP}"
                   echo "PACKAGE_VERSION=$VERSION" >> $GITHUB_ENV
                   sed -i "s/^version = .*/version = \"${VERSION}\"/" pyproject.toml
 
@@ -56,8 +61,8 @@ jobs:
                       **Version:** `${{ env.PACKAGE_VERSION }}`
                       **Install with:**
                       ```bash
-                      pip install --index-url https://test.pypi.org/simple/ mypackage==${{ env.PACKAGE_VERSION }}
+                      pip install --index-url https://test.pypi.org/simple/ svs_core==${{ env.PACKAGE_VERSION }}
                       ```
 
-                      [View on TestPyPI](https://test.pypi.org/project/mypackage/${{ env.PACKAGE_VERSION }}/)
+                      [View on TestPyPI](https://test.pypi.org/project/svs_core/${{ env.PACKAGE_VERSION }}/)
                   edit-mode: replace
