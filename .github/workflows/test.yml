@@ -140,6 +140,9 @@ jobs:
                   comment-author: "github-actions[bot]"
                   body-includes: "A new TestPyPI release is available for this PR!"
 
+            - name: Get current datetime
+              run: echo "BUILD_DATETIME=$(date '+%B %d, %Y at %H:%M')" >> $GITHUB_ENV
+
             - name: Comment with install instructions
               uses: peter-evans/create-or-update-comment@v4
               with:
@@ -149,7 +152,8 @@ jobs:
                       🚀 A new TestPyPI release is available for this PR!
 
                       **Version:** `${{ env.PACKAGE_VERSION }}`
-                      **Commit:** `${{ github.sha }}`
+                      **Built:** ${{ env.BUILD_DATETIME }}
+                      **Commit:** [`${{ github.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
                       **Install with:**
                       ```bash
                       pip install --extra-index-url https://test.pypi.org/simple/ svs_core==${{ env.PACKAGE_VERSION }}
