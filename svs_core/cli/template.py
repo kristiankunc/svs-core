@@ -35,7 +35,8 @@ def list_templates() -> None:
 
     async def _list():
         templates = await Template.get_all()
-        if not templates:
+
+        if len(templates) == 0:
             typer.echo("No templates found.")
             return
 
