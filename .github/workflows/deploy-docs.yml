@@ -1,50 +1,52 @@
 name: Deploy MkDocs site
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "docs/**"
-      - "mkdocs.yml"
-      - ".github/workflows/deploy-docs.yml"
+    push:
+        branches:
+            - main
+        paths:
+            - "docs/**"
+            - "mkdocs.yml"
+            - ".github/workflows/deploy-docs.yml"
+            - "svs_core/__main__.py"
+            - "svs_core/cli/**"
 
-  workflow_dispatch:
+    workflow_dispatch:
 
 permissions:
-  contents: write
+    contents: write
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    deploy:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v5
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: 3.11
+            - name: Set up Python
+              uses: actions/setup-python@v6
+              with:
+                  python-version: 3.11
 
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+            - name: Cache pip dependencies
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/pip
+                  key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pip-
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          python -m pip install -e .
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install -r requirements.txt
+                  python -m pip install -e .
 
-      - name: Compile CLI docs
-        run: |
-          python docs/compile-cli.py
+            - name: Compile CLI docs
+              run: |
+                  python docs/compile-cli.py
 
-      - name: Deploy to GitHub Pages
-        run: |
-          mkdocs gh-deploy --force
+            - name: Deploy to GitHub Pages
+              run: |
+                  mkdocs gh-deploy --force
