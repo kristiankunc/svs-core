@@ -6,38 +6,47 @@ authors = [{ name = "Kristián Kunc", email = "diist7i4c@mozmail.com" }]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "asyncpg",
-    "bcrypt",
-    "docker",
-    "httpx",
-    "python-dotenv",
-    "tortoise-orm[psycopg]",
-    "typer",
-    "aerich[toml]",
+    "asyncpg==0.30.0",
+    "bcrypt==5.0.0",
+    "docker==7.1.0",
+    "httpx==0.28.1",
+    "python-dotenv==1.1.1",
+    "tortoise-orm[psycopg]==0.25.1",
+    "typer==0.19.2",
+    "aerich[toml]==0.9.1",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "black",
-    "isort",
-    "mkdocs",
-    "mkdocs-material",
-    "mkdocstrings[python]",
-    "mypy",
-    "pre-commit",
-    "pytest",
-    "pytest-asyncio",
-    "pytest-cov",
-    "pytest-dotenv",
-    "pytest_mock",
-    "ruff",
-    "twine",
+    "black==25.9.0",
+    "isort==6.0.1",
+    "mkdocs==1.6.1",
+    "mkdocs-material==9.6.20",
+    "mkdocstrings[python]==0.30.1",
+    "mypy==1.18.2",
+    "pre-commit==4.3.0",
+    "pytest==8.4.2",
+    "pytest-asyncio==1.2.0",
+    "pytest-cov==7.0.0",
+    "pytest-dotenv==0.5.2",
+    "pytest_mock==3.15.1",
+    "ruff==0.13.2",
+    "twine==6.2.0",
 ]
-docs = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
+docs = [
+    "mkdocs==1.6.1",
+    "mkdocs-material==9.6.20",
+    "mkdocstrings[python]==0.30.1",
+]
+
+[project.scripts]
+svs = "svs_core.__main__:main"
 
 [tool.setuptools]
-package-dir = { "" = "." }
 include-package-data = true
+
+[tool.setuptools.package-dir]
+"" = "."
 
 [tool.setuptools.packages.find]
 include = ["svs_core", "svs_core.*"]
@@ -80,6 +89,3 @@ src_folder = "./svs_core"
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
-
-[project.scripts]
-svs = "svs_core.__main__:main"
