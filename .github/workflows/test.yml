@@ -13,7 +13,7 @@ jobs:
     lint-format:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v5
 
             - name: Set up Python
               uses: actions/setup-python@v5
@@ -46,7 +46,7 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: Load environment variables from .env.ci
               uses: aarcangeli/load-dotenv@v1
@@ -96,7 +96,7 @@ jobs:
         if: ${{ github.ref != 'refs/heads/main' && github.event_name == 'pull_request' }}
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v5
 
             - name: Set up Python
               uses: actions/setup-python@v5
