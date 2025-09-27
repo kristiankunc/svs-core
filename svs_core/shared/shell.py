@@ -1,5 +1,4 @@
 import logging
-import shlex
 import subprocess
 from typing import Mapping, Optional
 
@@ -11,6 +10,7 @@ def run_command(
 ) -> subprocess.CompletedProcess[str]:
     """
     Executes a shell command with optional environment variables.
+    Always runs in shell mode to support shell operators (||, &&, etc.).
 
     Args:
         command (str): The shell command to execute.
@@ -26,10 +26,8 @@ def run_command(
 
     exec_env = dict(env) if env else {}  # TODO: maybe inject system env?
 
-    cmd_list = shlex.split(command)
-
     result = subprocess.run(
-        cmd_list, env=exec_env, check=check, capture_output=True, text=True
+        command, env=exec_env, check=check, capture_output=True, text=True, shell=True
     )
 
     get_logger(__name__).log(logging.DEBUG, result)
