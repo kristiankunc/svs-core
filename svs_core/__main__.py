@@ -20,12 +20,14 @@ if not os.getenv("DATABASE_URL"):
         )
 
 from svs_core.cli.setup import app as setup_app
+from svs_core.cli.template import app as template_app
 from svs_core.cli.user import app as user_app
 
 app = typer.Typer(help="SVS CLI")
 
 app.add_typer(user_app, name="user")
 app.add_typer(setup_app, name="setup")
+app.add_typer(template_app, name="template")
 
 
 def main() -> None:
