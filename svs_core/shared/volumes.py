@@ -6,16 +6,15 @@ from pathlib import Path
 class SystemVolumeManager:
     """Manages system volumes for users."""
 
-    # Keep as a Path so OS path operations behave correctly.
     BASE_PATH = Path("/var/svs/volumes")
 
     @staticmethod
-    def generate_free_volume(user_id: str | int) -> Path:
+    def generate_free_volume(user_id: int) -> Path:
         """
         Generates a free volume path for a given user ID.
 
         Args:
-            user_id (str | int): The user ID for whom to generate the volume.
+            user_id (int): The user ID for whom to generate the volume.
         Returns:
             Path: The path to the generated volume (absolute).
         Raises:
