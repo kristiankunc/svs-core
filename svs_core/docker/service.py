@@ -193,6 +193,135 @@ class Service(OrmBase):
         )
 
     @classmethod
+    async def create_from_template(
+        cls,
+        name: str,
+        template_id: int,
+        user_id: int,
+        domain: str | None = None,
+        override_env: dict[str, str] | None = None,
+        override_ports: list[dict[str, Any]] | None = None,
+        override_volumes: list[dict[str, Any]] | None = None,
+        override_command: str | None = None,
+        override_healthcheck: dict[str, Any] | None = None,
+        override_labels: dict[str, str] | None = None,
+        override_args: list[str] | None = None,
+        networks: list[str] | None = None,
+    ) -> "Service":
+        """
+        Creates a new service from an existing template with optional overrides.
+
+        Args:
+            name (str): The name of the service.
+            template (Template): The template to use.
+            user_id (int): The ID of the user who owns this service.
+            domain (str, optional): The domain for this service.
+            override_env (dict, optional): Environment variables to override template defaults.
+            override_ports (list[dict], optional): Exposed ports to override template defaults.
+            override_volumes (list[dict], optional): Volume mappings to override template defaults.
+            override_command (str, optional): Command to override template default.
+            override_healthcheck (dict, optional): Healthcheck configuration to override template default.
+            override_labels (dict, optional): Container labels to override template defaults.
+            override_args (list, optional): Command arguments to override template defaults.
+            networks (list, optional): Networks to connect to.
+
+        Returns:
+            Service: The created service instance.
+
+        Raises:
+            ValueError: If name is empty or template_id doesn't correspond to an existing template.
+        """
+
+        template = await Template.get_by_id(template_id)
+        if not template:
+            raise ValueError(f"Template with ID {template_id} does not exist")
+
+        env = {var.key: var.value for var in template.default_env}
+        if override_env:
+            env.update(override_env)
+
+        exposed_ports = [
+            {"container": port.container_port, "host": port.host_port}
+            for port in template.default_ports
+        ]
+        for override in override_ports or []:
+            existing = next(
+                (
+                    p
+                    for p in exposed_ports
+                    if p["container"] == override.get("container")
+                ),
+                None,
+            )
+            if existing:
+                existing.update(override)
+            else:
+                exposed_ports.append(override)
+
+        volumes = [
+            {"container": vol.container_path, "host": vol.host_path}
+            for vol in template.default_volumes
+        ]
+        for override in override_volumes or []:
+            existing = next(
+                (v for v in volumes if v["container"] == override.get("container")),
+                None,
+            )
+            if existing:
+                existing.update(override)
+            else:
+                volumes.append(override)
+
+        labels = {label.key: label.value for label in template.labels}
+        if override_labels:
+            labels.update(override_labels)
+
+        healthcheck: dict[str, Any] | None = None
+        if template.healthcheck:
+            healthcheck = {"test": template.healthcheck.test}
+            if template.healthcheck.interval:
+                healthcheck["interval"] = template.healthcheck.interval
+            if template.healthcheck.timeout:
+                healthcheck["timeout"] = template.healthcheck.timeout
+            if template.healthcheck.retries:
+                healthcheck["retries"] = template.healthcheck.retries
+            if template.healthcheck.start_period:
+                healthcheck["start_period"] = template.healthcheck.start_period
+
+        # TODO: allow partial overrides / merge
+        if override_healthcheck:
+            healthcheck = override_healthcheck
+
+        command_to_use = (
+            override_command if override_command is not None else template.start_cmd
+        )
+        args_to_use = override_args
+
+        if args_to_use is None and template.args:
+            args_to_use = template.args.copy()
+
+        if args_to_use is not None:
+            for i, arg in enumerate(args_to_use):
+                if not isinstance(arg, str):
+                    args_to_use[i] = str(arg)
+
+        return await cls.create(
+            name=name,
+            template_id=template.id,
+            user_id=user_id,
+            domain=domain,
+            image=template.image,
+            exposed_ports=exposed_ports,
+            env=env,
+            volumes=volumes,
+            command=command_to_use,
+            healthcheck=healthcheck,
+            labels=labels,
+            args=args_to_use,
+            networks=networks,
+        )
+
+    @classmethod
     async def create(
         cls,
         name: str,
@@ -436,4 +565,17 @@ class Service(OrmBase):
 
         container.start()
         self._model.status = ServiceStatus.RUNNING
+        await self._model.save()
+
+    async def stop(self) -> None:
+        """Stop the service's Docker container."""
+        if not self.container_id:
+            raise ValueError("Service does not have a container ID")
+
+        container = DockerContainerManager.get_container(self.container_id)
+        if not container:
+            raise ValueError(f"Container with ID {self.container_id} not found")
+
+        container.stop()
+        self._model.status = ServiceStatus.STOPPED
         await self._model.save()

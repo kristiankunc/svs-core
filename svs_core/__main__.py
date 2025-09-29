@@ -24,7 +24,7 @@ from svs_core.cli.setup import app as setup_app
 from svs_core.cli.template import app as template_app
 from svs_core.cli.user import app as user_app
 
-app = typer.Typer(help="SVS CLI")
+app = typer.Typer(help="SVS CLI", pretty_exceptions_enable=False)
 
 app.add_typer(user_app, name="user")
 app.add_typer(setup_app, name="setup")
