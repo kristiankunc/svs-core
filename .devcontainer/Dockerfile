@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     iptables uidmap \
     apt-transport-https ca-certificates gnupg lsb-release \
+    golang-docker-credential-helpers \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Setup locale
@@ -23,10 +24,16 @@ ARG USERNAME=dev
 RUN useradd -m -s /bin/bash $USERNAME \
     && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Install Python virtualenv
+# Switch to dev user
 USER $USERNAME
 WORKDIR /home/$USERNAME/app
+ENV USER=dev
+
+# Create Python virtualenv
 RUN python3 -m venv /home/$USERNAME/.venv
 ENV PATH="/home/$USERNAME/.venv/bin:$PATH"
 
-COPY --chown=dev:dev . .
+# echo '{\n  "credsStore": "",\n  "auths": {\n    "https://index.docker.io/v1/": {}\n  }\n}' > $HOME/.docker/config.json
+
+# Keep container alive for VS Code
+CMD ["sleep", "infinity"]

@@ -5,10 +5,6 @@
 		{
 			"container": 80,
 			"host": null
-		},
-		{
-			"container": 443,
-			"host": null
 		}
 	],
 	"default_volumes": [

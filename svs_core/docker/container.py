@@ -4,6 +4,7 @@ from docker.models.containers import Container
 
 from svs_core.docker.base import get_docker_client
 from svs_core.docker.json_properties import Label
+from svs_core.shared.logger import get_logger
 
 
 class DockerContainerManager:
@@ -15,6 +16,7 @@ class DockerContainerManager:
         command: Optional[str] = None,
         args: Optional[list[str]] = None,
         labels: list[Label] = [],
+        ports: Optional[dict[int, int]] = None,
     ) -> Container:
         """
         Create a Docker container.
@@ -26,6 +28,7 @@ class DockerContainerManager:
             args (Optional[List[str]]): The arguments for the command.
                 These will be combined with command to form the full command.
             labels (List[Label]): Docker labels to apply to the container.
+            ports (Optional[Dict[int, int]]): Port mappings for the container.
 
         Returns:
             Container: The created Docker container instance.
@@ -43,12 +46,15 @@ class DockerContainerManager:
             # If only args are provided, join them as a command
             full_command = " ".join(args)
 
+        get_logger(__name__).debug(f"Creating container with config: {locals()}")
+
         return client.containers.create(
             image=image,
             name=name,
             command=full_command,
             detach=True,
             labels={label.key: label.value for label in labels},
+            ports=ports or {},
         )
 
     @classmethod

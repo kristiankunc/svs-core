@@ -1,6 +1,11 @@
 from typing import Any, List
 
-from svs_core.db.models import OrmBase, ServiceModel, ServiceStatus, TemplateModel
+from svs_core.db.models import (
+    OrmBase,
+    ServiceModel,
+    ServiceStatus,
+    TemplateModel,
+)
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.json_properties import (
     EnvVariable,
@@ -10,6 +15,9 @@ from svs_core.docker.json_properties import (
     Volume,
 )
 from svs_core.docker.template import Template
+from svs_core.shared.logger import get_logger
+from svs_core.shared.ports import SystemPortManager
+from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.user import User
 
 
@@ -194,7 +202,7 @@ class Service(OrmBase):
     async def create_from_template(
         cls,
         name: str,
-        template: Template,
+        template_id: int,
         user_id: int,
         domain: str | None = None,
         override_env: dict[str, str] | None = None,
@@ -225,8 +233,15 @@ class Service(OrmBase):
 
         Returns:
             Service: The created service instance.
+
+        Raises:
+            ValueError: If name is empty or template_id doesn't correspond to an existing template.
         """
-        # Convert template values to model format
+
+        template = await Template.get_by_id(template_id)
+        if not template:
+            raise ValueError(f"Template with ID {template_id} does not exist")
+
         env = {var.key: var.value for var in template.default_env}
         if override_env:
             env.update(override_env)
@@ -235,17 +250,34 @@ class Service(OrmBase):
             {"container": port.container_port, "host": port.host_port}
             for port in template.default_ports
         ]
-        if override_ports:
-            # Replace with overrides (could be more sophisticated to merge)
-            exposed_ports = override_ports
+        for override in override_ports or []:
+            existing = next(
+                (
+                    p
+                    for p in exposed_ports
+                    if p["container"] == override.get("container")
+                ),
+                None,
+            )
+            if existing:
+                existing.update(override)
+            else:
+                exposed_ports.append(override)
 
         volumes = [
             {"container": vol.container_path, "host": vol.host_path}
             for vol in template.default_volumes
         ]
-        if override_volumes:
-            # Replace with overrides (could be more sophisticated to merge)
-            volumes = override_volumes
+        for override in override_volumes or []:
+            # TODO: fix later ;)
+            existing = next(
+                (v for v in volumes if v["container"] == override.get("container")),
+                None,
+            )  # type: ignore
+            if existing:
+                existing.update(override)
+            else:
+                volumes.append(override)
 
         labels = {label.key: label.value for label in template.labels}
         if override_labels:
@@ -262,26 +294,24 @@ class Service(OrmBase):
                 healthcheck["retries"] = template.healthcheck.retries
             if template.healthcheck.start_period:
                 healthcheck["start_period"] = template.healthcheck.start_period
+
+        # TODO: allow partial overrides / merge
         if override_healthcheck:
             healthcheck = override_healthcheck
 
-        # Process command and args to make sure they are properly formatted
         command_to_use = (
             override_command if override_command is not None else template.start_cmd
         )
         args_to_use = override_args
 
         if args_to_use is None and template.args:
-            # Create a copy of the list to avoid modifying the template's args
             args_to_use = template.args.copy()
 
-        # Validate args is a list of strings if provided
         if args_to_use is not None:
             for i, arg in enumerate(args_to_use):
                 if not isinstance(arg, str):
                     args_to_use[i] = str(arg)
 
-        # Use the regular create method with the prepared values
         return await cls.create(
             name=name,
             template_id=template.id,
@@ -346,11 +376,9 @@ class Service(OrmBase):
         Raises:
             ValueError: If name is empty or template_id doesn't correspond to an existing template.
         """
-        name = name.strip()
         if not name:
             raise ValueError("Service name cannot be empty")
 
-        # Get template to inherit values from
         from tortoise.exceptions import DoesNotExist
 
         try:
@@ -359,43 +387,34 @@ class Service(OrmBase):
         except DoesNotExist:
             raise ValueError(f"Template with ID {template_id} does not exist")
 
-        # Inherit values from template if not provided
         if image is None:
             image = template.image
 
-        # Handle ExposedPorts with proper JSON wrapper objects
         if exposed_ports is None:
-            # Get ports from template and convert to dict format expected by the model
             template_ports = template.default_ports
             exposed_ports = [
                 {"container": port.container_port, "host": port.host_port}
                 for port in template_ports
             ]
         else:
-            # Validate the provided ports list
             for port in exposed_ports:
                 if not isinstance(port, dict) or "container" not in port:
                     raise ValueError(f"Invalid port specification: {port}")
-                # Ensure container port is an integer
                 if "container" in port and port["container"] is not None:
                     try:
                         port["container"] = int(port["container"])
                     except (ValueError, TypeError):
                         raise ValueError(f"Container port must be an integer: {port}")
-                # Ensure host port is an integer or None
                 if "host" in port and port["host"] is not None:
                     try:
                         port["host"] = int(port["host"])
                     except (ValueError, TypeError):
                         raise ValueError(f"Host port must be an integer: {port}")
 
-        # Handle EnvVariables with proper JSON wrapper objects
         if env is None:
-            # Get environment variables from template and convert to dict format expected by the model
             template_env = template.default_env
             env = {var.key: var.value for var in template_env}
         else:
-            # Validate the provided env dict
             if not isinstance(env, dict):
                 raise ValueError(f"Environment variables must be a dictionary: {env}")
             for key, value in env.items():
@@ -404,24 +423,19 @@ class Service(OrmBase):
                         f"Environment variable key and value must be strings: {key}={value}"
                     )
 
-        # Handle Volumes with proper JSON wrapper objects
         if volumes is None:
-            # Get volumes from template and convert to dict format expected by the model
             template_volumes = template.default_volumes
             volumes = [
                 {"container": vol.container_path, "host": vol.host_path}
                 for vol in template_volumes
             ]
         else:
-            # Validate the provided volumes list
             for volume in volumes:
                 if not isinstance(volume, dict) or "container" not in volume:
                     raise ValueError(f"Invalid volume specification: {volume}")
-                # Ensure container path is a string
                 if "container" in volume and volume["container"] is not None:
                     if not isinstance(volume["container"], str):
                         raise ValueError(f"Container path must be a string: {volume}")
-                # Ensure host path is a string or None
                 if "host" in volume and volume["host"] is not None:
                     if not isinstance(volume["host"], str):
                         raise ValueError(f"Host path must be a string: {volume}")
@@ -429,13 +443,10 @@ class Service(OrmBase):
         if command is None:
             command = template.start_cmd
 
-        # Handle Healthcheck with proper JSON wrapper object
         if healthcheck is None and template.healthcheck:
-            # Get healthcheck from template and convert to dict format expected by the model
             healthcheck_obj = template.healthcheck
             healthcheck = {"test": healthcheck_obj.test}
 
-            # Add optional fields if they exist
             if healthcheck_obj.interval:
                 healthcheck["interval"] = healthcheck_obj.interval
             if healthcheck_obj.timeout:
@@ -444,8 +455,8 @@ class Service(OrmBase):
                 healthcheck["retries"] = healthcheck_obj.retries
             if healthcheck_obj.start_period:
                 healthcheck["start_period"] = healthcheck_obj.start_period
+
         elif healthcheck is not None:
-            # Validate the provided healthcheck dict
             if not isinstance(healthcheck, dict):
                 raise ValueError(f"Healthcheck must be a dictionary: {healthcheck}")
             if "test" not in healthcheck:
@@ -455,13 +466,10 @@ class Service(OrmBase):
                     f"Healthcheck test must be a list of strings: {healthcheck['test']}"
                 )
 
-        # Handle Labels with proper JSON wrapper objects
         if labels is None:
-            # Get labels from template and convert to dict format expected by the model
             template_labels = template.labels
             labels = {label.key: label.value for label in template_labels}
         else:
-            # Validate the provided labels dict
             if not isinstance(labels, dict):
                 raise ValueError(f"Labels must be a dictionary: {labels}")
             for key, value in labels.items():
@@ -472,6 +480,17 @@ class Service(OrmBase):
 
         if args is None:
             args = template.args
+
+        # Generate ports and volumes
+        for port in exposed_ports:
+            if "host" not in port or port["host"] is None:
+                port["host"] = SystemPortManager.find_free_port()
+
+        for volume in volumes:
+            if "host" not in volume or volume["host"] is None:
+                volume["host"] = SystemVolumeManager.generate_free_volume(
+                    user_id
+                ).as_posix()
 
         model = await ServiceModel.create(
             name=name,
@@ -493,21 +512,13 @@ class Service(OrmBase):
         )
         service_instance = cls(model=model)
 
-        # Create system labels that should always be present
         system_labels = [Label(key="service_id", value=str(service_instance.id))]
 
-        # Add domain label for caddy if domain is specified
         if service_instance.domain:
             system_labels.append(Label(key="caddy", value=service_instance.domain))
 
-            # Add upstreams label for caddy service discovery if ports are exposed
             if service_instance.exposed_ports:
-                # Filter out ports that aren't HTTP/HTTPS standard ports
-                http_ports = [
-                    port
-                    for port in service_instance.exposed_ports
-                    if port.container_port in (80, 443)
-                ]
+                http_ports = [port for port in service_instance.exposed_ports]
 
                 if http_ports:
                     upstreams = ", ".join(
@@ -516,19 +527,13 @@ class Service(OrmBase):
                     if upstreams:
                         system_labels.append(Label(key="upstreams", value=upstreams))
 
-        # Use service_instance.labels which is already a List[Label]
         model_labels = service_instance.labels
 
-        # Combine system labels with model labels
         all_labels = system_labels + model_labels
 
-        # Docker container creation with only supported parameters
-        # NOTE: In the future, DockerContainerManager.create_container should be updated
-        # to handle env, ports, volumes, and healthcheck parameters
         if not service_instance.image:
             raise ValueError("Service must have an image specified")
 
-        # Ensure args is a list of strings or None
         args_to_use = None
         if service_instance.args:
             args_to_use = []
@@ -538,12 +543,18 @@ class Service(OrmBase):
                 else:
                     args_to_use.append(arg)
 
+        get_logger(__name__).info(f"Creating service '{name}'")
+
         container = DockerContainerManager.create_container(
             name=name,
-            image=service_instance.image,  # We've verified it's not None above
+            image=service_instance.image,
             command=service_instance.command,
             args=args_to_use,
             labels=all_labels,
+            ports={
+                port["container"]: port["host"]
+                for port in service_instance.to_ports_list()
+            },
         )
 
         model.container_id = container.id
@@ -562,4 +573,17 @@ class Service(OrmBase):
 
         container.start()
         self._model.status = ServiceStatus.RUNNING
+        await self._model.save()
+
+    async def stop(self) -> None:
+        """Stop the service's Docker container."""
+        if not self.container_id:
+            raise ValueError("Service does not have a container ID")
+
+        container = DockerContainerManager.get_container(self.container_id)
+        if not container:
+            raise ValueError(f"Container with ID {self.container_id} not found")
+
+        container.stop()
+        self._model.status = ServiceStatus.STOPPED
         await self._model.save()

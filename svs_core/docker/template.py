@@ -146,7 +146,6 @@ class Template(OrmBase):
     ) -> "Template":
         """Creates a new template with all supported attributes."""
         # Validate name
-        name = name.strip()
         if not name:
             raise ValueError("Template name cannot be empty")
 
@@ -160,7 +159,6 @@ class Template(OrmBase):
 
         # Validate image format if provided
         if image is not None:
-            image = image.strip()
             if not image:
                 raise ValueError("Image cannot be empty if provided")
 
