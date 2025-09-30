@@ -1,6 +1,11 @@
 from typing import Any, List
 
-from svs_core.db.models import OrmBase, ServiceModel, ServiceStatus, TemplateModel
+from svs_core.db.models import (
+    OrmBase,
+    ServiceModel,
+    ServiceStatus,
+    TemplateModel,
+)
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.json_properties import (
     EnvVariable,
@@ -10,6 +15,7 @@ from svs_core.docker.json_properties import (
     Volume,
 )
 from svs_core.docker.template import Template
+from svs_core.shared.logger import get_logger
 from svs_core.shared.ports import SystemPortManager
 from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.user import User
@@ -263,10 +269,11 @@ class Service(OrmBase):
             for vol in template.default_volumes
         ]
         for override in override_volumes or []:
+            # TODO: fix later ;)
             existing = next(
                 (v for v in volumes if v["container"] == override.get("container")),
                 None,
-            )
+            )  # type: ignore
             if existing:
                 existing.update(override)
             else:
@@ -512,11 +519,7 @@ class Service(OrmBase):
             system_labels.append(Label(key="caddy", value=service_instance.domain))
 
             if service_instance.exposed_ports:
-                http_ports = [
-                    port
-                    for port in service_instance.exposed_ports
-                    if port.container_port == 80
-                ]
+                http_ports = [port for port in service_instance.exposed_ports]
 
                 if http_ports:
                     upstreams = ", ".join(
@@ -541,12 +544,18 @@ class Service(OrmBase):
                 else:
                     args_to_use.append(arg)
 
+        get_logger(__name__).info(f"Creating service '{name}'")
+
         container = DockerContainerManager.create_container(
             name=name,
             image=service_instance.image,
             command=service_instance.command,
             args=args_to_use,
             labels=all_labels,
+            ports={
+                port["container"]: port["host"]
+                for port in service_instance.to_ports_list()
+            },
         )
 
         model.container_id = container.id
