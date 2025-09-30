@@ -8,7 +8,6 @@ from svs_core.shared.volumes import SystemVolumeManager
 class TestSystemVolumeManager:
     def test_generate_free_volume_returns_path(self, tmp_path: Path) -> None:
         """Test that generate_free_volume returns a valid Path object."""
-
         user_id = 13
         original_base_path = SystemVolumeManager.BASE_PATH
         try:
@@ -26,8 +25,8 @@ class TestSystemVolumeManager:
 def test_generate_free_volume_handles_existing_paths(
     tmp_path: Path, mocker: MockerFixture
 ) -> None:
-    """Test that generate_free_volume retries if the generated path already exists."""
-
+    """Test that generate_free_volume retries if the generated path already
+    exists."""
     user_id = 42
     SystemVolumeManager.BASE_PATH = tmp_path
 

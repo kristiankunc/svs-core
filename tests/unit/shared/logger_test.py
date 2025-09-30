@@ -19,7 +19,6 @@ class TestLogger:
     @pytest.mark.unit
     def test_get_logger_returns_same_instance(self):
         """Test that get_logger returns the same instance for the same name."""
-
         logger1 = get_logger("test")
         logger2 = get_logger("test")
 
@@ -27,8 +26,8 @@ class TestLogger:
 
     @pytest.mark.unit
     def test_get_logger_default_name(self):
-        """Test that get_logger returns a logger with the default name if none is provided."""
-
+        """Test that get_logger returns a logger with the default name if none
+        is provided."""
         default_logger = get_logger()
 
         assert isinstance(default_logger, logging.Logger)
@@ -39,7 +38,6 @@ class TestLogger:
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Test that the logger outputs to stdout in development mode."""
-
         os.environ.pop("ENV", None)
 
         logger = get_logger("dev_test")
@@ -55,7 +53,6 @@ class TestLogger:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test that the logger outputs to a file in production mode."""
-
         monkeypatch.setenv("ENV", "production")
 
         log_file = tmp_path / "svs-core.log"

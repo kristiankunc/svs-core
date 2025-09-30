@@ -12,6 +12,8 @@ from svs_core.docker.json_properties import (
 
 
 class Template(OrmBase):
+    """Template class representing a Docker template in the system."""
+
     _model_cls = TemplateModel
 
     def __init__(self, model: TemplateModel, **_: Any):
@@ -19,32 +21,32 @@ class Template(OrmBase):
         self._model: TemplateModel = model
 
     @property
-    def name(self) -> str:
+    def name(self) -> str:  # noqa: D102
         return self._model.name
 
     @property
-    def type(self) -> TemplateType:
+    def type(self) -> TemplateType:  # noqa: D102
         return self._model.type
 
     @property
-    def image(self) -> str | None:
+    def image(self) -> str | None:  # noqa: D102
         return self._model.image
 
     @property
-    def dockerfile(self) -> str | None:
+    def dockerfile(self) -> str | None:  # noqa: D102
         return self._model.dockerfile
 
     @property
-    def description(self) -> str | None:
+    def description(self) -> str | None:  # noqa: D102
         return self._model.description
 
     @property
-    def default_env(self) -> List[EnvVariable]:
+    def default_env(self) -> List[EnvVariable]:  # noqa: D102
         env_dict = self._model.default_env or {}
         return [EnvVariable(key=key, value=value) for key, value in env_dict.items()]
 
     @property
-    def default_ports(self) -> List[ExposedPort]:
+    def default_ports(self) -> List[ExposedPort]:  # noqa: D102
         ports_list = self._model.default_ports or []
         result = []
         for port in ports_list:
@@ -61,7 +63,7 @@ class Template(OrmBase):
         return result
 
     @property
-    def default_volumes(self) -> List[Volume]:
+    def default_volumes(self) -> List[Volume]:  # noqa: D102
         volumes_list = self._model.default_volumes or []
         return [
             Volume(
@@ -74,11 +76,12 @@ class Template(OrmBase):
         ]
 
     @property
-    def start_cmd(self) -> str | None:
+    def start_cmd(self) -> str | None:  # noqa: D102
         return self._model.start_cmd
 
     @property
     def healthcheck(self) -> Healthcheck | None:
+        """Returns the healthcheck configuration for the template, if any."""
         healthcheck_dict = self._model.healthcheck or {}
         if not healthcheck_dict or "test" not in healthcheck_dict:
             return None
@@ -93,11 +96,13 @@ class Template(OrmBase):
 
     @property
     def labels(self) -> List[Label]:
+        """Returns the list of labels for the template."""
         labels_dict = self._model.labels or {}
         return [Label(key=key, value=value) for key, value in labels_dict.items()]
 
     @property
     def args(self) -> list[str]:
+        """Returns the list of build arguments for the template."""
         return self._model.args or []
 
     def __str__(self) -> str:
@@ -287,9 +292,9 @@ class Template(OrmBase):
 
     @classmethod
     async def import_from_json(cls, data: dict[str, Any]) -> "Template":
-        """
-        Creates a Template instance from a JSON/dict object.
-        Relies on the existing create factory method.
+        """Creates a Template instance from a JSON/dict object.
+
+        Relies on theexisting create factory method.
 
         Args:
             data (dict[str, Any]): The JSON data dictionary containing template attributes.

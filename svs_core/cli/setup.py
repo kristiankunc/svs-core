@@ -10,13 +10,14 @@ app = typer.Typer(help="Setup SVS")
 
 
 def confirm():
+    """Prompt user for confirmation to proceed."""
     answer = typer.prompt("Are you sure you want to proceed? (y/n)")
     if answer.lower() != "y":
         raise typer.Abort()
 
 
 def verify_prerequisites():
-    """Verify system prerequisites"""
+    """Verify system prerequisites."""
     # Debian check
 
     try:
@@ -57,8 +58,7 @@ def verify_prerequisites():
 
 
 def permissions_setup():
-    """Set up necessary permissions"""
-
+    """Set up necessary permissions."""
     # create svs-users group
     try:
         run_command("getent group svs-users || sudo groupadd svs-users", check=True)
@@ -86,6 +86,7 @@ def permissions_setup():
 
 
 def env_setup():
+    """Set up /etc/svs/.env file."""
     env_path = Path("/etc/svs/.env")
     try:
         run_command(f"test -f {env_path}", check=True)
@@ -108,6 +109,7 @@ def env_setup():
 
 
 def storage_setup():
+    """Set up /var/svs storage."""
     print("Setting up /var/svs storage...")
     try:
         run_command("sudo mkdir -p /var/svs", check=True)
@@ -123,7 +125,7 @@ def storage_setup():
 
 @app.command("init")
 def init() -> None:
-    """Initialize the SVS environment"""
+    """Initialize the SVS environment."""
     typer.echo("Initializing SVS environment...")
 
     verify_prerequisites()

@@ -32,7 +32,7 @@ app.add_typer(template_app, name="template")
 app.add_typer(service_app, name="service")
 
 
-def main() -> None:
+def main() -> None:  # noqa: D103
     from tortoise import Tortoise
 
     from svs_core.db.models import TORTOISE_ORM

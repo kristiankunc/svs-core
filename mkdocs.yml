@@ -1,12 +1,24 @@
-site_name: SVS Core
+site_name: SVS
 site_url: https://svs.kristn.co.uk
 
-nav:
-  - Home: index.md
-  - CLI: cli.md
+repo_url: https://github.com/kristiankunc/svs-core
+edit_uri: blob/main/docs/
+
+exclude_docs: |
+  shared/
 
 theme:
   name: material
+  features:
+    - content.code.copy
+    - navigation.instant
+    - navigation.sections
+    - toc.integrate
+    - navigation.tabs
+    - repo
+    - content.action.view
+    - content.action.edit
+
   palette:
     - scheme: default
       primary: light-blue
@@ -26,6 +38,7 @@ plugins:
   - search:
       lang: en
       separator: '[\s\-]+'
+  - awesome-nav
   - mkdocstrings:
       handlers:
         python:
@@ -40,3 +53,16 @@ plugins:
               show_private_members: true
               show_special_members: true
               show_inherited_members: true
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - toc:
+      permalink: true

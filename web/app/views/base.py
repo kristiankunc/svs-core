@@ -1,7 +1,7 @@
-from app.lib.user import get_user_if_authenticated
 from django.shortcuts import render
 from django.urls import path
 
+from app.lib.user import get_user_if_authenticated
 from web import settings
 
 

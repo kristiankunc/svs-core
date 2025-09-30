@@ -9,6 +9,7 @@ OUTPUT_FILE = "docs/cli.md"
 
 
 def generate_docs(file: str) -> str:
+    """Generates CLI documentation using typer's built-in docs utility."""
     output = os.popen(f"typer {file} utils docs --name svs").read()
     output = output.replace("SVS CLI\n\n", "")
     output = re.sub(
@@ -18,6 +19,7 @@ def generate_docs(file: str) -> str:
 
 
 def downgrade_headings(docs: str) -> str:
+    """Downgrades headings by one level and comments out top-level headings."""
     return "\n".join(
         f"#{line}" if line.startswith("#") else line for line in docs.splitlines()
     )
@@ -31,7 +33,7 @@ if __name__ == "__main__":
     with open(TEMPLATE_FILE, "r") as template_file:
         template_content = template_file.read()
 
-    with open(OUTPUT_FILE, "a") as f:
+    with open(OUTPUT_FILE, "w") as f:
         f.write(template_content)
         f.write("\n")
         f.write(docs)

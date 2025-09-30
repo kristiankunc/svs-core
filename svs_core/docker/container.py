@@ -8,6 +8,8 @@ from svs_core.shared.logger import get_logger
 
 
 class DockerContainerManager:
+    """Class for managing Docker containers."""
+
     @classmethod
     def create_container(
         cls,
@@ -18,8 +20,7 @@ class DockerContainerManager:
         labels: list[Label] = [],
         ports: Optional[dict[int, int]] = None,
     ) -> Container:
-        """
-        Create a Docker container.
+        """Create a Docker container.
 
         Args:
             name (str): The name of the container.
@@ -59,8 +60,7 @@ class DockerContainerManager:
 
     @classmethod
     def get_container(cls, container_id: str) -> Optional[Container]:
-        """
-        Retrieve a Docker container by its ID.
+        """Retrieve a Docker container by its ID.
 
         Args:
             container_id (str): The ID of the container to retrieve.
@@ -77,8 +77,7 @@ class DockerContainerManager:
 
     @classmethod
     def start_container(cls, container: Container) -> None:
-        """
-        Start a Docker container.
+        """Start a Docker container.
 
         Args:
             container (Container): The Docker container instance to start.

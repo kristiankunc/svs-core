@@ -1,5 +1,4 @@
-"""
-ASGI config for web project.
+"""ASGI config for web project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

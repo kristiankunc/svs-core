@@ -8,8 +8,8 @@ from svs_core.shared.logger import get_logger
 def run_command(
     command: str, env: Optional[Mapping[str, str]] = None, check: bool = True
 ) -> subprocess.CompletedProcess[str]:
-    """
-    Executes a shell command with optional environment variables.
+    """Executes a shell command with optional environment variables.
+
     Always runs in shell mode to support shell operators (||, &&, etc.).
 
     Args:

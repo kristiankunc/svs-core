@@ -12,9 +12,7 @@ class TestDockerNetworkManager:
 
     @pytest.mark.integration
     def test_create_and_delete_network(self) -> None:
-        """
-        Tests creating and deleting a Docker network.
-        """
+        """Tests creating and deleting a Docker network."""
         # Create a network
         network: Network = DockerNetworkManager.create_network(self.TEST_NETWORK_NAME)
         assert network.name == self.TEST_NETWORK_NAME
@@ -32,18 +30,13 @@ class TestDockerNetworkManager:
 
     @pytest.mark.integration
     def test_get_networks(self) -> None:
-        """
-        Tests retrieving a list of Docker networks.
-        """
+        """Tests retrieving a list of Docker networks."""
         networks: List[Network] = DockerNetworkManager.get_networks()
         assert isinstance(networks, list)
 
     @pytest.mark.integration
     def test_delete_non_existent_network(self) -> None:
-        """
-        Tests deleting a non-existent Docker network.
-        It should not raise an error.
-        """
+        """Tests deleting a non-existent Docker network."""
         try:
             DockerNetworkManager.delete_network("non_existent_network")
         except Exception as e:

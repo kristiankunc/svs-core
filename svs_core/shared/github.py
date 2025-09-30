@@ -4,8 +4,7 @@ from typing import Optional
 
 @dataclass
 class GitHubRepo:
-    """
-    Represents a GitHub repository with its owner and name.
+    """Represents a GitHub repository with its owner and name.
 
     Attributes:
         owner (str): The owner of the repository.
@@ -18,8 +17,7 @@ class GitHubRepo:
 
 
 def destruct_github_url(url: str) -> GitHubRepo:
-    """
-    Destructs a GitHub URL into owner and repository name.
+    """Destructs a GitHub URL into owner and repository name.
 
     Args:
         url (str): The GitHub URL to destruct.

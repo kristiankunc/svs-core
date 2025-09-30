@@ -3,11 +3,7 @@ import asyncio
 import typer
 
 from svs_core.shared.exceptions import AlreadyExistsException
-from svs_core.users.user import (
-    InvalidPasswordException,
-    InvalidUsernameException,
-    User,
-)
+from svs_core.users.user import InvalidPasswordException, InvalidUsernameException, User
 
 app = typer.Typer(help="Manage users")
 
@@ -17,7 +13,7 @@ def create(
     name: str = typer.Argument(..., help="Username of the new user"),
     password: str = typer.Argument(..., help="Password for the new user"),
 ) -> None:
-    """Create a new user"""
+    """Create a new user."""
 
     async def _create():
         try:
@@ -37,7 +33,7 @@ def create(
 def get(
     name: str = typer.Argument(..., help="Username of the user to retrieve")
 ) -> None:
-    """Get a user by name"""
+    """Get a user by name."""
 
     async def _get():
         user = await User.get_by_name(name)
@@ -56,7 +52,7 @@ def check_password(
         ..., help="Password to check against the stored hash"
     ),
 ) -> None:
-    """Check if a password matches the stored hash"""
+    """Check if a password matches the stored hash."""
 
     async def _check():
         user = await User.get_by_name(name)
@@ -74,7 +70,7 @@ def check_password(
 
 @app.command("list")
 def list_users() -> None:
-    """List all users"""
+    """List all users."""
 
     async def _list():
         users = await User.get_all()

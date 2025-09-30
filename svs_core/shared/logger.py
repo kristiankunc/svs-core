@@ -8,17 +8,18 @@ _logger_instances: dict[str, logging.Logger] = {}
 
 
 def get_logger(name: Optional[str] = None) -> logging.Logger:
-    """
-    Returns a logger instance with the specified name. If no name is provided, it uses the module's name.
-    If a logger with the same name already exists, it returns the existing instance.
-    The logger is configured to log messages in UTC format.
+    """Returns a logger instance with the specified name.
+
+    If no name is provided, it uses the module's name. If a logger with the same name already
+    exists, it returns the existing instance. The logger is configured to log
+    messages in UTC format.
 
     Args:
         name (Optional[str]): The name of the logger. If None, uses the module's name.
+
     Returns:
         logging.Logger: The logger instance.
     """
-
     if name is None:
         name = "unknown"
 
@@ -56,7 +57,5 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
 
 
 def clear_loggers() -> None:
-    """
-    Clears all stored logger instances.
-    """
+    """Clears all stored logger instances."""
     _logger_instances.clear()

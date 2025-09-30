@@ -29,7 +29,8 @@ class TestHash:
 
     @pytest.mark.unit
     def test_hash_password_unique_hashes(self):
-        """Test that hash_password generates unique hashes for the same password."""
+        """Test that hash_password generates unique hashes for the same
+        password."""
         password = "samepassword"
         hash1 = hash_password(password)
         hash2 = hash_password(password)

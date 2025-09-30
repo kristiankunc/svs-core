@@ -13,7 +13,7 @@ app = typer.Typer(help="Manage templates")
 def import_template(
     file_path: str = typer.Argument(..., help="Path to the template file to import")
 ) -> None:
-    """Import a new template from a file"""
+    """Import a new template from a file."""
 
     async def _import():
         if not os.path.isfile(file_path):
@@ -31,7 +31,7 @@ def import_template(
 
 @app.command("list")
 def list_templates() -> None:
-    """List all available templates"""
+    """List all available templates."""
 
     async def _list():
         templates = await Template.get_all()
