@@ -376,7 +376,6 @@ class Service(OrmBase):
         Raises:
             ValueError: If name is empty or template_id doesn't correspond to an existing template.
         """
-        name = name.strip()
         if not name:
             raise ValueError("Service name cannot be empty")
 
