@@ -19,8 +19,6 @@ services:
             - "8080:8080"
         depends_on:
             - db
-        volumes:
-            - pgadmin_data:/var/lib/pgadmin
 
     caddy:
         image: lucaslorentz/caddy-docker-proxy:latest
@@ -40,7 +38,6 @@ services:
 
 volumes:
     pgdata:
-    pgadmin_data:
     caddy_data:
     caddy_config:
 

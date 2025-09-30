@@ -39,9 +39,6 @@
 				"mypy-type-checker.preferDaemon": true,
 				"mypy-type-checker.reportingScope": "workspace",
 				"python.analysis.autoImportCompletions": true,
-				"python.analysis.exclude": [
-					"**.py"
-				],
 				"python.analysis.indexing": true,
 				"python.analysis.typeCheckingMode": "off",
 				"python.defaultInterpreterPath": "/home/dev/.venv/bin/python",
@@ -68,7 +65,7 @@
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
 	},
 	"name": "Library DevContainer",
-	"postCreateCommand": "pip install -r requirements.txt && pre-commit install",
+	"postCreateCommand": "pip install -e . && pip install '.[dev]' && pip install '.[docs]' && pre-commit install",
 	"remoteUser": "dev",
 	"service": "devcontainer",
 	"shutdownAction": "stopCompose",
