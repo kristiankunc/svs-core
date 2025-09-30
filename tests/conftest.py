@@ -39,7 +39,7 @@ async def _reset_test_db(db_url):
 
 @pytest.fixture
 def event_loop():
-    """Create a fresh event loop for each test"""
+    """Create a fresh event loop for each test."""
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     yield loop
@@ -48,7 +48,7 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_test_database():
-    """Setup test database once for the entire test session"""
+    """Setup test database once for the entire test session."""
     test_db_url = os.environ.get("TEST_DATABASE_URL")
     if not test_db_url:
         raise ValueError("TEST_DATABASE_URL environment variable is not set")
@@ -59,7 +59,7 @@ async def setup_test_database():
 
 @pytest_asyncio.fixture(autouse=True)
 async def initialize_tortoise():
-    """Initialize Tortoise ORM for each test with a clean database state"""
+    """Initialize Tortoise ORM for each test with a clean database state."""
     test_db_url = os.environ.get("TEST_DATABASE_URL", "")
     if not test_db_url:
         raise ValueError("TEST_DATABASE_URL environment variable is not set")
@@ -82,7 +82,8 @@ async def initialize_tortoise():
 
 @pytest.fixture(autouse=True)
 def mock_system_user_manager(mocker: MockerFixture) -> MockerFixture:
-    """Automatically mock SystemUserManager methods to prevent actual system user creation/deletion."""
+    """Automatically mock SystemUserManager methods to prevent actual system
+    user creation/deletion."""
     mocker.patch(
         "svs_core.users.system.SystemUserManager.create_user",
         return_value=None,

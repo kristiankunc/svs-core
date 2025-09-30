@@ -5,14 +5,15 @@ from svs_core.docker.base import get_docker_client
 
 
 class DockerImageManager:
+    """Class for managing Docker images."""
+
     @staticmethod
     def build_from_dockerfile(
         dockerfile_content: str,
         image_name: str,
         tag: str = "latest",
     ) -> None:
-        """
-        Build a Docker image from an in-memory Dockerfile and keep it locally.
+        """Build a Docker image from an in-memory Dockerfile.
 
         Args:
             dockerfile_content (str): Dockerfile contents.
@@ -32,8 +33,7 @@ class DockerImageManager:
 
     @staticmethod
     def exists(image_name: str, tag: str = "latest") -> bool:
-        """
-        Check if a Docker image exists locally.
+        """Check if a Docker image exists locally.
 
         Args:
             image_name (str): Name of the image.
@@ -51,12 +51,12 @@ class DockerImageManager:
 
     @staticmethod
     def remove(image_name: str, tag: str = "latest") -> None:
-        """
-        Remove a Docker image from the local system.
+        """Remove a Docker image from the local system.
 
         Args:
             image_name (str): Name of the image.
             tag (str): Image tag.
+
         Raises:
             Exception: If the image cannot be removed.
         """
@@ -70,8 +70,7 @@ class DockerImageManager:
 
     @staticmethod
     def pull(image_name: str, tag: str = "latest") -> None:
-        """
-        Pull a Docker image from a registry.
+        """Pull a Docker image from a registry.
 
         Args:
             image_name (str): Name of the image.

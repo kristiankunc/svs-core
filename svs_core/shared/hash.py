@@ -10,7 +10,6 @@ def hash_password(password: str) -> bytes:
     Returns:
         bytes: The hashed password in bytes.
     """
-
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
 
 
@@ -24,5 +23,4 @@ def check_password(password: str, hashed: bytes) -> bool:
     Returns:
         bool: True if the password matches the hash, False otherwise.
     """
-
     return bcrypt.checkpw(bytes(password, "utf-8"), hashed)

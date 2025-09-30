@@ -9,7 +9,8 @@ from svs_core.docker.image import DockerImageManager
 class TestDockerImageManager:
     @pytest.mark.integration
     def test_build_image_from_dockerfile(self) -> None:
-        """Builds a minimal image from inline Dockerfile and asserts it exists locally."""
+        """Builds a minimal image from inline Dockerfile and asserts it exists
+        locally."""
         image_name = "svs-core-test-image"
         tag = "itest"
         dockerfile = """FROM busybox:latest
@@ -44,15 +45,15 @@ RUN echo 'hello from test' > /message
 
     @pytest.mark.integration
     def test_exists_nonexistent_image(self) -> None:
-        """exists() should return False for an image tag that does not exist locally."""
-
+        """Exists() should return False for an image tag that does not exist
+        locally."""
         random_tag = str(uuid.uuid4())
         assert not DockerImageManager.exists("svs-core-image-missing", random_tag)
 
     @pytest.mark.integration
     def test_exists_and_remove_image(self) -> None:
-        """Build an image, verify exists() is True, then remove it and verify exists() is False."""
-
+        """Build an image, verify exists() is True, then remove it and verify
+        exists() is False."""
         image_name = "svs-core-test-exists-remove"
         tag = str(uuid.uuid4())[:8]
         dockerfile = """FROM busybox:latest\nRUN echo removed > /removed.txt\n"""

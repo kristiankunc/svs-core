@@ -11,7 +11,6 @@ class TestCommandExecution:
     @pytest.mark.unit
     def test_basic_command_execution(self, mocker: MockerFixture) -> None:
         """Test that a basic command is executed correctly."""
-
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_process.stdout = "mocked output"
@@ -32,7 +31,6 @@ class TestCommandExecution:
     @pytest.mark.unit
     def test_command_with_environment(self, mocker: MockerFixture) -> None:
         """Test that environment variables are correctly passed."""
-
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_process.stdout = "test output"
@@ -50,7 +48,6 @@ class TestCommandExecution:
     @pytest.mark.unit
     def test_command_with_check_false(self, mocker: MockerFixture) -> None:
         """Test that check=False is correctly passed."""
-
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_process.stdout = "test output"
@@ -67,7 +64,6 @@ class TestCommandExecution:
     @pytest.mark.unit
     def test_output_capturing(self, mocker: MockerFixture) -> None:
         """Test that command output is correctly captured."""
-
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_process.stdout = "expected stdout"
@@ -85,7 +81,6 @@ class TestCommandExecution:
     @pytest.mark.unit
     def test_error_handling(self, mocker: MockerFixture) -> None:
         """Test that errors are properly propagated when check=True."""
-
         mock_run = mocker.patch("subprocess.run")
         mock_run.side_effect = subprocess.CalledProcessError(
             returncode=1, cmd="failing command", output="", stderr="command failed"
@@ -102,7 +97,6 @@ class TestCommandExecution:
     @pytest.mark.unit
     def test_shell_operators(self, mocker: MockerFixture) -> None:
         """Test that shell operators like || and && work correctly."""
-
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_process.stdout = "command output"

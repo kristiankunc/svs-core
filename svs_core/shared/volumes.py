@@ -10,13 +10,14 @@ class SystemVolumeManager:
 
     @staticmethod
     def generate_free_volume(user_id: int) -> Path:
-        """
-        Generates a free volume path for a given user ID.
+        """Generates a free volume path for a given user ID.
 
         Args:
             user_id (int): The user ID for whom to generate the volume.
+
         Returns:
             Path: The path to the generated volume (absolute).
+
         Raises:
             RuntimeError: If no free volume path is found within the maximum attempts.
         """

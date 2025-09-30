@@ -1,11 +1,6 @@
 from typing import Any, List
 
-from svs_core.db.models import (
-    OrmBase,
-    ServiceModel,
-    ServiceStatus,
-    TemplateModel,
-)
+from svs_core.db.models import OrmBase, ServiceModel, ServiceStatus, TemplateModel
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.json_properties import (
     EnvVariable,
@@ -22,6 +17,8 @@ from svs_core.users.user import User
 
 
 class Service(OrmBase):
+    """Service class representing a service in the system."""
+
     _model_cls = ServiceModel
 
     def __init__(self, model: ServiceModel, **_: Any):
@@ -29,28 +26,28 @@ class Service(OrmBase):
         self._model: ServiceModel = model
 
     @property
-    def name(self) -> str:
+    def name(self) -> str:  # noqa: D102
         return self._model.name
 
     @property
-    def container_id(self) -> str | None:
+    def container_id(self) -> str | None:  # noqa: D102
         return self._model.container_id
 
     @property
-    def image(self) -> str | None:
+    def image(self) -> str | None:  # noqa: D102
         return self._model.image
 
     @property
-    def domain(self) -> str | None:
+    def domain(self) -> str | None:  # noqa: D102
         return self._model.domain
 
     @property
-    def env(self) -> List[EnvVariable]:
+    def env(self) -> List[EnvVariable]:  # noqa: D102
         env_dict = self._model.env or {}
         return [EnvVariable(key=key, value=value) for key, value in env_dict.items()]
 
     @property
-    def exposed_ports(self) -> List[ExposedPort]:
+    def exposed_ports(self) -> List[ExposedPort]:  # noqa: D102
         ports_list = self._model.exposed_ports or []
         result = []
         for port in ports_list:
@@ -67,7 +64,7 @@ class Service(OrmBase):
         return result
 
     @property
-    def volumes(self) -> List[Volume]:
+    def volumes(self) -> List[Volume]:  # noqa: D102
         volumes_list = self._model.volumes or []
         result = []
         for volume in volumes_list:
@@ -86,20 +83,20 @@ class Service(OrmBase):
         return result
 
     @property
-    def command(self) -> str | None:
+    def command(self) -> str | None:  # noqa: D102
         return self._model.command
 
     @property
-    def labels(self) -> List[Label]:
+    def labels(self) -> List[Label]:  # noqa: D102
         labels_dict = self._model.labels or {}
         return [Label(key=key, value=value) for key, value in labels_dict.items()]
 
     @property
-    def args(self) -> list[str]:
+    def args(self) -> list[str]:  # noqa: D102
         return self._model.args or []
 
     @property
-    def healthcheck(self) -> Healthcheck | None:
+    def healthcheck(self) -> Healthcheck | None:  # noqa: D102
         healthcheck_dict = self._model.healthcheck or {}
         if not healthcheck_dict or "test" not in healthcheck_dict:
             return None
@@ -113,23 +110,23 @@ class Service(OrmBase):
         )
 
     @property
-    def networks(self) -> list[str]:
+    def networks(self) -> list[str]:  # noqa: D102
         return self._model.networks or []
 
     @property
-    def status(self) -> str | None:
+    def status(self) -> str | None:  # noqa: D102
         return self._model.status
 
     @property
-    def exit_code(self) -> int | None:
+    def exit_code(self) -> int | None:  # noqa: D102
         return self._model.exit_code
 
     @property
-    def template(self) -> Template:
+    def template(self) -> Template:  # noqa: D102
         return Template(model=self._model.template)
 
     @property
-    def user(self) -> User:
+    def user(self) -> User:  # noqa: D102
         return User(model=self._model.user)
 
     def to_env_dict(self) -> dict[str, str]:
@@ -214,12 +211,10 @@ class Service(OrmBase):
         override_args: list[str] | None = None,
         networks: list[str] | None = None,
     ) -> "Service":
-        """
-        Creates a new service from an existing template with optional overrides.
+        """Creates a service from an existing template with overrides.
 
         Args:
             name (str): The name of the service.
-            template (Template): The template to use.
             user_id (int): The ID of the user who owns this service.
             domain (str, optional): The domain for this service.
             override_env (dict, optional): Environment variables to override template defaults.
@@ -237,7 +232,6 @@ class Service(OrmBase):
         Raises:
             ValueError: If name is empty or template_id doesn't correspond to an existing template.
         """
-
         template = await Template.get_by_id(template_id)
         if not template:
             raise ValueError(f"Template with ID {template_id} does not exist")
@@ -348,9 +342,10 @@ class Service(OrmBase):
         status: str | None = "created",
         exit_code: int | None = None,
     ) -> "Service":
-        """
-        Creates a new service with all supported attributes.
-        Values not explicitly provided will be inherited from the template where applicable.
+        """Creates a new service with all supported attributes.
+
+        Values not explicitly provided will be inherited from the template where
+        applicable.
 
         Args:
             name (str): The name of the service.

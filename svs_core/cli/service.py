@@ -9,7 +9,7 @@ app = typer.Typer(help="Manage services")
 
 @app.command("list")
 def list_services() -> None:
-    """List all services"""
+    """List all services."""
 
     async def _list():
         services = await Service.get_all()
@@ -31,7 +31,7 @@ def create_service(
     user_id: int = typer.Argument(..., help="ID of the user creating the service"),
     # TODO: Add override options for all args
 ) -> None:
-    """Create a new service"""
+    """Create a new service."""
 
     async def _create():
         service = await Service.create_from_template(name, template_id, user_id)
@@ -46,7 +46,7 @@ def create_service(
 def start_service(
     service_id: int = typer.Argument(..., help="ID of the service to start")
 ) -> None:
-    """Start a service"""
+    """Start a service."""
 
     async def _start():
         service = await Service.get_by_id(service_id)
@@ -64,7 +64,7 @@ def start_service(
 def stop_service(
     service_id: int = typer.Argument(..., help="ID of the service to stop")
 ) -> None:
-    """Stop a service"""
+    """Stop a service."""
 
     async def _stop():
         service = await Service.get_by_id(service_id)

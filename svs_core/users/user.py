@@ -10,7 +10,11 @@ from svs_core.users.system import SystemUserManager
 
 
 class InvalidUsernameException(SVSException):
-    """Exception raised when the provided username is invalid."""
+    """Exception raised when the provided username is invalid.
+
+    When created, a system users and a docker network will be created
+    holding the same name.
+    """
 
     def __init__(self, username: str):
         super().__init__(f"Invalid username: '{username}'.")
@@ -38,21 +42,26 @@ class User(OrmBase):
 
     @property
     def name(self) -> str:
+        """Returns the username of the user."""
         return self._model.name
 
     @property
     def password(self) -> str:
+        """Returns the hashed password of the user."""
         return self._model.password
 
     @classmethod
     async def create(cls, name: str, password: str) -> "User":
         """Creates a new user with the given name and password.
+
         Args:
             name (str): The username for the new user.
             password (str): The password for the new user.
+
         Raises:
             AlreadyExistsException: If the username already exists.
             InvalidUsernameException: If the username is invalid.
+
         Returns:
             User: The created user instance.
         """
@@ -75,20 +84,21 @@ class User(OrmBase):
 
     @classmethod
     async def get_by_name(cls, name: str) -> Optional["User"]:
+        """Retrieves a user by their username."""
         return await cls._get("name", name)
 
     @staticmethod
     def is_username_valid(username: str) -> bool:
-        """
-        Validates the username based on specific criteria.
-        The username needs to be a valid UNIX username.
+        """Validates the username based on specific criteria.
+
+        The usernameneeds to be a valid UNIX username.
 
         Args:
             username (str): The username to validate.
+
         Returns:
             bool: True if the username is valid, False otherwise.
         """
-
         if not isinstance(username, str):
             return False
         if len(username) == 0 or len(username) > 32:
@@ -99,12 +109,13 @@ class User(OrmBase):
 
     @staticmethod
     def is_password_valid(password: str) -> bool:
-        """
-        Validates the password based on specific criteria.
+        """Validates the password based on specific criteria.
+
         The password must be at least 8 characters long.
 
         Args:
             password (str): The password to validate.
+
         Returns:
             bool: True if the password is valid, False otherwise.
         """
@@ -112,22 +123,22 @@ class User(OrmBase):
 
     @classmethod
     async def username_exists(cls, username: str) -> bool:
-        """
-        Checks if a username already exists in the database.
+        """Checks if a username already exists in the database.
 
         Args:
             username (str): The username to check.
+
         Returns:
             bool: True if the username exists, False otherwise.
         """
         return await cls._exists("name", username)
 
     async def check_password(self, password: str) -> bool:
-        """
-        Checks if the provided password matches the user's password.
+        """Checks if the provided password matches the user's password.
 
         Args:
             password (str): The password to check.
+
         Returns:
             bool: True if the password matches, False otherwise.
         """

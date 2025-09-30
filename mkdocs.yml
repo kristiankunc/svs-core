@@ -1,9 +1,8 @@
 site_name: SVS Core
 site_url: https://svs.kristn.co.uk
 
-nav:
-  - Home: index.md
-  - CLI: cli.md
+exclude_docs: |
+  shared/
 
 theme:
   name: material
@@ -26,6 +25,7 @@ plugins:
   - search:
       lang: en
       separator: '[\s\-]+'
+  - awesome-nav
   - mkdocstrings:
       handlers:
         python:
@@ -40,3 +40,6 @@ plugins:
               show_private_members: true
               show_special_members: true
               show_inherited_members: true
+
+markdown_extensions:
+  - abbr

@@ -1,30 +1,33 @@
-class KeyValue:
+# TODO: possibly document
+
+
+class KeyValue:  # noqa: D101
     def __init__(self, key: str, value: str):
         self.key = key
         self.value = value
 
 
-class EnvVariable(KeyValue):
+class EnvVariable(KeyValue):  # noqa: D101
     pass
 
 
-class Label(KeyValue):
+class Label(KeyValue):  # noqa: D101
     pass
 
 
-class ExposedPort:
+class ExposedPort:  # noqa: D101
     def __init__(self, container_port: int, host_port: int | None = None):
         self.container_port = container_port
         self.host_port = host_port
 
 
-class Volume:
+class Volume:  # noqa: D101
     def __init__(self, container_path: str, host_path: str | None = None):
         self.container_path = container_path
         self.host_path = host_path
 
 
-class Healthcheck:
+class Healthcheck:  # noqa: D101
     def __init__(
         self,
         test: list[str],

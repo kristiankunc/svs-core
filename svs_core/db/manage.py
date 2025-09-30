@@ -10,12 +10,14 @@ from svs_core.docker.network import DockerNetworkManager
 
 
 async def init() -> None:
+    """Initializes the database schema."""
     await Tortoise.init(config=TORTOISE_ORM)
     await Tortoise.generate_schemas()
     print("Schema generated!")
 
 
 async def clear() -> None:
+    """Clears all database schemas."""
     await Tortoise.init(config=TORTOISE_ORM)
     conn = Tortoise.get_connection("default")
     for model in Tortoise.apps.get("models", {}).values():
@@ -28,6 +30,7 @@ async def clear() -> None:
 
 
 async def dev_seed() -> None:
+    """Seeds the database with development data."""
     await Tortoise.init(config=TORTOISE_ORM)
     from svs_core.users.user import User
 

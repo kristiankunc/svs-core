@@ -41,29 +41,29 @@ class OrmBase(ABC):
         self._instances.add(self)
 
     @classmethod
-    def get_instances(cls) -> list["OrmBase"]:
+    def get_instances(cls) -> list["OrmBase"]:  # noqa: D102
         return list(cls._instances)
 
     @property
-    def id(self) -> int:
+    def id(self) -> int:  # noqa: D102
         return self._model.id
 
     @property
-    def created_at(self) -> datetime:
+    def created_at(self) -> datetime:  # noqa: D102
         return self._model.created_at
 
     @property
-    def updated_at(self) -> datetime:
+    def updated_at(self) -> datetime:  # noqa: D102
         return self._model.updated_at
 
     @classmethod
     async def _get(cls: Type[T], key: str, value: Any) -> Optional[T]:
-        """
-        Retrieves an instance by a specific key and value.
+        """Retrieves an instance by a specific key and value.
 
         Args:
             key (str): The field name to filter by.
             value (Any): The value to match against the field.
+
         Returns:
             Optional[T]: An instance of the class if found, otherwise None.
         """
@@ -78,22 +78,24 @@ class OrmBase(ABC):
 
     @classmethod
     async def _exists(cls: Type[T], key: str, value: Any) -> bool:
-        """
-        Checks if an instance with the given key and value exists.
+        """Checks if an instance with the given key and value exists.
+
         Args:
             key (str): The field name to check.
             value (Any): The value to check for.
+
         Returns:
             bool: True if an instance exists, False otherwise.
         """
-
         models = await cls._model_cls.filter(**{key: value})
         return len(models) > 0
 
+    # TODO: let's probably not prefetch related fields here
     @classmethod
     async def get_all(cls: Type[T]) -> list[T]:
-        """
-        Retrieves all instances of the class, with all related fields prefetched.
+        """Retrieves all instances of the class.
+
+        All related fields are prefetched.
 
         Returns:
             list[T]: A list of instances of the class.
@@ -115,15 +117,14 @@ class OrmBase(ABC):
 
     @classmethod
     async def get_by_id(cls: Type[T], id: int) -> Optional[T]:
-        """
-        Retrieves an instance by its ID, with all related fields prefetched.
+        """Retrieves an instance by its ID, with all related fields prefetched.
 
         Args:
             id (int): The ID of the instance to retrieve.
+
         Returns:
             Optional[T]: An instance of the class if found, otherwise None.
         """
-
         related_fields = []
         for field_name, field in cls._model_cls._meta.fields_map.items():
             if isinstance(
@@ -150,30 +151,38 @@ class OrmBase(ABC):
 
 
 class BaseModel(Model):
+    """Base model with common fields."""
+
     id = fields.IntField(primary_key=True, null=False)
     created_at = fields.DatetimeField(auto_now_add=True, null=False)
     updated_at = fields.DatetimeField(auto_now=True, null=False)
 
-    class Meta:
+    class Meta:  # noqa: D106
         abstract = True
 
 
 class UserModel(BaseModel):
+    """User mode."""
+
     name = fields.CharField(max_length=255, null=False, unique=True)
     password = fields.CharField(max_length=255, null=True)
 
     services: fields.ReverseRelation["ServiceModel"]
 
-    class Meta:
+    class Meta:  # noqa: D106
         table = "users"
 
 
 class TemplateType(str, Enum):
+    """Type of template."""
+
     IMAGE = "image"  # e.g. nginx:stable, wordpress:latest
     BUILD = "build"  # requires dockerfile/source
 
 
 class TemplateModel(BaseModel):
+    """Template model."""
+
     name = fields.CharField(max_length=255, null=False)
 
     # IMAGE vs BUILD
@@ -202,11 +211,14 @@ class TemplateModel(BaseModel):
 
     services: fields.ReverseRelation["ServiceModel"]
 
-    class Meta:
+    class Meta:  # noqa: D106
         table = "templates"
 
 
+# TODO: deprecate status in favor of using container state directly
 class ServiceStatus(str, Enum):
+    """Status of a service."""
+
     CREATED = "created"
     RUNNING = "running"
     STOPPED = "stopped"
@@ -215,6 +227,8 @@ class ServiceStatus(str, Enum):
 
 
 class ServiceModel(BaseModel):
+    """Service model."""
+
     name = fields.CharField(max_length=255, null=False)
 
     # Docker runtime tracking
@@ -246,7 +260,7 @@ class ServiceModel(BaseModel):
         "models.UserModel", related_name="services", to_field="id", null=False
     )
 
-    class Meta:
+    class Meta:  # noqa: D106
         table = "services"
 
 
@@ -258,6 +272,10 @@ async def signal_post_save(
     using_db: BaseDBAsyncClient | None,
     update_fields: list[str],
 ) -> None:
+    """Signal handler for post_save event on BaseModel and its subclasses.
+
+    Updates the corresponding OrmBase instances with the new model data.
+    """
     for subclass in OrmBase.__subclasses__():
         if subclass._model_cls is sender:
             for obj in subclass.get_instances():
