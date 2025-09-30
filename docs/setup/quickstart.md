@@ -107,4 +107,4 @@ The CLI wll create a `.env` for svs which requires configuration. Edit the file 
     ```
 
 
-That's it. Head over to the [cli documentation](/cli.md) to get started with using the CLI.
+That's it. Head over to the [cli documentation](../cli.md) to get started with using the CLI.
