@@ -36,11 +36,7 @@ class TestDockerNetworkManager:
 
     @pytest.mark.integration
     def test_delete_non_existent_network(self) -> None:
-        """
-        Tests deleting a non-existent Docker network.
-
-        It should not raise an error.
-        """
+        """Tests deleting a non-existent Docker network."""
         try:
             DockerNetworkManager.delete_network("non_existent_network")
         except Exception as e:
