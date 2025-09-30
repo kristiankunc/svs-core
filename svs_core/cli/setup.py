@@ -1,4 +1,6 @@
 import os
+import pwd
+from pathlib import Path
 
 import typer
 
@@ -75,8 +77,8 @@ def permissions_setup():
 
     # add current user to svs-admins
     try:
-        username = os.getlogin()
-        run_command(f"sudo usermod -aG svs-admins {username}", check=True)
+        username = pwd.getpwuid(os.getuid()).pw_name
+        run_command(f"sudo usermod -a -G svs-admins {username}", check=True)
         typer.echo(f"✅ User '{username}' added to 'svs-admins' group.")
     except Exception:
         typer.echo("❌ Failed to add user to 'svs-admins' group.", err=True)
@@ -84,20 +86,19 @@ def permissions_setup():
 
 
 def env_setup():
-    """Set up environment variables"""
-
+    env_path = Path("/etc/svs/.env")
     try:
-        run_command("test -f /etc/svs/.env", check=True)
+        run_command(f"test -f {env_path}", check=True)
         typer.echo("✅ /etc/svs/.env already exists.")
-
     except Exception:
         try:
             run_command("sudo mkdir -p /etc/svs", check=True)
-            run_command("sudo touch /etc/svs/.env", check=True)
-            run_command("sudo chown root:svs-admins /etc/svs/.env", check=True)
-            run_command("sudo chmod 640 /etc/svs/.env", check=True)
+            run_command("sudo chown -R root:svs-admins /etc/svs", check=True)
+            run_command("sudo chmod 2775 /etc/svs", check=True)
+            run_command(f"sudo touch {env_path}", check=True)
+            run_command(f"sudo chmod 660 {env_path}", check=True)
             typer.echo(
-                "✅ /etc/svs/.env created and permissions set. Please manually edit it and re-run the command."
+                "✅ /etc/svs/.env created and permissions set. Group svs-admins has full access to /etc/svs."
             )
         except Exception:
             typer.echo(
@@ -105,7 +106,19 @@ def env_setup():
             )
             raise typer.Abort()
 
-    raise typer.Exit()
+
+def storage_setup():
+    print("Setting up /var/svs storage...")
+    try:
+        run_command("sudo mkdir -p /var/svs", check=True)
+        run_command("sudo chown -R root:svs-admins /var/svs", check=True)
+        run_command("sudo chmod 2775 /var/svs", check=True)
+        typer.echo(
+            "✅ /var/svs created and permissions set. Group svs-admins has full access to /var/svs."
+        )
+    except Exception:
+        typer.echo("❌ Failed to create or set permissions for /var/svs.", err=True)
+        raise typer.Abort()
 
 
 @app.command("init")
@@ -116,3 +129,4 @@ def init() -> None:
     verify_prerequisites()
     permissions_setup()
     env_setup()
+    storage_setup()

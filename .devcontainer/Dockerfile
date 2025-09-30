@@ -27,6 +27,7 @@ RUN useradd -m -s /bin/bash $USERNAME \
 # Switch to dev user
 USER $USERNAME
 WORKDIR /home/$USERNAME/app
+ENV USER=dev
 
 # Create Python virtualenv
 RUN python3 -m venv /home/$USERNAME/.venv
