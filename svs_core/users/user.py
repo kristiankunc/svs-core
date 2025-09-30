@@ -56,9 +56,6 @@ class User(OrmBase):
         Returns:
             User: The created user instance.
         """
-        name = name.lower().strip()
-        password = password.strip()
-
         if not cls.is_username_valid(name):
             raise InvalidUsernameException(name)
         if not cls.is_password_valid(password):
