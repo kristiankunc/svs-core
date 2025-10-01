@@ -9,10 +9,10 @@ services:
             - db
         env_file: ../.env
         user: dev
+        restart: "no"
 
     db:
         image: postgres:latest
-        restart: unless-stopped
         container_name: svs-db
         env_file:
             - .env
@@ -21,21 +21,21 @@ services:
         volumes:
             - pgdata:/var/lib/postgresql/data
             - ./pg-init:/docker-entrypoint-initdb.d:ro
+        restart: "no"
 
     adminer:
         image: adminer:latest
-        restart: unless-stopped
         env_file:
             - .env
         ports:
             - "8080:8080"
         depends_on:
             - db
+        restart: "no"
 
     caddy:
         image: lucaslorentz/caddy-docker-proxy:latest
         container_name: caddy
-        restart: unless-stopped
         ports:
             - "80:80"
             - "443:443"
@@ -47,6 +47,7 @@ services:
             - CADDY_INGRESS_NETWORK=caddy
         networks:
             - caddy
+        restart: "no"
 
 volumes:
     pgdata:
