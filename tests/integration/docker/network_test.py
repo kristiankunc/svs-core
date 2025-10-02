@@ -2,6 +2,7 @@ from typing import List
 from uuid import uuid4
 
 import pytest
+
 from docker.models.networks import Network
 
 from svs_core.docker.network import DockerNetworkManager

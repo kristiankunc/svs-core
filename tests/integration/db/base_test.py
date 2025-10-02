@@ -1,7 +1,9 @@
 import asyncio
+
 from datetime import datetime
 
 import pytest
+
 from pytest_mock import MockerFixture
 
 from svs_core.users.user import User

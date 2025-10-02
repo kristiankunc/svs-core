@@ -1,7 +1,9 @@
 import subprocess
+
 from typing import Dict
 
 import pytest
+
 from pytest_mock import MockerFixture
 
 from svs_core.shared.shell import run_command
