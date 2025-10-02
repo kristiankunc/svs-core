@@ -3,8 +3,13 @@ import os
 
 import pytest
 import pytest_asyncio
+
 from pytest_mock import MockerFixture
 from tortoise import Tortoise
+
+from svs_core.docker.container import DockerContainerManager
+from svs_core.docker.image import DockerImageManager
+from svs_core.docker.network import DockerNetworkManager
 
 
 async def _reset_test_db(db_url):
@@ -92,3 +97,29 @@ def mock_system_user_manager(mocker: MockerFixture) -> MockerFixture:
         "svs_core.users.system.SystemUserManager.delete_user",
         return_value=None,
     )
+
+
+@pytest_asyncio.fixture
+async def docker_cleanup():
+    """Fixture to clean up Docker after each test.
+
+    Removes all non-system containers and images. In development env,
+    skips image removal.
+    """
+    yield
+
+    ignored_images = ["postgres", "lucaslorentz/caddy-docker-proxy"]
+
+    for image in DockerImageManager.get_all():
+        image_name = image.tags[0].split(":")[0] if image.tags else None
+
+        if os.getenv("ENVIRONMENT") == "dev":
+            continue
+
+        if image and image_name and not image in ignored_images:
+            print(f"Removing image {image_name})")
+            DockerImageManager.remove(image_name)
+
+    for container in DockerContainerManager.get_all():
+        if container and container.labels.get("svs_user") is not None:
+            DockerContainerManager.remove(container.id)

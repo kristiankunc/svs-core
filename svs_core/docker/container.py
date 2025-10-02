@@ -10,9 +10,8 @@ from svs_core.shared.logger import get_logger
 class DockerContainerManager:
     """Class for managing Docker containers."""
 
-    @classmethod
+    @staticmethod
     def create_container(
-        cls,
         name: str,
         image: str,
         command: Optional[str] = None,
@@ -58,8 +57,8 @@ class DockerContainerManager:
             ports=ports or {},
         )
 
-    @classmethod
-    def get_container(cls, container_id: str) -> Optional[Container]:
+    @staticmethod
+    def get_container(container_id: str) -> Optional[Container]:
         """Retrieve a Docker container by its ID.
 
         Args:
@@ -75,8 +74,37 @@ class DockerContainerManager:
         except Exception:
             return None
 
-    @classmethod
-    def start_container(cls, container: Container) -> None:
+    @staticmethod
+    def get_all() -> list[Container]:
+        """Get a list of all Docker containers.
+
+        Returns:
+            list[Container]: List of Docker Container objects.
+        """
+        client = get_docker_client()
+        return client.containers.list(all=True)  # type: ignore
+
+    @staticmethod
+    def remove(container_id: str) -> None:
+        """Remove a Docker container by its ID.
+
+        Args:
+            container_id (str): The ID of the container to remove.
+
+        Raises:
+            Exception: If the container cannot be removed.
+        """
+        client = get_docker_client()
+        try:
+            container = client.containers.get(container_id)
+            container.remove(force=True)
+        except Exception as e:
+            raise Exception(
+                f"Failed to remove container {container_id}. Error: {str(e)}"
+            ) from e
+
+    @staticmethod
+    def start_container(container: Container) -> None:
         """Start a Docker container.
 
         Args:

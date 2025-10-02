@@ -2,6 +2,7 @@ from typing import List
 from uuid import uuid4
 
 import pytest
+
 from docker.models.networks import Network
 
 from svs_core.docker.network import DockerNetworkManager
@@ -14,12 +15,15 @@ class TestDockerNetworkManager:
     def test_create_and_delete_network(self) -> None:
         """Tests creating and deleting a Docker network."""
         # Create a network
-        network: Network = DockerNetworkManager.create_network(self.TEST_NETWORK_NAME)
+        network: Network = DockerNetworkManager.create_network(
+            self.TEST_NETWORK_NAME, labels={"test": "true"}
+        )
         assert network.name == self.TEST_NETWORK_NAME
 
         # Check if the network exists
         networks: List[Network] = DockerNetworkManager.get_networks()
         assert any(n.name == self.TEST_NETWORK_NAME for n in networks)
+        assert network.attrs.get("Labels", {}).get("test") == "true"
 
         # Delete the network
         DockerNetworkManager.delete_network(self.TEST_NETWORK_NAME)
