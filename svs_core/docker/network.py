@@ -19,6 +19,21 @@ class DockerNetworkManager:
         return get_docker_client().networks.list()  # type: ignore
 
     @staticmethod
+    def get_network(name: str) -> Network | None:
+        """Retrieves a Docker network by its name.
+
+        Args:
+            name (str): The name of the network to retrieve.
+
+        Returns:
+            Network | None: The Docker network object if found, otherwise None.
+        """
+        try:
+            return get_docker_client().networks.get(name)
+        except NotFound:
+            return None
+
+    @staticmethod
     def create_network(name: str, labels: dict[str, Any] | None = None) -> Network:
         """Creates a new Docker network.
 
