@@ -1,6 +1,8 @@
 import os
 import tempfile
 
+from docker.models.images import Image
+
 from svs_core.docker.base import get_docker_client
 
 
@@ -83,3 +85,13 @@ class DockerImageManager:
             raise Exception(
                 f"Failed to pull image {image_name}:{tag}. Error: {str(e)}"
             ) from e
+
+    @staticmethod
+    def get_all() -> list[Image]:
+        """Get a list of all local Docker images.
+
+        Returns:
+            list[Image]: List of Docker Image objects.
+        """
+        client = get_docker_client()
+        return client.images.list()  # type: ignore

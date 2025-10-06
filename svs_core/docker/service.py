@@ -306,6 +306,10 @@ class Service(OrmBase):
                 if not isinstance(arg, str):
                     args_to_use[i] = str(arg)
 
+        user = await User.get_by_id(user_id)
+        if not user:
+            raise ValueError(f"User with ID {user_id} does not exist")
+
         return await cls.create(
             name=name,
             template_id=template.id,
@@ -317,7 +321,7 @@ class Service(OrmBase):
             volumes=volumes,
             command=command_to_use,
             healthcheck=healthcheck,
-            labels=labels,
+            labels=labels | {"svs_user": user.name},
             args=args_to_use,
             networks=networks,
         )

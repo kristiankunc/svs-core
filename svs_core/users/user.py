@@ -1,4 +1,5 @@
 import re
+
 from typing import Any, Optional
 
 from svs_core.db.models import OrmBase, UserModel
@@ -76,7 +77,7 @@ class User(OrmBase):
             name=name, password=hash_password(password).decode("utf-8")
         )
 
-        DockerNetworkManager.create_network(name)
+        DockerNetworkManager.create_network(name, labels={"svs_user": name})
         SystemUserManager.create_user(name, password)
 
         get_logger(__name__).info(f"Created user: {name}")
