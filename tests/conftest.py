@@ -4,85 +4,45 @@ import os
 import pytest
 import pytest_asyncio
 
+from django.apps import apps
+from django.conf import settings
+from django.db import connection, connections, transaction
+from psycopg import OperationalError
 from pytest_mock import MockerFixture
-from tortoise import Tortoise
+from tortoise import Tortoise, connections
 
+from svs_core.db.settings import setup_django
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.image import DockerImageManager
 from svs_core.docker.network import DockerNetworkManager
 
-
-async def _reset_test_db(db_url):
-    """Reset test database - create if not exists or recreate if exists"""
-    if not db_url or not db_url.startswith("postgres"):
-        return
-
-    try:
-        import asyncpg
-
-        db_name = db_url.split("/")[-1].split("?")[0]
-        if not db_name:
-            return
-
-        # Connect to postgres admin DB
-        admin_url = db_url.replace(f"/{db_name}", "/postgres")
-        conn = await asyncpg.connect(admin_url)
-
-        # Reset database (drop and create)
-        await conn.execute(
-            f"""
-            SELECT pg_terminate_backend(pid) FROM pg_stat_activity
-            WHERE datname = '{db_name}' AND pid <> pg_backend_pid()
-        """
-        )
-        await conn.execute(f'DROP DATABASE IF EXISTS "{db_name}"')
-        await conn.execute(f'CREATE DATABASE "{db_name}"')
-        await conn.close()
-    except Exception as e:
-        print(f"Database setup error: {e}")
+setup_django()
 
 
-@pytest.fixture
-def event_loop():
-    """Create a fresh event loop for each test."""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    yield loop
-    loop.close()
+@pytest.fixture(scope="session", autouse=True)
+def django_db_setup():
+    """Ensure the Django database is set up for tests."""
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT 1;")
+
+    from django.core.management import call_command
+
+    call_command("migrate", verbosity=0, interactive=False)
 
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def setup_test_database():
-    """Setup test database once for the entire test session."""
-    test_db_url = os.environ.get("TEST_DATABASE_URL")
-    if not test_db_url:
-        raise ValueError("TEST_DATABASE_URL environment variable is not set")
-
-    await _reset_test_db(test_db_url)
-    yield
-
-
-@pytest_asyncio.fixture(autouse=True)
-async def initialize_tortoise():
-    """Initialize Tortoise ORM for each test with a clean database state."""
-    test_db_url = os.environ.get("TEST_DATABASE_URL", "")
-    if not test_db_url:
-        raise ValueError("TEST_DATABASE_URL environment variable is not set")
-
-    # Initialize Tortoise with minimal config
-    await Tortoise.init(db_url=test_db_url, modules={"models": ["svs_core.db.models"]})
-    await Tortoise.generate_schemas(safe=True)
-
-    # Clean tables before each test
-    conn = Tortoise.get_connection("default")
-    for model in Tortoise.apps.get("models", {}).values():
-        if hasattr(model._meta, "db_table"):
-            await conn.execute_script(
-                f'TRUNCATE TABLE "{model._meta.db_table}" CASCADE;'
-            )
-
-    yield
-    await Tortoise.close_connections()
+@pytest.fixture(autouse=True)
+def clean_db():
+    """Clean database before each test."""
+    with connection.cursor() as cursor:
+        cursor.execute("TRUNCATE TABLE django_migrations RESTART IDENTITY CASCADE;")
+        for model in apps.get_models():
+            try:
+                cursor.execute(
+                    f"TRUNCATE TABLE {model._meta.db_table} RESTART IDENTITY CASCADE;"
+                )
+            except Exception as e:
+                print(f"Could not truncate table {model._meta.db_table}: {e}")
+    transaction.set_autocommit(True)
 
 
 @pytest.fixture(autouse=True)

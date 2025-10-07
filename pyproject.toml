@@ -60,7 +60,13 @@ ignore = ["E712"]
 [tool.ruff.lint]
 select = ["D"]
 ignore = ["D417", "D100", "D105", "D107", "D104"]
-per-file-ignores = { "tests/**" = ["D"], "web/**" = ["D"] }
+per-file-ignores = { "tests/**" = [
+    "D",
+], "web/**" = [
+    "D",
+], "svs_core/db/migrations/**" = [
+    "ALL",
+] }
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

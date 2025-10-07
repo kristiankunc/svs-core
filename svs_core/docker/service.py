@@ -1,6 +1,8 @@
-from typing import Any, List
+from typing import Any, List, cast
 
-from svs_core.db.models import OrmBase, ServiceModel, ServiceStatus, TemplateModel
+from django.db import models
+
+from svs_core.db.models import ServiceModel, ServiceStatus, TemplateModel
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.json_properties import (
     EnvVariable,
@@ -16,39 +18,22 @@ from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.user import User
 
 
-class Service(OrmBase):
+class Service(ServiceModel):
     """Service class representing a service in the system."""
 
-    _model_cls = ServiceModel
+    objects = ServiceModel.objects
 
-    def __init__(self, model: ServiceModel, **_: Any):
-        super().__init__(model)
-        self._model: ServiceModel = model
-
-    @property
-    def name(self) -> str:  # noqa: D102
-        return self._model.name
+    class Meta:  # noqa: D106
+        proxy = True
 
     @property
-    def container_id(self) -> str | None:  # noqa: D102
-        return self._model.container_id
-
-    @property
-    def image(self) -> str | None:  # noqa: D102
-        return self._model.image
-
-    @property
-    def domain(self) -> str | None:  # noqa: D102
-        return self._model.domain
-
-    @property
-    def env(self) -> List[EnvVariable]:  # noqa: D102
-        env_dict = self._model.env or {}
+    def env_variables(self) -> List[EnvVariable]:  # noqa: D102
+        env_dict = self.env or {}
         return [EnvVariable(key=key, value=value) for key, value in env_dict.items()]
 
     @property
-    def exposed_ports(self) -> List[ExposedPort]:  # noqa: D102
-        ports_list = self._model.exposed_ports or []
+    def port_mappings(self) -> List[ExposedPort]:  # noqa: D102
+        ports_list = self.exposed_ports or []
         result = []
         for port in ports_list:
             container_port = port.get("container")
@@ -64,8 +49,8 @@ class Service(OrmBase):
         return result
 
     @property
-    def volumes(self) -> List[Volume]:  # noqa: D102
-        volumes_list = self._model.volumes or []
+    def volume_mappings(self) -> List[Volume]:  # noqa: D102
+        volumes_list = self.volumes or []
         result = []
         for volume in volumes_list:
             container_path = volume.get("container")
@@ -83,21 +68,13 @@ class Service(OrmBase):
         return result
 
     @property
-    def command(self) -> str | None:  # noqa: D102
-        return self._model.command
-
-    @property
-    def labels(self) -> List[Label]:  # noqa: D102
-        labels_dict = self._model.labels or {}
+    def label_list(self) -> List[Label]:  # noqa: D102
+        labels_dict = self.labels or {}
         return [Label(key=key, value=value) for key, value in labels_dict.items()]
 
     @property
-    def args(self) -> list[str]:  # noqa: D102
-        return self._model.args or []
-
-    @property
-    def healthcheck(self) -> Healthcheck | None:  # noqa: D102
-        healthcheck_dict = self._model.healthcheck or {}
+    def healthcheck_config(self) -> Healthcheck | None:  # noqa: D102
+        healthcheck_dict = self.healthcheck or {}
         if not healthcheck_dict or "test" not in healthcheck_dict:
             return None
 
@@ -110,76 +87,65 @@ class Service(OrmBase):
         )
 
     @property
-    def networks(self) -> list[str]:  # noqa: D102
-        return self._model.networks or []
+    def template_obj(self) -> Template:  # noqa: D102
+        return cast(Template, Template.objects.get(id=self.template_id))
 
     @property
-    def status(self) -> str | None:  # noqa: D102
-        return self._model.status
-
-    @property
-    def exit_code(self) -> int | None:  # noqa: D102
-        return self._model.exit_code
-
-    @property
-    def template(self) -> Template:  # noqa: D102
-        return Template(model=self._model.template)
-
-    @property
-    def user(self) -> User:  # noqa: D102
-        return User(model=self._model.user)
+    def user_obj(self) -> User:  # noqa: D102
+        return cast(User, User.objects.get(id=self.user_id))
 
     def to_env_dict(self) -> dict[str, str]:
         """Convert EnvVariable list to dictionary format."""
-        return {env.key: env.value for env in self.env}
+        return {env.key: env.value for env in self.env_variables}
 
     def to_ports_list(self) -> list[dict[str, Any]]:
         """Convert ExposedPort list to list of dictionaries format."""
         return [
             {"container": port.container_port, "host": port.host_port}
-            for port in self.exposed_ports
+            for port in self.port_mappings
         ]
 
     def to_volumes_list(self) -> list[dict[str, Any]]:
         """Convert Volume list to list of dictionaries format."""
         return [
             {"container": vol.container_path, "host": vol.host_path}
-            for vol in self.volumes
+            for vol in self.volume_mappings
         ]
 
     def to_labels_dict(self) -> dict[str, str]:
         """Convert Label list to dictionary format."""
-        return {label.key: label.value for label in self.labels}
+        return {label.key: label.value for label in self.label_list}
 
     def to_healthcheck_dict(self) -> dict[str, Any] | None:
         """Convert Healthcheck object to dictionary format."""
-        if not self.healthcheck:
+        if not self.healthcheck_config:
             return None
 
-        result: dict[str, Any] = {"test": self.healthcheck.test}
-        if self.healthcheck.interval:
-            result["interval"] = self.healthcheck.interval
-        if self.healthcheck.timeout:
-            result["timeout"] = self.healthcheck.timeout
-        if self.healthcheck.retries:
-            result["retries"] = self.healthcheck.retries
-        if self.healthcheck.start_period:
-            result["start_period"] = self.healthcheck.start_period
+        result: dict[str, Any] = {"test": self.healthcheck_config.test}
+        if self.healthcheck_config.interval:
+            result["interval"] = self.healthcheck_config.interval
+        if self.healthcheck_config.timeout:
+            result["timeout"] = self.healthcheck_config.timeout
+        if self.healthcheck_config.retries:
+            result["retries"] = self.healthcheck_config.retries
+        if self.healthcheck_config.start_period:
+            result["start_period"] = self.healthcheck_config.start_period
         return result
 
     def __str__(self) -> str:
-        env_vars = [f"{env.key}={env.value}" for env in self.env]
+        env_vars = [f"{env.key}={env.value}" for env in self.env_variables]
         ports = [
-            f"{port.container_port}:{port.host_port}" for port in self.exposed_ports
+            f"{port.container_port}:{port.host_port}" for port in self.port_mappings
         ]
         volumes = [
-            f"{vol.container_path}:{vol.host_path or 'None'}" for vol in self.volumes
+            f"{vol.container_path}:{vol.host_path or 'None'}"
+            for vol in self.volume_mappings
         ]
-        labels = [f"{label.key}={label.value}" for label in self.labels]
+        labels = [f"{label.key}={label.value}" for label in self.label_list]
 
         healthcheck_str = "None"
-        if self.healthcheck:
-            test_str = " ".join(self.healthcheck.test)
+        if self.healthcheck_config:
+            test_str = " ".join(self.healthcheck_config.test)
             healthcheck_str = f"test='{test_str}'"
 
         return (
@@ -196,7 +162,7 @@ class Service(OrmBase):
         )
 
     @classmethod
-    async def create_from_template(
+    def create_from_template(
         cls,
         name: str,
         template_id: int,
@@ -232,17 +198,18 @@ class Service(OrmBase):
         Raises:
             ValueError: If name is empty or template_id doesn't correspond to an existing template.
         """
-        template = await Template.get_by_id(template_id)
-        if not template:
+        try:
+            template = Template.objects.get(id=template_id)
+        except Template.DoesNotExist:
             raise ValueError(f"Template with ID {template_id} does not exist")
 
-        env = {var.key: var.value for var in template.default_env}
+        env = {var.key: var.value for var in template.env_variables}
         if override_env:
             env.update(override_env)
 
         exposed_ports = [
             {"container": port.container_port, "host": port.host_port}
-            for port in template.default_ports
+            for port in template.exposed_ports
         ]
         for override in override_ports or []:
             existing = next(
@@ -260,7 +227,7 @@ class Service(OrmBase):
 
         volumes = [
             {"container": vol.container_path, "host": vol.host_path}
-            for vol in template.default_volumes
+            for vol in template.volumes
         ]
         for override in override_volumes or []:
             # TODO: fix later ;)
@@ -273,21 +240,21 @@ class Service(OrmBase):
             else:
                 volumes.append(override)
 
-        labels = {label.key: label.value for label in template.labels}
+        labels = {label.key: label.value for label in template.label_list}
         if override_labels:
             labels.update(override_labels)
 
         healthcheck: dict[str, Any] | None = None
-        if template.healthcheck:
-            healthcheck = {"test": template.healthcheck.test}
-            if template.healthcheck.interval:
-                healthcheck["interval"] = template.healthcheck.interval
-            if template.healthcheck.timeout:
-                healthcheck["timeout"] = template.healthcheck.timeout
-            if template.healthcheck.retries:
-                healthcheck["retries"] = template.healthcheck.retries
-            if template.healthcheck.start_period:
-                healthcheck["start_period"] = template.healthcheck.start_period
+        if template.healthcheck_config:
+            healthcheck = {"test": template.healthcheck_config.test}
+            if template.healthcheck_config.interval:
+                healthcheck["interval"] = template.healthcheck_config.interval
+            if template.healthcheck_config.timeout:
+                healthcheck["timeout"] = template.healthcheck_config.timeout
+            if template.healthcheck_config.retries:
+                healthcheck["retries"] = template.healthcheck_config.retries
+            if template.healthcheck_config.start_period:
+                healthcheck["start_period"] = template.healthcheck_config.start_period
 
         # TODO: allow partial overrides / merge
         if override_healthcheck:
@@ -306,11 +273,12 @@ class Service(OrmBase):
                 if not isinstance(arg, str):
                     args_to_use[i] = str(arg)
 
-        user = await User.get_by_id(user_id)
-        if not user:
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
             raise ValueError(f"User with ID {user_id} does not exist")
 
-        return await cls.create(
+        return cls.create(
             name=name,
             template_id=template.id,
             user_id=user_id,
@@ -327,7 +295,7 @@ class Service(OrmBase):
         )
 
     @classmethod
-    async def create(
+    def create(
         cls,
         name: str,
         template_id: int,
@@ -381,16 +349,15 @@ class Service(OrmBase):
         from tortoise.exceptions import DoesNotExist
 
         try:
-            template_model = await TemplateModel.get(id=template_id)
-            template = Template(model=template_model)
-        except DoesNotExist:
+            template = Template.objects.get(id=template_id)
+        except Template.DoesNotExist:
             raise ValueError(f"Template with ID {template_id} does not exist")
 
         if image is None:
             image = template.image
 
         if exposed_ports is None:
-            template_ports = template.default_ports
+            template_ports = template.exposed_ports
             exposed_ports = [
                 {"container": port.container_port, "host": port.host_port}
                 for port in template_ports
@@ -411,7 +378,7 @@ class Service(OrmBase):
                         raise ValueError(f"Host port must be an integer: {port}")
 
         if env is None:
-            template_env = template.default_env
+            template_env = template.env_variables
             env = {var.key: var.value for var in template_env}
         else:
             if not isinstance(env, dict):
@@ -423,7 +390,7 @@ class Service(OrmBase):
                     )
 
         if volumes is None:
-            template_volumes = template.default_volumes
+            template_volumes = template.volumes
             volumes = [
                 {"container": vol.container_path, "host": vol.host_path}
                 for vol in template_volumes
@@ -442,8 +409,8 @@ class Service(OrmBase):
         if command is None:
             command = template.start_cmd
 
-        if healthcheck is None and template.healthcheck:
-            healthcheck_obj = template.healthcheck
+        if healthcheck is None and template.healthcheck_config:
+            healthcheck_obj = template.healthcheck_config
             healthcheck = {"test": healthcheck_obj.test}
 
             if healthcheck_obj.interval:
@@ -466,7 +433,7 @@ class Service(OrmBase):
                 )
 
         if labels is None:
-            template_labels = template.labels
+            template_labels = template.label_list
             labels = {label.key: label.value for label in template_labels}
         else:
             if not isinstance(labels, dict):
@@ -491,7 +458,7 @@ class Service(OrmBase):
                     user_id
                 ).as_posix()
 
-        model = await ServiceModel.create(
+        service_instance = cls.objects.create(
             name=name,
             template_id=template_id,
             user_id=user_id,
@@ -509,7 +476,6 @@ class Service(OrmBase):
             status=status,
             exit_code=exit_code,
         )
-        service_instance = cls(model=model)
 
         system_labels = [Label(key="service_id", value=str(service_instance.id))]
 
@@ -517,7 +483,7 @@ class Service(OrmBase):
             system_labels.append(Label(key="caddy", value=service_instance.domain))
 
             if service_instance.exposed_ports:
-                http_ports = [port for port in service_instance.exposed_ports]
+                http_ports = [port for port in service_instance.port_mappings]
 
                 if http_ports:
                     upstreams = ", ".join(
@@ -526,7 +492,7 @@ class Service(OrmBase):
                     if upstreams:
                         system_labels.append(Label(key="upstreams", value=upstreams))
 
-        model_labels = service_instance.labels
+        model_labels = service_instance.label_list
 
         all_labels = system_labels + model_labels
 
@@ -556,12 +522,12 @@ class Service(OrmBase):
             },
         )
 
-        model.container_id = container.id
-        await model.save()
+        service_instance.container_id = container.id
+        service_instance.save()
 
-        return service_instance
+        return cast(Service, service_instance)
 
-    async def start(self) -> None:
+    def start(self) -> None:
         """Start the service's Docker container."""
         if not self.container_id:
             raise ValueError("Service does not have a container ID")
@@ -571,10 +537,10 @@ class Service(OrmBase):
             raise ValueError(f"Container with ID {self.container_id} not found")
 
         container.start()
-        self._model.status = ServiceStatus.RUNNING
-        await self._model.save()
+        self.status = ServiceStatus.RUNNING
+        self.save()
 
-    async def stop(self) -> None:
+    def stop(self) -> None:
         """Stop the service's Docker container."""
         if not self.container_id:
             raise ValueError("Service does not have a container ID")
@@ -584,5 +550,5 @@ class Service(OrmBase):
             raise ValueError(f"Container with ID {self.container_id} not found")
 
         container.stop()
-        self._model.status = ServiceStatus.STOPPED
-        await self._model.save()
+        self.status = ServiceStatus.STOPPED
+        self.save()

@@ -1,8 +1,10 @@
 import re
 
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
-from svs_core.db.models import OrmBase, UserModel
+from django.db import models
+
+from svs_core.db.models import UserModel
 from svs_core.docker.network import DockerNetworkManager
 from svs_core.shared.exceptions import AlreadyExistsException, SVSException
 from svs_core.shared.hash import hash_password
@@ -32,27 +34,14 @@ class InvalidPasswordException(SVSException):
         self.password = password
 
 
-class User(OrmBase):
+class User(UserModel):
     """User class representing a user in the system."""
 
-    _model_cls = UserModel
-
-    def __init__(self, model: UserModel, **_: Any):
-        super().__init__(model)
-        self._model: UserModel = model
-
-    @property
-    def name(self) -> str:
-        """Returns the username of the user."""
-        return self._model.name
-
-    @property
-    def password(self) -> str:
-        """Returns the hashed password of the user."""
-        return self._model.password
+    class Meta:  # noqa: D106
+        proxy = True
 
     @classmethod
-    async def create(cls, name: str, password: str) -> "User":
+    def create(cls, name: str, password: str) -> "User":
         """Creates a new user with the given name and password.
 
         Args:
@@ -70,10 +59,10 @@ class User(OrmBase):
             raise InvalidUsernameException(name)
         if not cls.is_password_valid(password):
             raise InvalidPasswordException(password)
-        if await cls.username_exists(name):
+        if cls.username_exists(name):
             raise AlreadyExistsException(entity="User", identifier=name)
 
-        model = await UserModel.create(
+        user: "User" = cls.objects.create(
             name=name, password=hash_password(password).decode("utf-8")
         )
 
@@ -81,18 +70,22 @@ class User(OrmBase):
         SystemUserManager.create_user(name, password)
 
         get_logger(__name__).info(f"Created user: {name}")
-        return cls(model=model)
+        return user
 
     @classmethod
-    async def get_by_name(cls, name: str) -> Optional["User"]:
+    def get_by_name(cls, name: str) -> Optional["User"]:
         """Retrieves a user by their username."""
-        return await cls._get("name", name)
+        try:
+            user: "User" = cls.objects.get(name=name)
+            return user
+        except cls.DoesNotExist:
+            return None
 
     @staticmethod
     def is_username_valid(username: str) -> bool:
         """Validates the username based on specific criteria.
 
-        The usernameneeds to be a valid UNIX username.
+        The username needs to be a valid UNIX username.
 
         Args:
             username (str): The username to validate.
@@ -123,7 +116,7 @@ class User(OrmBase):
         return isinstance(password, str) and len(password) >= 8
 
     @classmethod
-    async def username_exists(cls, username: str) -> bool:
+    def username_exists(cls, username: str) -> bool:
         """Checks if a username already exists in the database.
 
         Args:
@@ -132,9 +125,9 @@ class User(OrmBase):
         Returns:
             bool: True if the username exists, False otherwise.
         """
-        return await cls._exists("name", username)
+        return cast(bool, cls.objects.filter(name=username).exists())
 
-    async def check_password(self, password: str) -> bool:
+    def check_password(self, password: str) -> bool:
         """Checks if the provided password matches the user's password.
 
         Args:
@@ -146,6 +139,7 @@ class User(OrmBase):
         from svs_core.shared.hash import check_password
 
         hashed = self.password.encode("utf-8")
+
         return check_password(password, hashed)
 
     def __str__(self) -> str:
