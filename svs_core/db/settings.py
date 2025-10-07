@@ -28,7 +28,7 @@ USE_TZ = True
 DEBUG = ENVIRONMENT == "dev"
 
 
-def setup_django():
+def setup_django() -> None:
     """Configure Django and initialize apps registry."""
     if not settings.configured:
         settings.configure(

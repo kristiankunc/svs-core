@@ -5,6 +5,7 @@ import os
 
 import typer
 
+from svs_core.db.settings import setup_django
 from svs_core.shared.logger import get_logger
 
 if not os.getenv("DATABASE_URL"):
@@ -33,11 +34,7 @@ app.add_typer(service_app, name="service")
 
 
 def main() -> None:  # noqa: D103
-    from tortoise import Tortoise
-
-    from svs_core.db.models import TORTOISE_ORM
-
-    asyncio.run(Tortoise.init(config=TORTOISE_ORM))
+    setup_django()
     app()
 
 
