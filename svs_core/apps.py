@@ -4,7 +4,6 @@ from django.apps import AppConfig
 class SvsCoreConfig(AppConfig):  # type: ignore[misc] # noqa: D101
     default_auto_field = "django.db.models.BigAutoField"
     name = "svs_core"
-    migrations_module = "svs_core.db.migrations"
 
     def ready(self) -> None:  # noqa: D102
         from .db.models import BaseModel

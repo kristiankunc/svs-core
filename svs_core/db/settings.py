@@ -20,3 +20,4 @@ CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"
 TIME_ZONE = "UTC"
 USE_TZ = True
 DEBUG = ENVIRONMENT == "dev"
+MIGRATION_MODULES = {"svs_core": "svs_core.db.migrations"}
