@@ -33,11 +33,7 @@ app.add_typer(service_app, name="service")
 
 
 def main() -> None:  # noqa: D103
-    from tortoise import Tortoise
-
-    from svs_core.db.models import TORTOISE_ORM
-
-    asyncio.run(Tortoise.init(config=TORTOISE_ORM))
+    # setup_django() TODO: re-add once migration issues fixed
     app()
 
 

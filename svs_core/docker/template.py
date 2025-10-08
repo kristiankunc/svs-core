@@ -1,6 +1,8 @@
-from typing import Any, List
+from typing import Any, List, cast
 
-from svs_core.db.models import OrmBase, TemplateModel, TemplateType
+from django.db import models
+
+from svs_core.db.models import TemplateModel, TemplateType
 from svs_core.docker.image import DockerImageManager
 from svs_core.docker.json_properties import (
     EnvVariable,
@@ -11,43 +13,20 @@ from svs_core.docker.json_properties import (
 )
 
 
-class Template(OrmBase):
+class Template(TemplateModel):
     """Template class representing a Docker template in the system."""
 
-    _model_cls = TemplateModel
-
-    def __init__(self, model: TemplateModel, **_: Any):
-        super().__init__(model)
-        self._model: TemplateModel = model
+    class Meta:  # noqa: D106
+        proxy = True
 
     @property
-    def name(self) -> str:  # noqa: D102
-        return self._model.name
-
-    @property
-    def type(self) -> TemplateType:  # noqa: D102
-        return self._model.type
-
-    @property
-    def image(self) -> str | None:  # noqa: D102
-        return self._model.image
-
-    @property
-    def dockerfile(self) -> str | None:  # noqa: D102
-        return self._model.dockerfile
-
-    @property
-    def description(self) -> str | None:  # noqa: D102
-        return self._model.description
-
-    @property
-    def default_env(self) -> List[EnvVariable]:  # noqa: D102
-        env_dict = self._model.default_env or {}
+    def env_variables(self) -> List[EnvVariable]:  # noqa: D102
+        env_dict = self.default_env or {}
         return [EnvVariable(key=key, value=value) for key, value in env_dict.items()]
 
     @property
-    def default_ports(self) -> List[ExposedPort]:  # noqa: D102
-        ports_list = self._model.default_ports or []
+    def exposed_ports(self) -> List[ExposedPort]:  # noqa: D102
+        ports_list = self.default_ports or []
         result = []
         for port in ports_list:
             container_port = port.get("container")
@@ -63,8 +42,8 @@ class Template(OrmBase):
         return result
 
     @property
-    def default_volumes(self) -> List[Volume]:  # noqa: D102
-        volumes_list = self._model.default_volumes or []
+    def volumes(self) -> List[Volume]:  # noqa: D102
+        volumes_list = self.default_volumes or []
         return [
             Volume(
                 container_path=str(volume["container"]),
@@ -76,13 +55,9 @@ class Template(OrmBase):
         ]
 
     @property
-    def start_cmd(self) -> str | None:  # noqa: D102
-        return self._model.start_cmd
-
-    @property
-    def healthcheck(self) -> Healthcheck | None:
+    def healthcheck_config(self) -> Healthcheck | None:
         """Returns the healthcheck configuration for the template, if any."""
-        healthcheck_dict = self._model.healthcheck or {}
+        healthcheck_dict = self.healthcheck or {}
         if not healthcheck_dict or "test" not in healthcheck_dict:
             return None
 
@@ -95,30 +70,29 @@ class Template(OrmBase):
         )
 
     @property
-    def labels(self) -> List[Label]:
+    def label_list(self) -> List[Label]:
         """Returns the list of labels for the template."""
-        labels_dict = self._model.labels or {}
+        labels_dict = self.labels or {}
         return [Label(key=key, value=value) for key, value in labels_dict.items()]
 
     @property
-    def args(self) -> list[str]:
+    def arguments(self) -> list[str]:
         """Returns the list of build arguments for the template."""
-        return self._model.args or []
+        return self.args or []
 
     def __str__(self) -> str:
-        env_vars = [f"{env.key}={env.value}" for env in self.default_env]
+        env_vars = [f"{env.key}={env.value}" for env in self.env_variables]
         ports = [
-            f"{port.container_port}:{port.host_port}" for port in self.default_ports
+            f"{port.container_port}:{port.host_port}" for port in self.exposed_ports
         ]
         volumes = [
-            f"{vol.container_path}:{vol.host_path or 'None'}"
-            for vol in self.default_volumes
+            f"{vol.container_path}:{vol.host_path or 'None'}" for vol in self.volumes
         ]
-        labels = [f"{label.key}={label.value}" for label in self.labels]
+        labels = [f"{label.key}={label.value}" for label in self.label_list]
 
         healthcheck_str = "None"
-        if self.healthcheck:
-            test_str = " ".join(self.healthcheck.test)
+        if self.healthcheck_config:
+            test_str = " ".join(self.healthcheck_config.test)
             healthcheck_str = f"test='{test_str}'"
 
         return (
@@ -130,11 +104,11 @@ class Template(OrmBase):
             f"start_cmd={self.start_cmd}, "
             f"healthcheck={healthcheck_str}, "
             f"labels=[{', '.join(labels)}], "
-            f"args={self.args})"
+            f"args={self.arguments})"
         )
 
     @classmethod
-    async def create(
+    def create(
         cls,
         name: str,
         type: TemplateType = TemplateType.IMAGE,
@@ -259,7 +233,7 @@ class Template(OrmBase):
                 if not arg:
                     raise ValueError("Arguments cannot be empty strings")
 
-        model = await TemplateModel.create(
+        template = cls.objects.create(
             name=name,
             type=type,
             image=image,
@@ -288,10 +262,10 @@ class Template(OrmBase):
         elif type == TemplateType.BUILD and dockerfile is not None:
             DockerImageManager.build_from_dockerfile(name, dockerfile)
 
-        return cls(model=model)
+        return cast(Template, template)
 
     @classmethod
-    async def import_from_json(cls, data: dict[str, Any]) -> "Template":
+    def import_from_json(cls, data: dict[str, Any]) -> "Template":
         """Creates a Template instance from a JSON/dict object.
 
         Relies on theexisting create factory method.
@@ -336,7 +310,7 @@ class Template(OrmBase):
             )
 
         # Delegate to create method for further validation
-        return await cls.create(
+        template: "Template" = cls.create(
             name=data.get("name", ""),
             type=template_type,
             image=data.get("image"),
@@ -350,3 +324,5 @@ class Template(OrmBase):
             labels=data.get("labels"),
             args=data.get("args"),
         )
+
+        return template

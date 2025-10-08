@@ -65,6 +65,7 @@
 		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
 	},
 	"name": "Library DevContainer",
+	"postAttachCommand": "source .env",
 	"postCreateCommand": "pip install -e . && pip install '.[dev]' && pip install '.[docs]' && pre-commit install",
 	"remoteUser": "dev",
 	"service": "devcontainer",

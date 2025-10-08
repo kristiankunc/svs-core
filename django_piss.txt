@@ -1,0 +1,2 @@
+force ENV with: export DJANGO_SETTINGS_MODULE=svs_core.db.settings
+gen migrations: python -m django makemigrations svs_core

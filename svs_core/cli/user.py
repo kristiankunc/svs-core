@@ -1,5 +1,3 @@
-import asyncio
-
 import typer
 
 from svs_core.shared.exceptions import AlreadyExistsException
@@ -14,19 +12,15 @@ def create(
     password: str = typer.Argument(..., help="Password for the new user"),
 ) -> None:
     """Create a new user."""
-
-    async def _create():
-        try:
-            user = await User.create(name, password)
-            typer.echo(f"✅ User '{user.name}' created successfully.")
-        except (
-            InvalidUsernameException,
-            InvalidPasswordException,
-            AlreadyExistsException,
-        ) as e:
-            typer.echo(f"❌ {e}", err=True)
-
-    asyncio.run(_create())
+    try:
+        user = User.create(name, password)
+        typer.echo(f"✅ User '{user.name}' created successfully.")
+    except (
+        InvalidUsernameException,
+        InvalidPasswordException,
+        AlreadyExistsException,
+    ) as e:
+        typer.echo(f"❌ {e}", err=True)
 
 
 @app.command("get")
@@ -34,15 +28,11 @@ def get(
     name: str = typer.Argument(..., help="Username of the user to retrieve")
 ) -> None:
     """Get a user by name."""
-
-    async def _get():
-        user = await User.get_by_name(name)
-        if user:
-            typer.echo(f"👤 User found: {user.name}")
-        else:
-            typer.echo("❌ User not found.", err=True)
-
-    asyncio.run(_get())
+    user = User.get_by_name(name)
+    if user:
+        typer.echo(f"👤 User found: {user.name}")
+    else:
+        typer.echo("❌ User not found.", err=True)
 
 
 @app.command("check-password")
@@ -53,32 +43,24 @@ def check_password(
     ),
 ) -> None:
     """Check if a password matches the stored hash."""
+    user = User.get_by_name(name)
+    if not user:
+        typer.echo("❌ User not found.", err=True)
+        return
 
-    async def _check():
-        user = await User.get_by_name(name)
-        if not user:
-            typer.echo("❌ User not found.", err=True)
-            return
-
-        if await user.check_password(password):
-            typer.echo("✅ Password is correct.")
-        else:
-            typer.echo("❌ Incorrect password.", err=True)
-
-    asyncio.run(_check())
+    if user.check_password(password):
+        typer.echo("✅ Password is correct.")
+    else:
+        typer.echo("❌ Incorrect password.", err=True)
 
 
 @app.command("list")
 def list_users() -> None:
     """List all users."""
+    users = User.get_all()
+    if not users:
+        typer.echo("No users found.", err=True)
+        return
 
-    async def _list():
-        users = await User.get_all()
-        if not users:
-            typer.echo("No users found.", err=True)
-            return
-
-        typer.echo(f"👥 Total users: {len(users)}")
-        typer.echo("\n".join(f"- {user}" for user in users))
-
-    asyncio.run(_list())
+    typer.echo(f"👥 Total users: {len(users)}")
+    typer.echo("\n".join(f"- {user}" for user in users))
