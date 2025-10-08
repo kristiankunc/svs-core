@@ -12,6 +12,7 @@ setup_django()
 @pytest.fixture(scope="session")
 def django_db_setup():
     """Override the django_db_setup fixture."""
+    return
     settings.MIGRATION_MODULES = {
         app.split(".")[-1]: None for app in settings.INSTALLED_APPS
     }
