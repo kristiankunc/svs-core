@@ -4,19 +4,6 @@ import pytest
 
 from django.conf import settings
 
-from svs_core.db.settings import setup_django
-
-setup_django()
-
-
-@pytest.fixture(scope="session")
-def django_db_setup():
-    """Override the django_db_setup fixture."""
-    return
-    settings.MIGRATION_MODULES = {
-        app.split(".")[-1]: None for app in settings.INSTALLED_APPS
-    }
-
 
 @pytest.fixture
 def db(django_db_setup, django_db_blocker):
