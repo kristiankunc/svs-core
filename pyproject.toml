@@ -14,6 +14,7 @@ dependencies = [
     "tortoise-orm[psycopg]==0.25.1",
     "typer==0.19.2",
     "aerich[toml]==0.9.1",
+    "django==5.2.7",
 ]
 
 [project.optional-dependencies]
