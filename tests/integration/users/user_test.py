@@ -33,7 +33,10 @@ def system_user_delete_mock(mocker: MockerFixture) -> MockerFixture:
 
 class TestUserIntegration:
     @pytest.mark.integration
-    def test_create_user_success(self, create_network_mock, system_user_create_mock):
+    @pytest.mark.django_db
+    def test_create_user_success(
+        self, create_network_mock, system_user_create_mock, db
+    ):
         """Test creating a user with valid parameters."""
 
         username = "testuser"
@@ -49,7 +52,8 @@ class TestUserIntegration:
         system_user_create_mock.assert_called_once_with(username, password)
 
     @pytest.mark.integration
-    def test_create_user_duplicate(self):
+    @pytest.mark.django_db
+    def test_create_user_duplicate(self, db):
         """Test creating a user with a duplicate username."""
         username = "dupeuser"
         password = "password123"
@@ -58,7 +62,8 @@ class TestUserIntegration:
             User.create(name=username, password=password)
 
     @pytest.mark.integration
-    def test_create_user_invalid_username(self):
+    @pytest.mark.django_db
+    def test_create_user_invalid_username(self, db):
         """Test creating a user with an invalid username."""
         username = "invalid@user"
         password = "password123"
@@ -66,7 +71,8 @@ class TestUserIntegration:
             User.create(name=username, password=password)
 
     @pytest.mark.integration
-    def test_create_user_invalid_password(self):
+    @pytest.mark.django_db
+    def test_create_user_invalid_password(self, db):
         """Test creating a user with an invalid password."""
         username = "validuser2"
         password = "short"
@@ -74,7 +80,8 @@ class TestUserIntegration:
             User.create(name=username, password=password)
 
     @pytest.mark.integration
-    def test_get_by_name(self):
+    @pytest.mark.django_db
+    def test_get_by_name(self, db):
         """Test retrieving a user by name."""
         username = "findme"
         password = "password123"
@@ -85,7 +92,8 @@ class TestUserIntegration:
         assert user.name == username
 
     @pytest.mark.integration
-    def test_check_password(self):
+    @pytest.mark.django_db
+    def test_check_password(self, db):
         """Test checking the password for a user."""
         username = "pwtest"
         password = "password123"

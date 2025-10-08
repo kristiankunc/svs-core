@@ -6,7 +6,6 @@ import django
 from django.conf import settings
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "dev").lower()
-TEST = os.getenv("TEST", "false").lower() == "true"
 SECRET_KEY = "library-dummy-key"
 
 INSTALLED_APPS = [
@@ -18,8 +17,6 @@ INSTALLED_APPS = [
 
 # Pick DB based on environment
 database_url = os.getenv("DATABASE_URL")
-if TEST:
-    database_url = os.getenv("TEST_DATABASE_URL") or database_url
 
 DATABASES = {"default": dj_database_url.parse(database_url)}
 
