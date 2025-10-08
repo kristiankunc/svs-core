@@ -54,13 +54,11 @@ async def docker_cleanup(db):
 
     yield
 
-    ignored_images = ["postgres", "lucaslorentz/caddy-docker-proxy"]
-
     for image in DockerImageManager.get_all():
         image_name = image.tags[0].split(":")[0] if image.tags else None
         if os.getenv("ENVIRONMENT") == "dev":
             continue
-        if image and image_name and image_name not in ignored_images:
+        if image and image_name and image.labels.get("svs") == "true":
             DockerImageManager.remove(image_name)
 
     for container in DockerContainerManager.get_all():

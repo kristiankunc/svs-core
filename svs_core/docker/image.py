@@ -30,7 +30,11 @@ class DockerImageManager:
                 f.write(dockerfile_content)
 
             client.images.build(
-                path=tmpdir, tag=f"{image_name}:{tag}", rm=True, forcerm=True
+                path=tmpdir,
+                tag=f"{image_name}:{tag}",
+                rm=True,
+                forcerm=True,
+                labels={"svs": "true"},
             )
 
     @staticmethod
