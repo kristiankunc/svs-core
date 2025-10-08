@@ -10,7 +10,9 @@ TEST = os.getenv("TEST", "false").lower() == "true"
 SECRET_KEY = "library-dummy-key"
 
 INSTALLED_APPS = [
-    "svs_core.db",  # must be a real app package
+    "svs_core.db",
+    "svs_core.users",
+    "svs_core.docker",
 ]
 
 
