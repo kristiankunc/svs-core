@@ -18,7 +18,7 @@ RUN echo 'hello from test' > /message
 """
 
         # Build image
-        DockerImageManager.build_from_dockerfile(dockerfile, image_name, tag)
+        DockerImageManager.build_from_dockerfile(image_name, dockerfile, tag)
 
         client = get_docker_client()
         images = client.images.list(name=image_name)
@@ -40,7 +40,7 @@ RUN echo 'hello from test' > /message
 
         with pytest.raises(Exception):  # docker-py may raise different exceptions
             DockerImageManager.build_from_dockerfile(
-                invalid_dockerfile, image_name, tag
+                image_name, invalid_dockerfile, tag
             )
 
     @pytest.mark.integration
@@ -58,7 +58,7 @@ RUN echo 'hello from test' > /message
         tag = str(uuid.uuid4())[:8]
         dockerfile = """FROM busybox:latest\nRUN echo removed > /removed.txt\n"""
 
-        DockerImageManager.build_from_dockerfile(dockerfile, image_name, tag)
+        DockerImageManager.build_from_dockerfile(image_name, dockerfile, tag)
         try:
             assert DockerImageManager.exists(image_name, tag)
         finally:

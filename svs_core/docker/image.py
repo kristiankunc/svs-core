@@ -11,15 +11,15 @@ class DockerImageManager:
 
     @staticmethod
     def build_from_dockerfile(
-        dockerfile_content: str,
         image_name: str,
+        dockerfile_content: str,
         tag: str = "latest",
     ) -> None:
         """Build a Docker image from an in-memory Dockerfile.
 
         Args:
-            dockerfile_content (str): Dockerfile contents.
             image_name (str): Name of the image.
+            dockerfile_content (str): Dockerfile contents.
             tag (str): Image tag.
         """
         client = get_docker_client()
