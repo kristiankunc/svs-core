@@ -8,7 +8,7 @@ app = typer.Typer(help="Manage services")
 @app.command("list")
 def list_services() -> None:
     """List all services."""
-    services = Service.get_all()
+    services = Service.objects.all()
 
     if len(services) == 0:
         typer.echo("No services found.")
@@ -37,7 +37,7 @@ def start_service(
     service_id: int = typer.Argument(..., help="ID of the service to start")
 ) -> None:
     """Start a service."""
-    service = Service.get_by_id(service_id)
+    service = Service.objects.get(id=service_id)
     if not service:
         typer.echo(f"❌ Service with ID {service_id} not found.", err=True)
         return
@@ -51,7 +51,7 @@ def stop_service(
     service_id: int = typer.Argument(..., help="ID of the service to stop")
 ) -> None:
     """Stop a service."""
-    service = Service.get_by_id(service_id)
+    service = Service.objects.get(id=service_id)
     if not service:
         typer.echo(f"❌ Service with ID {service_id} not found.", err=True)
         return

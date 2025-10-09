@@ -27,7 +27,7 @@ def import_template(
 @app.command("list")
 def list_templates() -> None:
     """List all available templates."""
-    templates = Template.get_all()
+    templates = Template.objects.all()
 
     if len(templates) == 0:
         typer.echo("No templates found.")

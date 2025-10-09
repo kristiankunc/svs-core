@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
-import asyncio
 import os
 
+import django
 import typer
 
 from svs_core.shared.logger import get_logger
+
+django.setup()
+
 
 if not os.getenv("DATABASE_URL"):
     from dotenv import load_dotenv
@@ -33,7 +36,6 @@ app.add_typer(service_app, name="service")
 
 
 def main() -> None:  # noqa: D103
-    # setup_django() TODO: re-add once migration issues fixed
     app()
 
 
