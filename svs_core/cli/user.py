@@ -28,7 +28,7 @@ def get(
     name: str = typer.Argument(..., help="Username of the user to retrieve")
 ) -> None:
     """Get a user by name."""
-    user = User.get_by_name(name)
+    user = User.objects.get(name=name)
     if user:
         typer.echo(f"👤 User found: {user.name}")
     else:
@@ -43,7 +43,7 @@ def check_password(
     ),
 ) -> None:
     """Check if a password matches the stored hash."""
-    user = User.get_by_name(name)
+    user = User.objects.get(name=name)
     if not user:
         typer.echo("❌ User not found.", err=True)
         return
@@ -57,7 +57,7 @@ def check_password(
 @app.command("list")
 def list_users() -> None:
     """List all users."""
-    users = User.get_all()
+    users = User.objects.all()
     if not users:
         typer.echo("No users found.", err=True)
         return

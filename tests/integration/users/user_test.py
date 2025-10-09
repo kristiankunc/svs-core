@@ -45,7 +45,7 @@ class TestUserIntegration:
         user = User.create(name=username, password=password)
 
         assert user.name == username
-        assert User.get_by_name(username) is not None
+        assert User.objects.get(name=username) is not None
         create_network_mock.assert_called_once_with(
             username, labels={"svs_user": username}
         )
@@ -78,18 +78,6 @@ class TestUserIntegration:
         password = "short"
         with pytest.raises(InvalidPasswordException):
             User.create(name=username, password=password)
-
-    @pytest.mark.integration
-    @pytest.mark.django_db
-    def test_get_by_name(self, db):
-        """Test retrieving a user by name."""
-        username = "findme"
-        password = "password123"
-        User.create(name=username, password=password)
-        user = User.get_by_name(username)
-
-        assert user is not None
-        assert user.name == username
 
     @pytest.mark.integration
     @pytest.mark.django_db

@@ -72,15 +72,6 @@ class User(UserModel):
         get_logger(__name__).info(f"Created user: {name}")
         return user
 
-    @classmethod
-    def get_by_name(cls, name: str) -> Optional["User"]:
-        """Retrieves a user by their username."""
-        try:
-            user: "User" = cls.objects.get(name=name)
-            return user
-        except cls.DoesNotExist:
-            return None
-
     @staticmethod
     def is_username_valid(username: str) -> bool:
         """Validates the username based on specific criteria.
