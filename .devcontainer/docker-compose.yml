@@ -4,12 +4,12 @@ services:
             context: ..
             dockerfile: .devcontainer/Dockerfile
         volumes:
-            - ../:/home/dev/app
+            - ../:/home/vscode/app:cached
         depends_on:
             - db
         env_file: ../.env
-        user: dev
         restart: "no"
+        command: sleep infinity
 
     db:
         image: postgres:latest
@@ -26,7 +26,7 @@ services:
     adminer:
         image: adminer:latest
         env_file:
-            - .env
+            - ../.env
         ports:
             - "8080:8080"
         depends_on:

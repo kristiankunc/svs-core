@@ -12,16 +12,6 @@
 				"redhat.vscode-yaml"
 			],
 			"settings": {
-				"[json]": {
-					"editor.defaultFormatter": null
-				},
-				"[jsonc]": {
-					"editor.defaultFormatter": null
-				},
-				"[python]": {
-					"editor.defaultFormatter": null,
-					"editor.formatOnSave": false
-				},
 				"[yaml]": {
 					"editor.defaultFormatter": "redhat.vscode-yaml"
 				},
@@ -33,33 +23,41 @@
 					"source.organizeImports": "always"
 				},
 				"editor.formatOnSave": true,
-				"mypy-type-checker.path": ["/home/dev/.venv/bin/mypy"],
-				"mypy-type-checker.preferDaemon": true,
-				"mypy-type-checker.reportingScope": "workspace",
-				"python.analysis.autoImportCompletions": true,
-				"python.analysis.indexing": true,
+				"mypy-type-checker.path": [
+					"/home/vscode/.venv/bin/mypy"
+				],
 				"python.analysis.typeCheckingMode": "off",
-				"python.defaultInterpreterPath": "/home/dev/.venv/bin/python",
-				"python.formatting.provider": "none",
-				"python.linting.enabled": true,
-				"python.linting.mypyArgs": ["--config-file", "mypy.ini"],
-				"python.linting.mypyEnabled": true,
-				"python.linting.ruffEnabled": true,
-				"python.testing.pytestArgs": ["tests"],
+				"python.defaultInterpreterPath": "/home/vscode/.venv/bin/python",
+				"python.testing.pytestArgs": [
+					"tests"
+				],
 				"python.testing.pytestEnabled": true,
 				"python.testing.unittestEnabled": false
 			}
 		}
 	},
-	"dockerComposeFile": ["docker-compose.yml"],
+	"dockerComposeFile": [
+		"docker-compose.yml"
+	],
 	"features": {
-		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+			"moby": false
+		},
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers/features/python:1": {
+			"installTools": true,
+			"version": "3.12"
+		}
 	},
+	"mounts": [
+		"source=${localEnv:USERPROFILE}/.ssh/id_rsa,target=/home/vscode/.ssh/id_rsa,type=bind,consistency=cached,readonly",
+		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
+	],
 	"name": "Library DevContainer",
-	"postAttachCommand": "bash -c source .env",
-	"postCreateCommand": "pip install -e . && pip install '.[dev]' && pip install '.[docs]' && pre-commit install",
-	"remoteUser": "dev",
+	"postCreateCommand": "pip install -e . && pip install '.[dev,docs]' && pre-commit install",
+	"postStartCommand": "sudo chown -R vscode:vscode /home/vscode/.ssh && chmod 700 /home/vscode/.ssh && chmod 600 /home/vscode/.ssh/* 2>/dev/null || true",
+	"remoteUser": "vscode",
 	"service": "devcontainer",
 	"shutdownAction": "stopCompose",
-	"workspaceFolder": "/home/dev/app"
+	"workspaceFolder": "/home/vscode/app"
 }
