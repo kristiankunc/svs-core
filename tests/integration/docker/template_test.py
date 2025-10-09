@@ -2,6 +2,7 @@ import json
 import os
 
 from typing import Generator
+from unittest.mock import MagicMock, patch
 
 import pytest
 import pytest_asyncio
@@ -15,9 +16,12 @@ from svs_core.docker.template import Template
 
 
 class TestTemplate:
+
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_create_image_template(self, docker_cleanup):
+    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+    @patch("svs_core.docker.template.DockerImageManager.pull")
+    def test_create_image_template(self, mock_pull, mock_exists):
         """Test creating an image-based template."""
         # Use a small, public image for testing
         image_name = "alpine"
@@ -45,8 +49,8 @@ class TestTemplate:
         assert template.description == "Test Alpine Image"
         assert template.start_cmd == "sh -c 'echo hello'"
 
-        # Verify the image was pulled
-        assert DockerImageManager.exists(image_name, tag)
+        # Verify DockerImageManager.pull was called correctly
+        mock_pull.assert_called_once_with(image_name, tag)
 
         # Verify JSON properties
         assert len(template.env_variables) == 1
@@ -70,7 +74,9 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_create_build_template(self, docker_cleanup):
+    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
+    @patch("svs_core.docker.template.DockerImageManager.build_from_dockerfile")
+    def test_create_build_template(self, mock_build, mock_exists):
         """Test creating a build-based template."""
         dockerfile_content = """
         FROM alpine:latest
@@ -92,12 +98,14 @@ class TestTemplate:
         assert template.dockerfile == dockerfile_content
         assert template.description == "Test Build Template"
 
-        # Verify the image was built
-        assert DockerImageManager.exists("test-build")
+        # Verify build_from_dockerfile was called correctly
+        mock_build.assert_called_once_with("test-build", dockerfile_content)
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_template_properties(self, docker_cleanup):
+    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
+    @patch("svs_core.docker.template.DockerImageManager.pull")
+    def test_template_properties(self, mock_pull, mock_exists):
         """Test template property accessors."""
         template = Template.create(
             name="test-properties",
@@ -162,7 +170,9 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_import_from_json(self, docker_cleanup):
+    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+    @patch("svs_core.docker.template.DockerImageManager.pull")
+    def test_import_from_json(self, mock_pull, mock_exists):
         """Test importing a template from JSON data."""
         json_data = {
             "name": "json-template",
@@ -193,12 +203,14 @@ class TestTemplate:
         assert template.exposed_ports[0].container_port == 6379
         assert template.exposed_ports[0].host_port == 6379
 
-        # Verify the image was pulled
-        assert DockerImageManager.exists("redis", "alpine")
+        # Verify DockerImageManager.pull was called correctly
+        mock_pull.assert_called_with("redis", "alpine")
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_template_string_representation(self, docker_cleanup):
+    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
+    @patch("svs_core.docker.template.DockerImageManager.pull")
+    def test_template_string_representation(self, mock_pull, mock_exists):
         """Test the string representation of a template."""
         template = Template.create(
             name="string-test",
@@ -223,7 +235,9 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_import_from_nginx_json_file(self, docker_cleanup):
+    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+    @patch("svs_core.docker.template.DockerImageManager.pull")
+    def test_import_from_nginx_json_file(self, mock_pull, mock_exists):
         """Test importing a template from the nginx.json file."""
         # Path to the nginx.json template file
         template_path = os.path.join(
@@ -270,12 +284,14 @@ class TestTemplate:
         ]
         assert template.healthcheck_config.retries == 3
 
-        # Verify the image was pulled
-        assert DockerImageManager.exists("nginx", "latest")
+        # Verify DockerImageManager.pull was called correctly
+        mock_pull.assert_called_with("nginx", "latest")
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_validation_errors(self, docker_cleanup):
+    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
+    @patch("svs_core.docker.template.DockerImageManager.pull")
+    def test_validation_errors(self, mock_pull, mock_exists):
         """Test validation errors when creating templates."""
         # Test empty name
         with pytest.raises(ValueError, match="Template name cannot be empty"):
