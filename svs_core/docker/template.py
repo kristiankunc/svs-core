@@ -260,6 +260,7 @@ class Template(TemplateModel):
                     DockerImageManager.pull(image, "latest")
 
         elif type == TemplateType.BUILD and dockerfile is not None:
+            print(f"Building image for template {name} from dockerfile")
             DockerImageManager.build_from_dockerfile(name, dockerfile)
 
         return cast(Template, template)

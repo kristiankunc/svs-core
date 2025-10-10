@@ -6,9 +6,14 @@ from django.db import models
 
 from svs_core.db.models import UserModel
 from svs_core.docker.network import DockerNetworkManager
-from svs_core.shared.exceptions import AlreadyExistsException, SVSException
+from svs_core.shared.exceptions import (
+    AlreadyExistsException,
+    InvalidOperationException,
+    SVSException,
+)
 from svs_core.shared.hash import hash_password
 from svs_core.shared.logger import get_logger
+from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.system import SystemUserManager
 
 
@@ -132,6 +137,22 @@ class User(UserModel):
         hashed = self.password.encode("utf-8")
 
         return check_password(password, hashed)
+
+    def delete(self) -> None:
+        """Deletes the user from the database and removes associated resources.
+
+        This includes deleting the system user and Docker network
+        associated with the user.
+        """
+        if len(self.services.all()) > 0:
+            raise InvalidOperationException(
+                f"Cannot delete user '{self.name}' because they have associated services."
+            )
+
+        SystemVolumeManager.delete_user_volumes(self.id)
+        DockerNetworkManager.delete_network(self.name)
+        SystemUserManager.delete_user(self.name)
+        super().delete()
 
     def __str__(self) -> str:
         return f"User(id={self.id}, name={self.name})"
