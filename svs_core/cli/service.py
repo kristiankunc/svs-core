@@ -1,6 +1,7 @@
 import typer
 
 from svs_core.docker.service import Service
+from svs_core.users.user import User
 
 app = typer.Typer(help="Manage services")
 
@@ -26,7 +27,8 @@ def create_service(
     # TODO: Add override options for all args
 ) -> None:
     """Create a new service."""
-    service = Service.create_from_template(name, template_id, user_id)
+    user = User.objects.get(id=user_id)
+    service = Service.create_from_template(name, template_id, user)
     typer.echo(
         f"✅ Service '{service.name}' created successfully with ID {service.id}."
     )

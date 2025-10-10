@@ -166,7 +166,7 @@ class Service(ServiceModel):
         cls,
         name: str,
         template_id: int,
-        user_id: int,
+        user: User,
         domain: str | None = None,
         override_env: dict[str, str] | None = None,
         override_ports: list[dict[str, Any]] | None = None,
@@ -181,7 +181,7 @@ class Service(ServiceModel):
 
         Args:
             name (str): The name of the service.
-            user_id (int): The ID of the user who owns this service.
+            user (User): The user who owns this service.
             domain (str, optional): The domain for this service.
             override_env (dict, optional): Environment variables to override template defaults.
             override_ports (list[dict], optional): Exposed ports to override template defaults.
@@ -273,15 +273,10 @@ class Service(ServiceModel):
                 if not isinstance(arg, str):
                     args_to_use[i] = str(arg)
 
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            raise ValueError(f"User with ID {user_id} does not exist")
-
         return cls.create(
             name=name,
             template_id=template.id,
-            user_id=user_id,
+            user=user,
             domain=domain,
             image=template.image,
             exposed_ports=exposed_ports,
@@ -299,7 +294,7 @@ class Service(ServiceModel):
         cls,
         name: str,
         template_id: int,
-        user_id: int,
+        user: User,
         domain: str | None = None,
         container_id: str | None = None,
         image: str | None = None,
@@ -322,7 +317,7 @@ class Service(ServiceModel):
         Args:
             name (str): The name of the service.
             template_id (int): The ID of the template to use.
-            user_id (int): The ID of the user who owns this service.
+            user (User): The user who owns this service.
             domain (str, optional): The domain for this service.
             container_id (str, optional): The ID of an existing container.
             image (str, optional): Docker image to use, defaults to template.image if not provided.
@@ -345,8 +340,6 @@ class Service(ServiceModel):
         """
         if not name:
             raise ValueError("Service name cannot be empty")
-
-        from tortoise.exceptions import DoesNotExist
 
         try:
             template = Template.objects.get(id=template_id)
@@ -455,13 +448,13 @@ class Service(ServiceModel):
         for volume in volumes:
             if "host" not in volume or volume["host"] is None:
                 volume["host"] = SystemVolumeManager.generate_free_volume(
-                    user_id
+                    user
                 ).as_posix()
 
         service_instance = cls.objects.create(
             name=name,
             template_id=template_id,
-            user_id=user_id,
+            user_id=user.id,
             domain=domain,
             container_id=container_id,
             image=image,
