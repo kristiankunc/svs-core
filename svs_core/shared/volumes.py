@@ -40,3 +40,20 @@ class SystemVolumeManager:
             attempts += 1
 
         raise RuntimeError("No free volume path found")
+
+    @staticmethod
+    def delete_user_volumes(user_id: int) -> None:
+        """Deletes all volumes associated with a given user ID.
+
+        Args:
+            user_id (int): The user ID whose volumes are to be deleted.
+        """
+        user_path = SystemVolumeManager.BASE_PATH / str(user_id)
+        if user_path.exists() and user_path.is_dir():
+            for item in user_path.iterdir():
+                if item.is_dir():
+                    for subitem in item.iterdir():
+                        if subitem.is_file():
+                            subitem.unlink()
+                    item.rmdir()
+            user_path.rmdir()

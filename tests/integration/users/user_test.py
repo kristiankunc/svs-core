@@ -2,7 +2,6 @@ import pytest
 
 from pytest_mock import MockerFixture
 
-from svs_core.docker.network import DockerNetworkManager
 from svs_core.shared.exceptions import AlreadyExistsException
 from svs_core.users.user import InvalidPasswordException, InvalidUsernameException, User
 
@@ -11,6 +10,22 @@ from svs_core.users.user import InvalidPasswordException, InvalidUsernameExcepti
 def create_network_mock(mocker: MockerFixture) -> MockerFixture:
     return mocker.patch(
         "svs_core.docker.network.DockerNetworkManager.create_network",
+        return_value=None,
+    )
+
+
+@pytest.fixture(autouse=True)
+def delete_network_mock(mocker: MockerFixture) -> MockerFixture:
+    return mocker.patch(
+        "svs_core.docker.network.DockerNetworkManager.delete_network",
+        return_value=None,
+    )
+
+
+@pytest.fixture(autouse=True)
+def delete_user_volumes_mock(mocker: MockerFixture) -> MockerFixture:
+    return mocker.patch(
+        "svs_core.shared.volumes.SystemVolumeManager.delete_user_volumes",
         return_value=None,
     )
 
@@ -34,9 +49,7 @@ def system_user_delete_mock(mocker: MockerFixture) -> MockerFixture:
 class TestUserIntegration:
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_create_user_success(
-        self, create_network_mock, system_user_create_mock, db
-    ):
+    def test_create_user_success(self, create_network_mock, system_user_create_mock):
         """Test creating a user with valid parameters."""
 
         username = "testuser"
@@ -53,7 +66,7 @@ class TestUserIntegration:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_create_user_duplicate(self, db):
+    def test_create_user_duplicate(self):
         """Test creating a user with a duplicate username."""
         username = "dupeuser"
         password = "password123"
@@ -63,7 +76,7 @@ class TestUserIntegration:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_create_user_invalid_username(self, db):
+    def test_create_user_invalid_username(self):
         """Test creating a user with an invalid username."""
         username = "invalid@user"
         password = "password123"
@@ -72,7 +85,7 @@ class TestUserIntegration:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_create_user_invalid_password(self, db):
+    def test_create_user_invalid_password(self):
         """Test creating a user with an invalid password."""
         username = "validuser2"
         password = "short"
@@ -81,7 +94,28 @@ class TestUserIntegration:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_check_password(self, db):
+    def test_delete_user_success(
+        self, delete_network_mock, system_user_delete_mock, delete_user_volumes_mock
+    ):
+        """Test deleting a user without associated services."""
+        username = "deletetest"
+        password = "password123"
+        user = User.create(name=username, password=password)
+
+        user_id = user.id
+
+        user.delete()
+
+        delete_network_mock.assert_called_once_with(username)
+        system_user_delete_mock.assert_called_once_with(username)
+        delete_user_volumes_mock.assert_called_once_with(user_id)
+
+        with pytest.raises(User.DoesNotExist):
+            User.objects.get(name=username)
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_check_password(self):
         """Test checking the password for a user."""
         username = "pwtest"
         password = "password123"
