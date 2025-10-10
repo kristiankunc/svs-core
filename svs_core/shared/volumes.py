@@ -1,7 +1,12 @@
+import os
 import random
 import string
 
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from svs_core.users.user import User
 
 
 class SystemVolumeManager:
@@ -10,11 +15,11 @@ class SystemVolumeManager:
     BASE_PATH = Path("/var/svs/volumes")
 
     @staticmethod
-    def generate_free_volume(user_id: int) -> Path:
+    def generate_free_volume(user: "User") -> Path:
         """Generates a free volume path for a given user ID.
 
         Args:
-            user_id (int): The user ID for whom to generate the volume.
+            user (User): The user for whom to generate the volume.
 
         Returns:
             Path: The path to the generated volume (absolute).
@@ -32,9 +37,10 @@ class SystemVolumeManager:
             volume_id = "".join(
                 random.choice(string.ascii_lowercase) for _ in range(16)
             )
-            volume_path = base_resolved / str(user_id) / volume_id
+            volume_path = base_resolved / str(user.id) / volume_id
             if not volume_path.exists():
                 volume_path.mkdir(parents=True, exist_ok=True)
+
                 return volume_path
 
             attempts += 1
