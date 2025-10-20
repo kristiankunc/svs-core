@@ -11,9 +11,7 @@ dependencies = [
     "docker==7.1.0",
     "httpx==0.28.1",
     "python-dotenv==1.1.1",
-    "tortoise-orm[psycopg]==0.25.1",
     "typer==0.19.2",
-    "aerich[toml]==0.9.1",
     "django==5.2.7",
     "dj_database_url==3.0.1",
 ]
@@ -77,11 +75,6 @@ convention = "google"
 [tool.black]
 line-length = 88
 target-version = ["py311"]
-
-[tool.aerich]
-tortoise_orm = "svs_core.db.client.TORTOISE_ORM"
-location = "./svs_core/db/migrations"
-src_folder = "./svs_core"
 
 [build-system]
 requires = ["setuptools>=61.0"]
