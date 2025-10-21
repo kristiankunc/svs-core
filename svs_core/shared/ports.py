@@ -1,7 +1,5 @@
 import random
 
-from griffe import get_logger
-
 from svs_core.shared.shell import run_command
 
 

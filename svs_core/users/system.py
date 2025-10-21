@@ -1,5 +1,4 @@
-from griffe import get_logger
-
+from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import run_command
 
 
