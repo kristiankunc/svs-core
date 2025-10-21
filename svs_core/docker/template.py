@@ -11,6 +11,7 @@ from svs_core.docker.json_properties import (
     Label,
     Volume,
 )
+from svs_core.shared.logger import get_logger
 
 
 class Template(TemplateModel):
@@ -232,6 +233,13 @@ class Template(TemplateModel):
                     raise ValueError(f"Argument must be a string: {arg}")
                 if not arg:
                     raise ValueError("Arguments cannot be empty strings")
+
+        get_logger(__name__).debug(
+            f"Creating template with name={name}, type={type}, image={image}, dockerfile={dockerfile}, "
+            f"description={description}, default_env={default_env}, default_ports={default_ports}, "
+            f"default_volumes={default_volumes}, start_cmd={start_cmd}, healthcheck={healthcheck}, "
+            f"labels={labels}, args={args}"
+        )
 
         template = cls.objects.create(
             name=name,

@@ -4,6 +4,7 @@ from docker.errors import NotFound
 from docker.models.networks import Network
 
 from svs_core.docker.base import get_docker_client
+from svs_core.shared.logger import get_logger
 
 
 class DockerNetworkManager:
@@ -46,6 +47,10 @@ class DockerNetworkManager:
         Raises:
             docker.errors.APIError: If the network creation fails.
         """
+        get_logger(__name__).debug(
+            f"Creating network with name: {name} and labels: {labels}"
+        )
+
         return get_docker_client().networks.create(name=name, labels=labels)
 
     @staticmethod
@@ -58,6 +63,8 @@ class DockerNetworkManager:
         Raises:
             docker.errors.APIError: If the network deletion fails.
         """
+        get_logger(__name__).debug(f"Deleting network with name: {name}")
+
         try:
             network = get_docker_client().networks.get(name)
             network.remove()

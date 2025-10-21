@@ -46,7 +46,9 @@ class DockerContainerManager:
             # If only args are provided, join them as a command
             full_command = " ".join(args)
 
-        get_logger(__name__).debug(f"Creating container with config: {locals()}")
+        get_logger(__name__).debug(
+            f"Creating container with config: name={name}, image={image}, command={full_command}, labels={labels}, ports={ports}"
+        )
 
         return client.containers.create(
             image=image,
@@ -95,6 +97,9 @@ class DockerContainerManager:
             Exception: If the container cannot be removed.
         """
         client = get_docker_client()
+
+        get_logger(__name__).debug(f"Removing container with ID: {container_id}")
+
         try:
             container = client.containers.get(container_id)
             container.remove(force=True)

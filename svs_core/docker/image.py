@@ -4,6 +4,7 @@ import tempfile
 from docker.models.images import Image
 
 from svs_core.docker.base import get_docker_client
+from svs_core.shared.logger import get_logger
 
 
 class DockerImageManager:
@@ -23,6 +24,8 @@ class DockerImageManager:
             tag (str): Image tag.
         """
         client = get_docker_client()
+
+        get_logger(__name__).debug(f"Building image {image_name}:{tag} from Dockerfile")
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dockerfile_path = os.path.join(tmpdir, "Dockerfile")
@@ -67,6 +70,9 @@ class DockerImageManager:
             Exception: If the image cannot be removed.
         """
         client = get_docker_client()
+
+        get_logger(__name__).debug(f"Removing image {image_name}:{tag}")
+
         try:
             client.images.remove(f"{image_name}:{tag}", force=True)
         except Exception as e:
@@ -83,6 +89,9 @@ class DockerImageManager:
             tag (str): Image tag.
         """
         client = get_docker_client()
+
+        get_logger(__name__).debug(f"Pulling image {image_name}:{tag}")
+
         try:
             client.images.pull(f"{image_name}:{tag}")
         except Exception as e:
