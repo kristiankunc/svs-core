@@ -273,6 +273,10 @@ class Service(ServiceModel):
                 if not isinstance(arg, str):
                     args_to_use[i] = str(arg)
 
+        get_logger(__name__).info(
+            f"Creating service '{name}' from template '{template.name}'"
+        )
+
         return cls.create(
             name=name,
             template_id=template.id,
@@ -529,6 +533,10 @@ class Service(ServiceModel):
         if not container:
             raise ValueError(f"Container with ID {self.container_id} not found")
 
+        get_logger(__name__).info(
+            f"Starting service '{self.name}' with container ID '{self.container_id}'"
+        )
+
         container.start()
         self.status = ServiceStatus.RUNNING
         self.save()
@@ -541,6 +549,10 @@ class Service(ServiceModel):
         container = DockerContainerManager.get_container(self.container_id)
         if not container:
             raise ValueError(f"Container with ID {self.container_id} not found")
+
+        get_logger(__name__).info(
+            f"Stopping service '{self.name}' with container ID '{self.container_id}'"
+        )
 
         container.stop()
         self.status = ServiceStatus.STOPPED

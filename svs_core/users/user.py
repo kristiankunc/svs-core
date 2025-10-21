@@ -154,5 +154,7 @@ class User(UserModel):
         SystemUserManager.delete_user(self.name)
         super().delete()
 
+        get_logger(__name__).info(f"Deleted user: {self.name}")
+
     def __str__(self) -> str:
         return f"User(id={self.id}, name={self.name})"

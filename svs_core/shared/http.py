@@ -26,8 +26,7 @@ async def send_http_request(
     Returns:
         httpx.Response: The response object containing the server's response.
     """
-    logger = get_logger(__name__)
-    logger.debug(
+    get_logger(__name__).debug(
         f"Sending {method} request to {url} with headers={headers}, params={params}, data={data}, json={json}"
     )
     async with httpx.AsyncClient() as client:
@@ -40,7 +39,9 @@ async def send_http_request(
             json=json,
         )
 
-        logger.debug(f"Received response: {response.status_code} {response.text}")
+        get_logger(__name__).debug(
+            f"Received response: {response.status_code} {response.text}"
+        )
 
         response.raise_for_status()
         return response

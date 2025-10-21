@@ -1,3 +1,4 @@
+from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import run_command
 
 
@@ -20,6 +21,10 @@ class SystemUserManager:
         if admin:
             run_command(f"sudo usermod -aG svs-admins {username}", check=True)
 
+        get_logger(__name__).info(
+            f"Created {'admin' if admin else 'standard'} system user: {username}"
+        )
+
     @staticmethod
     def delete_user(username: str) -> None:
         """Deletes the system user with the given username.
@@ -28,3 +33,4 @@ class SystemUserManager:
             username (str): The username of the system user to delete.
         """
         run_command(f"sudo userdel -r {username}", check=True)
+        get_logger(__name__).info(f"Deleted system user: {username}")
