@@ -148,10 +148,12 @@ def django_migrations():
     """Run Django migrations."""
 
     try:
-        run_command("python3 -m django makemigrations svs_core", check=True)
-        typer.echo("✅ Django makemigrations completed.")
+        run_command(
+            "python3 -m django migrate svs_core", check=True, use_svs_user=False
+        )
+        typer.echo("✅ Django migrations completed.")
     except Exception:
-        typer.echo("❌ Failed to run Django makemigrations.", err=True)
+        typer.echo("❌ Failed to run Django migrations.", err=True)
         raise typer.Abort()
 
 

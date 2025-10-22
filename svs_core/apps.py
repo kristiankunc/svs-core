@@ -6,4 +6,4 @@ class SvsCoreConfig(AppConfig):  # type: ignore[misc] # noqa: D101
     name = "svs_core"
 
     def ready(self) -> None:  # noqa: D102
-        pass
+        import svs_core.db.models  # noqa: F401

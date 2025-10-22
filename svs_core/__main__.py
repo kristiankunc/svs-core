@@ -35,32 +35,44 @@ def main() -> None:  # noqa: D103
     from svs_core.users.system import SystemUserManager  # noqa: E402
     from svs_core.users.user import User  # noqa: E402
 
+    logger = get_logger(__name__)
     username = getpass.getuser()
     user = User.objects.filter(name=username).first()
+    is_setup_command = len(sys.argv) > 1 and sys.argv[1] == "setup"
 
-    if not user and sys.argv[1] != "setup":
+    if not user and not is_setup_command:
+        logger.warning(f"User '{username}' tried to run CLI but was not found.")
         print(
             f"You are running as system user '{username}', but no matching SVS user was found."
         )
-        get_logger(__name__).warning(
-            f"User '{username}' tried to run CLI but was not found."
-        )
 
-        if SystemUserManager.is_user_in_group(username, "svs-admins"):
+        is_admin_user = SystemUserManager.is_user_in_group(username, "svs-admins")
+        if is_admin_user:
             print(
-                "You appear to be an admin user without an SVS user account. Please create your SVS user via: svs user create"
+                "You appear to be an admin user without an SVS user account. "
+                "Please create your SVS user via: svs user create"
             )
+
+            # Auto-create admin for first user
+            if not User.objects.exists():
+                print(
+                    "Since you are the first user, an admin account will be created for you."
+                )
+                logger.info(
+                    f"Granting in-place admin account to system user '{username}'."
+                )
+                set_current_user(username, True)
         else:
             sys.exit(1)
 
     is_admin = user.is_admin() if user else False
-
     if user:
         set_current_user(user.name, is_admin)
 
-    get_logger(__name__).debug(
-        f"{user if user is not None else username} ({('admin' if user.is_admin else 'standard user')}) ran: {' '.join(sys.argv)}"
-    )
+    user_type = "admin" if (user and user.is_admin()) else "standard user"
+    user_display = user.name if user else username
+    logger.debug(f"{user_display} ({user_type}) ran: {' '.join(sys.argv)}")
+
     app()
 
 
