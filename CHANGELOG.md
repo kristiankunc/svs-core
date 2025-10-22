@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/kristiankunc/svs-core/compare/v0.1.0...v0.2.0) (2025-10-22)
+
+
+### Features
+
+* add user CLI ([2314121](https://github.com/kristiankunc/svs-core/commit/2314121eeecbfa8ce4387f10b372493f683d4911))
+
 ## 0.1.0 (2025-10-22)
 
 
