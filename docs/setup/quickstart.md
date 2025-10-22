@@ -76,17 +76,29 @@ You can use the example compose file to set up these services. Make sure to conf
 
 ## Application setup
 
-### Install the library
+### Install pipx
 
-!!! note "Pre-release"
-    The library is currently in pre-release. To install the latest pre-release version, use the following command:
-    ```bash
-    $ pip install --extra-index-url https://test.pypi.org/simple/ svs_core
-    ```
+Install `pipx` to safely install the CLI globally without affecting system packages. Follow the official [pipx installation guide](https://pipx.pypa.io/stable/) to install pipx.
+
+### Install the CLI globally
 
 ```bash
-$ pip install svs_core
+$ sudo PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install --global svs_core
 ```
+
+Following that, you need to force the PIPX_HOME ENV variable for all users by appendng it to `etc/environment`
+
+```bash
+$ echo 'PIPX_HOME="/opt/pipx"' | sudo tee -a /etc/environment
+```
+
+To verify the installation, run:
+
+```bash
+$ which svs
+```
+
+This should output `/usr/local/bin/svs`.
 
 ### Run setup script
 Run the setup script to initialze the configuration. Requires sudo privileges to create necessary directories and set permissions.
