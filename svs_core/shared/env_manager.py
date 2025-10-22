@@ -24,11 +24,10 @@ class EnvManager:
 
     @classmethod
     def get_runtime_environment(cls) -> "EnvManager.RuntimeEnvironment":
-        """Get the current runtime environment from the .env file, defaulting
-        to DEVELOPMENT.
+        """Get the current runtime environment from the .env file.
 
         Returns:
-            EnvManager.RuntimeEnvironment: The current runtime environment.
+            EnvManager.RuntimeEnvironment: The current runtime environment. Defaults to DEVELOPMENT if not set or unknown.
         """
 
         if not cls._env_loaded or cls._env_cache_internal is None:
