@@ -1,5 +1,6 @@
 import typer
 
+from svs_core.cli.state import CURRENT_USERNAME, IS_ADMIN, reject_if_not_admin
 from svs_core.shared.exceptions import AlreadyExistsException
 from svs_core.users.user import InvalidPasswordException, InvalidUsernameException, User
 
@@ -12,6 +13,9 @@ def create(
     password: str = typer.Argument(..., help="Password for the new user"),
 ) -> None:
     """Create a new user."""
+
+    reject_if_not_admin()
+
     try:
         user = User.create(name, password)
         typer.echo(f"✅ User '{user.name}' created successfully.")
@@ -28,9 +32,10 @@ def get(
     name: str = typer.Argument(..., help="Username of the user to retrieve")
 ) -> None:
     """Get a user by name."""
+
     user = User.objects.get(name=name)
     if user:
-        typer.echo(f"👤 User found: {user.name}")
+        typer.echo(f"👤 User: {user}")
     else:
         typer.echo("❌ User not found.", err=True)
 
@@ -43,7 +48,15 @@ def check_password(
     ),
 ) -> None:
     """Check if a password matches the stored hash."""
+
+    if not IS_ADMIN and name != CURRENT_USERNAME:
+        typer.echo(
+            "❌ You do not have permission to check other users' passwords.", err=True
+        )
+        return
+
     user = User.objects.get(name=name)
+
     if not user:
         typer.echo("❌ User not found.", err=True)
         return
@@ -57,6 +70,7 @@ def check_password(
 @app.command("list")
 def list_users() -> None:
     """List all users."""
+
     users = User.objects.all()
     if not users:
         typer.echo("No users found.", err=True)

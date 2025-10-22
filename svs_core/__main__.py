@@ -6,6 +6,7 @@ import sys
 import django
 import typer
 
+from svs_core.cli.state import CURRENT_USERNAME, IS_ADMIN
 from svs_core.shared.env_manager import EnvManager
 from svs_core.shared.logger import get_logger
 
@@ -28,8 +29,6 @@ app.add_typer(user_app, name="user")
 app.add_typer(setup_app, name="setup")
 app.add_typer(template_app, name="template")
 app.add_typer(service_app, name="service")
-
-IS_ADMIN = False
 
 
 def main() -> None:  # noqa: D103
@@ -57,6 +56,10 @@ def main() -> None:  # noqa: D103
     if user and user.is_admin():
         global IS_ADMIN
         IS_ADMIN = True
+
+    if user:
+        global CURRENT_USERNAME
+        CURRENT_USERNAME = user.name
 
     get_logger(__name__).debug(
         f"{user if user is not None else username} ({('admin' if IS_ADMIN else 'standard user')}) ran: {' '.join(sys.argv)}"

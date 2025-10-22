@@ -13,6 +13,7 @@ def import_template(
     file_path: str = typer.Argument(..., help="Path to the template file to import")
 ) -> None:
     """Import a new template from a file."""
+
     if not os.path.isfile(file_path):
         typer.echo(f"❌ File '{file_path}' does not exist.", err=True)
         return
@@ -27,6 +28,7 @@ def import_template(
 @app.command("list")
 def list_templates() -> None:
     """List all available templates."""
+
     templates = Template.objects.all()
 
     if len(templates) == 0:

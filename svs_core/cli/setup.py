@@ -2,6 +2,7 @@ import getpass
 
 import typer
 
+from svs_core.cli.state import IS_ADMIN, reject_if_not_admin
 from svs_core.shared.env_manager import EnvManager
 from svs_core.shared.shell import run_command
 
@@ -149,6 +150,8 @@ def init(
 ) -> None:
     """Initialize the SVS environment."""
     typer.echo("Initializing SVS environment...")
+
+    reject_if_not_admin()
 
     global automated_yes
     automated_yes = yes

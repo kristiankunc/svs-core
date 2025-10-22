@@ -1,5 +1,6 @@
 import typer
 
+from svs_core.cli.state import CURRENT_USERNAME, IS_ADMIN
 from svs_core.docker.service import Service
 from svs_core.users.user import User
 
@@ -9,7 +10,13 @@ app = typer.Typer(help="Manage services")
 @app.command("list")
 def list_services() -> None:
     """List all services."""
-    services = Service.objects.all()
+
+    services: list[Service] = []
+
+    if not IS_ADMIN:
+        services = Service.objects.filter(user__name=CURRENT_USERNAME)
+    else:
+        services = Service.objects.all()
 
     if len(services) == 0:
         typer.echo("No services found.")
@@ -27,6 +34,7 @@ def create_service(
     # TODO: Add override options for all args
 ) -> None:
     """Create a new service."""
+
     user = User.objects.get(id=user_id)
     service = Service.create_from_template(name, template_id, user)
     typer.echo(
