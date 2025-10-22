@@ -33,4 +33,3 @@ jobs:
           release-type: python
           package-name: svs_core
           token: ${{ secrets.GITHUB_TOKEN }}
-          create-release: true
