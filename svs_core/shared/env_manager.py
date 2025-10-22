@@ -9,6 +9,8 @@ class EnvManager:
     """Manages reading and caching environment variables from a .env file."""
 
     ENV_FILE_PATH = Path("/etc/svs/.env")
+    DEV_ENV_FILE_PATH = Path(".env")
+
     _env_cache_internal: dict[str, str] | None = None  # internal mutable
     _env_cache: MappingProxyType[str, str] | None = None  # external read-only
     _env_loaded: bool = False
@@ -44,6 +46,20 @@ class EnvManager:
                 f"Unknown environment '{env_value}', defaulting to DEVELOPMENT."
             )
             return cls.RuntimeEnvironment.DEVELOPMENT
+
+    @classmethod
+    def get_database_url(cls) -> str | None:
+        """Get the DATABASE_URL from the .env file.
+
+        Returns:
+            str | None: The database URL if set, otherwise None.
+        """
+
+        if not cls._env_loaded or cls._env_cache is None:
+            cls._read_env()
+
+        assert cls._env_cache is not None
+        return cls._env_cache.get("DATABASE_URL")
 
     @classmethod
     def _open_env_file(cls, path: Path) -> dict[str, str]:
@@ -90,6 +106,7 @@ class EnvManager:
 
             try:
                 env_vars = cls._open_env_file(cls.ENV_FILE_PATH)
+                get_logger(__name__).info(f"Loaded .env from {cls.ENV_FILE_PATH}")
             except FileNotFoundError as e:
                 get_logger(__name__).error(f"{cls.ENV_FILE_PATH} not found.")
                 raise e
@@ -102,15 +119,16 @@ class EnvManager:
                     "Running in DEVELOPMENT environment as per .env configuration, loading local .env"
                 )
 
-                local_env_path = Path(".env")
-
                 try:
-                    local_env_vars = cls._open_env_file(local_env_path)
+                    local_env_vars = cls._open_env_file(cls.DEV_ENV_FILE_PATH)
                     cls._env_cache_internal.update(local_env_vars)
                     cls._env_cache = MappingProxyType(cls._env_cache_internal)
+                    get_logger(__name__).info(
+                        f"Loaded local .env from {cls.DEV_ENV_FILE_PATH}"
+                    )
                 except FileNotFoundError:
                     get_logger(__name__).warning(
-                        f"Local .env file {local_env_path} not found."
+                        f"Local .env file {cls.DEV_ENV_FILE_PATH} not found."
                     )
 
         cls._env_loaded = True

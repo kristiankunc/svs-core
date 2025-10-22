@@ -90,3 +90,19 @@ def test_load_local_dev_env(tmp_path, mocker):
     env_vars = EnvManager._read_env()
     assert env_vars["KEY1"] == "value1"
     assert env_vars["KEY2"] == "value2"
+
+
+@pytest.mark.unit
+def test_get_database_url(tmp_path):
+    """Test that DATABASE_URL is correctly read from the .env file."""
+    reset_env_manager()
+    env_file = tmp_path / ".env"
+    env_file.write_text("DATABASE_URL=postgresql://user:password@localhost/dbname\n")
+    EnvManager.ENV_FILE_PATH = env_file
+    EnvManager.DEV_ENV_FILE_PATH = tmp_path / "local.env"
+
+    print(EnvManager._read_env())
+
+    assert (
+        EnvManager.get_database_url() == "postgresql://user:password@localhost/dbname"
+    )

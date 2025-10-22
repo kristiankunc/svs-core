@@ -1,27 +1,21 @@
 #!/usr/bin/env python3
 
 import getpass
-import os
 import sys
 
 import django
 import typer
 
+from svs_core.shared.env_manager import EnvManager
 from svs_core.shared.logger import get_logger
 
 django.setup()
 
-if not os.getenv("DATABASE_URL"):
-    from dotenv import load_dotenv
-
-    load_dotenv()
-
-    # TODO: Figure out a better way to handle initial configurations
-    if not os.getenv("DATABASE_URL"):
-        os.environ["DATABASE_URL"] = "postgres://a:a@localhost:1234/testdb"
-        get_logger(__name__).warning(
-            "DATABASE_URL environment variable not set. Running detached from database."
-        )
+# TODO: Figure out a better way to handle initial configurations
+if not EnvManager.get_database_url():
+    get_logger(__name__).warning(
+        "DATABASE_URL environment variable not set. Running detached from database."
+    )
 
 from svs_core.cli.service import app as service_app  # noqa: E402
 from svs_core.cli.setup import app as setup_app  # noqa: E402
