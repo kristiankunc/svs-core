@@ -59,6 +59,7 @@ line-length = 88
 target-version = "py311"
 
 [tool.ruff.lint]
+select = ["D"]
 ignore = ["D417", "D100", "D105", "D107", "D104", "D202"]
 per-file-ignores = { "tests/**" = [
     "D",
@@ -81,4 +82,3 @@ target-version = ["py311"]
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
-select = ["D"]
