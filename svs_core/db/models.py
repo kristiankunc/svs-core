@@ -1,9 +1,6 @@
-import os
-
 from enum import Enum
 
 from django.db import models
-from django.utils import timezone
 
 
 class UserManager(models.Manager["UserModel"]):  # type: ignore[misc]

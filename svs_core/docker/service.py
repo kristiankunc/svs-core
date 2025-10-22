@@ -1,8 +1,6 @@
 from typing import Any, List, cast
 
-from django.db import models
-
-from svs_core.db.models import ServiceModel, ServiceStatus, TemplateModel
+from svs_core.db.models import ServiceModel, ServiceStatus
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.json_properties import (
     EnvVariable,
