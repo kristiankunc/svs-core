@@ -1,8 +1,4 @@
-import os
-
 import pytest
-
-from django.conf import settings
 
 from svs_core.docker.network import DockerNetworkManager
 
@@ -27,13 +23,8 @@ def mock_system_user_manager(mocker):
     )
 
 
-import os
-
-import pytest_asyncio
-
-
-@pytest_asyncio.fixture
-async def docker_cleanup(db):
+@pytest.fixture
+def docker_cleanup(db):
     """Cleanup Docker containers and images after each test.
 
     This fixture now also accepts the db fixture to ensure database

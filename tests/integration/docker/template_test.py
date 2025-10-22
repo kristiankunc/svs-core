@@ -1,17 +1,11 @@
 import json
 import os
 
-from typing import Generator
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
-import pytest_asyncio
-
-from asgiref.sync import sync_to_async
-from django.db import transaction
 
 from svs_core.db.models import TemplateType
-from svs_core.docker.image import DockerImageManager
 from svs_core.docker.template import Template
 
 
