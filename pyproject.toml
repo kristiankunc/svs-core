@@ -57,11 +57,9 @@ svs_core = ["**/*"]
 [tool.ruff]
 line-length = 88
 target-version = "py311"
-ignore = ["E712"]
 
 [tool.ruff.lint]
-select = ["D"]
-ignore = ["D417", "D100", "D105", "D107", "D104"]
+ignore = ["D417", "D100", "D105", "D107", "D104", "D202"]
 per-file-ignores = { "tests/**" = [
     "D",
 ], "web/**" = [
@@ -69,6 +67,9 @@ per-file-ignores = { "tests/**" = [
 ], "svs_core/db/migrations/**" = [
     "ALL",
 ] }
+
+[tool.ruff.format]
+docstring-code-format = false
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -80,3 +81,4 @@ target-version = ["py311"]
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+select = ["D"]
