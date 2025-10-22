@@ -1,4 +1,7 @@
 FROM mcr.microsoft.com/devcontainers/python:3.12
 
+RUN echo "vscode ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/vscode
+RUN chmod 440 /etc/sudoers.d/vscode
+
 USER vscode
 RUN git config --global --add safe.directory /home/vscode/app

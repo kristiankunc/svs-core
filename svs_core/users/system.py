@@ -34,3 +34,17 @@ class SystemUserManager:
         """
         run_command(f"sudo userdel -r {username}", check=True)
         get_logger(__name__).info(f"Deleted system user: {username}")
+
+    @staticmethod
+    def is_user_in_group(username: str, groupname: str) -> bool:
+        """Checks if a system user is in a specific group.
+
+        Args:
+            username (str): The username of the system user.
+            groupname (str): The name of the group to check.
+
+        Returns:
+            bool: True if the user is in the group, False otherwise.
+        """
+        result = run_command(f"groups {username} | grep -qw {groupname}", check=False)
+        return result.returncode == 0
