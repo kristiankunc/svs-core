@@ -1,6 +1,10 @@
 import typer
 
-from svs_core.cli.state import CURRENT_USERNAME, IS_ADMIN, reject_if_not_admin
+from svs_core.cli.state import (
+    get_current_username,
+    is_current_user_admin,
+    reject_if_not_admin,
+)
 from svs_core.shared.exceptions import AlreadyExistsException
 from svs_core.users.user import InvalidPasswordException, InvalidUsernameException, User
 
@@ -49,7 +53,7 @@ def check_password(
 ) -> None:
     """Check if a password matches the stored hash."""
 
-    if not IS_ADMIN and name != CURRENT_USERNAME:
+    if not is_current_user_admin() and not get_current_username() == name:
         typer.echo(
             "❌ You do not have permission to check other users' passwords.", err=True
         )

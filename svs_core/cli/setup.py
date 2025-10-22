@@ -2,7 +2,7 @@ import getpass
 
 import typer
 
-from svs_core.cli.state import IS_ADMIN, reject_if_not_admin
+from svs_core.cli.state import reject_if_not_admin
 from svs_core.shared.env_manager import EnvManager
 from svs_core.shared.shell import run_command
 
@@ -144,11 +144,23 @@ def storage_setup():
         raise typer.Abort()
 
 
+def django_migrations():
+    """Run Django migrations."""
+
+    try:
+        run_command("python3 -m django makemigrations svs_core", check=True)
+        typer.echo("✅ Django makemigrations completed.")
+    except Exception:
+        typer.echo("❌ Failed to run Django makemigrations.", err=True)
+        raise typer.Abort()
+
+
 @app.command("init")
 def init(
     yes: bool = typer.Option(False, "--yes", "-y", help="Automatic yes to prompts")
 ) -> None:
     """Initialize the SVS environment."""
+
     typer.echo("Initializing SVS environment...")
 
     reject_if_not_admin()
@@ -161,6 +173,7 @@ def init(
     create_svs_user()
     env_setup()
     storage_setup()
+    django_migrations()
 
     typer.echo("✅ SVS environment initialization complete.")
     typer.echo("Please configure the /etc/svs/.env file before starting SVS services.")

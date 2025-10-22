@@ -1,6 +1,6 @@
 import typer
 
-from svs_core.cli.state import CURRENT_USERNAME, IS_ADMIN
+from svs_core.cli.state import get_current_username, is_current_user_admin
 from svs_core.docker.service import Service
 from svs_core.users.user import User
 
@@ -13,8 +13,8 @@ def list_services() -> None:
 
     services: list[Service] = []
 
-    if not IS_ADMIN:
-        services = Service.objects.filter(user__name=CURRENT_USERNAME)
+    if not is_current_user_admin():
+        services = Service.objects.filter(user__name=get_current_username())
     else:
         services = Service.objects.all()
 
@@ -47,9 +47,14 @@ def start_service(
     service_id: int = typer.Argument(..., help="ID of the service to start")
 ) -> None:
     """Start a service."""
+
     service = Service.objects.get(id=service_id)
     if not service:
         typer.echo(f"❌ Service with ID {service_id} not found.", err=True)
+        return
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        typer.echo("❌ You do not have permission to start this service.", err=True)
         return
 
     service.start()
@@ -61,9 +66,14 @@ def stop_service(
     service_id: int = typer.Argument(..., help="ID of the service to stop")
 ) -> None:
     """Stop a service."""
+
     service = Service.objects.get(id=service_id)
     if not service:
         typer.echo(f"❌ Service with ID {service_id} not found.", err=True)
+        return
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        typer.echo("❌ You do not have permission to stop this service.", err=True)
         return
 
     service.stop()

@@ -6,7 +6,7 @@ import sys
 import django
 import typer
 
-from svs_core.cli.state import CURRENT_USERNAME, IS_ADMIN
+from svs_core.cli.state import set_current_user
 from svs_core.shared.env_manager import EnvManager
 from svs_core.shared.logger import get_logger
 
@@ -53,16 +53,13 @@ def main() -> None:  # noqa: D103
         else:
             sys.exit(1)
 
-    if user and user.is_admin():
-        global IS_ADMIN
-        IS_ADMIN = True
+    is_admin = user.is_admin() if user else False
 
     if user:
-        global CURRENT_USERNAME
-        CURRENT_USERNAME = user.name
+        set_current_user(user.name, is_admin)
 
     get_logger(__name__).debug(
-        f"{user if user is not None else username} ({('admin' if IS_ADMIN else 'standard user')}) ran: {' '.join(sys.argv)}"
+        f"{user if user is not None else username} ({('admin' if user.is_admin else 'standard user')}) ran: {' '.join(sys.argv)}"
     )
     app()
 
