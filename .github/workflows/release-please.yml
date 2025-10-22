@@ -1,0 +1,36 @@
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node (required for Release Please)
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: 3.11
+
+      - name: Install Release Please CLI
+        run: npm install -g release-please
+
+      - name: Generate Release PR
+        uses: google-github-actions/release-please-action@v3
+        with:
+          release-type: python
+          package-name: svs_core
+          token: ${{ secrets.GITHUB_TOKEN }}
+          create-release: true
