@@ -34,7 +34,7 @@ class EnvManager:
 
         assert cls._env_cache_internal is not None
         env_value = cls._env_cache_internal.get(
-            "RUNTIME_ENVIRONMENT", "development"
+            "RUNTIME_ENVIRONMENT", cls.RuntimeEnvironment.DEVELOPMENT.value
         ).lower()
 
         try:
