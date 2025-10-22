@@ -1,8 +1,6 @@
 import re
 
-from typing import Any, Optional, cast
-
-from django.db import models
+from typing import cast
 
 from svs_core.db.models import UserModel
 from svs_core.docker.network import DockerNetworkManager
@@ -155,6 +153,14 @@ class User(UserModel):
         super().delete()
 
         get_logger(__name__).info(f"Deleted user: {self.name}")
+
+    def is_admin(self) -> bool:
+        """Checks if the user has administrative privileges.
+
+        Returns:
+            bool: True if the user is an admin, False otherwise.
+        """
+        return SystemUserManager.is_user_in_group(self.name, "svs-admins")
 
     def __str__(self) -> str:
         return f"User(id={self.id}, name={self.name})"

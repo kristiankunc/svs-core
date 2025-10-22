@@ -39,8 +39,6 @@ class TestLogger:
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Test that the logger outputs to stdout in development mode."""
-        os.environ.pop("ENV", None)
-
         logger = get_logger("dev_test")
         logger.debug("hello dev")
 

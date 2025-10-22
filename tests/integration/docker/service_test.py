@@ -1,27 +1,11 @@
-import json
-import os
-
 from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
-import pytest_asyncio
-
-from django.db import transaction
 
 from svs_core.db.models import ServiceStatus, TemplateType
-from svs_core.docker.container import DockerContainerManager
-from svs_core.docker.json_properties import (
-    EnvVariable,
-    ExposedPort,
-    Healthcheck,
-    Label,
-    Volume,
-)
-from svs_core.docker.network import DockerNetworkManager
 from svs_core.docker.service import Service
 from svs_core.docker.template import Template
-from svs_core.users.system import SystemUserManager
 from svs_core.users.user import User
 
 

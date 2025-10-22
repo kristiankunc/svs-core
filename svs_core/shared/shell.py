@@ -26,7 +26,8 @@ def run_command(
     )
 
     exec_env = dict(env) if env else {}  # TODO: maybe inject system env?
-
+    base = "sudo -u svs " if not command.strip().startswith("sudo") else ""
+    command = f"{base}{command}"
     result = subprocess.run(
         command, env=exec_env, check=check, capture_output=True, text=True, shell=True
     )

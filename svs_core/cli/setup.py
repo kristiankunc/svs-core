@@ -1,17 +1,21 @@
-import os
-import pwd
-
-from pathlib import Path
+import getpass
 
 import typer
 
+from svs_core.cli.state import reject_if_not_admin
+from svs_core.shared.env_manager import EnvManager
 from svs_core.shared.shell import run_command
 
 app = typer.Typer(help="Setup SVS")
 
+automated_yes = False
+
 
 def confirm():
     """Prompt user for confirmation to proceed."""
+    if automated_yes:
+        return
+
     answer = typer.prompt("Are you sure you want to proceed? (y/n)")
     if answer.lower() != "y":
         raise typer.Abort()
@@ -60,14 +64,6 @@ def verify_prerequisites():
 
 def permissions_setup():
     """Set up necessary permissions."""
-    # create svs-users group
-    try:
-        run_command("getent group svs-users || sudo groupadd svs-users", check=True)
-        typer.echo("✅ Group 'svs-users' exists or created.")
-    except Exception:
-        typer.echo("❌ Failed to create or verify 'svs-users' group.", err=True)
-        raise typer.Abort()
-
     # create svs-admins group
     try:
         run_command("getent group svs-admins || sudo groupadd svs-admins", check=True)
@@ -76,9 +72,8 @@ def permissions_setup():
         typer.echo("❌ Failed to create or verify 'svs-admins' group.", err=True)
         raise typer.Abort()
 
-    # add current user to svs-admins
     try:
-        username = pwd.getpwuid(os.getuid()).pw_name
+        username = getpass.getuser()
         run_command(f"sudo usermod -a -G svs-admins {username}", check=True)
         typer.echo(f"✅ User '{username}' added to 'svs-admins' group.")
     except Exception:
@@ -86,21 +81,46 @@ def permissions_setup():
         raise typer.Abort()
 
 
+def create_svs_user():
+    """Create svs system user."""
+    try:
+        run_command("id -u svs", check=True)
+        typer.echo("✅ System user 'svs' already exists.")
+    except Exception:
+        try:
+            run_command(
+                "sudo useradd --system --no-create-home --shell /usr/sbin/nologin svs",
+                check=True,
+            )
+            typer.echo("✅ System user 'svs' created.")
+        except Exception:
+            typer.echo("❌ Failed to create system user 'svs'.", err=True)
+            raise typer.Abort()
+
+
 def env_setup():
     """Set up /etc/svs/.env file."""
-    env_path = Path("/etc/svs/.env")
+    env_path = EnvManager.ENV_FILE_PATH
     try:
         run_command(f"test -f {env_path}", check=True)
         typer.echo("✅ /etc/svs/.env already exists.")
+        run_command(f"sudo chown svs:svs-admins {env_path}", check=True)
+        run_command(f"sudo chmod 640 {env_path}", check=True)
+        typer.echo(
+            "✅ /etc/svs/.env ownership ensured (svs:svs-admins) and group read access set."
+        )
     except Exception:
         try:
             run_command("sudo mkdir -p /etc/svs", check=True)
             run_command("sudo chown -R root:svs-admins /etc/svs", check=True)
             run_command("sudo chmod 2775 /etc/svs", check=True)
             run_command(f"sudo touch {env_path}", check=True)
-            run_command(f"sudo chmod 660 {env_path}", check=True)
+            # make the file readable by the svs-admins group but writable only by owner
+            run_command(f"sudo chmod 640 {env_path}", check=True)
+            # make the svs user the owner and svs-admins the group owner
+            run_command(f"sudo chown svs:svs-admins {env_path}", check=True)
             typer.echo(
-                "✅ /etc/svs/.env created and permissions set. Group svs-admins has full access to /etc/svs."
+                "✅ /etc/svs/.env created and permissions set. Owner is 'svs' and group 'svs-admins' has read access."
             )
         except Exception:
             typer.echo(
@@ -124,12 +144,36 @@ def storage_setup():
         raise typer.Abort()
 
 
+def django_migrations():
+    """Run Django migrations."""
+
+    try:
+        run_command("python3 -m django makemigrations svs_core", check=True)
+        typer.echo("✅ Django makemigrations completed.")
+    except Exception:
+        typer.echo("❌ Failed to run Django makemigrations.", err=True)
+        raise typer.Abort()
+
+
 @app.command("init")
-def init() -> None:
+def init(
+    yes: bool = typer.Option(False, "--yes", "-y", help="Automatic yes to prompts")
+) -> None:
     """Initialize the SVS environment."""
+
     typer.echo("Initializing SVS environment...")
+
+    reject_if_not_admin()
+
+    global automated_yes
+    automated_yes = yes
 
     verify_prerequisites()
     permissions_setup()
+    create_svs_user()
     env_setup()
     storage_setup()
+    django_migrations()
+
+    typer.echo("✅ SVS environment initialization complete.")
+    typer.echo("Please configure the /etc/svs/.env file before starting SVS services.")

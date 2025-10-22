@@ -23,10 +23,10 @@ class TestCommandExecution:
 
         mock_run.assert_called_once()
         args, kwargs = mock_run.call_args
-        assert "echo hello" == args[0]
+        assert "sudo -u svs echo hello" == args[0]
         assert {} == kwargs.get("env", {})
-        assert True == kwargs.get("check", False)
-        assert True == kwargs.get("shell", False)
+        assert kwargs.get("check", False)
+        assert kwargs.get("shell", False)
 
         assert "mocked output" == result.stdout
 
@@ -43,9 +43,9 @@ class TestCommandExecution:
         run_command("echo $TEST_VAR", env=test_env)
 
         args, kwargs = mock_run.call_args
-        assert "echo $TEST_VAR" == args[0]
+        assert "sudo -u svs echo $TEST_VAR" == args[0]
         assert test_env == kwargs.get("env", {})
-        assert True == kwargs.get("shell", False)
+        assert kwargs.get("shell", False)
 
     @pytest.mark.unit
     def test_command_with_check_false(self, mocker: MockerFixture) -> None:
@@ -59,9 +59,9 @@ class TestCommandExecution:
         run_command("ls non_existent_dir", check=False)
 
         args, kwargs = mock_run.call_args
-        assert "ls non_existent_dir" == args[0]
-        assert False == kwargs.get("check", True)
-        assert True == kwargs.get("shell", False)
+        assert "sudo -u svs ls non_existent_dir" == args[0]
+        assert not kwargs.get("check", True)
+        assert kwargs.get("shell", False)
 
     @pytest.mark.unit
     def test_output_capturing(self, mocker: MockerFixture) -> None:
@@ -75,8 +75,8 @@ class TestCommandExecution:
         result = run_command("echo test")
 
         args, kwargs = mock_run.call_args
-        assert "echo test" == args[0]
-        assert True == kwargs.get("shell", False)
+        assert "sudo -u svs echo test" == args[0]
+        assert kwargs.get("shell", False)
         assert "expected stdout" == result.stdout
         assert "expected stderr" == result.stderr
 
@@ -92,9 +92,9 @@ class TestCommandExecution:
             run_command("failing command")
 
         args, kwargs = mock_run.call_args
-        assert "failing command" == args[0]
-        assert True == kwargs.get("check", False)
-        assert True == kwargs.get("shell", False)
+        assert "sudo -u svs failing command" == args[0]
+        assert kwargs.get("check", False)
+        assert kwargs.get("shell", False)
 
     @pytest.mark.unit
     def test_shell_operators(self, mocker: MockerFixture) -> None:
@@ -109,12 +109,14 @@ class TestCommandExecution:
         run_command("test -f /non_existent_file || echo 'file not found'")
 
         args, kwargs = mock_run.call_args
-        assert "test -f /non_existent_file || echo 'file not found'" == args[0]
-        assert True == kwargs.get("shell", False)
+        assert (
+            "sudo -u svs test -f /non_existent_file || echo 'file not found'" == args[0]
+        )
+        assert kwargs.get("shell", False)
 
         # Test a command with && (AND) operator
         run_command("mkdir -p test_dir && echo 'dir created'")
 
         args, kwargs = mock_run.call_args
-        assert "mkdir -p test_dir && echo 'dir created'" == args[0]
-        assert True == kwargs.get("shell", False)
+        assert "sudo -u svs mkdir -p test_dir && echo 'dir created'" == args[0]
+        assert kwargs.get("shell", False)

@@ -1,7 +1,5 @@
 from typing import Any, List, cast
 
-from django.db import models
-
 from svs_core.db.models import TemplateModel, TemplateType
 from svs_core.docker.image import DockerImageManager
 from svs_core.docker.json_properties import (

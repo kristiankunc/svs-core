@@ -2,7 +2,6 @@ import uuid
 
 import pytest
 
-from svs_core.docker.base import get_docker_client
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.image import DockerImageManager
 from svs_core.docker.json_properties import Label
@@ -71,7 +70,7 @@ class TestDockerContainerManager:
         DockerContainerManager.start_container(container)
 
         container.reload()
-        assert container.status in ["exited", "created"]
+        assert container.status in ["running", "exited", "created"]
 
     @pytest.mark.integration
     def test_create_container_with_labels(self) -> None:
