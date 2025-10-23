@@ -30,11 +30,14 @@ app.add_typer(service_app, name="service")
 
 
 def cli_first_user_setup() -> None:
-    """Function prompting user to create itself, used in setup script."""
+    """Function prompting user to create in-place, used by the setup script."""
     from svs_core.users.user import User
 
     try:
-        User.create(getpass.getuser(), input("Type your SVS password: ").strip())
+        User.create(
+            input("Type your SVS username: ").strip(),
+            input("Type your SVS password: ").strip(),
+        )
         return
     except Exception as e:
         print(e, "Failed to create user, try again")
