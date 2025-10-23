@@ -46,7 +46,7 @@ def get_logger(name: Optional[str] = None, independent: bool = False) -> logging
 
     # TODO: split error/info log
 
-    LOG_FILE = "svs-core.log"
+    LOG_FILE = Path("/var/log/svs.log")
     if not independent:
         from svs_core.shared.env_manager import EnvManager
 
@@ -54,14 +54,14 @@ def get_logger(name: Optional[str] = None, independent: bool = False) -> logging
             EnvManager.get_runtime_environment()
             == EnvManager.RuntimeEnvironment.PRODUCTION
         ):
-            handler = logging.FileHandler(LOG_FILE)
+            handler = logging.FileHandler(LOG_FILE.as_posix())
             handler.setLevel(logging.DEBUG)
         else:
             handler = logging.StreamHandler(sys.stdout)
             handler.setLevel(logging.DEBUG)
 
     else:
-        handler = logging.FileHandler(LOG_FILE)
+        handler = logging.FileHandler(LOG_FILE.as_posix())
         handler.setLevel(logging.DEBUG)
 
     handler.setFormatter(formatter)
