@@ -3,12 +3,13 @@ import os
 import sys
 import time
 
+from pathlib import Path
 from typing import Optional
 
 _logger_instances: dict[str, logging.Logger] = {}
 
 
-def get_logger(name: Optional[str] = None) -> logging.Logger:
+def get_logger(name: Optional[str] = None, independent: bool = False) -> logging.Logger:
     """Returns a logger instance with the specified name.
 
     If no name is provided, it uses the module's name. If a logger with the same name already
@@ -17,12 +18,11 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
 
     Args:
         name (Optional[str]): The name of the logger. If None, uses the module's name.
+        independent (bool): Whether the logger should configure based on EnvManager. Should be used only in EnvManager to avoid circular dependency
 
     Returns:
         logging.Logger: The logger instance.
     """
-
-    from svs_core.shared.env_manager import EnvManager
 
     if name is None:
         name = "unknown"
@@ -45,11 +45,23 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     handler: logging.Handler
 
     # TODO: split error/info log
-    if EnvManager.get_runtime_environment() == EnvManager.RuntimeEnvironment.PRODUCTION:
-        handler = logging.FileHandler("svs-core.log")
-        handler.setLevel(logging.DEBUG)
+
+    LOG_FILE = "svs-core.log"
+    if not independent:
+        from svs_core.shared.env_manager import EnvManager
+
+        if (
+            EnvManager.get_runtime_environment()
+            == EnvManager.RuntimeEnvironment.PRODUCTION
+        ):
+            handler = logging.FileHandler(LOG_FILE)
+            handler.setLevel(logging.DEBUG)
+        else:
+            handler = logging.StreamHandler(sys.stdout)
+            handler.setLevel(logging.DEBUG)
+
     else:
-        handler = logging.StreamHandler(sys.stdout)
+        handler = logging.FileHandler(LOG_FILE)
         handler.setLevel(logging.DEBUG)
 
     handler.setFormatter(formatter)
