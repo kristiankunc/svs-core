@@ -27,7 +27,7 @@ class EnvManager:
         """Get the current runtime environment from the .env file.
 
         Returns:
-            EnvManager.RuntimeEnvironment: The current runtime environment. Defaults to DEVELOPMENT if not set or unknown.
+            EnvManager.RuntimeEnvironment: The current runtime environment. Defaults to PRODUCTION if not set.
         """
 
         if not cls._env_loaded or cls._env_cache_internal is None:
@@ -35,16 +35,16 @@ class EnvManager:
 
         assert cls._env_cache_internal is not None
         env_value = cls._env_cache_internal.get(
-            "RUNTIME_ENVIRONMENT", cls.RuntimeEnvironment.DEVELOPMENT.value
+            "RUNTIME_ENVIRONMENT", cls.RuntimeEnvironment.PRODUCTION.value
         ).lower()
 
         try:
             return cls.RuntimeEnvironment(env_value)
         except ValueError:
             get_logger(__name__).warning(
-                f"Unknown environment '{env_value}', defaulting to DEVELOPMENT."
+                f"Unknown environment '{env_value}', defaulting to PRODUCTION."
             )
-            return cls.RuntimeEnvironment.DEVELOPMENT
+            return cls.RuntimeEnvironment.PRODUCTION
 
     @classmethod
     def get_database_url(cls) -> str | None:
