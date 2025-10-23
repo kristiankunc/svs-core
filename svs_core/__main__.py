@@ -52,7 +52,7 @@ def main() -> None:  # noqa: D103
     from svs_core.users.user import User  # noqa: E402
 
     logger = get_logger(__name__)
-    username = getpass.getuser()
+    username = SystemUserManager.get_system_username()
     user = User.objects.filter(name=username).first()
 
     if not user:

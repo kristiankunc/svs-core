@@ -1,3 +1,6 @@
+import os
+import pwd
+
 from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import run_command
 
@@ -48,3 +51,12 @@ class SystemUserManager:
         """
         result = run_command(f"groups {username} | grep -qw {groupname}", check=False)
         return result.returncode == 0
+
+    @staticmethod
+    def get_system_username() -> str:
+        """Returns the username the current Python process is running as."""
+
+        try:
+            return pwd.getpwuid(os.getuid()).pw_name
+        except Exception as e:
+            raise RuntimeError("Failed to get current user") from e
