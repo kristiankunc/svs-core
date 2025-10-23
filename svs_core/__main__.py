@@ -40,7 +40,7 @@ def cli_first_user_setup() -> None:
         )
         return
     except Exception as e:
-        print(e, "Failed to create user, try again")
+        print(f"{e}\nFailed to create user, try again")
         return cli_first_user_setup()
 
 
