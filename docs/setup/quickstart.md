@@ -14,6 +14,17 @@ Ensure Docker is installed on your system. You can install Docker by following t
 
 Ensure Docker Compose is installed. You can install it by following the official [Docker Compose installation guide](https://docs.docker.com/compose/install/).
 
+### Build packages
+
+Depending on your distribution, you may need the following build packages:
+- libpq-dev
+- python3-dev
+- build-essential
+
+Install via
+```bash
+$ apt install -y libpq-dev python3-dev build-essential
+```
 
 ## Backend services
 
@@ -27,6 +38,8 @@ You can use the example compose file to set up these services. Make sure to conf
 
 ??? note "Example docker-compose.yml"
     ```yaml
+    name: "svs-core"
+
     services:
         db:
             image: postgres:latest
@@ -37,7 +50,7 @@ You can use the example compose file to set up these services. Make sure to conf
             ports:
                 - "5432:5432"
             volumes:
-                - pgdata:/var/lib/postgresql/data
+                - pgdata:/var/lib/postgresql
 
         caddy:
             image: lucaslorentz/caddy-docker-proxy:latest
@@ -70,8 +83,8 @@ You can use the example compose file to set up these services. Make sure to conf
     POSTGRES_USER=
     POSTGRES_PASSWORD=
     POSTGRES_DB=
-    POSTGRES_HOST=
-    PGPORT=
+    POSTGRES_HOST=localhost
+    PGPORT=5432
     ```
 
 ## Application setup
@@ -83,13 +96,13 @@ Install `pipx` to safely install the CLI globally without affecting system packa
 ### Install the CLI globally
 
 ```bash
-$ sudo PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install --global svs_core
+$ sudo PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install svs_core
 ```
 
-Following that, you need to force the PIPX_HOME ENV variable for all users by appendng it to `etc/environment`
+Following that, you need to force the PIPX_HOME and PIPX_BIN_DIR ENV variables for all users by appendng it to `etc/environment`
 
 ```bash
-$ echo 'PIPX_HOME="/opt/pipx"' | sudo tee -a /etc/environment
+$ printf '%s\n' 'PIPX_HOME="/opt/pipx"' 'PIPX_BIN_DIR="/usr/local/bin"' | sudo tee -a /etc/environment
 ```
 
 To verify the installation, run:

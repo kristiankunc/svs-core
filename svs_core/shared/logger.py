@@ -5,8 +5,6 @@ import time
 
 from typing import Optional
 
-from svs_core.shared.env_manager import EnvManager
-
 _logger_instances: dict[str, logging.Logger] = {}
 
 
@@ -23,6 +21,9 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     Returns:
         logging.Logger: The logger instance.
     """
+
+    from svs_core.shared.env_manager import EnvManager
+
     if name is None:
         name = "unknown"
 

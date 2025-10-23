@@ -2,8 +2,9 @@ from enum import Enum
 from pathlib import Path
 from types import MappingProxyType
 
-from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import run_command
+
+# TODO: add logging removed due to circular dep
 
 
 class EnvManager:
@@ -42,9 +43,6 @@ class EnvManager:
         try:
             return cls.RuntimeEnvironment(env_value)
         except ValueError:
-            get_logger(__name__).warning(
-                f"Unknown environment '{env_value}', defaulting to PRODUCTION."
-            )
             return cls.RuntimeEnvironment.PRODUCTION
 
     @classmethod
@@ -104,30 +102,16 @@ class EnvManager:
 
             try:
                 env_vars = cls._open_env_file(cls.ENV_FILE_PATH)
-                get_logger(__name__).info(f"Loaded .env from {cls.ENV_FILE_PATH}")
             except FileNotFoundError as e:
-                get_logger(__name__).error(f"{cls.ENV_FILE_PATH} not found.")
                 raise e
 
             cls._env_cache_internal = env_vars
             cls._env_cache = MappingProxyType(env_vars)
 
             if cls.get_runtime_environment() == cls.RuntimeEnvironment.DEVELOPMENT:
-                get_logger(__name__).info(
-                    "Running in DEVELOPMENT environment as per .env configuration, loading local .env"
-                )
-
-                try:
-                    local_env_vars = cls._open_env_file(cls.DEV_ENV_FILE_PATH)
-                    cls._env_cache_internal.update(local_env_vars)
-                    cls._env_cache = MappingProxyType(cls._env_cache_internal)
-                    get_logger(__name__).info(
-                        f"Loaded local .env from {cls.DEV_ENV_FILE_PATH}"
-                    )
-                except FileNotFoundError:
-                    get_logger(__name__).warning(
-                        f"Local .env file {cls.DEV_ENV_FILE_PATH} not found."
-                    )
+                local_env_vars = cls._open_env_file(cls.DEV_ENV_FILE_PATH)
+                cls._env_cache_internal.update(local_env_vars)
+                cls._env_cache = MappingProxyType(cls._env_cache_internal)
 
         cls._env_loaded = True
         return cls._env_cache
