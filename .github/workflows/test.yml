@@ -87,23 +87,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
 
-      - name: Wait for DB to be ready
-        run: |
-          attempt=1
-          max_attempts=30
-          until docker exec $(docker ps -qf "name=db") pg_isready -U $POSTGRES_USER || [ $attempt -gt $max_attempts ]; do
-            echo "Waiting for database... (Attempt $attempt/$max_attempts)"
-            echo "Container logs:"
-            docker logs $(docker ps -qf "name=db")
-            sleep 2
-            attempt=$((attempt+1))
-          done
-
-          if [ $attempt -gt $max_attempts ]; then
-            echo "Database failed to become ready in time"
-            exit 1
-          fi
-
       - name: Run tests
         run: pytest --cov --cov-branch --cov-report=xml
 
