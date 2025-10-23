@@ -44,12 +44,13 @@ class User(UserModel):
         proxy = True
 
     @classmethod
-    def create(cls, name: str, password: str) -> "User":
+    def create(cls, name: str, password: str, is_admin: bool = False) -> "User":
         """Creates a new user with the given name and password.
 
         Args:
             name (str): The username for the new user.
             password (str): The password for the new user.
+            is_admin (bool): Whether the user should be admin.
 
         Raises:
             AlreadyExistsException: If the username already exists.
@@ -70,7 +71,7 @@ class User(UserModel):
         )
 
         DockerNetworkManager.create_network(name, labels={"svs_user": name})
-        SystemUserManager.create_user(name, password)
+        SystemUserManager.create_user(name, password, is_admin)
 
         get_logger(__name__).info(f"Created user: {name}")
         return user

@@ -40,6 +40,7 @@ def cli_first_user_setup() -> None:
         User.create(
             input("Type your SVS username: ").strip(),
             input("Type your SVS password: ").strip(),
+            True,
         )
         return
     except Exception as e:

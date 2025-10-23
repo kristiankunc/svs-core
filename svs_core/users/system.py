@@ -20,7 +20,7 @@ class SystemUserManager:
         """
         run_command(f"sudo useradd -m {username}", check=True)
         run_command(f"echo '{username}:{password}' | sudo chpasswd", check=True)
-        run_command(f"sudo usermod -aG svs-users {username}", check=True)
+        # run_command(f"sudo usermod -aG svs-users {username}", check=True)
 
         if admin:
             run_command(f"sudo usermod -aG svs-admins {username}", check=True)
