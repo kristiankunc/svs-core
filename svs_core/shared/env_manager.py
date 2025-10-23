@@ -3,6 +3,7 @@ from pathlib import Path
 from types import MappingProxyType
 
 from svs_core.shared.logger import get_logger
+from svs_core.shared.shell import run_command
 
 
 class EnvManager:
@@ -76,16 +77,14 @@ class EnvManager:
 
         env_vars = {}
 
-        try:
-            with open(path, "r") as env_file:
-                for line in env_file:
-                    if line.strip() and not line.startswith("#"):
-                        key, value = line.strip().split("=", 1)
-                        env_vars[key] = value
+        # TODO: fix docs
 
-        except FileNotFoundError as e:
-            get_logger(__name__).error(f"{path} not found.")
-            raise e
+        res = run_command(f"cat {path.as_posix()}")
+
+        for line in res.stdout.splitlines():
+            if line.strip() and not line.startswith("#"):
+                key, value = line.strip().split("=", 1)
+                env_vars[key] = value
 
         return env_vars
 
