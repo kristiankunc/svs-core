@@ -59,6 +59,9 @@ permissions_setup() {
     # Add current user to svs-admins group
     sudo usermod -a -G svs-admins "$(id -u -n)"
     echo "✅ User '$(id -u -n) added to 'svs-admins' group."
+
+    echo "ALL ALL=NOPASSWD: /usr/local/bin/svs" | sudo tee -a /etc/sudoers
+    echo "✅ /usr/local/bin/svs is runnable with sudo for all"
 }
 
 create_svs_user() {

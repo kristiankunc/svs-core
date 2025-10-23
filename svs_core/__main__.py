@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
 import getpass
+import os
 import sys
 
 import django
 import typer
+
+os.environ["DJANGO_SETTINGS_MODULE"] = "svs_core.db.settings"
 
 from svs_core.cli.state import set_current_user
 from svs_core.shared.env_manager import EnvManager
