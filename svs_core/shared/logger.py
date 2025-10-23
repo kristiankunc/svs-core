@@ -5,6 +5,8 @@ import time
 
 from typing import Optional
 
+from svs_core.shared.env_manager import EnvManager
+
 _logger_instances: dict[str, logging.Logger] = {}
 
 
@@ -27,7 +29,6 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     if name in _logger_instances:
         return _logger_instances[name]
 
-    env = os.getenv("ENV", "development")
     logger = logging.getLogger(name)
     logger.handlers.clear()
 
@@ -42,9 +43,10 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     formatter = UTCFormatter("%(asctime)s: [%(levelname)s] %(name)s %(message)s")
     handler: logging.Handler
 
-    if env == "production":
+    # TODO: split error/info log
+    if EnvManager.get_runtime_environment() == EnvManager.RuntimeEnvironment.PRODUCTION:
         handler = logging.FileHandler("svs-core.log")
-        handler.setLevel(logging.INFO)
+        handler.setLevel(logging.DEBUG)
     else:
         handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(logging.DEBUG)
