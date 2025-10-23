@@ -126,6 +126,8 @@ create_admin_user() {
 init() {
     echo "Initializing the SVS environment..."
 
+    export DJANGO_SETTINGS_MODULE=svs_core.db.settings
+
     verify_prerequisites
     permissions_setup
     create_svs_user
