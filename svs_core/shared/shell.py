@@ -3,14 +3,13 @@ import subprocess
 
 from typing import Mapping, Optional
 
-from svs_core.shared.logger import get_logger
-
 
 def run_command(
     command: str,
     env: Optional[Mapping[str, str]] = None,
     check: bool = True,
     use_svs_user: bool = True,
+    logger: Optional[logging.Logger] = None,
 ) -> subprocess.CompletedProcess[str]:
     """Executes a shell command with optional environment variables.
 
@@ -21,6 +20,7 @@ def run_command(
         env (Optional[Mapping[str, str]]): Environment variables to use.
         check (bool): If True, raises CalledProcessError on non-zero exit.
         use_svs_user (bool): If True, runs the command as the 'svs' system user.
+        logger (Optional[logging.Logger]): custom log handler.
 
     Returns:
         subprocess.CompletedProcess: The result of the executed command.
@@ -35,14 +35,17 @@ def run_command(
 
     command = f"{base}{command}"
 
-    get_logger(__name__).log(
-        logging.DEBUG, f"Executing command: {command} with env: {exec_env}"
-    )
+    if not logger:
+        from svs_core.shared.logger import get_logger
+
+        logger = get_logger(__name__)
+
+    logger.log(logging.DEBUG, f"Executing command: {command} with env: {exec_env}")
 
     result = subprocess.run(
         command, env=exec_env, check=check, capture_output=True, text=True, shell=True
     )
 
-    get_logger(__name__).log(logging.DEBUG, result)
+    logger.log(logging.DEBUG, result)
 
     return result

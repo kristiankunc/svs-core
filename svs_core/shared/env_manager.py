@@ -76,7 +76,9 @@ class EnvManager:
 
         # TODO: fix docs
 
-        res = run_command(f"cat {path.as_posix()}")
+        res = run_command(
+            f"cat {path.as_posix()}", logger=get_logger(__name__, independent=True)
+        )
 
         for line in res.stdout.splitlines():
             if line.strip() and not line.startswith("#"):
