@@ -1,3 +1,4 @@
+import getpass
 import os
 import pwd
 
@@ -54,9 +55,21 @@ class SystemUserManager:
 
     @staticmethod
     def get_system_username() -> str:
-        """Returns the username the current Python process is running as."""
+        """Returns the username of the user who initiated the session.
+
+        Attempts to grab the user if ran by sudo.
+        """
 
         try:
-            return pwd.getpwuid(os.getuid()).pw_name
+            return os.getlogin()
+        except OSError:
+            if "SUDO_USER" in os.environ:
+                return os.environ["SUDO_USER"]
+
+            try:
+                return pwd.getpwuid(os.getuid()).pw_name
+            except Exception:
+                return getpass.getuser()
+
         except Exception as e:
             raise RuntimeError("Failed to get current user") from e
