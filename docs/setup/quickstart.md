@@ -116,20 +116,24 @@ This should output `/usr/local/bin/svs`.
 ### Run setup script
 Run the setup script to initialze the configuration. Requires sudo privileges to create necessary directories and set permissions.
 
+Download the setup script from [https://github.com/kristiankunc/svs-core/blob/setup-migrations/install.sh](https://github.com/kristiankunc/svs-core/blob/setup-migrations/install.sh)
+
+_# TODO: replace with stable_
 
 ```bash
-$ svs setup init
+$ sudo bash install.sh
 ```
 
-See also [svs setup init](../cli.md#svs-setup-init) for more information.
-
 ### Configure environment variables
-The CLI wll create a `.env` for svs which requires configuration. Edit the file to set the necessary environment variables.
+The install script wll create a `.env` for svs which requires configuration. Edit the file to set the necessary environment variables.
 
 ??? note "Example svs .env file"
     ```env
     DATABASE_URL=postgres://<user>:<password>@<host>:<port>/<database>
     ```
 
+After configuring it, re-run the install script. You will be prompted to create a first admin user. Using a brand new, SVS-only system user is recommended but not enforced.
+
+To run a hello world service, check out [hello-world](hello-world.md)
 
 That's it. Head over to the [cli documentation](../cli.md) to get started with using the CLI.
