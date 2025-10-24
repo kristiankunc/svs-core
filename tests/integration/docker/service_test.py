@@ -3,6 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from pytest_mock import MockerFixture
+
 from svs_core.db.models import ServiceStatus, TemplateType
 from svs_core.docker.service import Service
 from svs_core.docker.template import Template
@@ -197,12 +199,18 @@ class TestService:
     @patch("svs_core.docker.service.DockerContainerManager.create_container")
     @patch("svs_core.docker.service.DockerContainerManager.get_container")
     def test_service_lifecycle(
-        self, mock_get_container, mock_create_container, test_template, test_user
-    ):
+        self,
+        mock_get_container: MagicMock,
+        mock_create_container: MagicMock,
+        test_template: Template,
+        test_user: User,
+        mocker: MockerFixture,
+    ) -> None:
         """Test service lifecycle (create, start, stop)."""
         # Mock container creation
         mock_container = MagicMock()
         mock_container.id = "lifecycle_container_id"
+        mock_container.status = "created"  # Initial status
         mock_create_container.return_value = mock_container
         mock_get_container.return_value = mock_container
 
@@ -217,15 +225,25 @@ class TestService:
         assert service.container_id == "lifecycle_container_id"
         assert service.status == ServiceStatus.CREATED
 
-        # Start the service
+        # Start the service and update mock status
+        mocker.patch.object(
+            mock_container,
+            "start",
+            side_effect=lambda: setattr(mock_container, "status", "running"),
+        )
         service.start()
 
         # Verify container.start() was called
         mock_container.start.assert_called_once()
-        # TODO: Investigate why this line causes mypy issues
+        # TODO: Investigate type ignore
         assert service.status == ServiceStatus.RUNNING  # type: ignore
 
-        # Stop the service
+        # Stop the service and update mock status
+        mocker.patch.object(
+            mock_container,
+            "stop",
+            side_effect=lambda: setattr(mock_container, "status", "stopped"),
+        )
         service.stop()
 
         # Verify container.stop() was called
