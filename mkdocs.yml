@@ -13,7 +13,6 @@ theme:
     - content.code.copy
     - navigation.instant
     - navigation.sections
-    - toc.integrate
     - navigation.tabs
     - repo
     - content.action.view
@@ -42,6 +41,14 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
+          load_external_modules: true
+          inventories:
+            - https://docs.python.org/3/objects.inv
+          setup_commands:
+            - import sys, os
+            - sys.path.append(os.path.abspath(".")) # project root
+            - os.environ.setdefault("DJANGO_SETTINGS_MODULE", "svs_core.settings")
+            - django.setup()
           options:
             docstring_style: google
             show_root_toc_entry: false
@@ -56,8 +63,9 @@ plugins:
             separate_signature: true
             show_signature: true
             line_length: 60
-          extra:
-            signature_code_block: true
+            extra:
+              evaluate_annotations: true
+              signature_code_block: true
 
 markdown_extensions:
   - abbr
