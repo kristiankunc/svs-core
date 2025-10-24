@@ -44,15 +44,20 @@ plugins:
         python:
           options:
             docstring_style: google
+            show_root_toc_entry: false
+            show_signature_annotations: true
+            show_source: true
             merge_init_into_class: true
             group_by_category: false
-            show_root_toc_entry: true
             members_order: source
-            show_source: true
-            extra:
-              show_private_members: true
-              show_special_members: true
-              show_inherited_members: true
+            show_submodules: false
+            show_docstring_description: true
+            parameter_headings: false
+            separate_signature: true
+            show_signature: true
+            line_length: 60
+          extra:
+            signature_code_block: true
 
 markdown_extensions:
   - abbr
