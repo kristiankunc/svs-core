@@ -116,7 +116,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: "github-actions[bot]"
-          body-includes: "A new TestPyPI release is available for this PR!"
+          body-includes: "Install latest on this branch via pipx!"
 
       - name: Get current datetime
         run: echo "BUILD_DATETIME=$(date '+%B %d, %Y at %H:%M')" >> $GITHUB_ENV
