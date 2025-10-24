@@ -2,7 +2,11 @@ import os
 
 import dj_database_url
 
-ENVIRONMENT = os.getenv("ENVIRONMENT", "dev").lower()
+from svs_core.shared.env_manager import EnvManager
+
+ENVIRONMENT = (
+    EnvManager.get_runtime_environment() == EnvManager.RuntimeEnvironment.DEVELOPMENT
+)
 SECRET_KEY = "library-dummy-key"
 
 INSTALLED_APPS = [
@@ -10,10 +14,7 @@ INSTALLED_APPS = [
 ]
 
 
-# Pick DB based on environment
-database_url = os.getenv("DATABASE_URL")
-
-DATABASES = {"default": dj_database_url.parse(database_url)}
+DATABASES = {"default": dj_database_url.parse(EnvManager.get_database_url())}
 
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 

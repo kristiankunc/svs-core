@@ -1,108 +1,191 @@
+import os
+import subprocess
+
 from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
 from svs_core.shared.env_manager import EnvManager
+from svs_core.shared.shell import run_command
 
 
+@pytest.fixture(autouse=True)
 def reset_env_manager():
-    EnvManager._env_cache_internal = None
-    EnvManager._env_cache = None
+    """Reset EnvManager state before each test."""
     EnvManager._env_loaded = False
+    EnvManager._env_vars = {}
+    yield
+    EnvManager._env_loaded = False
+    EnvManager._env_vars = {}
 
 
-@pytest.mark.unit
-def test_runtime_environment_defaults_to_development(tmp_path):
-    """Empty env file -> default to DEVELOPMENT."""
-    reset_env_manager()
-    env_file = tmp_path / ".env"
-    env_file.write_text("")
-    EnvManager.ENV_FILE_PATH = env_file
+class TestEnvManager:
+    @pytest.mark.unit
+    @patch("svs_core.shared.env_manager.run_command")
+    def test_open_env_file_success(self, mock_run_command):
+        """Test successful reading of .env file with comments and empty
+        lines."""
+        mock_result = MagicMock()
+        mock_result.stdout = (
+            "# Comment\n"
+            "RUNTIME_ENVIRONMENT=development\n"
+            "\n"
+            "DATABASE_URL=postgres://user:pass=123@localhost\n"
+        )
+        mock_run_command.return_value = mock_result
 
-    assert (
-        EnvManager.get_runtime_environment()
-        == EnvManager.RuntimeEnvironment.DEVELOPMENT
-    )
+        result = EnvManager._open_env_file(Path("/test/.env"))
 
+        assert result == {
+            "RUNTIME_ENVIRONMENT": "development",
+            "DATABASE_URL": "postgres://user:pass=123@localhost",
+        }
 
-@pytest.mark.unit
-def test_runtime_environment_respects_value(tmp_path):
-    """RUNTIME_ENVIRONMENT=production -> PRODUCTION."""
-    reset_env_manager()
-    env_file = tmp_path / ".env"
-    env_file.write_text("RUNTIME_ENVIRONMENT=production\n")
-    EnvManager.ENV_FILE_PATH = env_file
+    @pytest.mark.unit
+    @patch("svs_core.shared.env_manager.run_command")
+    def test_open_env_file_returns_empty_dict_on_none_result(self, mock_run_command):
+        """Test that an empty dict is returned when run_command returns
+        None."""
+        mock_run_command.return_value = None
 
-    assert (
-        EnvManager.get_runtime_environment() == EnvManager.RuntimeEnvironment.PRODUCTION
-    )
+        result = EnvManager._open_env_file(Path("/test/.env"))
 
+        assert result == {}
 
-@pytest.mark.unit
-def test_runtime_environment_unknown_value_logs_and_defaults(tmp_path):
-    """Unknown value defaults to DEVELOPMENT."""
-    reset_env_manager()
-    env_file = tmp_path / ".env"
-    env_file.write_text("RUNTIME_ENVIRONMENT=weird\n")
-    EnvManager.ENV_FILE_PATH = env_file
+    @pytest.mark.unit
+    @patch("svs_core.shared.env_manager.run_command")
+    def test_open_env_file_raises_on_command_error(self, mock_run_command):
+        """Test that FileNotFoundError is raised when command fails."""
+        mock_run_command.side_effect = subprocess.CalledProcessError(1, "cat")
 
-    result = EnvManager.get_runtime_environment()
+        with pytest.raises(FileNotFoundError):
+            EnvManager._open_env_file(Path("/test/.env"))
 
-    assert result == EnvManager.RuntimeEnvironment.DEVELOPMENT
+    @pytest.mark.unit
+    @patch("svs_core.shared.env_manager.EnvManager._open_env_file")
+    @patch.dict(os.environ, {}, clear=True)
+    def test_load_env_success(self, mock_open_env_file):
+        """Test successful loading and merging of environment variables."""
+        mock_open_env_file.return_value = {
+            "RUNTIME_ENVIRONMENT": "development",
+            "DATABASE_URL": "postgres://localhost",
+        }
 
+        EnvManager._load_env()
 
-@pytest.mark.unit
-def test_read_env_missing_file_raises(tmp_path):
-    """Trying to read a non-existent env file should raise
-    FileNotFoundError."""
-    reset_env_manager()
-    EnvManager.ENV_FILE_PATH = tmp_path / "does_not_exist.env"
+        assert EnvManager._env_loaded is True
+        assert EnvManager._env_vars == {
+            "RUNTIME_ENVIRONMENT": "development",
+            "DATABASE_URL": "postgres://localhost",
+        }
 
-    with pytest.raises(FileNotFoundError):
-        EnvManager._read_env()
+    @pytest.mark.unit
+    @patch("svs_core.shared.env_manager.EnvManager._open_env_file")
+    def test_load_env_os_environ_takes_precedence(self, mock_open_env_file):
+        """Test that os.environ takes precedence over .env file."""
+        mock_open_env_file.return_value = {
+            "RUNTIME_ENVIRONMENT": "development",
+            "DATABASE_URL": "postgres://localhost",
+        }
 
+        with patch.dict(os.environ, {"RUNTIME_ENVIRONMENT": "production"}, clear=True):
+            EnvManager._load_env()
 
-@pytest.mark.unit
-def test_load_local_dev_env(tmp_path, mocker):
-    """Ensure local .env file is loaded in DEVELOPMENT environment."""
-    reset_env_manager()
+            assert EnvManager._env_vars["RUNTIME_ENVIRONMENT"] == "production"
+            assert EnvManager._env_vars["DATABASE_URL"] == "postgres://localhost"
 
-    main_env_file = tmp_path / ".env"
-    main_env_file.write_text("RUNTIME_ENVIRONMENT=development\nKEY1=value1\n")
-    EnvManager.ENV_FILE_PATH = main_env_file
+    @pytest.mark.unit
+    @patch("svs_core.shared.env_manager.EnvManager._open_env_file")
+    def test_load_env_file_not_found(self, mock_open_env_file):
+        """Test that _env_loaded is True even if file not found."""
+        mock_open_env_file.side_effect = FileNotFoundError("Not found")
 
-    local_env_file = tmp_path / "local.env"
-    local_env_file.write_text("KEY2=value2\n")
+        EnvManager._load_env()
 
-    # Mock the _open_env_file method
-    original_open_env_file = EnvManager._open_env_file
+        assert EnvManager._env_loaded is True
 
-    def mock_open_env_file(path):
-        if path == Path(".env"):
-            return original_open_env_file(local_env_file)
-        return original_open_env_file(path)
+    @pytest.mark.unit
+    @patch("svs_core.shared.env_manager.EnvManager._load_env")
+    def test_get_runtime_environment_values(self, mock_load_env):
+        """Test getting different runtime environments."""
+        EnvManager._env_loaded = True
 
-    mocker.patch(
-        "svs_core.shared.env_manager.EnvManager._open_env_file",
-        side_effect=mock_open_env_file,
-    )
+        test_cases = [
+            ("development", EnvManager.RuntimeEnvironment.DEVELOPMENT),
+            ("testing", EnvManager.RuntimeEnvironment.TESTING),
+            ("production", EnvManager.RuntimeEnvironment.PRODUCTION),
+        ]
 
-    env_vars = EnvManager._read_env()
-    assert env_vars["KEY1"] == "value1"
-    assert env_vars["KEY2"] == "value2"
+        for env_value, expected in test_cases:
+            EnvManager._env_vars = {"RUNTIME_ENVIRONMENT": env_value}
+            assert EnvManager.get_runtime_environment() == expected
 
+    @pytest.mark.unit
+    @patch("svs_core.shared.env_manager.EnvManager._load_env")
+    def test_get_runtime_environment_defaults_to_production(self, mock_load_env):
+        """Test that runtime environment defaults to PRODUCTION if not set."""
+        EnvManager._env_loaded = True
+        EnvManager._env_vars = {}
 
-@pytest.mark.unit
-def test_get_database_url(tmp_path):
-    """Test that DATABASE_URL is correctly read from the .env file."""
-    reset_env_manager()
-    env_file = tmp_path / ".env"
-    env_file.write_text("DATABASE_URL=postgresql://user:password@localhost/dbname\n")
-    EnvManager.ENV_FILE_PATH = env_file
-    EnvManager.DEV_ENV_FILE_PATH = tmp_path / "local.env"
+        result = EnvManager.get_runtime_environment()
 
-    print(EnvManager._read_env())
+        assert result == EnvManager.RuntimeEnvironment.PRODUCTION
 
-    assert (
-        EnvManager.get_database_url() == "postgresql://user:password@localhost/dbname"
-    )
+    @pytest.mark.unit
+    @patch("svs_core.shared.env_manager.EnvManager._load_env")
+    def test_get_database_url(self, mock_load_env):
+        """Test getting DATABASE_URL when set and when not set."""
+        EnvManager._env_loaded = True
+
+        # Test when set
+        EnvManager._env_vars = {"DATABASE_URL": "postgres://user:pass@localhost/db"}
+        assert EnvManager.get_database_url() == "postgres://user:pass@localhost/db"
+
+        # Test when not set
+        EnvManager._env_vars = {}
+        assert EnvManager.get_database_url() is None
+
+    @pytest.mark.unit
+    @patch("svs_core.shared.env_manager.EnvManager._load_env")
+    def test_get_calls_load_env_on_first_call(self, mock_load_env):
+        """Test that _get calls _load_env on first call but not on subsequent
+        calls."""
+
+        def set_loaded():
+            EnvManager._env_loaded = True
+            EnvManager._env_vars = {"RUNTIME_ENVIRONMENT": "development"}
+
+        EnvManager._env_loaded = False
+        EnvManager._env_vars = {}
+        mock_load_env.side_effect = set_loaded
+
+        # First call should trigger _load_env
+        result1 = EnvManager._get(EnvManager.EnvVarKeys.RUNTIME_ENVIRONMENT)
+        assert mock_load_env.call_count == 1
+
+        # Second call should not
+        result2 = EnvManager._get(EnvManager.EnvVarKeys.DATABASE_URL)
+        assert mock_load_env.call_count == 1
+
+    @pytest.mark.unit
+    @patch("svs_core.shared.env_manager.run_command")
+    def test_integration_full_env_loading_flow(self, mock_run_command):
+        """Test the full flow of loading and retrieving environment
+        variables."""
+        EnvManager._env_loaded = False
+        EnvManager._env_vars = {}
+
+        mock_result = MagicMock()
+        mock_result.stdout = (
+            "RUNTIME_ENVIRONMENT=development\n"
+            "DATABASE_URL=postgres://localhost/testdb"
+        )
+        mock_run_command.return_value = mock_result
+
+        with patch.dict(os.environ, {}, clear=True):
+            runtime_env = EnvManager.get_runtime_environment()
+            db_url = EnvManager.get_database_url()
+
+            assert runtime_env == EnvManager.RuntimeEnvironment.DEVELOPMENT
+            assert db_url == "postgres://localhost/testdb"

@@ -1,3 +1,7 @@
+import getpass
+import os
+import pwd
+
 from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import run_command
 
@@ -16,7 +20,7 @@ class SystemUserManager:
         """
         run_command(f"sudo useradd -m {username}", check=True)
         run_command(f"echo '{username}:{password}' | sudo chpasswd", check=True)
-        run_command(f"sudo usermod -aG svs-users {username}", check=True)
+        # run_command(f"sudo usermod -aG svs-users {username}", check=True)
 
         if admin:
             run_command(f"sudo usermod -aG svs-admins {username}", check=True)
@@ -48,3 +52,24 @@ class SystemUserManager:
         """
         result = run_command(f"groups {username} | grep -qw {groupname}", check=False)
         return result.returncode == 0
+
+    @staticmethod
+    def get_system_username() -> str:
+        """Returns the username of the user who initiated the session.
+
+        Attempts to grab the user if ran by sudo.
+        """
+
+        try:
+            return os.getlogin()
+        except OSError:
+            if "SUDO_USER" in os.environ:
+                return os.environ["SUDO_USER"]
+
+            try:
+                return pwd.getpwuid(os.getuid()).pw_name
+            except Exception:
+                return getpass.getuser()
+
+        except Exception as e:
+            raise RuntimeError("Failed to get current user") from e

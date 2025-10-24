@@ -6,6 +6,9 @@ from pathlib import Path
 
 import pytest
 
+from pytest_mock import MockerFixture
+
+from svs_core.shared.env_manager import EnvManager
 from svs_core.shared.logger import clear_loggers, get_logger
 
 
@@ -36,9 +39,17 @@ class TestLogger:
 
     @pytest.mark.unit
     def test_stream_handler_in_development(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
+        mocker: MockerFixture,
+        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Test that the logger outputs to stdout in development mode."""
+        mocker.patch(
+            "svs_core.shared.env_manager.EnvManager.get_runtime_environment",
+            return_value=EnvManager.RuntimeEnvironment.DEVELOPMENT,
+        )
+        print("Current ENV:", EnvManager.get_runtime_environment())
         logger = get_logger("dev_test")
         logger.debug("hello dev")
 
@@ -49,13 +60,21 @@ class TestLogger:
 
     @pytest.mark.unit
     def test_file_handler_in_production(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+        self, tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Test that the logger outputs to a file in production mode."""
-        monkeypatch.setenv("ENV", "production")
+
+        mocker.patch(
+            "svs_core.shared.env_manager.EnvManager.get_runtime_environment",
+            return_value=EnvManager.RuntimeEnvironment.PRODUCTION,
+        )
+
+        mocker.patch(
+            "svs_core.shared.logger.Path.as_posix",
+            return_value=(tmp_path / "svs-core.log").as_posix(),
+        )
 
         log_file = tmp_path / "svs-core.log"
-        monkeypatch.chdir(tmp_path)
 
         logger = get_logger("prod_test")
         logger.info("hello prod")

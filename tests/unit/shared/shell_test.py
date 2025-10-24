@@ -24,7 +24,9 @@ class TestCommandExecution:
         mock_run.assert_called_once()
         args, kwargs = mock_run.call_args
         assert "sudo -u svs echo hello" == args[0]
-        assert {} == kwargs.get("env", {})
+        assert {"DJANGO_SETTINGS_MODULE": "svs_core.db.settings"} == kwargs.get(
+            "env", {}
+        )
         assert kwargs.get("check", False)
         assert kwargs.get("shell", False)
 
@@ -43,8 +45,12 @@ class TestCommandExecution:
         run_command("echo $TEST_VAR", env=test_env)
 
         args, kwargs = mock_run.call_args
+        expected_env = {
+            "TEST_VAR": "test_value",
+            "DJANGO_SETTINGS_MODULE": "svs_core.db.settings",
+        }
         assert "sudo -u svs echo $TEST_VAR" == args[0]
-        assert test_env == kwargs.get("env", {})
+        assert expected_env == kwargs.get("env", {})
         assert kwargs.get("shell", False)
 
     @pytest.mark.unit

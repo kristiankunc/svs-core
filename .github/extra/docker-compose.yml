@@ -7,7 +7,6 @@ services:
         ports:
             - "5432:5432"
         volumes:
-            - pgdata:/var/lib/postgresql/data
             - ./pg-init:/docker-entrypoint-initdb.d:ro
 
     caddy:
@@ -19,19 +18,12 @@ services:
         - "443:443"
         volumes:
         - /var/run/docker.sock:/var/run/docker.sock
-        - caddy_data:/data
-        - caddy_config:/config
         environment:
         - CADDY_INGRESS_NETWORK=caddy
         networks:
         - caddy
         env_file:
             - .env.ci
-
-volumes:
-    pgdata:
-    caddy_data:
-    caddy_config:
 
 networks:
     caddy:
