@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, List, cast
 
 from svs_core.db.models import TemplateModel, TemplateType
@@ -121,7 +123,7 @@ class Template(TemplateModel):
         healthcheck: dict[str, Any] | None = None,
         labels: dict[str, str] | None = None,
         args: list[str] | None = None,
-    ) -> "Template":
+    ) -> Template:
         """Creates a new template with all supported attributes."""
         # Validate name
         if not name:
@@ -272,7 +274,7 @@ class Template(TemplateModel):
         return cast(Template, template)
 
     @classmethod
-    def import_from_json(cls, data: dict[str, Any]) -> "Template":
+    def import_from_json(cls, data: dict[str, Any]) -> Template:
         """Creates a Template instance from a JSON/dict object.
 
         Relies on theexisting create factory method.
