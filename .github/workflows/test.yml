@@ -102,40 +102,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-
-      - name: Install build tools
-        run: pip install build twine
-
-      - name: Set dynamic version with patch bump
-        run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          CURRENT_VERSION=$(grep -Po '(?<=^version = ")[^"]+' pyproject.toml)
-          MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
-          MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
-          PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
-          BUMPED_PATCH=$((PATCH + 1))
-          NEW_VERSION="${MAJOR}.${MINOR}.${BUMPED_PATCH}"
-          VERSION="${NEW_VERSION}.dev${PR_NUMBER}${TIMESTAMP}"
-          echo "PACKAGE_VERSION=$VERSION" >> $GITHUB_ENV
-          sed -i "s/^version = .*/version = \"${VERSION}\"/" pyproject.toml
-
-      - name: Build package
-        run: python -m build
-
-      - name: Upload to TestPyPI
-        env:
-          TWINE_USERNAME: "__token__"
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: |
-          python -m twine upload \
-          --repository testpypi \
-          --skip-existing dist/*
-
       - name: Find previous comment
         id: find-comment
         uses: peter-evans/find-comment@v4
@@ -147,6 +113,13 @@ jobs:
       - name: Get current datetime
         run: echo "BUILD_DATETIME=$(date '+%B %d, %Y at %H:%M')" >> $GITHUB_ENV
 
+      - name: Generate pipx install command
+        id: generate-download-url
+        run: |
+          PACKAGE_VERSION=$(sudo PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx show svs_core 2>/dev/null | grep Version | awk '{print $2}' || echo "unknown")
+          echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=git+${{ github.server_url }}/${{ github.repository }}@${{ github.head_ref }}" >> $GITHUB_ENV
+
       - name: Comment with install instructions
         uses: peter-evans/create-or-update-comment@v5
         with:
@@ -157,10 +130,10 @@ jobs:
 
             **Version:** `${{ env.PACKAGE_VERSION }}`
             **Built:** ${{ env.BUILD_DATETIME }}
-            **Commit:** [`${{ github.event.pull_request.head.sha }}`](https://github.com/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }})
+            **Commit:** [`${{ github.event.pull_request.head.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }})
             **Install with:**
             ```bash
-            pip install --extra-index-url https://test.pypi.org/simple/ svs_core==${{ env.PACKAGE_VERSION }}
+            pip install git+${{ env.DOWNLOAD_URL }}
             ```
 
             [View on TestPyPI](https://test.pypi.org/project/svs_core/${{ env.PACKAGE_VERSION }}/)
