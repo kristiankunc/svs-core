@@ -1,5 +1,6 @@
 from enum import Enum
 
+from deprecation import deprecated
 from django.db import models
 
 
@@ -74,7 +75,11 @@ class TemplateModel(BaseModel):
 
 
 class ServiceStatus(str, Enum):
-    """Status of a service."""
+    """Status of a service.
+
+    Note:
+        Deprecated: This enum is deprecated and will be removed in future versions.
+    """
 
     CREATED = "created"
     RUNNING = "running"
@@ -104,9 +109,6 @@ class ServiceModel(BaseModel):
     args = models.JSONField(null=True, blank=True, default=list)
     healthcheck = models.JSONField(null=True, blank=True, default=dict)
     networks = models.JSONField(null=True, blank=True, default=list)
-    status = models.CharField(
-        max_length=10, choices=ServiceStatus.choices(), default=ServiceStatus.CREATED
-    )
     exit_code = models.IntegerField(null=True, blank=True)
     template = models.ForeignKey(
         TemplateModel, on_delete=models.CASCADE, related_name="services"
