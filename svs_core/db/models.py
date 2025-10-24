@@ -1,6 +1,5 @@
 from enum import Enum
 
-from deprecation import deprecated
 from django.db import models
 
 
