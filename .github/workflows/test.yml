@@ -124,8 +124,6 @@ jobs:
       - name: Generate pipx install command
         id: generate-download-url
         run: |
-          PACKAGE_VERSION=$(sudo PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx show svs_core 2>/dev/null | grep Version | awk '{print $2}' || echo "unknown")
-          echo "PACKAGE_VERSION=${PACKAGE_VERSION}" >> $GITHUB_ENV
           echo "DOWNLOAD_URL=git+${{ github.server_url }}/${{ github.repository }}@${{ github.head_ref }}" >> $GITHUB_ENV
 
       - name: Comment with install instructions
@@ -134,16 +132,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
-            🚀 A new TestPyPI release is available for this PR!
+            Install latest on this branch via pipx!
 
-            **Version:** `${{ env.PACKAGE_VERSION }}`
-            **Built:** ${{ env.BUILD_DATETIME }}
+            **Published:** ${{ env.BUILD_DATETIME }}
             **Commit:** [`${{ github.event.pull_request.head.sha }}`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.event.pull_request.head.sha }})
             **Install with:**
             ```bash
-            pip install git+${{ env.DOWNLOAD_URL }}
+            sudo PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install ${{ env.DOWNLOAD_URL }}
             ```
-
-            [View on TestPyPI](https://test.pypi.org/project/svs_core/${{ env.PACKAGE_VERSION }}/)
           edit-mode: replace
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
