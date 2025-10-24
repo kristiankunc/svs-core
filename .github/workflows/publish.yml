@@ -32,7 +32,6 @@ jobs:
 
   deploy-docs:
     runs-on: ubuntu-latest
-    needs: publish-pip
 
     steps:
       - name: Checkout code
