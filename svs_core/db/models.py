@@ -84,7 +84,20 @@ class ServiceStatus(str, Enum):
 
     @classmethod
     def choices(cls) -> list[tuple[str, str]]:  # noqa: D102
+        """Return choices for Django model field.
+
+        Note:
+            Deprecated in favor of dynamically fetching status from Docker.
+        """
         return [(key.value, key.name) for key in cls]
+
+    @classmethod
+    def from_str(cls, status_str: str) -> "ServiceStatus":
+        """Convert string to ServiceStatus enum."""
+        for status in cls:
+            if status.value == status_str:
+                return status
+        raise ValueError(f"Unknown status string: {status_str}")
 
 
 class ServiceModel(BaseModel):
@@ -104,9 +117,6 @@ class ServiceModel(BaseModel):
     args = models.JSONField(null=True, blank=True, default=list)
     healthcheck = models.JSONField(null=True, blank=True, default=dict)
     networks = models.JSONField(null=True, blank=True, default=list)
-    status = models.CharField(
-        max_length=10, choices=ServiceStatus.choices(), default=ServiceStatus.CREATED
-    )
     exit_code = models.IntegerField(null=True, blank=True)
     template = models.ForeignKey(
         TemplateModel, on_delete=models.CASCADE, related_name="services"

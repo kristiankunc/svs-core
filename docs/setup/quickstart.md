@@ -17,6 +17,7 @@ Ensure Docker Compose is installed. You can install it by following the official
 ### Build packages
 
 Depending on your distribution, you may need the following build packages:
+
 - libpq-dev
 - python3-dev
 - build-essential

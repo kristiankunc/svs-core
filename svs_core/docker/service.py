@@ -91,6 +91,14 @@ class Service(ServiceModel):
         return cast(Template, Template.objects.get(id=self.template_id))
 
     @property
+    def status(self) -> ServiceStatus:  # noqa: D102
+        container = DockerContainerManager.get_container(self.container_id)
+        if container is None:
+            return ServiceStatus.CREATED
+
+        return ServiceStatus.from_str(container.status)
+
+    @property
     def user_obj(self) -> User:  # noqa: D102
         return cast(User, User.objects.get(id=self.user_id))
 
@@ -310,7 +318,6 @@ class Service(ServiceModel):
         labels: dict[str, str] | None = None,
         args: list[str] | None = None,
         networks: list[str] | None = None,
-        status: str | None = "created",
         exit_code: int | None = None,
     ) -> Service:
         """Creates a new service with all supported attributes.
@@ -333,7 +340,6 @@ class Service(ServiceModel):
             labels (dict, optional): Container labels, defaults to template.labels if not provided.
             args (list, optional): Command arguments, defaults to template.args if not provided.
             networks (list, optional): Networks to connect to.
-            status (str, optional): Initial service status, defaults to "created".
             exit_code (int, optional): Container exit code.
 
         Returns:
@@ -470,7 +476,6 @@ class Service(ServiceModel):
             labels=labels,
             args=args,
             networks=networks,
-            status=status,
             exit_code=exit_code,
         )
 
@@ -538,7 +543,6 @@ class Service(ServiceModel):
         )
 
         container.start()
-        self.status = ServiceStatus.RUNNING
         self.save()
 
     def stop(self) -> None:
@@ -555,5 +559,4 @@ class Service(ServiceModel):
         )
 
         container.stop()
-        self.status = ServiceStatus.STOPPED
         self.save()
