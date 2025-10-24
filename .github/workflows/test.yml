@@ -93,7 +93,10 @@ jobs:
           ./install.sh -y --user test_admin --password test_password
 
       - name: Run tests
-        run: pytest --cov --cov-branch --cov-report=xml
+        run: |
+          newgrp svs-admins << EOF
+          pytest --cov --cov-branch --cov-report=xml
+          EOF
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
