@@ -1,3 +1,7 @@
+import logging
+import os
+import subprocess
+
 from enum import Enum
 from pathlib import Path
 from types import MappingProxyType
@@ -10,11 +14,15 @@ class EnvManager:
     """Manages reading and caching environment variables from a .env file."""
 
     ENV_FILE_PATH = Path("/etc/svs/.env")
-    DEV_ENV_FILE_PATH = Path(".env")
 
-    _env_cache_internal: dict[str, str] | None = None  # internal mutable
-    _env_cache: MappingProxyType[str, str] | None = None  # external read-only
     _env_loaded: bool = False
+    _env_vars: dict[str, str] = {}
+
+    class EnvVarKeys(Enum):
+        """Enumeration of environment variable keys."""
+
+        RUNTIME_ENVIRONMENT = "RUNTIME_ENVIRONMENT"
+        DATABASE_URL = "DATABASE_URL"
 
     class RuntimeEnvironment(Enum):
         """Enumeration of possible runtime environments."""
@@ -24,6 +32,22 @@ class EnvManager:
         TESTING = "testing"
 
     @classmethod
+    def _get(cls, value: "EnvManager.EnvVarKeys") -> str | None:
+        """Get the value of an environment variable by its key.
+
+        Args:
+            value (EnvManager.EnvVarKeys): The key of the environment variable.
+
+        Returns:
+            str | None: The value of the environment variable if set, otherwise None.
+        """
+
+        if not cls._env_loaded:
+            cls._load_env()
+
+        return cls._env_vars.get(value.value)
+
+    @classmethod
     def get_runtime_environment(cls) -> "EnvManager.RuntimeEnvironment":
         """Get the current runtime environment from the .env file.
 
@@ -31,18 +55,10 @@ class EnvManager:
             EnvManager.RuntimeEnvironment: The current runtime environment. Defaults to PRODUCTION if not set.
         """
 
-        if not cls._env_loaded or cls._env_cache_internal is None:
-            cls._read_env()
-
-        assert cls._env_cache_internal is not None
-        env_value = cls._env_cache_internal.get(
-            "RUNTIME_ENVIRONMENT", cls.RuntimeEnvironment.PRODUCTION.value
-        ).lower()
-
-        try:
-            return cls.RuntimeEnvironment(env_value)
-        except ValueError:
-            return cls.RuntimeEnvironment.PRODUCTION
+        value = cls._get(cls.EnvVarKeys.RUNTIME_ENVIRONMENT)
+        return EnvManager.RuntimeEnvironment(
+            value or cls.RuntimeEnvironment.PRODUCTION.value
+        )
 
     @classmethod
     def get_database_url(cls) -> str | None:
@@ -52,11 +68,7 @@ class EnvManager:
             str | None: The database URL if set, otherwise None.
         """
 
-        if not cls._env_loaded or cls._env_cache is None:
-            cls._read_env()
-
-        assert cls._env_cache is not None
-        return cls._env_cache.get("DATABASE_URL")
+        return cls._get(cls.EnvVarKeys.DATABASE_URL)
 
     @classmethod
     def _open_env_file(cls, path: Path) -> dict[str, str]:
@@ -74,11 +86,15 @@ class EnvManager:
 
         env_vars = {}
 
-        # TODO: fix docs
+        try:
+            res = run_command(
+                f"cat {path.as_posix()}", logger=get_logger(__name__, independent=True)
+            )
+        except subprocess.CalledProcessError:
+            raise FileNotFoundError(f"Environment file not found: {path.as_posix()}")
 
-        res = run_command(
-            f"cat {path.as_posix()}", logger=get_logger(__name__, independent=True)
-        )
+        if res is None:
+            return env_vars
 
         for line in res.stdout.splitlines():
             if line.strip() and not line.startswith("#"):
@@ -88,49 +104,17 @@ class EnvManager:
         return env_vars
 
     @classmethod
-    def _read_env(cls) -> MappingProxyType[str, str]:
-        """Reads environment variables from the .env file and caches them.
+    def _load_env(cls) -> None:
+        """Reads the .env file and caches environment variables."""
 
-        Returns:
-            MappingProxyType[str, str]: A read-only mapping of environment variables.
-
-        Raises:
-            FileNotFoundError: If the .env file does not exist.
-        """
-
-        if cls._env_cache is None:
-            env_vars = {}
-
-            try:
-                env_vars = cls._open_env_file(cls.ENV_FILE_PATH)
-                get_logger(__name__, independent=True).info(
-                    f"Loaded .env from {cls.ENV_FILE_PATH}"
-                )
-            except FileNotFoundError as e:
-                get_logger(__name__, independent=True).error(
-                    f"{cls.ENV_FILE_PATH} not found."
-                )
-                raise e
-
-            cls._env_cache_internal = env_vars
-            cls._env_cache = MappingProxyType(env_vars)
-
-            if cls.get_runtime_environment() == cls.RuntimeEnvironment.DEVELOPMENT:
-                get_logger(__name__, independent=True).info(
-                    "Running in DEVELOPMENT environment as per .env configuration, loading local .env"
-                )
-
-                try:
-                    local_env_vars = cls._open_env_file(cls.DEV_ENV_FILE_PATH)
-                    cls._env_cache_internal.update(local_env_vars)
-                    cls._env_cache = MappingProxyType(cls._env_cache_internal)
-                    get_logger(__name__, independent=True).info(
-                        f"Loaded local .env from {cls.DEV_ENV_FILE_PATH}"
-                    )
-                except FileNotFoundError:
-                    get_logger(__name__, independent=True).warning(
-                        f"Local .env file {cls.DEV_ENV_FILE_PATH} not found."
-                    )
-
-        cls._env_loaded = True
-        return cls._env_cache
+        try:
+            loaded_vars = cls._open_env_file(cls.ENV_FILE_PATH)
+            # runtime env vars override existing os.environ vars so we merge them
+            merged_vars = {**loaded_vars, **os.environ}
+            cls._env_vars = merged_vars
+            cls._env_loaded = True
+        except FileNotFoundError:
+            get_logger(__name__, independent=True).warning(
+                f".env file not found at {cls.ENV_FILE_PATH.as_posix()}. Using defaults."
+            )
+            cls._env_loaded = True

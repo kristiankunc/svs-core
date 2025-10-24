@@ -46,7 +46,8 @@ def get_logger(name: Optional[str] = None, independent: bool = False) -> logging
 
     # TODO: split error/info log
 
-    LOG_FILE = Path("/var/log/svs.log")
+    LOG_FILE = Path("/etc/svs/svs.log")
+
     if not independent:
         from svs_core.shared.env_manager import EnvManager
 

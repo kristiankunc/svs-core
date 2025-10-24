@@ -60,9 +60,10 @@ class TestUserIntegration:
         assert user.name == username
         assert User.objects.get(name=username) is not None
         create_network_mock.assert_called_once_with(
-            username, labels={"svs_user": username}
+            username,
+            labels={"svs_user": username},
         )
-        system_user_create_mock.assert_called_once_with(username, password)
+        system_user_create_mock.assert_called_once_with(username, password, False)
 
     @pytest.mark.integration
     @pytest.mark.django_db
