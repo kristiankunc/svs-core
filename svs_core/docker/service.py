@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, List, cast
 
 from svs_core.db.models import ServiceModel, ServiceStatus
@@ -174,7 +176,7 @@ class Service(ServiceModel):
         override_labels: dict[str, str] | None = None,
         override_args: list[str] | None = None,
         networks: list[str] | None = None,
-    ) -> "Service":
+    ) -> Service:
         """Creates a service from an existing template with overrides.
 
         Args:
@@ -310,7 +312,7 @@ class Service(ServiceModel):
         networks: list[str] | None = None,
         status: str | None = "created",
         exit_code: int | None = None,
-    ) -> "Service":
+    ) -> Service:
         """Creates a new service with all supported attributes.
 
         Values not explicitly provided will be inherited from the template where

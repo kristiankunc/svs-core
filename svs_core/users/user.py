@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 
 from typing import cast
@@ -44,7 +46,7 @@ class User(UserModel):
         proxy = True
 
     @classmethod
-    def create(cls, name: str, password: str, is_admin: bool = False) -> "User":
+    def create(cls, name: str, password: str, is_admin: bool = False) -> User:
         """Creates a new user with the given name and password.
 
         Args:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import subprocess
@@ -32,7 +34,7 @@ class EnvManager:
         TESTING = "testing"
 
     @classmethod
-    def _get(cls, value: "EnvManager.EnvVarKeys") -> str | None:
+    def _get(cls, value: EnvManager.EnvVarKeys) -> str | None:
         """Get the value of an environment variable by its key.
 
         Args:
@@ -48,7 +50,7 @@ class EnvManager:
         return cls._env_vars.get(value.value)
 
     @classmethod
-    def get_runtime_environment(cls) -> "EnvManager.RuntimeEnvironment":
+    def get_runtime_environment(cls) -> EnvManager.RuntimeEnvironment:
         """Get the current runtime environment from the .env file.
 
         Returns:
