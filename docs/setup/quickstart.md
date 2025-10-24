@@ -116,9 +116,8 @@ This should output `/usr/local/bin/svs`.
 ### Run setup script
 Run the setup script to initialze the configuration. Requires sudo privileges to create necessary directories and set permissions.
 
-Download the setup script from [https://github.com/kristiankunc/svs-core/blob/setup-migrations/install.sh](https://github.com/kristiankunc/svs-core/blob/setup-migrations/install.sh)
+Download the setup script from [https://github.com/kristiankunc/svs-core/blob/main/install.sh](https://github.com/kristiankunc/svs-core/blob/setup-migrations/install.sh)
 
-_# TODO: replace with stable_
 
 ```bash
 $ sudo bash install.sh
