@@ -87,6 +87,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
 
+      - name: Run setup script
+        run: |
+          chmod +x ./install.sh
+          ./install.sh -y --user test_admin --password test_password
+
       - name: Run tests
         run: pytest --cov --cov-branch --cov-report=xml
 

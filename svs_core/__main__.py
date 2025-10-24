@@ -4,6 +4,8 @@ import getpass
 import os
 import sys
 
+from typing import Optional
+
 import django
 import typer
 
@@ -32,20 +34,30 @@ app.add_typer(template_app, name="template")
 app.add_typer(service_app, name="service")
 
 
-def cli_first_user_setup() -> None:
+def cli_first_user_setup(
+    username: Optional[str] = None, password: Optional[str] = None
+) -> None:
     """Function prompting user to create in-place, used by the setup script."""
     from svs_core.users.user import User
 
-    try:
-        User.create(
-            input("Type your SVS username: ").strip(),
-            input("Type your SVS password: ").strip(),
-            True,
-        )
-        return
-    except Exception as e:
-        print(f"{e}\nFailed to create user, try again")
-        return cli_first_user_setup()
+    if username and password:
+        try:
+            User.create(username, password, True)
+            return
+        except Exception as e:
+            print(f"{e}\nFailed to create user with provided credentials.")
+
+    else:
+        try:
+            User.create(
+                input("Type your SVS username: ").strip(),
+                input("Type your SVS password: ").strip(),
+                True,
+            )
+            return
+        except Exception as e:
+            print(f"{e}\nFailed to create user, try again")
+            return cli_first_user_setup()
 
 
 def main() -> None:  # noqa: D103

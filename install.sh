@@ -4,6 +4,8 @@ set -e
 
 # Global variables
 automated_yes=false
+admin_user=""
+admin_password=""
 
 confirm() {
     if [ "$automated_yes" = true ]; then
@@ -116,11 +118,23 @@ django_migrations() {
 
 create_admin_user() {
     echo "Creating initial admin user..."
-    if /opt/pipx/venvs/svs-core/bin/python -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup()"; then
-        echo "✅ Admin user created (or already exists)."
+
+    if [ -n "$admin_user" ] && [ -n "$admin_password" ]; then
+        # User and password provided via command line
+        if /opt/pipx/venvs/svs-core/bin/python -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup(username='$admin_user', password='$admin_password')"; then
+            echo "✅ Admin user '$admin_user' created."
+        else
+            echo "❌ Failed to create admin user."
+            exit 1
+        fi
     else
-        echo "❌ Failed to create admin user."
-        exit 1
+        # Interactive mode (original behavior)
+        if /opt/pipx/venvs/svs-core/bin/python -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup()"; then
+            echo "✅ Admin user created (or already exists)."
+        else
+            echo "❌ Failed to create admin user."
+            exit 1
+        fi
     fi
 }
 
@@ -147,6 +161,14 @@ while [[ "$#" -gt 0 ]]; do
         -y|--yes)
             automated_yes=true
             shift
+            ;;
+        --user)
+            admin_user="$2"
+            shift 2
+            ;;
+        --password)
+            admin_password="$2"
+            shift 2
             ;;
         *)
             echo "Unknown option: $1"
