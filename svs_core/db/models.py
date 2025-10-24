@@ -75,11 +75,7 @@ class TemplateModel(BaseModel):
 
 
 class ServiceStatus(str, Enum):
-    """Status of a service.
-
-    Note:
-        Deprecated: This enum is deprecated and will be removed in future versions.
-    """
+    """Status of a service."""
 
     CREATED = "created"
     RUNNING = "running"
@@ -89,7 +85,20 @@ class ServiceStatus(str, Enum):
 
     @classmethod
     def choices(cls) -> list[tuple[str, str]]:  # noqa: D102
+        """Return choices for Django model field.
+
+        Note:
+            Deprecated in favor of dynamically fetching status from Docker.
+        """
         return [(key.value, key.name) for key in cls]
+
+    @classmethod
+    def from_str(cls, status_str: str) -> "ServiceStatus":
+        """Convert string to ServiceStatus enum."""
+        for status in cls:
+            if status.value == status_str:
+                return status
+        raise ValueError(f"Unknown status string: {status_str}")
 
 
 class ServiceModel(BaseModel):

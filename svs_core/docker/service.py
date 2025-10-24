@@ -1,6 +1,6 @@
 from typing import Any, List, cast
 
-from svs_core.db.models import ServiceModel
+from svs_core.db.models import ServiceModel, ServiceStatus
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.json_properties import (
     EnvVariable,
@@ -89,19 +89,12 @@ class Service(ServiceModel):
         return cast(Template, Template.objects.get(id=self.template_id))
 
     @property
-    def status(self) -> str:  # noqa: D102
+    def status(self) -> ServiceStatus:  # noqa: D102
         container = DockerContainerManager.get_container(self.container_id)
         if container is None:
-            return "created"
-        container_status = container.status
-        if container_status == "running":
-            return "running"
-        elif container_status == "exited":
-            return "exited"
-        elif container_status == "paused":
-            return "stopped"
-        else:
-            return "error"
+            return ServiceStatus.CREATED
+
+        return ServiceStatus.from_str(container.status)
 
     @property
     def user_obj(self) -> User:  # noqa: D102

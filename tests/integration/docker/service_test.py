@@ -77,7 +77,7 @@ class TestService:
         assert service.domain == "test.example.com"
         assert service.image == "nginx:latest"
         assert service.container_id == "test_container_id"
-        assert service.status == "created"
+        assert service.status == ServiceStatus.CREATED
 
         # Verify Docker container creation was called with correct parameters
         mock_create_container.assert_called_once()
@@ -215,14 +215,15 @@ class TestService:
         )
 
         assert service.container_id == "lifecycle_container_id"
-        assert service.status == "created"
+        assert service.status == ServiceStatus.CREATED
 
         # Start the service
         service.start()
 
         # Verify container.start() was called
         mock_container.start.assert_called_once()
-        assert service.status == ServiceStatus.RUNNING
+        # TODO: Investigate why this line causes mypy issues
+        assert service.status == ServiceStatus.RUNNING  # type: ignore
 
         # Stop the service
         service.stop()
