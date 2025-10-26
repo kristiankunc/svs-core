@@ -23,7 +23,7 @@ class EnvManager:
     class EnvVarKeys(Enum):
         """Enumeration of environment variable keys."""
 
-        RUNTIME_ENVIRONMENT = "RUNTIME_ENVIRONMENT"
+        RUNTIME_ENVIRONMENT = "ENVIRONMENT"
         DATABASE_URL = "DATABASE_URL"
 
     class RuntimeEnvironment(Enum):
@@ -111,7 +111,7 @@ class EnvManager:
 
         try:
             loaded_vars = cls._open_env_file(cls.ENV_FILE_PATH)
-            # runtime env vars override existing os.environ vars so we merge them
+            # os.environ vars override .env file vars so we merge them with os.environ last
             merged_vars = {**loaded_vars, **os.environ}
             cls._env_vars = merged_vars
             cls._env_loaded = True
