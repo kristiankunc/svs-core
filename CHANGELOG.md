@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/kristiankunc/svs-core/compare/v0.3.0...v0.3.1) (2025-10-27)
+
+
+### Bug Fixes
+
+* Add system user testing ([#46](https://github.com/kristiankunc/svs-core/issues/46)) ([608d527](https://github.com/kristiankunc/svs-core/commit/608d527b91943cdf395a14647b7fda0bea87f224))
+* Add template delete functionality ([#52](https://github.com/kristiankunc/svs-core/issues/52)) ([c7cdaed](https://github.com/kristiankunc/svs-core/commit/c7cdaed51c744028580596e8e9245d9f2311282b))
+
 ## [0.3.0](https://github.com/kristiankunc/svs-core/compare/v0.2.0...v0.3.0) (2025-10-24)
 
 
