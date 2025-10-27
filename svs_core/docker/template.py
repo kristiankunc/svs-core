@@ -335,3 +335,24 @@ class Template(TemplateModel):
         )
 
         return template
+
+    def delete(self) -> None:
+        """Deletes the template and associated Docker image if applicable.
+
+        Raises:
+            Exception: If the template is associated with existing services.
+        """
+
+        from svs_core.docker.service import Service
+
+        services = Service.objects.filter(template=self)
+
+        if len(services) > 0:
+            raise Exception(
+                f"Cannot delete template {self.name} as it is associated with existing services."
+            )
+
+        if self.type == TemplateType.IMAGE and self.image:
+            DockerImageManager.remove(self.image)
+
+        super().delete()
