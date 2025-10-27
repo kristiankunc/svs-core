@@ -12,7 +12,7 @@ def db(django_db_setup, django_db_blocker):
         yield
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def mock_system_user_manager(mocker):
     """Mock system user manager to prevent system calls during tests."""
     mocker.patch(

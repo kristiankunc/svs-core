@@ -118,7 +118,7 @@ class TestEnvManager:
         ]
 
         for env_value, expected in test_cases:
-            EnvManager._env_vars = {"RUNTIME_ENVIRONMENT": env_value}
+            EnvManager._env_vars = {"ENVIRONMENT": env_value}
             assert EnvManager.get_runtime_environment() == expected
 
     @pytest.mark.unit
@@ -178,8 +178,7 @@ class TestEnvManager:
 
         mock_result = MagicMock()
         mock_result.stdout = (
-            "RUNTIME_ENVIRONMENT=development\n"
-            "DATABASE_URL=postgres://localhost/testdb"
+            "ENVIRONMENT=development\n" "DATABASE_URL=postgres://localhost/testdb"
         )
         mock_run_command.return_value = mock_result
 
