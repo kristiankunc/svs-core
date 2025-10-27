@@ -322,3 +322,108 @@ class TestTemplate:
                 image="alpine",
                 healthcheck={"interval": 30000000000},  # Missing test field
             )
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+    @patch("svs_core.docker.template.DockerImageManager.pull")
+    @patch("svs_core.docker.template.DockerImageManager.remove")
+    def test_delete_template_without_services(
+        self, mock_remove, mock_pull, mock_exists
+    ):
+        """Test deleting a template that is not associated with any
+        services."""
+        template = Template.create(
+            name="test-delete",
+            type=TemplateType.IMAGE,
+            image="alpine:latest",
+            description="Template to delete",
+        )
+
+        template_id = template.id
+
+        # Verify template exists
+        assert Template.objects.filter(id=template_id).exists()
+
+        # Delete the template
+        template.delete()
+
+        # Verify template is deleted from database
+        assert not Template.objects.filter(id=template_id).exists()
+
+        # Verify DockerImageManager.remove was called with the correct image
+        mock_remove.assert_called_once_with("alpine:latest")
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+    @patch("svs_core.docker.template.DockerImageManager.pull")
+    @patch("svs_core.users.user.DockerNetworkManager.create_network")
+    @patch("svs_core.users.user.SystemUserManager.create_user")
+    def test_delete_template_with_services_raises_error(
+        self, mock_system_user, mock_network, mock_pull, mock_exists
+    ):
+        """Test that deleting a template with associated services raises an
+        error."""
+        from svs_core.db.models import ServiceModel
+        from svs_core.users.user import User
+
+        template = Template.create(
+            name="test-delete-with-services",
+            type=TemplateType.IMAGE,
+            image="nginx:latest",
+            description="Template with services",
+        )
+
+        # Create a user for the service
+        user = User.create(name="testuser", password="testpass123")
+
+        # Create a service associated with this template
+        service = ServiceModel.objects.create(
+            name="test-service",
+            template=template,
+            user=user,
+        )
+
+        # Verify service exists
+        assert ServiceModel.objects.filter(template=template).exists()
+
+        # Attempt to delete the template
+        with pytest.raises(
+            Exception,
+            match=f"Cannot delete template {template.name} as it is associated with existing services",
+        ):
+            template.delete()
+
+        # Verify template still exists in database
+        assert Template.objects.filter(id=template.id).exists()
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
+    @patch("svs_core.docker.template.DockerImageManager.build_from_dockerfile")
+    @patch("svs_core.docker.template.DockerImageManager.remove")
+    def test_delete_build_template(self, mock_remove, mock_build, mock_exists):
+        """Test deleting a build-based template."""
+        dockerfile_content = "FROM alpine:latest\nRUN echo 'test'"
+
+        template = Template.create(
+            name="test-delete-build",
+            type=TemplateType.BUILD,
+            dockerfile=dockerfile_content,
+            description="Build template to delete",
+        )
+
+        template_id = template.id
+
+        # Verify template exists
+        assert Template.objects.filter(id=template_id).exists()
+
+        # Delete the template
+        template.delete()
+
+        # Verify template is deleted from database
+        assert not Template.objects.filter(id=template_id).exists()
+
+        # DockerImageManager.remove should not be called for build templates
+        mock_remove.assert_not_called()

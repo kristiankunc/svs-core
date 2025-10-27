@@ -1,6 +1,3 @@
-# TODO: possibly document
-
-
 class KeyValue:  # noqa: D101
     """Generic key-value pair class."""
 
