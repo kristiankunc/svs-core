@@ -30,6 +30,14 @@ jobs:
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
+      - name: Upload distributions to GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: ${{ github.event_name == 'release' }}
+        with:
+          files: dist/*.tar.gz, dist/*.whl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   deploy-docs:
     runs-on: ubuntu-latest
 
