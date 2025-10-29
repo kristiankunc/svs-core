@@ -91,7 +91,7 @@ env_setup() {
         sudo touch "$env_path"
         sudo chmod 640 "$env_path"
         sudo chown svs:svs-admins "$env_path"
-        echo "✅ /etc/svs/.env created and permissions set. Pleae configure DB_URL and re-run"
+        echo "✅ /etc/svs/.env created and permissions set. Pleae configure DATABASE_URL and re-run"
         exit 0
     fi
 }
