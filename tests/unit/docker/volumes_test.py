@@ -151,3 +151,63 @@ class TestVolumes:
         assert str(user1.id) in volume1.parts
         assert str(user2.id) in volume2.parts
         assert volume1.parent.parent == volume2.parent.parent
+
+    @pytest.mark.unit
+    def test_delete_volume_removes_specific_volume(self, mock_user):
+        """Test that delete_volume removes a specific volume."""
+        volume_path1 = SystemVolumeManager.generate_free_volume(mock_user)
+        volume_path2 = SystemVolumeManager.generate_free_volume(mock_user)
+
+        assert volume_path1.exists()
+        assert volume_path2.exists()
+
+        # Delete only the first volume
+        SystemVolumeManager.delete_volume(volume_path1)
+
+        assert not volume_path1.exists()
+        assert volume_path2.exists()
+
+    @pytest.mark.unit
+    def test_delete_volume_with_files(self, mock_user):
+        """Test that delete_volume removes files within the volume."""
+        volume_path = SystemVolumeManager.generate_free_volume(mock_user)
+
+        # Create files in the volume
+        test_file1 = volume_path / "file1.txt"
+        test_file2 = volume_path / "file2.txt"
+        test_file1.write_text("content 1")
+        test_file2.write_text("content 2")
+
+        assert test_file1.exists()
+        assert test_file2.exists()
+
+        # Delete the volume
+        SystemVolumeManager.delete_volume(volume_path)
+
+        assert not volume_path.exists()
+        assert not test_file1.exists()
+        assert not test_file2.exists()
+
+    @pytest.mark.unit
+    def test_delete_volume_with_nonexistent_volume(self):
+        """Test that delete_volume handles nonexistent volumes gracefully."""
+        nonexistent_path = SystemVolumeManager.BASE_PATH / "999" / "nonexistent"
+
+        # Should not raise an error
+        SystemVolumeManager.delete_volume(nonexistent_path)
+
+    @pytest.mark.unit
+    def test_delete_volume_does_not_affect_other_volumes(self, mock_user, mocker):
+        """Test that delete_volume only removes the specified volume."""
+        volume_path1 = SystemVolumeManager.generate_free_volume(mock_user)
+        volume_path2 = SystemVolumeManager.generate_free_volume(mock_user)
+
+        assert volume_path1.exists()
+        assert volume_path2.exists()
+
+        # Delete only the first volume
+        SystemVolumeManager.delete_volume(volume_path1)
+
+        # Check that only the first volume is deleted
+        assert not volume_path1.exists()
+        assert volume_path2.exists()

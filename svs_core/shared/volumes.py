@@ -4,6 +4,7 @@ import string
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from svs_core.docker.json_properties import Volume
 from svs_core.shared.shell import create_directory, remove_directory
 
 if TYPE_CHECKING:
@@ -58,3 +59,13 @@ class SystemVolumeManager:
         user_path = SystemVolumeManager.BASE_PATH / str(user_id)
         if user_path.exists() and user_path.is_dir():
             remove_directory(user_path.as_posix())
+
+    @staticmethod
+    def delete_volume(volume_path: Path) -> None:
+        """Deletes a specific volume.
+
+        Args:
+            volume (Volume): The volume to be deleted.
+        """
+        if volume_path.exists() and volume_path.is_dir():
+            remove_directory(volume_path.as_posix())
