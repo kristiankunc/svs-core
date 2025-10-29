@@ -5,6 +5,7 @@ on:
     branches: [main]
 
 permissions:
+  issues: write
   contents: write
   pull-requests: write
 
@@ -32,4 +33,4 @@ jobs:
         with:
           release-type: python
           package-name: svs_core
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.RELEASE_PLEASE_PAT }}
