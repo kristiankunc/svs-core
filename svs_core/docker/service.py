@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, List, cast
 
 from svs_core.db.models import ServiceModel, ServiceStatus
@@ -471,3 +472,22 @@ class Service(ServiceModel):
 
         container.stop()
         self.save()
+
+    def delete(self) -> None:
+        """Delete the service and its Docker container."""
+        if self.container_id:
+            container = DockerContainerManager.get_container(self.container_id)
+            if container:
+                get_logger(__name__).info(
+                    f"Deleting container '{self.container_id}' for service '{self.name}'"
+                )
+                container.remove(force=True)
+
+        volumes = self.volume_mappings
+        for volume in volumes:
+            if volume.host_path:
+                SystemVolumeManager.delete_volume(Path(volume.host_path))
+
+        get_logger(__name__).info(f"Deleting service '{self.name}'")
+
+        super().delete()

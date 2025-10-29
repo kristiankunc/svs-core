@@ -78,3 +78,22 @@ def stop_service(
 
     service.stop()
     typer.echo(f"✅ Service '{service.name}' stopped successfully.")
+
+
+@app.command("delete")
+def delete_service(
+    service_id: int = typer.Argument(..., help="ID of the service to delete")
+) -> None:
+    """Delete a service."""
+
+    service = Service.objects.get(id=service_id)
+    if not service:
+        typer.echo(f"❌ Service with ID {service_id} not found.", err=True)
+        return
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        typer.echo("❌ You do not have permission to delete this service.", err=True)
+        return
+
+    service.delete()
+    typer.echo(f"✅ Service '{service.name}' deleted successfully.")

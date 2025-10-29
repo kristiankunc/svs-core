@@ -6,7 +6,94 @@ import pytest
 
 from pytest_mock import MockerFixture
 
-from svs_core.shared.shell import run_command
+from svs_core.shared.shell import create_directory, remove_directory, run_command
+
+
+class TestDirectoryManagement:
+    @pytest.mark.unit
+    def test_create_directory_basic(self, mocker: MockerFixture) -> None:
+        """Test that create_directory executes the mkdir command."""
+        mock_run = mocker.patch("subprocess.run")
+        mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
+        mock_run.return_value = mock_process
+
+        create_directory("/tmp/test_dir")
+
+        mock_run.assert_called_once()
+        args, kwargs = mock_run.call_args
+        assert "mkdir -p /tmp/test_dir" == args[0]
+        assert kwargs.get("shell", False)
+        assert kwargs.get("check", False)
+
+    @pytest.mark.unit
+    def test_create_directory_with_logger(self, mocker: MockerFixture) -> None:
+        """Test that create_directory uses provided logger."""
+        mock_run = mocker.patch("subprocess.run")
+        mock_logger = mocker.MagicMock()
+        mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
+        mock_run.return_value = mock_process
+
+        create_directory("/tmp/test_dir", logger=mock_logger)
+
+        mock_logger.log.assert_called()
+        mock_run.assert_called_once()
+
+    @pytest.mark.unit
+    def test_create_directory_multiple_paths(self, mocker: MockerFixture) -> None:
+        """Test that create_directory raises an error for paths with spaces."""
+        mock_run = mocker.patch("subprocess.run")
+        mock_run.side_effect = subprocess.CalledProcessError(
+            returncode=1,
+            cmd="mkdir -p /tmp/my test directory",
+            output="",
+            stderr="error",
+        )
+
+        with pytest.raises(subprocess.CalledProcessError):
+            create_directory("/tmp/my test directory")
+
+        mock_run.assert_called_once()
+
+    @pytest.mark.unit
+    def test_remove_directory_basic(self, mocker: MockerFixture) -> None:
+        """Test that remove_directory executes the rm -rf command."""
+        mock_run = mocker.patch("subprocess.run")
+        mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
+        mock_run.return_value = mock_process
+
+        remove_directory("/tmp/test_dir")
+
+        mock_run.assert_called_once()
+        args, kwargs = mock_run.call_args
+        assert "rm -rf /tmp/test_dir" == args[0]
+        assert kwargs.get("shell", False)
+        assert kwargs.get("check", False)
+
+    @pytest.mark.unit
+    def test_remove_directory_with_logger(self, mocker: MockerFixture) -> None:
+        """Test that remove_directory uses provided logger."""
+        mock_run = mocker.patch("subprocess.run")
+        mock_logger = mocker.MagicMock()
+        mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
+        mock_run.return_value = mock_process
+
+        remove_directory("/tmp/test_dir", logger=mock_logger)
+
+        mock_logger.log.assert_called()
+        mock_run.assert_called_once()
+
+    @pytest.mark.unit
+    def test_remove_directory_with_spaces(self, mocker: MockerFixture) -> None:
+        """Test that remove_directory raises an error for paths with spaces."""
+        mock_run = mocker.patch("subprocess.run")
+        mock_run.side_effect = subprocess.CalledProcessError(
+            returncode=1, cmd="rm -rf /tmp/my test directory", output="", stderr="error"
+        )
+
+        with pytest.raises(subprocess.CalledProcessError):
+            remove_directory("/tmp/my test directory")
+
+        mock_run.assert_called_once()
 
 
 class TestCommandExecution:

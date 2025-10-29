@@ -4,6 +4,42 @@ import subprocess
 from typing import Mapping, Optional
 
 
+def create_directory(path: str, logger: Optional[logging.Logger] = None) -> None:
+    """Creates a directory at the specified path if it does not exist.
+
+    Args:
+        path (str): The directory path to create.
+        logger (Optional[logging.Logger]): custom log handler.
+    """
+    if not logger:
+        from svs_core.shared.logger import get_logger
+
+        logger = get_logger(__name__)
+
+    command = f"mkdir -p {path}"
+    logger.log(logging.DEBUG, f"Creating directory at path: {path}")
+
+    subprocess.run(command, shell=True, check=True)
+
+
+def remove_directory(path: str, logger: Optional[logging.Logger] = None) -> None:
+    """Removes a directory at the specified path if it exists.
+
+    Args:
+        path (str): The directory path to remove.
+        logger (Optional[logging.Logger]): custom log handler.
+    """
+    if not logger:
+        from svs_core.shared.logger import get_logger
+
+        logger = get_logger(__name__)
+
+    command = f"rm -rf {path}"
+    logger.log(logging.DEBUG, f"Removing directory at path: {path}")
+
+    subprocess.run(command, shell=True, check=True)
+
+
 def run_command(
     command: str,
     env: Optional[Mapping[str, str]] = None,
