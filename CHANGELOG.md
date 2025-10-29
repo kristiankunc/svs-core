@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/kristiankunc/svs-core/compare/v0.3.1...v0.3.2) (2025-10-29)
+
+
+### Bug Fixes
+
+* fix typo in install script ([e92945b](https://github.com/kristiankunc/svs-core/commit/e92945babf107d3bfaa20629cdba7c2d7b496e12))
+
 ## [0.3.1](https://github.com/kristiankunc/svs-core/compare/v0.3.0...v0.3.1) (2025-10-27)
 
 
