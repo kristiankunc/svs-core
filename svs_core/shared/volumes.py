@@ -4,6 +4,8 @@ import string
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from svs_core.shared.shell import create_directory, remove_directory
+
 if TYPE_CHECKING:
     from svs_core.users.user import User
 
@@ -38,7 +40,7 @@ class SystemVolumeManager:
             )
             volume_path = base_resolved / str(user.id) / volume_id
             if not volume_path.exists():
-                volume_path.mkdir(parents=True, exist_ok=True)
+                create_directory(volume_path.as_posix())
 
                 return volume_path
 
@@ -55,10 +57,4 @@ class SystemVolumeManager:
         """
         user_path = SystemVolumeManager.BASE_PATH / str(user_id)
         if user_path.exists() and user_path.is_dir():
-            for item in user_path.iterdir():
-                if item.is_dir():
-                    for subitem in item.iterdir():
-                        if subitem.is_file():
-                            subitem.unlink()
-                    item.rmdir()
-            user_path.rmdir()
+            remove_directory(user_path.as_posix())
