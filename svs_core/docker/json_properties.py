@@ -33,6 +33,14 @@ class KeyValue:  # noqa: D101
         """
         return {self.key: self.value}
 
+    def __str__(self) -> str:
+        """Returns a string representation of the KeyValue instance.
+
+        Returns:
+            str: A string in the format 'key=value'.
+        """
+        return f"{self.key}={self.value}"
+
 
 class EnvVariable(KeyValue):  # noqa: D101
     """Environment variable represented as a key-value pair."""
@@ -120,6 +128,16 @@ class ExposedPort:  # noqa: D101
         result["host"] = self.host_port
         return result
 
+    def __str__(self) -> str:
+        """Returns a string representation of the ExposedPort instance.
+
+        Returns:
+            str: A string in the format 'host_port:container_port' or 'container_port' if host_port is None.
+        """
+        if self.host_port is not None:
+            return f"{self.host_port}:{self.container_port}"
+        return f"{self.container_port}"
+
 
 class Volume:  # noqa: D101
     """Represents a volume mapping for a Docker container."""
@@ -178,6 +196,16 @@ class Volume:  # noqa: D101
         result["host"] = self.host_path
         return result
 
+    def __str__(self) -> str:
+        """Returns a string representation of the Volume instance.
+
+        Returns:
+            str: A string in the format 'host_path:container_path' or 'container_path' if host_path is None.
+        """
+        if self.host_path is not None:
+            return f"{self.host_path}:{self.container_path}"
+        return f"{self.container_path}"
+
 
 class Healthcheck:  # noqa: D101
     """Represents a healthcheck configuration for a Docker container."""
@@ -229,18 +257,22 @@ class Healthcheck:  # noqa: D101
 
         interval_value = healthcheck_dict.get("interval")
         interval: str | None = (
-            interval_value if isinstance(interval_value, str) else None
+            str(interval_value) if isinstance(interval_value, (str, int)) else None
         )
 
         timeout_value = healthcheck_dict.get("timeout")
-        timeout: str | None = timeout_value if isinstance(timeout_value, str) else None
+        timeout: str | None = (
+            str(timeout_value) if isinstance(timeout_value, (str, int)) else None
+        )
 
         retries_value = healthcheck_dict.get("retries")
         retries: int | None = retries_value if isinstance(retries_value, int) else None
 
         start_period_value = healthcheck_dict.get("start_period")
         start_period: str | None = (
-            start_period_value if isinstance(start_period_value, str) else None
+            str(start_period_value)
+            if isinstance(start_period_value, (str, int))
+            else None
         )
 
         return cls(
@@ -259,11 +291,28 @@ class Healthcheck:  # noqa: D101
         """
         result: dict[str, str | list[str] | int] = {"test": self.test}
         if self.interval is not None:
-            result["interval"] = self.interval
+            result["interval"] = int(self.interval)
         if self.timeout is not None:
-            result["timeout"] = self.timeout
+            result["timeout"] = int(self.timeout)
         if self.retries is not None:
             result["retries"] = self.retries
         if self.start_period is not None:
-            result["start_period"] = self.start_period
+            result["start_period"] = int(self.start_period)
         return result
+
+    def __str__(self) -> str:
+        """Returns a string representation of the Healthcheck instance.
+
+        Returns:
+            str: A string representation of the healthcheck configuration.
+        """
+        parts = [f"test={self.test}"]
+        if self.interval is not None:
+            parts.append(f"interval={self.interval}")
+        if self.timeout is not None:
+            parts.append(f"timeout={self.timeout}")
+        if self.retries is not None:
+            parts.append(f"retries={self.retries}")
+        if self.start_period is not None:
+            parts.append(f"start_period={self.start_period}")
+        return "Healthcheck(" + ", ".join(parts) + ")"
