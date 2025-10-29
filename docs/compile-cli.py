@@ -7,6 +7,8 @@ import re
 TEMPLATE_FILE = "docs/cli.md.template"
 OUTPUT_FILE = "docs/cli.md"
 
+os.environ["DATABASE_URL"] = "sqlite:///./svs_core.db"
+
 
 def generate_docs(file: str) -> str:
     """Generates CLI documentation using typer's built-in docs utility."""
