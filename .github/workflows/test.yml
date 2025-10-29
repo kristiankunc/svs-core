@@ -94,9 +94,7 @@ jobs:
 
       - name: Run tests
         run: |
-          newgrp svs-admins << EOF
-          pytest --cov --cov-branch --cov-report=xml
-          EOF
+          sg svs-admins pytest --cov --cov-branch --cov-report=xml
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5

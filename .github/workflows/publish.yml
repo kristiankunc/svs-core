@@ -71,7 +71,7 @@ jobs:
 
       - name: Compile CLI docs
         run: |
-          python docs/compile-cli.py
+          sg svs-admins python docs/compile-cli.py
 
       - name: Deploy to GitHub Pages
         run: |
