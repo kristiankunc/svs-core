@@ -23,58 +23,29 @@ class Template(TemplateModel):
     @property
     def env_variables(self) -> List[EnvVariable]:  # noqa: D102
         env_dict = self.default_env or {}
-        return [EnvVariable(key=key, value=value) for key, value in env_dict.items()]
+        return [EnvVariable.from_dict(key, value) for key, value in env_dict.items()]
 
     @property
     def exposed_ports(self) -> List[ExposedPort]:  # noqa: D102
         ports_list = self.default_ports or []
-        result = []
-        for port in ports_list:
-            container_port = port.get("container")
-            if container_port is not None:
-                result.append(
-                    ExposedPort(
-                        container_port=int(container_port),
-                        host_port=(
-                            int(port["host"]) if port.get("host") is not None else None
-                        ),
-                    )
-                )
-        return result
+        return [ExposedPort.from_dict(port) for port in ports_list]
 
     @property
     def volumes(self) -> List[Volume]:  # noqa: D102
         volumes_list = self.default_volumes or []
-        return [
-            Volume(
-                container_path=str(volume["container"]),
-                host_path=(
-                    str(volume["host"]) if volume.get("host") is not None else None
-                ),
-            )
-            for volume in volumes_list
-        ]
+        return [Volume.from_dict(volume) for volume in volumes_list]
 
     @property
     def healthcheck_config(self) -> Healthcheck | None:
         """Returns the healthcheck configuration for the template, if any."""
         healthcheck_dict = self.healthcheck or {}
-        if not healthcheck_dict or "test" not in healthcheck_dict:
-            return None
-
-        return Healthcheck(
-            test=healthcheck_dict.get("test", []),
-            interval=healthcheck_dict.get("interval"),
-            timeout=healthcheck_dict.get("timeout"),
-            retries=healthcheck_dict.get("retries"),
-            start_period=healthcheck_dict.get("start_period"),
-        )
+        return Healthcheck.from_dict(healthcheck_dict)
 
     @property
     def label_list(self) -> List[Label]:
         """Returns the list of labels for the template."""
         labels_dict = self.labels or {}
-        return [Label(key=key, value=value) for key, value in labels_dict.items()]
+        return [Label.from_dict(key, value) for key, value in labels_dict.items()]
 
     @property
     def arguments(self) -> list[str]:
@@ -161,25 +132,10 @@ class Template(TemplateModel):
             for port in default_ports:
                 if not isinstance(port, dict):
                     raise ValueError(f"Port specification must be a dictionary: {port}")
-                if "container" not in port:
-                    raise ValueError(
-                        f"Port specification must contain a 'container' field: {port}"
-                    )
-                if (
-                    not isinstance(port["container"], int)
-                    and port["container"] is not None
-                ):
-                    raise ValueError(
-                        f"Container port must be an integer or None: {port}"
-                    )
-                if (
-                    "host" in port
-                    and port["host"] is not None
-                    and not isinstance(port["host"], int)
-                ):
-                    raise ValueError(
-                        f"Host port must be an integer or None if specified: {port}"
-                    )
+                try:
+                    ExposedPort.from_dict(port)
+                except ValueError as e:
+                    raise ValueError(str(e))
 
         # Validate default_volumes
         if default_volumes is not None:
@@ -188,20 +144,10 @@ class Template(TemplateModel):
                     raise ValueError(
                         f"Volume specification must be a dictionary: {volume}"
                     )
-                if "container" not in volume:
-                    raise ValueError(
-                        f"Volume specification must contain a 'container' field: {volume}"
-                    )
-                if not isinstance(volume["container"], str):
-                    raise ValueError(f"Container path must be a string: {volume}")
-                if (
-                    "host" in volume
-                    and volume["host"] is not None
-                    and not isinstance(volume["host"], str)
-                ):
-                    raise ValueError(
-                        f"Host path must be a string or None if specified: {volume}"
-                    )
+                try:
+                    Volume.from_dict(volume)
+                except ValueError as e:
+                    raise ValueError(str(e))
 
         # Validate start_cmd
         if start_cmd is not None and not isinstance(start_cmd, str):

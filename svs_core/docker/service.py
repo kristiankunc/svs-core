@@ -29,62 +29,27 @@ class Service(ServiceModel):
     @property
     def env_variables(self) -> List[EnvVariable]:  # noqa: D102
         env_dict = self.env or {}
-        return [EnvVariable(key=key, value=value) for key, value in env_dict.items()]
+        return [EnvVariable.from_dict(key, value) for key, value in env_dict.items()]
 
     @property
     def port_mappings(self) -> List[ExposedPort]:  # noqa: D102
         ports_list = self.exposed_ports or []
-        result = []
-        for port in ports_list:
-            container_port = port.get("container")
-            if container_port is not None:  # container_port is required
-                result.append(
-                    ExposedPort(
-                        container_port=int(container_port),
-                        host_port=(
-                            int(port["host"]) if port.get("host") is not None else None
-                        ),
-                    )
-                )
-        return result
+        return [ExposedPort.from_dict(port) for port in ports_list]
 
     @property
     def volume_mappings(self) -> List[Volume]:  # noqa: D102
         volumes_list = self.volumes or []
-        result = []
-        for volume in volumes_list:
-            container_path = volume.get("container")
-            if container_path is not None:  # container_path is required
-                result.append(
-                    Volume(
-                        container_path=str(container_path),
-                        host_path=(
-                            str(volume["host"])
-                            if volume.get("host") is not None
-                            else None
-                        ),
-                    )
-                )
-        return result
+        return [Volume.from_dict(volume) for volume in volumes_list]
 
     @property
     def label_list(self) -> List[Label]:  # noqa: D102
         labels_dict = self.labels or {}
-        return [Label(key=key, value=value) for key, value in labels_dict.items()]
+        return [Label.from_dict(key, value) for key, value in labels_dict.items()]
 
     @property
     def healthcheck_config(self) -> Healthcheck | None:  # noqa: D102
         healthcheck_dict = self.healthcheck or {}
-        if not healthcheck_dict or "test" not in healthcheck_dict:
-            return None
-
-        return Healthcheck(
-            test=healthcheck_dict.get("test", []),
-            interval=healthcheck_dict.get("interval"),
-            timeout=healthcheck_dict.get("timeout"),
-            retries=healthcheck_dict.get("retries"),
-            start_period=healthcheck_dict.get("start_period"),
-        )
+        return Healthcheck.from_dict(healthcheck_dict)
 
     @property
     def template_obj(self) -> Template:  # noqa: D102
@@ -108,17 +73,11 @@ class Service(ServiceModel):
 
     def to_ports_list(self) -> list[dict[str, Any]]:
         """Convert ExposedPort list to list of dictionaries format."""
-        return [
-            {"container": port.container_port, "host": port.host_port}
-            for port in self.port_mappings
-        ]
+        return [port.to_dict() for port in self.port_mappings]
 
     def to_volumes_list(self) -> list[dict[str, Any]]:
         """Convert Volume list to list of dictionaries format."""
-        return [
-            {"container": vol.container_path, "host": vol.host_path}
-            for vol in self.volume_mappings
-        ]
+        return [vol.to_dict() for vol in self.volume_mappings]
 
     def to_labels_dict(self) -> dict[str, str]:
         """Convert Label list to dictionary format."""
@@ -128,17 +87,7 @@ class Service(ServiceModel):
         """Convert Healthcheck object to dictionary format."""
         if not self.healthcheck_config:
             return None
-
-        result: dict[str, Any] = {"test": self.healthcheck_config.test}
-        if self.healthcheck_config.interval:
-            result["interval"] = self.healthcheck_config.interval
-        if self.healthcheck_config.timeout:
-            result["timeout"] = self.healthcheck_config.timeout
-        if self.healthcheck_config.retries:
-            result["retries"] = self.healthcheck_config.retries
-        if self.healthcheck_config.start_period:
-            result["start_period"] = self.healthcheck_config.start_period
-        return result
+        return self.healthcheck_config.to_dict()
 
     def __str__(self) -> str:
         env_vars = [f"{env.key}={env.value}" for env in self.env_variables]
@@ -215,10 +164,7 @@ class Service(ServiceModel):
         if override_env:
             env.update(override_env)
 
-        exposed_ports = [
-            {"container": port.container_port, "host": port.host_port}
-            for port in template.exposed_ports
-        ]
+        exposed_ports = [port.to_dict() for port in template.exposed_ports]
         for override in override_ports or []:
             existing = next(
                 (
@@ -233,10 +179,7 @@ class Service(ServiceModel):
             else:
                 exposed_ports.append(override)
 
-        volumes = [
-            {"container": vol.container_path, "host": vol.host_path}
-            for vol in template.volumes
-        ]
+        volumes = [vol.to_dict() for vol in template.volumes]
         for override in override_volumes or []:
             # TODO: fix later ;)
             existing = next(
@@ -254,15 +197,7 @@ class Service(ServiceModel):
 
         healthcheck: dict[str, Any] | None = None
         if template.healthcheck_config:
-            healthcheck = {"test": template.healthcheck_config.test}
-            if template.healthcheck_config.interval:
-                healthcheck["interval"] = template.healthcheck_config.interval
-            if template.healthcheck_config.timeout:
-                healthcheck["timeout"] = template.healthcheck_config.timeout
-            if template.healthcheck_config.retries:
-                healthcheck["retries"] = template.healthcheck_config.retries
-            if template.healthcheck_config.start_period:
-                healthcheck["start_period"] = template.healthcheck_config.start_period
+            healthcheck = template.healthcheck_config.to_dict()
 
         # TODO: allow partial overrides / merge
         if override_healthcheck:
@@ -361,24 +296,15 @@ class Service(ServiceModel):
 
         if exposed_ports is None:
             template_ports = template.exposed_ports
-            exposed_ports = [
-                {"container": port.container_port, "host": port.host_port}
-                for port in template_ports
-            ]
+            exposed_ports = [port.to_dict() for port in template_ports]
         else:
             for port in exposed_ports:
                 if not isinstance(port, dict) or "container" not in port:
                     raise ValueError(f"Invalid port specification: {port}")
-                if "container" in port and port["container"] is not None:
-                    try:
-                        port["container"] = int(port["container"])
-                    except (ValueError, TypeError):
-                        raise ValueError(f"Container port must be an integer: {port}")
-                if "host" in port and port["host"] is not None:
-                    try:
-                        port["host"] = int(port["host"])
-                    except (ValueError, TypeError):
-                        raise ValueError(f"Host port must be an integer: {port}")
+                try:
+                    ExposedPort.from_dict(port)
+                except ValueError as e:
+                    raise ValueError(str(e))
 
         if env is None:
             template_env = template.env_variables
@@ -394,36 +320,21 @@ class Service(ServiceModel):
 
         if volumes is None:
             template_volumes = template.volumes
-            volumes = [
-                {"container": vol.container_path, "host": vol.host_path}
-                for vol in template_volumes
-            ]
+            volumes = [vol.to_dict() for vol in template_volumes]
         else:
             for volume in volumes:
                 if not isinstance(volume, dict) or "container" not in volume:
                     raise ValueError(f"Invalid volume specification: {volume}")
-                if "container" in volume and volume["container"] is not None:
-                    if not isinstance(volume["container"], str):
-                        raise ValueError(f"Container path must be a string: {volume}")
-                if "host" in volume and volume["host"] is not None:
-                    if not isinstance(volume["host"], str):
-                        raise ValueError(f"Host path must be a string: {volume}")
+                try:
+                    Volume.from_dict(volume)
+                except ValueError as e:
+                    raise ValueError(str(e))
 
         if command is None:
             command = template.start_cmd
 
         if healthcheck is None and template.healthcheck_config:
-            healthcheck_obj = template.healthcheck_config
-            healthcheck = {"test": healthcheck_obj.test}
-
-            if healthcheck_obj.interval:
-                healthcheck["interval"] = healthcheck_obj.interval
-            if healthcheck_obj.timeout:
-                healthcheck["timeout"] = healthcheck_obj.timeout
-            if healthcheck_obj.retries:
-                healthcheck["retries"] = healthcheck_obj.retries
-            if healthcheck_obj.start_period:
-                healthcheck["start_period"] = healthcheck_obj.start_period
+            healthcheck = template.healthcheck_config.to_dict()
 
         elif healthcheck is not None:
             if not isinstance(healthcheck, dict):
