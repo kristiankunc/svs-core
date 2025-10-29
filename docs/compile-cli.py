@@ -10,7 +10,14 @@ OUTPUT_FILE = "docs/cli.md"
 
 def generate_docs(file: str) -> str:
     """Generates CLI documentation using typer's built-in docs utility."""
-    output = os.popen(f"typer {file} utils docs --name svs").read()
+    stream = os.popen(f"typer {file} utils docs --name svs")
+    output = stream.read()
+    exit_code = stream.close()
+
+    if exit_code is not None:
+        print(f"Error: Failed to generate docs for {file}.")
+        exit(1)
+
     output = output.replace("SVS CLI\n\n", "")
     output = re.sub(
         r".*\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}: \[[A-Z]+\].*\n?", "", output

@@ -40,6 +40,10 @@ jobs:
         run: |
           sg svs-admins python docs/compile-cli.py
 
+      - name: Tree the docs directory
+        run: |
+          tree docs/
+
       - name: Deploy to GitHub Pages
         run: |
           mkdocs gh-deploy --force
