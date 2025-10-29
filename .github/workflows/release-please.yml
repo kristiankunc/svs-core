@@ -29,8 +29,7 @@ jobs:
         run: npm install -g release-please
 
       - name: Generate Release PR
-        uses: google-github-actions/release-please-action@v4
+        uses: googleapis/release-please-action@v4
         with:
           release-type: python
-          package-name: svs_core
           token: ${{ secrets.RELEASE_PLEASE_PAT }}
