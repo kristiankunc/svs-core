@@ -215,6 +215,183 @@ class TestService:
     @pytest.mark.integration
     @pytest.mark.django_db
     @patch("svs_core.docker.service.DockerContainerManager.create_container")
+    @patch("svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000)
+    @patch("svs_core.shared.volumes.SystemVolumeManager.generate_free_volume")
+    def test_service_env_merge_overwrites_template_values(
+        self,
+        mock_generate_volume,
+        mock_find_free_port,
+        mock_create_container,
+        test_template,
+        test_user,
+    ):
+        """Test that override env vars overwrite template env vars with same
+        key."""
+        mock_container = MagicMock()
+        mock_container.id = "test_container"
+        mock_create_container.return_value = mock_container
+
+        mock_volume_path = MagicMock()
+        mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
+        mock_generate_volume.return_value = mock_volume_path
+
+        # Override an existing template env var (NGINX_PORT)
+        service = Service.create_from_template(
+            name="env-merge-test",
+            template_id=test_template.id,
+            user=test_user,
+            override_env=[
+                EnvVariable(key="NGINX_PORT", value="8080"),  # Override template's 80
+                EnvVariable(key="NEW_VAR", value="new_value"),  # New var
+            ],
+        )
+
+        env_dict = {env.key: env.value for env in service.env}
+
+        # Verify override took precedence
+        assert env_dict["NGINX_PORT"] == "8080"
+        # Verify new var added
+        assert env_dict["NEW_VAR"] == "new_value"
+        # Verify other template vars preserved
+        assert env_dict["NGINX_HOST"] == "localhost"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    @patch("svs_core.docker.service.DockerContainerManager.create_container")
+    @patch("svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000)
+    @patch("svs_core.shared.volumes.SystemVolumeManager.generate_free_volume")
+    def test_service_port_merge_overwrites_template_ports(
+        self,
+        mock_generate_volume,
+        mock_find_free_port,
+        mock_create_container,
+        test_template,
+        test_user,
+    ):
+        """Test that override ports overwrite template ports with same
+        container_port."""
+        mock_container = MagicMock()
+        mock_container.id = "test_container"
+        mock_create_container.return_value = mock_container
+
+        mock_volume_path = MagicMock()
+        mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
+        mock_generate_volume.return_value = mock_volume_path
+
+        # Override existing template port (80)
+        service = Service.create_from_template(
+            name="port-merge-test",
+            template_id=test_template.id,
+            user=test_user,
+            override_ports=[
+                ExposedPort(
+                    host_port=8080, container_port=80
+                ),  # Override template's 80
+                ExposedPort(host_port=8443, container_port=443),  # New port
+            ],
+        )
+
+        ports_dict = {
+            port.container_port: port.host_port for port in service.exposed_ports
+        }
+
+        # Verify override took precedence
+        assert ports_dict[80] == 8080
+        # Verify new port added
+        assert ports_dict[443] == 8443
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    @patch("svs_core.docker.service.DockerContainerManager.create_container")
+    @patch("svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000)
+    @patch("svs_core.shared.volumes.SystemVolumeManager.generate_free_volume")
+    def test_service_volume_merge_overwrites_template_volumes(
+        self,
+        mock_generate_volume,
+        mock_find_free_port,
+        mock_create_container,
+        test_template,
+        test_user,
+    ):
+        """Test that override volumes overwrite template volumes with same
+        container_path."""
+        mock_container = MagicMock()
+        mock_container.id = "test_container"
+        mock_create_container.return_value = mock_container
+
+        mock_volume_path = MagicMock()
+        mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
+        mock_generate_volume.return_value = mock_volume_path
+
+        # Override existing template volume
+        service = Service.create_from_template(
+            name="volume-merge-test",
+            template_id=test_template.id,
+            user=test_user,
+            override_volumes=[
+                Volume(
+                    host_path="/custom/nginx",
+                    container_path="/usr/share/nginx/html",
+                ),  # Override template's /tmp/nginx
+                Volume(
+                    host_path="/config", container_path="/etc/nginx/conf.d"
+                ),  # New volume
+            ],
+        )
+
+        volumes_dict = {vol.container_path: vol.host_path for vol in service.volumes}
+
+        # Verify override took precedence
+        assert volumes_dict["/usr/share/nginx/html"] == "/custom/nginx"
+        # Verify new volume added
+        assert volumes_dict["/etc/nginx/conf.d"] == "/config"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    @patch("svs_core.docker.service.DockerContainerManager.create_container")
+    @patch("svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000)
+    @patch("svs_core.shared.volumes.SystemVolumeManager.generate_free_volume")
+    def test_service_label_merge_overwrites_template_labels(
+        self,
+        mock_generate_volume,
+        mock_find_free_port,
+        mock_create_container,
+        test_template,
+        test_user,
+    ):
+        """Test that override labels overwrite template labels with same
+        key."""
+        mock_container = MagicMock()
+        mock_container.id = "test_container"
+        mock_create_container.return_value = mock_container
+
+        mock_volume_path = MagicMock()
+        mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
+        mock_generate_volume.return_value = mock_volume_path
+
+        # Override existing template label
+        service = Service.create_from_template(
+            name="label-merge-test",
+            template_id=test_template.id,
+            user=test_user,
+            override_labels=[
+                Label(key="version", value="2.0"),  # Override template's 1.0
+                Label(key="environment", value="staging"),  # New label
+            ],
+        )
+
+        labels_dict = {label.key: label.value for label in service.labels}
+
+        # Verify override took precedence
+        assert labels_dict["version"] == "2.0"
+        # Verify new label added
+        assert labels_dict["environment"] == "staging"
+        # Verify other template labels preserved
+        assert labels_dict["app"] == "nginx"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    @patch("svs_core.docker.service.DockerContainerManager.create_container")
     @patch("svs_core.docker.service.DockerContainerManager.get_container")
     def test_service_lifecycle(
         self,
