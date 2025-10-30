@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0](https://github.com/kristiankunc/svs-core/compare/v0.3.2...v0.4.0) (2025-10-30)
+
+
+### Features
+
+* Implement service parameter overrides ([#68](https://github.com/kristiankunc/svs-core/issues/68)) ([9ad0f8e](https://github.com/kristiankunc/svs-core/commit/9ad0f8e283516238c8caf2c66f5563eee5e42bd6))
+* Refactor JSON db fields handling ([#58](https://github.com/kristiankunc/svs-core/issues/58)) ([ff99cc3](https://github.com/kristiankunc/svs-core/commit/ff99cc33184f5b9a2d1ffbdbba431cf846eb1924))
+
+
+### Bug Fixes
+
+* Overhaul json props ([#55](https://github.com/kristiankunc/svs-core/issues/55)) ([66f1706](https://github.com/kristiankunc/svs-core/commit/66f1706458016ab4ebf74e1de6abe97cfca6d87a))
+* Remove internal Docker APIs from docs ([6e845d0](https://github.com/kristiankunc/svs-core/commit/6e845d028edd1a0081019a9eda7f004055a15080))
+* Use proper permissions for volume management ([#57](https://github.com/kristiankunc/svs-core/issues/57)) ([33855d5](https://github.com/kristiankunc/svs-core/commit/33855d5c3481a546809917e08904a0a08e52dbe8))
+
 ## [0.3.2](https://github.com/kristiankunc/svs-core/compare/v0.3.1...v0.3.2) (2025-10-29)
 
 
