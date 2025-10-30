@@ -2,6 +2,14 @@ from enum import Enum
 
 from django.db import models
 
+from svs_core.docker.json_properties import (
+    EnvVariable,
+    ExposedPort,
+    Healthcheck,
+    Label,
+    Volume,
+)
+
 
 class UserManager(models.Manager["UserModel"]):  # type: ignore[misc]
     """Typed manager for UserModel."""
@@ -61,13 +69,58 @@ class TemplateModel(BaseModel):
     image = models.CharField(max_length=255, null=True, blank=True)
     dockerfile = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    default_env = models.JSONField(null=True, blank=True, default=dict)
-    default_ports = models.JSONField(null=True, blank=True, default=list)
-    default_volumes = models.JSONField(null=True, blank=True, default=list)
     start_cmd = models.CharField(max_length=512, null=True, blank=True)
-    healthcheck = models.JSONField(null=True, blank=True, default=dict)
-    labels = models.JSONField(null=True, blank=True, default=dict)
     args = models.JSONField(null=True, blank=True, default=list)
+
+    _default_env = models.JSONField(null=True, blank=True, default=dict)
+    _default_ports = models.JSONField(null=True, blank=True, default=list)
+    _default_volumes = models.JSONField(null=True, blank=True, default=list)
+    _healthcheck = models.JSONField(null=True, blank=True, default=dict)
+    _labels = models.JSONField(null=True, blank=True, default=dict)
+
+    @property
+    def default_env(self) -> list[EnvVariable]:  # noqa: D102
+        return EnvVariable.from_dict_array(self._default_env or [])
+
+    @default_env.setter
+    def default_env(self, env_vars: list[EnvVariable]) -> None:  # noqa: D102
+        self._default_env = EnvVariable.to_dict_array(env_vars)
+
+    @property
+    def default_ports(self) -> list[ExposedPort]:  # noqa: D102
+        return ExposedPort.from_dict_array(self._default_ports or [])
+
+    @default_ports.setter
+    def default_ports(self, ports: list[ExposedPort]) -> None:  # noqa: D102
+        self._default_ports = ExposedPort.to_dict_array(ports)
+
+    @property
+    def default_volumes(self) -> list[Volume]:  # noqa: D102
+        return Volume.from_dict_array(self._default_volumes or [])
+
+    @default_volumes.setter
+    def default_volumes(self, volumes: list[Volume]) -> None:
+        self._default_volumes = Volume.to_dict_array(volumes)
+
+    @property
+    def healthcheck(self) -> Healthcheck | None:  # noqa: D102
+        return (
+            Healthcheck.from_dict(self._healthcheck)
+            if self._healthcheck is not None
+            else None
+        )
+
+    @healthcheck.setter
+    def healthcheck(self, healthcheck: Healthcheck | None) -> None:  # noqa: D102
+        self._healthcheck = healthcheck.to_dict() if healthcheck is not None else None
+
+    @property
+    def labels(self) -> list[Label]:  # noqa: D102
+        return Label.from_dict_array(self._labels or [])
+
+    @labels.setter
+    def labels(self, labels: list[Label]) -> None:  # noqa: D102
+        self._labels = Label.to_dict_array(labels)
 
     class Meta:  # noqa: D106
         db_table = "templates"
@@ -109,21 +162,74 @@ class ServiceModel(BaseModel):
     container_id = models.CharField(max_length=255, null=True, blank=True)
     image = models.CharField(max_length=255, null=True, blank=True)
     domain = models.CharField(max_length=255, null=True, blank=True)
-    env = models.JSONField(null=True, blank=True, default=dict)
-    exposed_ports = models.JSONField(null=True, blank=True, default=list)
-    volumes = models.JSONField(null=True, blank=True, default=list)
     command = models.CharField(max_length=512, null=True, blank=True)
-    labels = models.JSONField(null=True, blank=True, default=dict)
     args = models.JSONField(null=True, blank=True, default=list)
-    healthcheck = models.JSONField(null=True, blank=True, default=dict)
-    networks = models.JSONField(null=True, blank=True, default=list)
-    exit_code = models.IntegerField(null=True, blank=True)
+
+    _env = models.JSONField(null=True, blank=True, default=dict)
+    _exposed_ports = models.JSONField(null=True, blank=True, default=list)
+    _volumes = models.JSONField(null=True, blank=True, default=list)
+    _labels = models.JSONField(null=True, blank=True, default=dict)
+    _healthcheck = models.JSONField(null=True, blank=True, default=dict)
+    _networks = models.JSONField(null=True, blank=True, default=list)
+
     template = models.ForeignKey(
         TemplateModel, on_delete=models.CASCADE, related_name="services"
     )
     user = models.ForeignKey(
         UserModel, on_delete=models.CASCADE, related_name="services"
     )
+
+    @property
+    def env(self) -> list[EnvVariable]:  # noqa: D102
+        return EnvVariable.from_dict_array(self._env or [])
+
+    @env.setter
+    def env(self, env_vars: list[EnvVariable]) -> None:  # noqa: D102
+        self._env = EnvVariable.to_dict_array(env_vars)
+
+    @property
+    def exposed_ports(self) -> list[ExposedPort]:  # noqa: D102
+        return ExposedPort.from_dict_array(self._exposed_ports or [])
+
+    @exposed_ports.setter
+    def exposed_ports(self, ports: list[ExposedPort]) -> None:  # noqa: D102
+        self._exposed_ports = ExposedPort.to_dict_array(ports)
+
+    @property
+    def volumes(self) -> list[Volume]:  # noqa: D102
+        return Volume.from_dict_array(self._volumes or [])
+
+    @volumes.setter
+    def volumes(self, volumes: list[Volume]) -> None:  # noqa: D102
+        self._volumes = Volume.to_dict_array(volumes)
+
+    @property
+    def labels(self) -> list[Label]:  # noqa: D102
+        return Label.from_dict_array(self._labels or [])
+
+    @labels.setter
+    def labels(self, labels: list[Label]) -> None:  # noqa: D102
+        self._labels = Label.to_dict_array(labels)
+
+    @property
+    def healthcheck(self) -> Healthcheck | None:  # noqa: D102
+        return (
+            Healthcheck.from_dict(self._healthcheck)
+            if self._healthcheck is not None
+            else None
+        )
+
+    @healthcheck.setter
+    def healthcheck(self, healthcheck: Healthcheck | None) -> None:  # noqa: D102
+        self._healthcheck = healthcheck.to_dict() if healthcheck is not None else None
+
+    @property
+    def networks(self) -> list[str]:  # noqa: D102
+        return self._networks.split(",") if self._networks else []
+
+    @networks.setter
+    def networks(self, networks: list[str] | None) -> None:  # noqa: D102
+        self._networks = ",".join(networks) if networks else None
 
     class Meta:  # noqa: D106
         db_table = "services"
