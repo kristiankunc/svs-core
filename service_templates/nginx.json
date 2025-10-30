@@ -20,16 +20,16 @@
 	"description": "A minimal NGINX web server with default config",
 	"dockerfile": null,
 	"healthcheck": {
-		"interval": "30",
+		"interval": 30,
 		"retries": 3,
-		"start_period": "5",
+		"start_period": 5,
 		"test": [
 			"CMD",
 			"curl",
 			"-f",
 			"http://localhost/"
 		],
-		"timeout": "10"
+		"timeout": 10
 	},
 	"image": "nginx:latest",
 	"name": "nginx-webserver",

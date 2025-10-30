@@ -6,6 +6,13 @@ from unittest.mock import patch
 import pytest
 
 from svs_core.db.models import TemplateType
+from svs_core.docker.json_properties import (
+    EnvVariable,
+    ExposedPort,
+    Healthcheck,
+    Label,
+    Volume,
+)
 from svs_core.docker.template import Template
 
 
@@ -27,11 +34,11 @@ class TestTemplate:
             type=TemplateType.IMAGE,
             image=f"{image_name}:{tag}",
             description="Test Alpine Image",
-            default_env={"TEST_VAR": "test_value"},
-            default_ports=[{"container": 80, "host": 8080}],
-            default_volumes=[{"container": "/data", "host": "/tmp/data"}],
+            default_env=[EnvVariable(key="TEST_VAR", value="test_value")],
+            default_ports=[ExposedPort(container_port=80, host_port=8080)],
+            default_volumes=[Volume(container_path="/data", host_path="/tmp/data")],
             start_cmd="sh -c 'echo hello'",
-            labels={"app": "test"},
+            labels=[Label(key="app", value="test")],
             args=["ARG1=value1"],
         )
 
@@ -47,24 +54,24 @@ class TestTemplate:
         mock_pull.assert_called_once_with(image_name, tag)
 
         # Verify JSON properties
-        assert len(template.env_variables) == 1
-        assert template.env_variables[0].key == "TEST_VAR"
-        assert template.env_variables[0].value == "test_value"
+        assert len(template.default_env) == 1
+        assert template.default_env[0].key == "TEST_VAR"
+        assert template.default_env[0].value == "test_value"
 
-        assert len(template.exposed_ports) == 1
-        assert template.exposed_ports[0].container_port == 80
-        assert template.exposed_ports[0].host_port == 8080
+        assert len(template.default_ports) == 1
+        assert template.default_ports[0].container_port == 80
+        assert template.default_ports[0].host_port == 8080
 
-        assert len(template.volumes) == 1
-        assert template.volumes[0].container_path == "/data"
-        assert template.volumes[0].host_path == "/tmp/data"
+        assert len(template.default_volumes) == 1
+        assert template.default_volumes[0].container_path == "/data"
+        assert template.default_volumes[0].host_path == "/tmp/data"
 
-        assert len(template.label_list) == 1
-        assert template.label_list[0].key == "app"
-        assert template.label_list[0].value == "test"
+        assert len(template.labels) == 1
+        assert template.labels[0].key == "app"
+        assert template.labels[0].value == "test"
 
-        assert len(template.arguments) == 1
-        assert template.arguments[0] == "ARG1=value1"
+        assert len(template.args) == 1
+        assert template.args[0] == "ARG1=value1"
 
     @pytest.mark.integration
     @pytest.mark.django_db
@@ -105,61 +112,64 @@ class TestTemplate:
             name="test-properties",
             type=TemplateType.IMAGE,
             image="nginx:alpine",
-            default_env={"KEY1": "value1", "KEY2": "value2"},
+            default_env=[
+                EnvVariable(key="KEY1", value="value1"),
+                EnvVariable(key="KEY2", value="value2"),
+            ],
             default_ports=[
-                {"container": 80, "host": 8080},
-                {"container": 443, "host": 8443},
+                ExposedPort(container_port=80, host_port=8080),
+                ExposedPort(container_port=443, host_port=8443),
             ],
             default_volumes=[
-                {"container": "/data", "host": "/tmp/data"},
-                {"container": "/config", "host": None},
+                Volume(container_path="/data", host_path="/tmp/data"),
+                Volume(container_path="/config", host_path=None),
             ],
-            healthcheck={
-                "test": ["CMD", "curl", "-f", "http://localhost"],
-                "interval": 3,
-                "timeout": 5,
-                "retries": 3,
-                "start_period": 5,
-            },
-            labels={"app": "web", "environment": "test"},
+            healthcheck=Healthcheck(
+                test=["CMD", "curl", "-f", "http://localhost"],
+                interval=3,
+                timeout=5,
+                retries=3,
+                start_period=5,
+            ),
+            labels=[
+                Label(key="app", value="web"),
+                Label(key="environment", value="test"),
+            ],
         )
 
         # Test env_variables property
-        assert len(template.env_variables) == 2
-        env_vars = {ev.key: ev.value for ev in template.env_variables}
+        assert len(template.default_env) == 2
+        env_vars = {ev.key: ev.value for ev in template.default_env}
         assert env_vars == {"KEY1": "value1", "KEY2": "value2"}
 
         # Test exposed_ports property
-        assert len(template.exposed_ports) == 2
-        assert template.exposed_ports[0].container_port == 80
-        assert template.exposed_ports[0].host_port == 8080
-        assert template.exposed_ports[1].container_port == 443
-        assert template.exposed_ports[1].host_port == 8443
+        assert len(template.default_ports) == 2
+        assert template.default_ports[0].container_port == 80
+        assert template.default_ports[0].host_port == 8080
+        assert template.default_ports[1].container_port == 443
+        assert template.default_ports[1].host_port == 8443
 
         # Test volumes property
-        assert len(template.volumes) == 2
-        assert template.volumes[0].container_path == "/data"
-        assert template.volumes[0].host_path == "/tmp/data"
-        assert template.volumes[1].container_path == "/config"
-        assert template.volumes[1].host_path is None
+        assert len(template.default_volumes) == 2
+        assert template.default_volumes[0].container_path == "/data"
+        assert template.default_volumes[0].host_path == "/tmp/data"
+        assert template.default_volumes[1].container_path == "/config"
+        assert template.default_volumes[1].host_path is None
 
         # Test healthcheck_config property
-        assert template.healthcheck_config is not None
-        assert template.healthcheck_config.test == [
-            "CMD",
-            "curl",
-            "-f",
-            "http://localhost",
-        ]
-
-        assert int(template.healthcheck_config.interval or 0) == 3
-        assert int(template.healthcheck_config.timeout or 0) == 5
-        assert int(template.healthcheck_config.retries or 0) == 3
-        assert int(template.healthcheck_config.start_period or 0) == 5
+        assert template.healthcheck is not None
+        assert (
+            template.healthcheck.test
+            == Healthcheck(test=["CMD", "curl", "-f", "http://localhost"]).test
+        )
+        assert int(template.healthcheck.interval) == 3  # type: ignore
+        assert int(template.healthcheck.timeout) == 5  # type: ignore
+        assert int(template.healthcheck.retries) == 3  # type: ignore
+        assert int(template.healthcheck.start_period) == 5  # type: ignore
 
         # Test label_list property
-        assert len(template.label_list) == 2
-        labels = {label.key: label.value for label in template.label_list}
+        assert len(template.labels) == 2
+        labels = {label.key: label.value for label in template.labels}
         assert labels == {"app": "web", "environment": "test"}
 
     @pytest.mark.integration
@@ -189,13 +199,13 @@ class TestTemplate:
         assert template.description == "Redis template from JSON"
 
         # Verify the template properties
-        assert len(template.env_variables) == 2
-        env_vars = {ev.key: ev.value for ev in template.env_variables}
+        assert len(template.default_env) == 2
+        env_vars = {ev.key: ev.value for ev in template.default_env}
         assert env_vars == {"REDIS_PORT": "6379", "REDIS_PASSWORD": "secret"}
 
-        assert len(template.exposed_ports) == 1
-        assert template.exposed_ports[0].container_port == 6379
-        assert template.exposed_ports[0].host_port == 6379
+        assert len(template.default_ports) == 1
+        assert template.default_ports[0].container_port == 6379
+        assert template.default_ports[0].host_port == 6379
 
         # Verify DockerImageManager.pull was called correctly
         mock_pull.assert_called_with("redis", "alpine")
@@ -211,21 +221,23 @@ class TestTemplate:
             type=TemplateType.IMAGE,
             image="busybox:latest",
             description="Test string representation",
-            default_env={"TEST": "value"},
-            default_ports=[{"container": 8080, "host": 80}],
-            default_volumes=[{"container": "/app", "host": "/host/app"}],
-            healthcheck={"test": ["CMD", "test", "-e", "/tmp/healthy"]},
+            default_env=[EnvVariable(key="TEST", value="value")],
+            default_ports=[ExposedPort(host_port=80, container_port=8080)],
+            default_volumes=[Volume(container_path="/app", host_path="/host/app")],
+            healthcheck=Healthcheck(test=["CMD", "test", "-e", "/tmp/healthy"]),
         )
 
         string_repr = str(template)
+        print("\n\n")
+        print(string_repr)
 
         # Verify key elements are present in string representation
         assert "string-test" in string_repr
         assert "busybox:latest" in string_repr
         assert "TEST=value" in string_repr
-        assert "8080:80" in string_repr
-        assert "/app:/host/app" in string_repr
-        assert "test='CMD test -e /tmp/healthy'" in string_repr
+        assert "80=8080" in string_repr
+        assert "/host/app=/app" in string_repr
+        assert "test=['CMD', 'test', '-e', '/tmp/healthy']" in string_repr
 
     @pytest.mark.integration
     @pytest.mark.django_db
@@ -258,25 +270,25 @@ class TestTemplate:
         assert template.start_cmd is None
 
         # Verify ports
-        assert len(template.exposed_ports) == 1
-        assert template.exposed_ports[0].container_port == 80
-        assert template.exposed_ports[0].host_port is None
+        assert len(template.default_ports) == 1
+        assert template.default_ports[0].container_port == 80
+        assert template.default_ports[0].host_port is None
 
         # Verify volumes
-        assert len(template.volumes) == 2
-        container_paths = [vol.container_path for vol in template.volumes]
+        assert len(template.default_volumes) == 2
+        container_paths = [vol.container_path for vol in template.default_volumes]
         assert "/usr/share/nginx/html" in container_paths
         assert "/etc/nginx/conf.d" in container_paths
 
         # Verify healthcheck
-        assert template.healthcheck_config is not None
-        assert template.healthcheck_config.test == [
+        assert template.healthcheck is not None
+        assert template.healthcheck.test == [
             "CMD",
             "curl",
             "-f",
             "http://localhost/",
         ]
-        assert template.healthcheck_config.retries == 3
+        assert template.healthcheck.retries == 3
 
         # Verify DockerImageManager.pull was called correctly
         mock_pull.assert_called_with("nginx", "latest")
@@ -303,24 +315,13 @@ class TestTemplate:
         ):
             Template.create(name="test-missing-dockerfile", type=TemplateType.BUILD)
 
-        # Test invalid port specification
-        with pytest.raises(
-            ValueError, match="Port specification must contain a 'container' field"
-        ):
-            Template.create(
-                name="test-invalid-port",
-                type=TemplateType.IMAGE,
-                image="alpine",
-                default_ports=[{"host": 8080}],  # Missing container field
-            )
-
         # Test invalid healthcheck
         with pytest.raises(ValueError, match="Healthcheck must contain a 'test' field"):
             Template.create(
                 name="test-invalid-healthcheck",
                 type=TemplateType.IMAGE,
                 image="alpine",
-                healthcheck={"interval": 30000000000},  # Missing test field
+                healthcheck=Healthcheck(test=[]),
             )
 
     @pytest.mark.integration

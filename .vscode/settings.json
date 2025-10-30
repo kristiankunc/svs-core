@@ -21,7 +21,7 @@
 	},
 	"editor.formatOnSave": true,
 	"mypy-type-checker.path": [
-		".venv/bin/mypy"
+		"/usr/local/python/current/bin/mypy"
 	],
 	"mypy-type-checker.preferDaemon": true,
 	"mypy-type-checker.reportingScope": "workspace",

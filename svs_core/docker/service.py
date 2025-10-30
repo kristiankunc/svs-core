@@ -28,31 +28,6 @@ class Service(ServiceModel):
         proxy = True
 
     @property
-    def env_variables(self) -> List[EnvVariable]:  # noqa: D102
-        env_dict = self.env or {}
-        return [EnvVariable.from_dict(key, value) for key, value in env_dict.items()]
-
-    @property
-    def port_mappings(self) -> List[ExposedPort]:  # noqa: D102
-        ports_list = self.exposed_ports or []
-        return [ExposedPort.from_dict(port) for port in ports_list]
-
-    @property
-    def volume_mappings(self) -> List[Volume]:  # noqa: D102
-        volumes_list = self.volumes or []
-        return [Volume.from_dict(volume) for volume in volumes_list]
-
-    @property
-    def label_list(self) -> List[Label]:  # noqa: D102
-        labels_dict = self.labels or {}
-        return [Label.from_dict(key, value) for key, value in labels_dict.items()]
-
-    @property
-    def healthcheck_config(self) -> Healthcheck | None:  # noqa: D102
-        healthcheck_dict = self.healthcheck or {}
-        return Healthcheck.from_dict(healthcheck_dict)
-
-    @property
     def template_obj(self) -> Template:  # noqa: D102
         return cast(Template, Template.objects.get(id=self.template_id))
 
@@ -64,59 +39,19 @@ class Service(ServiceModel):
 
         return ServiceStatus.from_str(container.status)
 
-    @property
-    def user_obj(self) -> User:  # noqa: D102
-        return cast(User, User.objects.get(id=self.user_id))
-
-    def to_env_dict(self) -> dict[str, str]:
-        """Convert EnvVariable list to dictionary format."""
-        return {env.key: env.value for env in self.env_variables}
-
-    def to_ports_list(self) -> list[dict[str, Any]]:
-        """Convert ExposedPort list to list of dictionaries format."""
-        return [port.to_dict() for port in self.port_mappings]
-
-    def to_volumes_list(self) -> list[dict[str, Any]]:
-        """Convert Volume list to list of dictionaries format."""
-        return [vol.to_dict() for vol in self.volume_mappings]
-
-    def to_labels_dict(self) -> dict[str, str]:
-        """Convert Label list to dictionary format."""
-        return {label.key: label.value for label in self.label_list}
-
-    def to_healthcheck_dict(self) -> dict[str, Any] | None:
-        """Convert Healthcheck object to dictionary format."""
-        if not self.healthcheck_config:
-            return None
-        return self.healthcheck_config.to_dict()
-
-    def __str__(self) -> str:
-        env_vars = [f"{env.key}={env.value}" for env in self.env_variables]
-        ports = [
-            f"{port.container_port}:{port.host_port}" for port in self.port_mappings
-        ]
-        volumes = [
-            f"{vol.container_path}:{vol.host_path or 'None'}"
-            for vol in self.volume_mappings
-        ]
-        labels = [f"{label.key}={label.value}" for label in self.label_list]
-
-        healthcheck_str = "None"
-        if self.healthcheck_config:
-            test_str = " ".join(self.healthcheck_config.test)
-            healthcheck_str = f"test='{test_str}'"
-
+    def __str__(self) -> str:  # noqa: D105
         return (
-            f"Service(id={self.id}, name={self.name}, domain={self.domain}, "
-            f"container_id={self.container_id}, image={self.image}, "
-            f"exposed_ports=[{', '.join(ports)}], "
-            f"env=[{', '.join(env_vars)}], "
-            f"volumes=[{', '.join(volumes)}], "
+            f"Service(id={self.id}, name={self.name}, template_id={self.template_id}, "
+            f"user_id={self.user_id}, domain={self.domain}, container_id={self.container_id}, "
+            f"image={self.image}, "
+            f"exposed_ports={[port.__str__() for port in self.exposed_ports]}, "
+            f"env={[var.__str__() for var in self.env]}, "
+            f"volumes={[vol.__str__() for vol in self.volumes]}, "
             f"command={self.command}, "
-            f"healthcheck={healthcheck_str}, "
-            f"labels=[{', '.join(labels)}], "
-            f"args={self.args}, networks={self.networks}, "
-            f"status={self.status}, exit_code={self.exit_code})"
+            f"healthcheck={self.healthcheck}, "
+            f"labels={[label.__str__() for label in self.labels]}, "
+            f"args={self.args}, "
+            f"status={self.status})"
         )
 
     @classmethod
@@ -126,12 +61,12 @@ class Service(ServiceModel):
         template_id: int,
         user: User,
         domain: str | None = None,
-        override_env: dict[str, str] | None = None,
-        override_ports: list[dict[str, Any]] | None = None,
-        override_volumes: list[dict[str, Any]] | None = None,
+        override_env: list[EnvVariable] | None = None,
+        override_ports: list[ExposedPort] | None = None,
+        override_volumes: list[Volume] | None = None,
         override_command: str | None = None,
-        override_healthcheck: dict[str, Any] | None = None,
-        override_labels: dict[str, str] | None = None,
+        override_healthcheck: Healthcheck | None = None,
+        override_labels: list[Label] | None = None,
         override_args: list[str] | None = None,
         networks: list[str] | None = None,
     ) -> Service:
@@ -139,16 +74,17 @@ class Service(ServiceModel):
 
         Args:
             name (str): The name of the service.
+            template_id (int): The ID of the template to use.
             user (User): The user who owns this service.
             domain (str, optional): The domain for this service.
-            override_env (dict, optional): Environment variables to override template defaults.
-            override_ports (list[dict], optional): Exposed ports to override template defaults.
-            override_volumes (list[dict], optional): Volume mappings to override template defaults.
-            override_command (str, optional): Command to override template default.
-            override_healthcheck (dict, optional): Healthcheck configuration to override template default.
-            override_labels (dict, optional): Container labels to override template defaults.
-            override_args (list, optional): Command arguments to override template defaults.
-            networks (list, optional): Networks to connect to.
+            override_env (list[EnvVariable], optional): Environment variables to override.
+            override_ports (list[ExposedPort], optional): Exposed ports to override.
+            override_volumes (list[Volume], optional): Volumes to override.
+            override_command (str, optional): Command to run in the container.
+            override_healthcheck (Healthcheck, optional): Healthcheck configuration.
+            override_labels (list[Label], optional): Container labels to override.
+            override_args (list[str], optional): Command arguments to override.
+            networks (list[str], optional): Networks to connect to.
 
         Returns:
             Service: The created service instance.
@@ -156,66 +92,30 @@ class Service(ServiceModel):
         Raises:
             ValueError: If name is empty or template_id doesn't correspond to an existing template.
         """
+
         try:
             template = Template.objects.get(id=template_id)
         except Template.DoesNotExist:
             raise ValueError(f"Template with ID {template_id} does not exist")
 
-        env = {var.key: var.value for var in template.env_variables}
-        if override_env:
-            env.update(override_env)
+        if not name:
+            raise ValueError("Service name cannot be empty")
 
-        exposed_ports = [port.to_dict() for port in template.exposed_ports]
-        for override in override_ports or []:
-            existing = next(
-                (
-                    p
-                    for p in exposed_ports
-                    if p["container"] == override.get("container")
-                ),
-                None,
-            )
-            if existing:
-                existing.update(override)
-            else:
-                exposed_ports.append(override)
+        # TODO: add partial overrides / merging
 
-        volumes = [vol.to_dict() for vol in template.volumes]
-        for override in override_volumes or []:
-            # TODO: fix later ;)
-            existing = next(
-                (v for v in volumes if v["container"] == override.get("container")),
-                None,
-            )  # type: ignore
-            if existing:
-                existing.update(override)
-            else:
-                volumes.append(override)
-
-        labels = {label.key: label.value for label in template.label_list}
-        if override_labels:
-            labels.update(override_labels)
-
-        healthcheck: dict[str, Any] | None = None
-        if template.healthcheck_config:
-            healthcheck = template.healthcheck_config.to_dict()
-
-        # TODO: allow partial overrides / merge
-        if override_healthcheck:
-            healthcheck = override_healthcheck
-
-        command_to_use = (
-            override_command if override_command is not None else template.start_cmd
+        env = override_env if override_env else template.default_env
+        exposed_ports = override_ports if override_ports else template.default_ports
+        volumes = override_volumes if override_volumes else template.default_volumes
+        labels = override_labels if override_labels else template.labels
+        healthcheck = (
+            override_healthcheck if override_healthcheck else template.healthcheck
         )
-        args_to_use = override_args
+        command = override_command if override_command else template.start_cmd
+        args = override_args if override_args else template.args
 
-        if args_to_use is None and template.args:
-            args_to_use = template.args.copy()
-
-        if args_to_use is not None:
-            for i, arg in enumerate(args_to_use):
-                if not isinstance(arg, str):
-                    args_to_use[i] = str(arg)
+        # Add svs_user label
+        labels_list = list(labels) if labels else []
+        labels_list.append(Label(key="svs_user", value=user.name))
 
         get_logger(__name__).info(
             f"Creating service '{name}' from template '{template.name}'"
@@ -230,10 +130,10 @@ class Service(ServiceModel):
             exposed_ports=exposed_ports,
             env=env,
             volumes=volumes,
-            command=command_to_use,
+            command=command,
             healthcheck=healthcheck,
-            labels=labels | {"svs_user": user.name},
-            args=args_to_use,
+            labels=labels_list,
+            args=args,
             networks=networks,
         )
 
@@ -246,15 +146,14 @@ class Service(ServiceModel):
         domain: str | None = None,
         container_id: str | None = None,
         image: str | None = None,
-        exposed_ports: list[dict[str, Any]] | None = None,
-        env: dict[str, str] | None = None,
-        volumes: list[dict[str, Any]] | None = None,
+        exposed_ports: list[ExposedPort] | None = None,
+        env: list[EnvVariable] | None = None,
+        volumes: list[Volume] | None = None,
         command: str | None = None,
-        healthcheck: dict[str, Any] | None = None,
-        labels: dict[str, str] | None = None,
+        healthcheck: Healthcheck | None = None,
+        labels: list[Label] | None = None,
         args: list[str] | None = None,
         networks: list[str] | None = None,
-        exit_code: int | None = None,
     ) -> Service:
         """Creates a new service with all supported attributes.
 
@@ -268,15 +167,14 @@ class Service(ServiceModel):
             domain (str, optional): The domain for this service.
             container_id (str, optional): The ID of an existing container.
             image (str, optional): Docker image to use, defaults to template.image if not provided.
-            exposed_ports (list[dict], optional): Exposed ports, defaults to template.default_ports if not provided.
-            env (dict, optional): Environment variables, defaults to template.default_env if not provided.
-            volumes (list[dict], optional): Volume mappings, defaults to template.default_volumes if not provided.
+            exposed_ports (list[ExposedPort], optional): Exposed ports, defaults to template.default_ports if not provided.
+            env (list[EnvVariable], optional): Environment variables, defaults to template.default_env if not provided.
+            volumes (list[Volume], optional): Volume mappings, defaults to template.default_volumes if not provided.
             command (str, optional): Command to run in the container, defaults to template.start_cmd if not provided.
-            healthcheck (dict, optional): Healthcheck configuration, defaults to template.healthcheck if not provided.
-            labels (dict, optional): Container labels, defaults to template.labels if not provided.
-            args (list, optional): Command arguments, defaults to template.args if not provided.
-            networks (list, optional): Networks to connect to.
-            exit_code (int, optional): Container exit code.
+            healthcheck (Healthcheck, optional): Healthcheck configuration, defaults to template.healthcheck if not provided.
+            labels (list[Label], optional): Container labels, defaults to template.labels if not provided.
+            args (list[str], optional): Command arguments, defaults to template.args if not provided.
+            networks (list[str], optional): Networks to connect to.
 
         Returns:
             Service: The created service instance.
@@ -284,95 +182,156 @@ class Service(ServiceModel):
         Raises:
             ValueError: If name is empty or template_id doesn't correspond to an existing template.
         """
+        # Input validation
         if not name:
             raise ValueError("Service name cannot be empty")
+
+        if not isinstance(name, str):
+            raise ValueError(f"Service name must be a string: {name}")
+
+        if not isinstance(template_id, int):
+            raise ValueError(f"Template ID must be an integer: {template_id}")
+
+        if template_id <= 0:
+            raise ValueError(f"Template ID must be positive: {template_id}")
+
+        if domain is not None and not isinstance(domain, str):
+            raise ValueError(f"Domain must be a string: {domain}")
+
+        if container_id is not None and not isinstance(container_id, str):
+            raise ValueError(f"Container ID must be a string: {container_id}")
+
+        if image is not None and not isinstance(image, str):
+            raise ValueError(f"Image must be a string: {image}")
+
+        if command is not None and not isinstance(command, str):
+            raise ValueError(f"Command must be a string: {command}")
+
+        if networks is not None:
+            if not isinstance(networks, list):
+                raise ValueError(f"Networks must be a list: {networks}")
+            for net in networks:
+                if not isinstance(net, str):
+                    raise ValueError(f"Each network must be a string: {net}")
+
+        # Validate exposed_ports
+        if exposed_ports is not None:
+            if not isinstance(exposed_ports, list):
+                raise ValueError(f"Exposed ports must be a list: {exposed_ports}")
+            for port in exposed_ports:
+                if not isinstance(port, ExposedPort):
+                    raise ValueError(
+                        f"Each port must be an ExposedPort instance: {port}"
+                    )
+                if not isinstance(port.container_port, int) or port.container_port <= 0:
+                    raise ValueError(
+                        f"Container port must be a positive integer: {port.container_port}"
+                    )
+
+        # Validate env
+        if env is not None:
+            if not isinstance(env, list):
+                raise ValueError(f"Environment variables must be a list: {env}")
+            for var in env:
+                if not isinstance(var, EnvVariable):
+                    raise ValueError(
+                        f"Each environment variable must be an EnvVariable instance: {var}"
+                    )
+                if not var.key or not isinstance(var.key, str):
+                    raise ValueError(
+                        f"Environment variable key must be a non-empty string: {var.key}"
+                    )
+                if not isinstance(var.value, str):
+                    raise ValueError(
+                        f"Environment variable value must be a string: {var.value}"
+                    )
+
+        # Validate volumes
+        if volumes is not None:
+            if not isinstance(volumes, list):
+                raise ValueError(f"Volumes must be a list: {volumes}")
+            for vol in volumes:
+                if not isinstance(vol, Volume):
+                    raise ValueError(f"Each volume must be a Volume instance: {vol}")
+                if not vol.container_path or not isinstance(vol.container_path, str):
+                    raise ValueError(
+                        f"Volume container path must be a non-empty string: {vol.container_path}"
+                    )
+                if vol.host_path is not None and not isinstance(vol.host_path, str):
+                    raise ValueError(
+                        f"Volume host path must be a string: {vol.host_path}"
+                    )
+
+        # Validate labels
+        if labels is not None:
+            if not isinstance(labels, list):
+                raise ValueError(f"Labels must be a list: {labels}")
+            for label in labels:
+                if not isinstance(label, Label):
+                    raise ValueError(f"Each label must be a Label instance: {label}")
+                if not label.key or not isinstance(label.key, str):
+                    raise ValueError(
+                        f"Label key must be a non-empty string: {label.key}"
+                    )
+                if not isinstance(label.value, str):
+                    raise ValueError(f"Label value must be a string: {label.value}")
+
+        # Validate healthcheck
+        if healthcheck is not None and not isinstance(healthcheck, Healthcheck):
+            raise ValueError(
+                f"Healthcheck must be a Healthcheck instance: {healthcheck}"
+            )
+
+        # Validate args
+        if args is not None:
+            if not isinstance(args, list):
+                raise ValueError(f"Arguments must be a list: {args}")
+            for arg in args:
+                if not isinstance(arg, str):
+                    raise ValueError(f"Each argument must be a string: {arg}")
 
         try:
             template = Template.objects.get(id=template_id)
         except Template.DoesNotExist:
             raise ValueError(f"Template with ID {template_id} does not exist")
 
+        # Use template defaults if not provided
         if image is None:
             image = template.image
 
         if exposed_ports is None:
-            template_ports = template.exposed_ports
-            exposed_ports = [port.to_dict() for port in template_ports]
-        else:
-            for port in exposed_ports:
-                if not isinstance(port, dict) or "container" not in port:
-                    raise ValueError(f"Invalid port specification: {port}")
-                try:
-                    ExposedPort.from_dict(port)
-                except ValueError as e:
-                    raise ValueError(str(e))
+            exposed_ports = list(template.default_ports)
 
         if env is None:
-            template_env = template.env_variables
-            env = {var.key: var.value for var in template_env}
-        else:
-            if not isinstance(env, dict):
-                raise ValueError(f"Environment variables must be a dictionary: {env}")
-            for key, value in env.items():
-                if not isinstance(key, str) or not isinstance(value, str):
-                    raise ValueError(
-                        f"Environment variable key and value must be strings: {key}={value}"
-                    )
+            env = list(template.default_env)
 
         if volumes is None:
-            template_volumes = template.volumes
-            volumes = [vol.to_dict() for vol in template_volumes]
-        else:
-            for volume in volumes:
-                if not isinstance(volume, dict) or "container" not in volume:
-                    raise ValueError(f"Invalid volume specification: {volume}")
-                try:
-                    Volume.from_dict(volume)
-                except ValueError as e:
-                    raise ValueError(str(e))
+            volumes = list(template.default_volumes)
 
         if command is None:
             command = template.start_cmd
 
-        if healthcheck is None and template.healthcheck_config:
-            healthcheck = template.healthcheck_config.to_dict()
-
-        elif healthcheck is not None:
-            if not isinstance(healthcheck, dict):
-                raise ValueError(f"Healthcheck must be a dictionary: {healthcheck}")
-            if "test" not in healthcheck:
-                raise ValueError("Healthcheck must contain a 'test' field")
-            if not isinstance(healthcheck["test"], list):
-                raise ValueError(
-                    f"Healthcheck test must be a list of strings: {healthcheck['test']}"
-                )
+        if healthcheck is None:
+            healthcheck = template.healthcheck
 
         if labels is None:
-            template_labels = template.label_list
-            labels = {label.key: label.value for label in template_labels}
-        else:
-            if not isinstance(labels, dict):
-                raise ValueError(f"Labels must be a dictionary: {labels}")
-            for key, value in labels.items():
-                if not isinstance(key, str) or not isinstance(value, str):
-                    raise ValueError(
-                        f"Label key and value must be strings: {key}={value}"
-                    )
+            labels = list(template.labels)
 
         if args is None:
-            args = template.args
+            args = list(template.args) if template.args else []
 
-        # Generate ports and volumes
+        # Generate free ports and volumes if needed
         for port in exposed_ports:
-            if "host" not in port or port["host"] is None:
-                port["host"] = SystemPortManager.find_free_port()
+            if port.host_port is None:
+                port.host_port = SystemPortManager.find_free_port()
 
         for volume in volumes:
-            if "host" not in volume or volume["host"] is None:
-                volume["host"] = SystemVolumeManager.generate_free_volume(
+            if volume.host_path is None:
+                volume.host_path = SystemVolumeManager.generate_free_volume(
                     user
                 ).as_posix()
 
+        # Create service instance
         service_instance = cls.objects.create(
             name=name,
             template_id=template_id,
@@ -388,7 +347,6 @@ class Service(ServiceModel):
             labels=labels,
             args=args,
             networks=networks,
-            exit_code=exit_code,
         )
 
         system_labels = [Label(key="service_id", value=str(service_instance.id))]
@@ -397,7 +355,11 @@ class Service(ServiceModel):
             system_labels.append(Label(key="caddy", value=service_instance.domain))
 
             if service_instance.exposed_ports:
-                http_ports = [port for port in service_instance.port_mappings]
+                http_ports = [
+                    port
+                    for port in service_instance.exposed_ports
+                    if port.container_port in (80, 443)
+                ]
 
                 if http_ports:
                     upstreams = ", ".join(
@@ -406,21 +368,15 @@ class Service(ServiceModel):
                     if upstreams:
                         system_labels.append(Label(key="upstreams", value=upstreams))
 
-        model_labels = service_instance.label_list
-
+        model_labels = list(service_instance.labels)
         all_labels = system_labels + model_labels
+
+        # Update service with all labels (system + model)
+        service_instance.labels = all_labels
+        print(service_instance.labels)
 
         if not service_instance.image:
             raise ValueError("Service must have an image specified")
-
-        args_to_use = None
-        if service_instance.args:
-            args_to_use = []
-            for arg in service_instance.args:
-                if not isinstance(arg, str):
-                    args_to_use.append(str(arg))
-                else:
-                    args_to_use.append(arg)
 
         get_logger(__name__).info(f"Creating service '{name}'")
 
@@ -428,11 +384,11 @@ class Service(ServiceModel):
             name=name,
             image=service_instance.image,
             command=service_instance.command,
-            args=args_to_use,
+            args=service_instance.args,
             labels=all_labels,
             ports={
-                port["container"]: port["host"]
-                for port in service_instance.to_ports_list()
+                port.container_port: port.host_port
+                for port in service_instance.exposed_ports
             },
         )
 
@@ -483,7 +439,7 @@ class Service(ServiceModel):
                 )
                 container.remove(force=True)
 
-        volumes = self.volume_mappings
+        volumes = self.volumes
         for volume in volumes:
             if volume.host_path:
                 SystemVolumeManager.delete_volume(Path(volume.host_path))

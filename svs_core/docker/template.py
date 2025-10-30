@@ -20,63 +20,19 @@ class Template(TemplateModel):
     class Meta:  # noqa: D106
         proxy = True
 
-    @property
-    def env_variables(self) -> List[EnvVariable]:  # noqa: D102
-        env_dict = self.default_env or {}
-        return [EnvVariable.from_dict(key, value) for key, value in env_dict.items()]
-
-    @property
-    def exposed_ports(self) -> List[ExposedPort]:  # noqa: D102
-        ports_list = self.default_ports or []
-        return [ExposedPort.from_dict(port) for port in ports_list]
-
-    @property
-    def volumes(self) -> List[Volume]:  # noqa: D102
-        volumes_list = self.default_volumes or []
-        return [Volume.from_dict(volume) for volume in volumes_list]
-
-    @property
-    def healthcheck_config(self) -> Healthcheck | None:
-        """Returns the healthcheck configuration for the template, if any."""
-        healthcheck_dict = self.healthcheck or {}
-        return Healthcheck.from_dict(healthcheck_dict)
-
-    @property
-    def label_list(self) -> List[Label]:
-        """Returns the list of labels for the template."""
-        labels_dict = self.labels or {}
-        return [Label.from_dict(key, value) for key, value in labels_dict.items()]
-
-    @property
-    def arguments(self) -> list[str]:
-        """Returns the list of build arguments for the template."""
-        return self.args or []
-
     def __str__(self) -> str:
-        env_vars = [f"{env.key}={env.value}" for env in self.env_variables]
-        ports = [
-            f"{port.container_port}:{port.host_port}" for port in self.exposed_ports
-        ]
-        volumes = [
-            f"{vol.container_path}:{vol.host_path or 'None'}" for vol in self.volumes
-        ]
-        labels = [f"{label.key}={label.value}" for label in self.label_list]
-
-        healthcheck_str = "None"
-        if self.healthcheck_config:
-            test_str = " ".join(self.healthcheck_config.test)
-            healthcheck_str = f"test='{test_str}'"
+        dockerfile_head = self.dockerfile.splitlines()[:5] if self.dockerfile else []
 
         return (
             f"Template(id={self.id}, name={self.name}, type={self.type}, image={self.image}, "
-            f"dockerfile={self.dockerfile}, description={self.description}, "
-            f"default_env=[{', '.join(env_vars)}], "
-            f"default_ports=[{', '.join(ports)}], "
-            f"default_volumes=[{', '.join(volumes)}], "
+            f"dockerfile_head={dockerfile_head}, description={self.description}, "
+            f"default_env={[var.__str__() for var in self.default_env]}, "
+            f"default_ports={[port.__str__() for port in self.default_ports]}, "
+            f"default_volumes={[vol.__str__() for vol in self.default_volumes]}, "
             f"start_cmd={self.start_cmd}, "
-            f"healthcheck={healthcheck_str}, "
-            f"labels=[{', '.join(labels)}], "
-            f"args={self.arguments})"
+            f"healthcheck={self.healthcheck}, "
+            f"labels={[label.__str__() for label in self.labels]}, "
+            f"args={self.args})"
         )
 
     @classmethod
@@ -87,15 +43,37 @@ class Template(TemplateModel):
         image: str | None = None,
         dockerfile: str | None = None,
         description: str | None = None,
-        default_env: dict[str, str] | None = None,
-        default_ports: list[dict[str, Any]] | None = None,
-        default_volumes: list[dict[str, Any]] | None = None,
+        default_env: list[EnvVariable] | None = None,
+        default_ports: list[ExposedPort] | None = None,
+        default_volumes: list[Volume] | None = None,
         start_cmd: str | None = None,
-        healthcheck: dict[str, Any] | None = None,
-        labels: dict[str, str] | None = None,
+        healthcheck: Healthcheck | None = None,
+        labels: list[Label] | None = None,
         args: list[str] | None = None,
     ) -> Template:
-        """Creates a new template with all supported attributes."""
+        """Creates a new template with all supported attributes.
+
+        Args:
+            name (str): The name of the template.
+            type (TemplateType, optional): The type of the template (image or build). Defaults to TemplateType.IMAGE.
+            image (str | None, optional): The Docker image name (if type is image). Defaults to None.
+            dockerfile (str | None, optional): The Dockerfile content (if type is build). Defaults to None.
+            description (str | None, optional): A description of the template. Defaults to None.
+            default_env (list[EnvVariable] | None, optional): Default environment variables. Defaults to None.
+            default_ports (list[ExposedPort] | None, optional): Default exposed ports. Defaults to None.
+            default_volumes (list[Volume] | None, optional): Default volume bindings. Defaults to None.
+            start_cmd (str | None, optional): The default start command. Defaults to None.
+            healthcheck (Healthcheck | None, optional): The healthcheck configuration. Defaults to None.
+            labels (list[Label] | None, optional): Default Docker labels. Defaults to None.
+            args (list[str] | None, optional): Default arguments for the container. Defaults to None.
+
+        Returns:
+            Template: A new Template instance.
+
+        Raises:
+            ValueError: If any of the provided values are invalid.
+        """
+
         # Validate name
         if not name:
             raise ValueError("Template name cannot be empty")
@@ -119,55 +97,64 @@ class Template(TemplateModel):
 
         # Validate default_env
         if default_env is not None:
-            for key, value in default_env.items():
-                if not isinstance(key, str) or not isinstance(value, str):
+            for var in default_env:
+                if not isinstance(var.key, str) or not isinstance(var.value, str):
                     raise ValueError(
-                        f"Default environment keys and values must be strings: {key}={value}"
+                        f"Default environment keys and values must be strings: {var.key}={var.value}"
                     )
-                if not key:
+                if not var.key:
                     raise ValueError("Default environment keys cannot be empty")
 
         # Validate default_ports
         if default_ports is not None:
             for port in default_ports:
-                if not isinstance(port, dict):
-                    raise ValueError(f"Port specification must be a dictionary: {port}")
-                try:
-                    ExposedPort.from_dict(port)
-                except ValueError as e:
-                    raise ValueError(str(e))
+                # host_port can be None (meaning any available host port), but container_port must be an int
+                if port.host_port is not None and not isinstance(port.host_port, int):
+                    raise ValueError(
+                        f"Port host_port must be an integer or None: {port}"
+                    )
+                if not isinstance(port.container_port, int):
+                    raise ValueError(f"Port container_port must be an integer: {port}")
+                # If host_port is provided, it must be positive
+                if port.host_port is not None and port.host_port <= 0:
+                    raise ValueError(
+                        f"Port host_port must be a positive integer when provided: {port}"
+                    )
+                if port.container_port <= 0:
+                    raise ValueError(
+                        f"Port container_port must be a positive integer: {port}"
+                    )
 
         # Validate default_volumes
         if default_volumes is not None:
             for volume in default_volumes:
-                if not isinstance(volume, dict):
+                if not isinstance(volume.container_path, str):
                     raise ValueError(
-                        f"Volume specification must be a dictionary: {volume}"
+                        f"Volume container path must be a string: {volume}"
                     )
-                try:
-                    Volume.from_dict(volume)
-                except ValueError as e:
-                    raise ValueError(str(e))
+                if volume.host_path is not None and not isinstance(
+                    volume.host_path, str
+                ):
+                    raise ValueError(f"Volume host path must be a string: {volume}")
+                if not volume.container_path:
+                    raise ValueError("Volume container path cannot be empty")
 
         # Validate start_cmd
         if start_cmd is not None and not isinstance(start_cmd, str):
             raise ValueError(f"Start command must be a string: {start_cmd}")
 
         # Validate healthcheck
-        if healthcheck is not None:
-            required_keys = ["test"]
-            for key in required_keys:
-                if key not in healthcheck:
-                    raise ValueError(f"Healthcheck must contain a '{key}' field")
+        if healthcheck is not None and len(healthcheck.test) == 0:
+            raise ValueError("Healthcheck must contain a 'test' field")
 
         # Validate labels
         if labels is not None:
-            for key, value in labels.items():
-                if not isinstance(key, str) or not isinstance(value, str):
+            for label in labels:
+                if not isinstance(label.key, str) or not isinstance(label.value, str):
                     raise ValueError(
-                        f"Label keys and values must be strings: {key}={value}"
+                        f"Label keys and values must be strings: {label.key}={label.value}"
                     )
-                if not key:
+                if not label.key:
                     raise ValueError("Label keys cannot be empty")
 
         # Validate args
@@ -264,6 +251,78 @@ class Template(TemplateModel):
                 "Build type templates must specify a 'dockerfile' field in import data"
             )
 
+        # Process default_env: handle both flat dict and list formats
+        default_env_data = data.get("default_env", [])
+        if isinstance(default_env_data, dict):
+            # Convert flat dict to list of dicts format: {"KEY": "value"} -> [{"KEY": "value"}]
+            default_env_list = [{k: v} for k, v in default_env_data.items()]
+        else:
+            default_env_list = default_env_data
+
+        # Process default_ports: handle both formats
+        # Format 1: [{"host_port": 8080, "container_port": 80}] (single key-value format)
+        # Format 2: [{"host": 8080, "container": 80}] (named field format)
+        default_ports_data = data.get("default_ports", [])
+        default_ports_list = []
+        for port_data in default_ports_data:
+            if isinstance(port_data, dict):
+                # Handle named field format: {"host": 8080, "container": 80}
+                if "host" in port_data and "container" in port_data:
+                    default_ports_list.append(
+                        ExposedPort(
+                            host_port=port_data["host"],
+                            container_port=port_data["container"],
+                        )
+                    )
+                # Handle single key-value format: {8080: 80}
+                elif len(port_data) == 1:
+                    host_port = next(iter(port_data))
+                    container_port = port_data[host_port]
+                    default_ports_list.append(
+                        ExposedPort(host_port=host_port, container_port=container_port)
+                    )
+                else:
+                    raise ValueError(
+                        f"Invalid port specification: {port_data}. "
+                        "Must contain either 'host' and 'container' fields or be a single key-value pair."
+                    )
+
+        # Process default_volumes: handle both formats
+        # Format 1: [{"host_path": "/host", "container_path": "/container"}]
+        # Format 2: [{"host": "/host", "container": "/container"}]
+        default_volumes_data = data.get("default_volumes", [])
+        default_volumes_list = []
+        for vol_data in default_volumes_data:
+            if isinstance(vol_data, dict):
+                # Handle named field format: {"host": "/host", "container": "/container"}
+                if "host" in vol_data and "container" in vol_data:
+                    default_volumes_list.append(
+                        Volume(
+                            host_path=vol_data["host"],
+                            container_path=vol_data["container"],
+                        )
+                    )
+                # Handle single key-value format: {"/host": "/container"}
+                elif len(vol_data) == 1:
+                    host_path = next(iter(vol_data))
+                    container_path = vol_data[host_path]
+                    default_volumes_list.append(
+                        Volume(host_path=host_path, container_path=container_path)
+                    )
+                else:
+                    raise ValueError(
+                        f"Invalid volume specification: {vol_data}. "
+                        "Must contain either 'host' and 'container' fields or be a single key-value pair."
+                    )
+
+        # Process labels: handle both flat dict and list formats
+        labels_data = data.get("labels", [])
+        if isinstance(labels_data, dict):
+            # Convert flat dict to list of dicts format: {"KEY": "value"} -> [{"KEY": "value"}]
+            labels_list = [{k: v} for k, v in labels_data.items()]
+        else:
+            labels_list = labels_data
+
         # Delegate to create method for further validation
         template: "Template" = cls.create(
             name=data.get("name", ""),
@@ -271,12 +330,12 @@ class Template(TemplateModel):
             image=data.get("image"),
             dockerfile=data.get("dockerfile"),
             description=data.get("description"),
-            default_env=data.get("default_env"),
-            default_ports=data.get("default_ports"),
-            default_volumes=data.get("default_volumes"),
+            default_env=EnvVariable.from_dict_array(default_env_list),
+            default_ports=default_ports_list,
+            default_volumes=default_volumes_list,
             start_cmd=data.get("start_cmd"),
-            healthcheck=data.get("healthcheck"),
-            labels=data.get("labels"),
+            healthcheck=Healthcheck.from_dict(data.get("healthcheck")),
+            labels=Label.from_dict_array(labels_list),
             args=data.get("args"),
         )
 
