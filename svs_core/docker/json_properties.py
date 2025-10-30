@@ -30,7 +30,6 @@ class KeyValue(Generic[K, V]):
 
         key = next(iter(data))
         value = data[key]
-        # TODO: figure out a better structure which does not store null keys in db
         return cls(key if key != "null" else None, value)  # type: ignore[arg-type]
 
     @classmethod

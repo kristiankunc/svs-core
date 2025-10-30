@@ -158,8 +158,6 @@ class TestService:
     ):
         """Test creating a service from a template."""
 
-        # TODO: Add template values presence after refactoring service.create_from_template merge strat
-
         # Mock container creation
         mock_container = MagicMock()
         mock_container.id = "test_container_from_template"
@@ -255,7 +253,6 @@ class TestService:
 
         # Verify container.start() was called
         mock_container.start.assert_called_once()
-        # TODO: Investigate type ignore
         assert service.status == ServiceStatus.RUNNING  # type: ignore
 
         # Stop the service and update mock status

@@ -42,7 +42,6 @@ def get_logger(name: Optional[str] = None, independent: bool = False) -> logging
 
     formatter = UTCFormatter("%(asctime)s: [%(levelname)s] %(name)s %(message)s")
     handler: logging.Handler = logging.NullHandler()
-    # TODO: split error/info log
 
     LOG_FILE = Path("/etc/svs/svs.log")
 

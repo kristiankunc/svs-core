@@ -62,7 +62,7 @@ def run_command(
         subprocess.CompletedProcess: The result of the executed command.
     """
 
-    exec_env = dict(env) if env else {}  # TODO: maybe inject system env?
+    exec_env = dict(env) if env else {}
     exec_env.update({"DJANGO_SETTINGS_MODULE": "svs_core.db.settings"})
 
     base = ""

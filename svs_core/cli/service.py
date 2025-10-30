@@ -31,7 +31,6 @@ def create_service(
     name: str = typer.Argument(..., help="Name of the service to create"),
     template_id: int = typer.Argument(..., help="ID of the template to use"),
     user_id: int = typer.Argument(..., help="ID of the user creating the service"),
-    # TODO: Add override options for all args
 ) -> None:
     """Create a new service."""
 

@@ -42,12 +42,6 @@ repos:
       - id: ruff
         args: [--fix]
 
-  # TODO: investigate plugins + usage for mkdocs
-  #  - repo: https://github.com/executablebooks/mdformat
-  #    rev: 0.7.22
-  #    hooks:
-  #      - id: mdformat
-
   - repo: https://github.com/djlint/djlint
     rev: v1.36.4
     hooks:
