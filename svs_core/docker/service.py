@@ -439,7 +439,7 @@ class Service(ServiceModel):
                 )
                 container.remove(force=True)
 
-        volumes = self.volume_mappings
+        volumes = self.volumes
         for volume in volumes:
             if volume.host_path:
                 SystemVolumeManager.delete_volume(Path(volume.host_path))
