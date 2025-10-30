@@ -96,7 +96,7 @@ jobs:
 
       - name: Run tests
         run: |
-          sg svs-admins pytest --cov --cov-branch --cov-report=xml
+          sg svs-admins -c "pytest --cov=. --cov-branch --cov-report=xml:coverage.xml"
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
