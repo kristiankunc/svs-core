@@ -17,7 +17,6 @@ from svs_core.shared.logger import get_logger
 
 django.setup()
 
-# TODO: Figure out a better way to handle initial configurations
 if not EnvManager.get_database_url():
     get_logger(__name__).warning(
         "DATABASE_URL environment variable not set. Running detached from database."

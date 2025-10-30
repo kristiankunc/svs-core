@@ -101,8 +101,6 @@ class Service(ServiceModel):
         if not name:
             raise ValueError("Service name cannot be empty")
 
-        # TODO: add partial overrides / merging
-
         env = override_env if override_env else template.default_env
         exposed_ports = override_ports if override_ports else template.default_ports
         volumes = override_volumes if override_volumes else template.default_volumes

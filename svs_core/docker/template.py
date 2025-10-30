@@ -189,7 +189,6 @@ class Template(TemplateModel):
             args=args,
         )
 
-        # TODO: remove type gymnastics
         if type == TemplateType.IMAGE and image is not None:
             # Parse the image name to handle tags correctly
             if ":" in image:
