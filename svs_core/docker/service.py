@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, List, cast
+from typing import Any, List, TypeVar, Union, cast
 
 from svs_core.db.models import ServiceModel, ServiceStatus
 from svs_core.docker.container import DockerContainerManager
@@ -17,6 +17,9 @@ from svs_core.shared.logger import get_logger
 from svs_core.shared.ports import SystemPortManager
 from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.user import User
+
+Mergeable = Union[EnvVariable, ExposedPort, Volume, Label]
+T = TypeVar("T", bound=Mergeable)
 
 
 class Service(ServiceModel):
@@ -54,6 +57,28 @@ class Service(ServiceModel):
             f"status={self.status})"
         )
 
+    @staticmethod
+    def _merge_overrides(base: List[T], overrides: List[T]) -> List[T]:
+        """Merges two lists of key-value pairs.
+
+        Overrides in the second list will replace those in the first list
+        based on matching keys. Non-matching items from both lists are included.
+
+        Args:
+            base (List[T]): The base list of key-value pairs.
+            overrides (List[T]): The list of key-value pairs to override.
+
+        Returns:
+            List[T]: The merged list of key-value pairs.
+        """
+
+        merged: dict[Any, T] = {item.key: item for item in base}
+
+        for override in overrides:
+            merged[override.key] = override
+
+        return list(merged.values())
+
     @classmethod
     def create_from_template(
         cls,
@@ -71,6 +96,8 @@ class Service(ServiceModel):
         networks: list[str] | None = None,
     ) -> Service:
         """Creates a service from an existing template with overrides.
+
+        Arguments that inherit from the KeyValue class (EnvVariable, Volume, ExposedPort, Label) allow partial merging and overriding. Other arguments completely replace the template's default values.
 
         Args:
             name (str): The name of the service.
@@ -101,19 +128,31 @@ class Service(ServiceModel):
         if not name:
             raise ValueError("Service name cannot be empty")
 
-        env = override_env if override_env else template.default_env
-        exposed_ports = override_ports if override_ports else template.default_ports
-        volumes = override_volumes if override_volumes else template.default_volumes
-        labels = override_labels if override_labels else template.labels
+        env = (
+            cls._merge_overrides(template.default_env, override_env)
+            if override_env
+            else template.default_env
+        )
+        exposed_ports = (
+            cls._merge_overrides(template.default_ports, override_ports)
+            if override_ports
+            else template.default_ports
+        )
+        volumes = (
+            cls._merge_overrides(template.default_volumes, override_volumes)
+            if override_volumes
+            else template.default_volumes
+        )
+        labels = (
+            cls._merge_overrides(template.labels, override_labels)
+            if override_labels
+            else template.labels
+        )
         healthcheck = (
             override_healthcheck if override_healthcheck else template.healthcheck
         )
         command = override_command if override_command else template.start_cmd
         args = override_args if override_args else template.args
-
-        # Add svs_user label
-        labels_list = list(labels) if labels else []
-        labels_list.append(Label(key="svs_user", value=user.name))
 
         get_logger(__name__).info(
             f"Creating service '{name}' from template '{template.name}'"
@@ -130,7 +169,7 @@ class Service(ServiceModel):
             volumes=volumes,
             command=command,
             healthcheck=healthcheck,
-            labels=labels_list,
+            labels=labels,
             args=args,
             networks=networks,
         )
@@ -328,6 +367,8 @@ class Service(ServiceModel):
                 volume.host_path = SystemVolumeManager.generate_free_volume(
                     user
                 ).as_posix()
+
+        labels.append(Label(key="svs_user", value=user.name))
 
         # Create service instance
         service_instance = cls.objects.create(
