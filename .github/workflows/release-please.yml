@@ -31,5 +31,4 @@ jobs:
       - name: Generate Release PR
         uses: googleapis/release-please-action@v4
         with:
-          release-type: python
           token: ${{ secrets.RELEASE_PLEASE_PAT }}
