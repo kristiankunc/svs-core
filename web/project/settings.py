@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+from svs_core.db.settings import DATABASES as SVS_DATABASES
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,19 +33,19 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "django.contrib.sessions",
-    "django.contrib.messages",
     "django.contrib.staticfiles",
+    "svs_core.apps.SvsCoreConfig",
     "app",
 ]
 
 MIDDLEWARE = [
-    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # "app.middleware.custom_auth_middleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
 ]
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 
 ROOT_URLCONF = "project.urls"
 
@@ -56,10 +58,12 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.messages.context_processors.messages",
+                "app.lib.user_injector.user_render_injector",
             ],
         },
     },
 ]
+
 
 WSGI_APPLICATION = "project.wsgi.application"
 
@@ -67,7 +71,14 @@ WSGI_APPLICATION = "project.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {}
+DATABASES = SVS_DATABASES
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-sessions",
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

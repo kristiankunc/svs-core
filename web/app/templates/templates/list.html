@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Templates - My Site{% endblock %}
+{% block content %}
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Docker Templates</h1>
+        </div>
+        <div class="col-auto">
+            <a href="#" class="btn btn-primary">Create Template</a>
+        </div>
+    </div>
+    {% if templates %}
+        <div class="row">
+            {% for template in templates %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ template.name }}</h5>
+                            <p class="card-text text-muted">{{ template.type }}</p>
+                            {% if template.description %}<p class="card-text">{{ template.description }}</p>{% endif %}
+                            {% if template.image %}
+                                <p class="card-text">
+                                    <small><strong>Image:</strong> {{ template.image }}</small>
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-white border-top">
+                            <div class="btn-group w-100" role="group">
+                                <a href="{% url 'detail_template' template.id %}"
+                                   class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">No Templates</h4>
+            <p>
+                There are no templates available yet. <a href="#" class="alert-link">Create one now</a>.
+            </p>
+        </div>
+    {% endif %}
+{% endblock %}

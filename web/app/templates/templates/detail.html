@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+{% block title %}{{ template.name }} - My Site{% endblock %}
+{% block content %}
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{% url 'list_templates' %}"
+               class="btn btn-outline-secondary mb-3">← Back to Templates</a>
+            <h1>{{ template.name }}</h1>
+            <p class="text-muted">{{ template.type|upper }}</p>
+        </div>
+        <div class="col-auto">
+            <a href="#" class="btn btn-primary">Edit</a>
+            <a href="#" class="btn btn-danger">Delete</a>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Basic Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Template Type</p>
+                            <p class="h6">{{ template.type|upper }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">ID</p>
+                            <p class="h6">{{ template.id }}</p>
+                        </div>
+                    </div>
+                    {% if template.description %}
+                        <div class="mb-3">
+                            <p class="text-muted mb-1">Description</p>
+                            <p>{{ template.description }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Docker Image/Build -->
+            {% if template.image %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Docker Image</h5>
+                    </div>
+                    <div class="card-body">
+                        <code class="bg-light p-2 rounded d-block">{{ template.image }}</code>
+                    </div>
+                </div>
+            {% endif %}
+            {% if template.dockerfile %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Dockerfile</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre class="bg-light p-3 rounded"
+                             style="max-height: 400px;
+                                    overflow-y: auto"><code>{{ template.dockerfile }}</code></pre>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Environment Variables -->
+            {% if template.default_env %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Environment Variables</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for var in template.default_env %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ var.key }}</code>
+                                        </td>
+                                        <td>
+                                            <code>{{ var.value }}</code>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Exposed Ports -->
+            {% if template.default_ports %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Exposed Ports</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Host Port</th>
+                                    <th>Container Port</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for port in template.default_ports %}
+                                    <tr>
+                                        <td>
+                                            {% if port.host_port %}
+                                                {{ port.host_port }}
+                                            {% else %}
+                                                <span class="text-muted">Dynamic</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ port.container_port }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Volumes -->
+            {% if template.default_volumes %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Volumes</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Host Path</th>
+                                    <th>Container Path</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for volume in template.default_volumes %}
+                                    <tr>
+                                        <td>
+                                            {% if volume.host_path %}
+                                                <code>{{ volume.host_path }}</code>
+                                            {% else %}
+                                                <span class="text-muted">Dynamic</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <code>{{ volume.container_path }}</code>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Start Command -->
+            {% if template.start_cmd %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Start Command</h5>
+                    </div>
+                    <div class="card-body">
+                        <code class="bg-light p-2 rounded d-block">{{ template.start_cmd }}</code>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Arguments -->
+            {% if template.args %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Arguments</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for arg in template.args %}
+                                <div class="list-group-item">
+                                    <code>{{ arg }}</code>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Health Check -->
+            {% if template.healthcheck %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Health Check</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% if template.healthcheck.interval %}
+                                <div class="col-md-6 mb-2">
+                                    <p class="text-muted mb-1">Interval</p>
+                                    <p class="h6">{{ template.healthcheck.interval }}s</p>
+                                </div>
+                            {% endif %}
+                            {% if template.healthcheck.timeout %}
+                                <div class="col-md-6 mb-2">
+                                    <p class="text-muted mb-1">Timeout</p>
+                                    <p class="h6">{{ template.healthcheck.timeout }}s</p>
+                                </div>
+                            {% endif %}
+                            {% if template.healthcheck.retries %}
+                                <div class="col-md-6 mb-2">
+                                    <p class="text-muted mb-1">Retries</p>
+                                    <p class="h6">{{ template.healthcheck.retries }}</p>
+                                </div>
+                            {% endif %}
+                            {% if template.healthcheck.start_period %}
+                                <div class="col-md-6 mb-2">
+                                    <p class="text-muted mb-1">Start Period</p>
+                                    <p class="h6">{{ template.healthcheck.start_period }}s</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if template.healthcheck.test %}
+                            <div class="mt-3">
+                                <p class="text-muted mb-1">Test Command</p>
+                                <code class="bg-light p-2 rounded d-block">{{ template.healthcheck.test|join:" " }}</code>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Labels -->
+            {% if template.labels %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Labels</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for label in template.labels %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ label.key }}</code>
+                                        </td>
+                                        <td>
+                                            <code>{{ label.value }}</code>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card sticky-top sticky-sidebar">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    <a href="{% url 'create_service_from_template' template.id %}"
+                       class="btn btn-primary">Create Service from Template</a>
+                    <a href="#" class="btn btn-outline-secondary">Edit Template</a>
+                    <a href="#" class="btn btn-outline-danger">Delete Template</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
