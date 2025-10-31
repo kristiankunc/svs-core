@@ -33,4 +33,3 @@ jobs:
         with:
           release-type: python
           token: ${{ secrets.RELEASE_PLEASE_PAT }}
-          config-file: .github/extra/release-please-config.json
