@@ -6,6 +6,7 @@ set -e
 automated_yes=false
 admin_user=""
 admin_password=""
+python_path="/opt/pipx/venvs/svs-core/bin/python"
 
 confirm() {
     if [ "$automated_yes" = true ]; then
@@ -108,7 +109,7 @@ storage_setup() {
 django_migrations() {
     echo "Running Django migrations..."
 
-    if /opt/pipx/venvs/svs-core/bin/python -m django migrate svs_core; then
+    if $python_path -m django migrate svs_core; then
         echo "✅ Django migrations completed."
     else
         echo "❌ Failed to run Django migrations."
@@ -121,7 +122,7 @@ create_admin_user() {
 
     if [ -n "$admin_user" ] && [ -n "$admin_password" ]; then
         # User and password provided via command line
-        if /opt/pipx/venvs/svs-core/bin/python -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup(username='$admin_user', password='$admin_password')"; then
+        if $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup(username='$admin_user', password='$admin_password')"; then
             echo "✅ Admin user '$admin_user' created."
         else
             echo "❌ Failed to create admin user."
@@ -129,7 +130,7 @@ create_admin_user() {
         fi
     else
         # Interactive mode (original behavior)
-        if /opt/pipx/venvs/svs-core/bin/python -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup()"; then
+        if $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup()"; then
             echo "✅ Admin user created (or already exists)."
         else
             echo "❌ Failed to create admin user."
@@ -168,6 +169,10 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --password)
             admin_password="$2"
+            shift 2
+            ;;
+        --python-path)
+            python_path="$2"
             shift 2
             ;;
         *)
