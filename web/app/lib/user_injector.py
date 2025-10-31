@@ -7,7 +7,8 @@ def user_render_injector(request):
     if user_id:
         try:
             user = User.objects.get(id=user_id)
+            is_admin = user.is_admin()
         except User.DoesNotExist:
             pass
 
-    return {"user": user}
+    return {"user": user, "is_admin": is_admin}
