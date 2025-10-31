@@ -3,7 +3,10 @@
 	"packages": {
 		".": {
 			"exclude-paths": [
-				"web/**"
+				"web",
+				"tests",
+				".devcontainer",
+				".github"
 			]
 		}
 	},
