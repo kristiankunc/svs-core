@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/kristiankunc/svs-core/compare/v0.4.0...v0.4.1) (2025-10-31)
+
+
+### Bug Fixes
+
+* Allow custom python path passing in install script ([d247093](https://github.com/kristiankunc/svs-core/commit/d24709375a7ba4cfdc00c3c20d2a858e860bb562))
+
 ## [0.4.0](https://github.com/kristiankunc/svs-core/compare/v0.3.2...v0.4.0) (2025-10-30)
 
 
