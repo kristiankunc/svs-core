@@ -6,8 +6,6 @@
 ### Bug Fixes
 
 * Allow custom python path passing in install script ([d247093](https://github.com/kristiankunc/svs-core/commit/d24709375a7ba4cfdc00c3c20d2a858e860bb562))
-* test commit in web ([6359d97](https://github.com/kristiankunc/svs-core/commit/6359d97dd4c534a04080bc65ec87ac685529aa9e))
-* Test commit in web ([4fd92e1](https://github.com/kristiankunc/svs-core/commit/4fd92e1d3b17a03e1055b4e3e5df7236b6078381))
 
 ## [0.4.0](https://github.com/kristiankunc/svs-core/compare/v0.3.2...v0.4.0) (2025-10-30)
 
