@@ -1,0 +1,12 @@
+{
+	"$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+	"packages": {
+		".": {
+			"exclude-paths": [
+				"web/**"
+			],
+			"package-name": "svs_core",
+			"release-type": "python"
+		}
+	}
+}
