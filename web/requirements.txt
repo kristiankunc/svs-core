@@ -1,6 +1,0 @@
-django
-django-cotton
-python-dotenv
-uvicorn[standard]
-watchgod
-whitenoise
