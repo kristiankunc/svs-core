@@ -28,8 +28,10 @@
                             <div class="btn-group w-100" role="group">
                                 <a href="{% url 'detail_template' template.id %}"
                                    class="btn btn-sm btn-outline-primary">View</a>
-                                <a href="#" class="btn btn-sm btn-outline-secondary">Edit</a>
-                                <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
+                                {% if is_admin %}
+                                    <a href="#" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                    <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

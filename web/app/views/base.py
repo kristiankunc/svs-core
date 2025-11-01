@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login
+from django.http import HttpRequest
 from django.shortcuts import redirect, render
 from django.urls import path
 from project.settings import DEBUG
@@ -10,7 +11,7 @@ def index(request):
     return render(request, "base/index.html")
 
 
-def login(request):
+def login(request: HttpRequest):
     if DEBUG:
         request.session["user_id"] = 1
         return redirect("index")
@@ -34,7 +35,7 @@ def login(request):
     return render(request, "base/login.html", {"error": "Invalid credentials"})
 
 
-def logout(request):
+def logout(request: HttpRequest):
     request.session.flush()
     return redirect("index")
 
