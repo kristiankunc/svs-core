@@ -1,6 +1,7 @@
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path
+from django.utils.timezone import now
 
 from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
 from svs_core.docker.service import Service
@@ -140,6 +141,17 @@ def delete(request: HttpRequest, service_id: int):
     return redirect("list_services")
 
 
+def view_logs(request: HttpRequest, service_id: int):
+    """View service logs."""
+    service = get_object_or_404(Service, id=service_id)
+
+    if not is_owner_or_admin(request, service):
+        return redirect("detail_service", service_id=service.id)
+
+    logs = service.get_logs()
+    return render(request, "services/logs.html", {"service": service, "logs": logs})
+
+
 urlpatterns = [
     path("services/", list_services, name="list_services"),
     path(
@@ -151,4 +163,5 @@ urlpatterns = [
     path("services/<int:service_id>/start/", start, name="start_service"),
     path("services/<int:service_id>/stop/", stop, name="stop_service"),
     path("services/<int:service_id>/delete/", delete, name="delete_service"),
+    path("services/<int:service_id>/logs/", view_logs, name="view_service_logs"),
 ]

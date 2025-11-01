@@ -222,6 +222,8 @@
                         {% csrf_token %}
                         <button type="submit" class="btn btn-warning w-100">Stop Service</button>
                     </form>
+                    <a href="{% url 'view_service_logs' service.id %}"
+                       class="btn btn-info w-100">View Logs</a>
                     <form action="{% url 'delete_service' service.id %}" method="post">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-outline-danger w-100">Delete Service</button>

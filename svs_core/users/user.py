@@ -166,4 +166,4 @@ class User(UserModel):
         return SystemUserManager.is_user_in_group(self.name, "svs-admins")
 
     def __str__(self) -> str:
-        return f"User(id={self.id}, name={self.name})"
+        return f"User(id={self.id}, name={self.name}, is_admin={self.is_admin()})"
