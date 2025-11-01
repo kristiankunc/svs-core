@@ -443,3 +443,182 @@ class TestService:
         # Verify container.stop() was called
         mock_container.stop.assert_called_once()
         assert service.status == ServiceStatus.STOPPED
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    @patch("svs_core.docker.service.DockerContainerManager.create_container")
+    @patch("svs_core.docker.service.DockerContainerManager.get_container")
+    def test_service_get_logs(
+        self,
+        mock_get_container: MagicMock,
+        mock_create_container: MagicMock,
+        test_template: Template,
+        test_user: User,
+    ) -> None:
+        """Test retrieving logs from a service's container."""
+        # Mock container creation
+        mock_container = MagicMock()
+        mock_container.id = "logs_container_id"
+        mock_container.status = "running"
+        mock_create_container.return_value = mock_container
+        mock_get_container.return_value = mock_container
+
+        # Mock logs output
+        log_content = b"2025-01-01T10:00:00Z Starting service...\n2025-01-01T10:00:01Z Service ready\n"
+        mock_container.logs.return_value = log_content
+
+        # Create service
+        service = Service.create(
+            name="log-test-service",
+            template_id=test_template.id,
+            user=test_user,
+            image="nginx:alpine",
+        )
+
+        # Retrieve logs
+        logs = service.get_logs()
+
+        # Verify container.logs() was called
+        mock_get_container.assert_called_with("logs_container_id")
+        mock_container.logs.assert_called_once_with(tail=100)
+
+        # Verify logs content
+        assert isinstance(logs, str)
+        assert "Starting service..." in logs
+        assert "Service ready" in logs
+        assert logs == log_content.decode("utf-8")
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    @patch("svs_core.docker.service.DockerContainerManager.create_container")
+    @patch("svs_core.docker.service.DockerContainerManager.get_container")
+    def test_service_get_logs_custom_tail(
+        self,
+        mock_get_container: MagicMock,
+        mock_create_container: MagicMock,
+        test_template: Template,
+        test_user: User,
+    ) -> None:
+        """Test retrieving logs with custom tail parameter."""
+        # Mock container creation
+        mock_container = MagicMock()
+        mock_container.id = "logs_container_id"
+        mock_container.status = "running"
+        mock_create_container.return_value = mock_container
+        mock_get_container.return_value = mock_container
+
+        # Mock logs output
+        log_content = b"Log line 1\nLog line 2\nLog line 3\n"
+        mock_container.logs.return_value = log_content
+
+        # Create service
+        service = Service.create(
+            name="log-tail-test-service",
+            template_id=test_template.id,
+            user=test_user,
+            image="nginx:alpine",
+        )
+
+        # Retrieve last 50 lines
+        logs = service.get_logs(tail=50)
+
+        # Verify container.logs() was called with correct tail parameter
+        mock_container.logs.assert_called_once_with(tail=50)
+
+        # Verify logs content
+        assert isinstance(logs, str)
+        assert logs == log_content.decode("utf-8")
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_get_logs_no_container_id(
+        self,
+        test_template: Template,
+        test_user: User,
+    ) -> None:
+        """Test that getting logs without container_id raises ValueError."""
+        with patch("svs_core.docker.service.DockerContainerManager.create_container"):
+            # Create service but manually clear container_id to simulate edge case
+            service = Service.objects.create(
+                name="no-container-id-service",
+                template_id=test_template.id,
+                user_id=test_user.id,
+                image="nginx:alpine",
+                container_id=None,
+            )
+
+            # Attempt to get logs should raise ValueError
+            with pytest.raises(
+                ValueError, match="Service does not have a container ID"
+            ):
+                service.get_logs()
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    @patch("svs_core.docker.service.DockerContainerManager.create_container")
+    @patch("svs_core.docker.service.DockerContainerManager.get_container")
+    def test_service_get_logs_container_not_found(
+        self,
+        mock_get_container: MagicMock,
+        mock_create_container: MagicMock,
+        test_template: Template,
+        test_user: User,
+    ) -> None:
+        """Test that getting logs when container doesn't exist raises
+        ValueError."""
+        # Mock container creation
+        mock_container = MagicMock()
+        mock_container.id = "logs_container_id"
+        mock_create_container.return_value = mock_container
+
+        # Mock container not found
+        mock_get_container.return_value = None
+
+        # Create service
+        service = Service.create(
+            name="container-not-found-service",
+            template_id=test_template.id,
+            user=test_user,
+            image="nginx:alpine",
+        )
+
+        # Attempt to get logs should raise ValueError
+        with pytest.raises(ValueError, match="Container with ID .* not found"):
+            service.get_logs()
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    @patch("svs_core.docker.service.DockerContainerManager.create_container")
+    @patch("svs_core.docker.service.DockerContainerManager.get_container")
+    def test_service_get_logs_empty_logs(
+        self,
+        mock_get_container: MagicMock,
+        mock_create_container: MagicMock,
+        test_template: Template,
+        test_user: User,
+    ) -> None:
+        """Test retrieving empty logs from a service."""
+        # Mock container creation
+        mock_container = MagicMock()
+        mock_container.id = "logs_container_id"
+        mock_container.status = "running"
+        mock_create_container.return_value = mock_container
+        mock_get_container.return_value = mock_container
+
+        # Mock empty logs
+        mock_container.logs.return_value = b""
+
+        # Create service
+        service = Service.create(
+            name="empty-logs-service",
+            template_id=test_template.id,
+            user=test_user,
+            image="nginx:alpine",
+        )
+
+        # Retrieve logs
+        logs = service.get_logs()
+
+        # Verify empty string returned
+        assert logs == ""
+        mock_container.logs.assert_called_once_with(tail=100)

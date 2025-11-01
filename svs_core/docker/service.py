@@ -486,3 +486,26 @@ class Service(ServiceModel):
         get_logger(__name__).info(f"Deleting service '{self.name}'")
 
         super().delete()
+
+    def get_logs(self, tail: int = 100) -> str:
+        """Retrieve the logs of the service's Docker container.
+
+        Args:
+            tail (int): Number of lines from the end of the logs to retrieve.
+
+        Returns:
+            str: The logs of the container as a string.
+        """
+        if not self.container_id:
+            raise ValueError("Service does not have a container ID")
+
+        container = DockerContainerManager.get_container(self.container_id)
+        if not container:
+            raise ValueError(f"Container with ID {self.container_id} not found")
+
+        get_logger(__name__).info(
+            f"Retrieving logs for service '{self.name}' with container ID '{self.container_id}'"
+        )
+
+        logs = container.logs(tail=tail)
+        return cast(str, logs.decode("utf-8"))
