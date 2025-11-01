@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Create Service from {{ template.name }} - My Site{% endblock %}
+{% block content %}
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{% url 'detail_template' template.id %}"
+               class="btn btn-outline-secondary mb-3">← Back to Template</a>
+            <h1>Create Service from Template</h1>
+            <p class="text-muted">
+                <strong>Template:</strong> {{ template.name }}
+            </p>
+        </div>
+    </div>
+    {% if error %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error:</strong> {{ error }}
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close"></button>
+        </div>
+    {% endif %}
+    <form method="post" class="row">
+        {% csrf_token %}
+        <!-- Basic Information -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Service Name</label>
+                        <input type="text"
+                               class="form-control"
+                               id="name"
+                               name="name"
+                               placeholder="{{ template.name }}-service"
+                               value="{{ request.POST.name }}">
+                        <small class="form-text text-muted">Leave blank to use default name</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="domain" class="form-label">Domain (Optional)</label>
+                        <input type="text"
+                               class="form-control"
+                               id="domain"
+                               name="domain"
+                               placeholder="example.com"
+                               value="{{ request.POST.domain }}">
+                    </div>
+                </div>
+            </div>
+            <!-- Environment Variables Override -->
+            {% if template.default_env %}
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Environment Variables</h5>
+                        <small class="text-muted">Template defaults shown</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for var in template.default_env %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ var.key }}</code>
+                                        </td>
+                                        <td>
+                                            <input type="hidden" name="env_key[]" value="{{ var.key }}">
+                                            <input type="text"
+                                                   class="form-control form-control-sm"
+                                                   name="env_value[]"
+                                                   value="{{ var.value }}"
+                                                   placeholder="{{ var.value }}">
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-body pt-0 border-top">
+                        <small class="text-muted">Override default values or leave blank to use defaults</small>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Port Overrides -->
+            {% if template.default_ports %}
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Ports</h5>
+                        <small class="text-muted">Template defaults shown</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Host Port</th>
+                                    <th>Container Port</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for port in template.default_ports %}
+                                    <tr>
+                                        <td>
+                                            <input type="hidden"
+                                                   name="port_container[]"
+                                                   value="{{ port.container_port }}">
+                                            <input type="number"
+                                                   class="form-control form-control-sm"
+                                                   name="port_host[]"
+                                                   value="{% if port.host_port %}{{ port.host_port }}{% endif %}"
+                                                   placeholder="{% if port.host_port %}{{ port.host_port }}{% else %}dynamic{% endif %}">
+                                        </td>
+                                        <td>
+                                            <code>{{ port.container_port }}</code>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-body pt-0 border-top">
+                        <small class="text-muted">Leave host port blank for dynamic assignment</small>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Volume Overrides -->
+            {% if template.default_volumes %}
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Volumes</h5>
+                        <small class="text-muted">Template defaults shown</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Host Path</th>
+                                    <th>Container Path</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for volume in template.default_volumes %}
+                                    <tr>
+                                        <td>
+                                            <input type="hidden"
+                                                   name="volume_container[]"
+                                                   value="{{ volume.container_path }}">
+                                            <input type="text"
+                                                   class="form-control form-control-sm"
+                                                   name="volume_host[]"
+                                                   value="{% if volume.host_path %}{{ volume.host_path }}{% endif %}"
+                                                   placeholder="{% if volume.host_path %}{{ volume.host_path }}{% else %}anonymous{% endif %}">
+                                        </td>
+                                        <td>
+                                            <code>{{ volume.container_path }}</code>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-body pt-0 border-top">
+                        <small class="text-muted">Leave host path blank for anonymous volumes</small>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <!-- Summary Sidebar -->
+        <div class="col-lg-4">
+            <div class="card sticky-top sticky-sidebar">
+                <div class="card-header">
+                    <h5 class="mb-0">Template Summary</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Name:</strong>
+                        <br>
+                        <small class="text-muted">{{ template.name }}</small>
+                    </p>
+                    <p class="mb-2">
+                        <strong>Type:</strong>
+                        <br>
+                        <small class="text-muted">{{ template.type|upper }}</small>
+                    </p>
+                    {% if template.image %}
+                        <p class="mb-2">
+                            <strong>Image:</strong>
+                            <br>
+                            <code class="text-break"><small>{{ template.image }}</small></code>
+                        </p>
+                    {% endif %}
+                    {% if template.description %}
+                        <p class="mb-3">
+                            <strong>Description:</strong>
+                            <br>
+                            <small class="text-muted">{{ template.description }}</small>
+                        </p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white">
+                    <button type="submit" class="btn btn-primary w-100">Create Service</button>
+                    <a href="{% url 'detail_template' template.id %}"
+                       class="btn btn-outline-secondary w-100 mt-2">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}

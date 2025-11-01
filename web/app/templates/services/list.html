@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Services - My Site{% endblock %}
+{% block content %}
+    <div class="row mb-4">
+        <div class="col">
+            <h1>My Services</h1>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'list_templates' %}" class="btn btn-primary">Create New Service</a>
+        </div>
+    </div>
+    {% if services %}
+        <div class="row">
+            {% for service in services %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ service.name }}</h5>
+                            <p class="card-text text-muted">
+                                <span class="badge bg-info">{{ service.status }}</span>
+                            </p>
+                            {% if service.template_obj %}
+                                <p class="card-text">
+                                    <small><strong>Template:</strong> {{ service.template_obj.name }}</small>
+                                </p>
+                            {% endif %}
+                            {% if service.domain %}
+                                <p class="card-text">
+                                    <small><strong>Domain:</strong> {{ service.domain }}</small>
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-white border-top">
+                            <div class="btn-group w-100" role="group">
+                                <a href="{% url 'detail_service' service.id %}"
+                                   class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="#" class="btn btn-sm btn-outline-secondary">Manage</a>
+                                <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">No Services</h4>
+            <p>
+                You don't have any services yet. <a href="{% url 'list_templates' %}" class="alert-link">Create one from a template</a>.
+            </p>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -7,7 +7,8 @@
 		"tamasfe.even-better-toml",
 		"ms-python.mypy-type-checker",
 		"ms-ossdata.vscode-pgsql",
-		"redhat.vscode-yaml"
+		"redhat.vscode-yaml",
+		"batisteo.vscode-django"
 	],
 	"unwantedRecommendations": []
 }

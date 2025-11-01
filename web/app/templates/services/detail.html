@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+{% block title %}{{ service.name }} - My Site{% endblock %}
+{% block content %}
+    <div class="row mb-4">
+        <div class="col">
+            <a href="{% url 'list_services' %}"
+               class="btn btn-outline-secondary mb-3">← Back to Services</a>
+            <h1>{{ service.name }}</h1>
+            <p class="text-muted">
+                <span class="badge bg-info">{{ service.status }}</span>
+            </p>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Basic Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Service ID</p>
+                            <p class="h6">{{ service.id }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Status</p>
+                            <p class="h6">
+                                <span class="badge bg-info">{{ service.status }}</span>
+                            </p>
+                        </div>
+                    </div>
+                    {% if service.template_obj %}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p class="text-muted mb-1">Template</p>
+                                <p class="h6">
+                                    <a href="{% url 'detail_template' service.template_obj.id %}">{{ service.template_obj.name }}</a>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="text-muted mb-1">Image</p>
+                                <p class="h6">
+                                    <code>{{ service.image }}</code>
+                                </p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if service.domain %}
+                        <div class="mb-3">
+                            <p class="text-muted mb-1">Domain</p>
+                            <p class="h6">{{ service.domain }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Environment Variables -->
+            {% if service.env %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Environment Variables</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for var in service.env %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ var.key }}</code>
+                                        </td>
+                                        <td>
+                                            <code class="text-break">{{ var.value }}</code>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Exposed Ports -->
+            {% if service.exposed_ports %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Exposed Ports</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Host Port</th>
+                                    <th>Container Port</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for port in service.exposed_ports %}
+                                    <tr>
+                                        <td>
+                                            {% if port.host_port %}
+                                                {{ port.host_port }}
+                                            {% else %}
+                                                <span class="text-muted">Dynamic</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ port.container_port }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Volumes -->
+            {% if service.volumes %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Volumes</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Host Path</th>
+                                    <th>Container Path</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for volume in service.volumes %}
+                                    <tr>
+                                        <td>
+                                            {% if volume.host_path %}
+                                                <code>{{ volume.host_path }}</code>
+                                            {% else %}
+                                                <span class="text-muted">Anonymous</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <code>{{ volume.container_path }}</code>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Command & Args -->
+            {% if service.command or service.args %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Execution</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if service.command %}
+                            <p class="mb-2">
+                                <strong>Command:</strong>
+                                <br>
+                                <code class="bg-light p-2 rounded d-block">{{ service.command }}</code>
+                            </p>
+                        {% endif %}
+                        {% if service.args %}
+                            <p>
+                                <strong>Arguments:</strong>
+                                <br>
+                                <code class="bg-light p-2 rounded d-block">{{ service.args|join:" " }}</code>
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            <!-- Labels -->
+            {% if service.labels %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Labels</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Key</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for label in service.labels %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ label.key }}</code>
+                                        </td>
+                                        <td>
+                                            <code>{{ label.value }}</code>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card sticky-top sticky-sidebar">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    <form action="{% url 'start_service' service.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success w-100">Start Service</button>
+                    </form>
+                    <form action="{% url 'stop_service' service.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning w-100">Stop Service</button>
+                    </form>
+                    <form action="{% url 'delete_service' service.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger w-100">Delete Service</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
