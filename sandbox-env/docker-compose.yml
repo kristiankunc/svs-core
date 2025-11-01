@@ -1,5 +1,6 @@
 services:
   svs:
+    # image: ghcr.io/kristiankunc/svs-core-sandbox:latest
     build:
       context: ..
       dockerfile: sandbox-env/Dockerfile
