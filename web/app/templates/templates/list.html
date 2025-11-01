@@ -6,7 +6,10 @@
             <h1>Docker Templates</h1>
         </div>
         <div class="col-auto">
-            <a href="#" class="btn btn-primary">Create Template</a>
+            {% if is_admin %}
+                <a href="#" class="btn btn-primary">Create Template</a>
+                <a href="{% url 'import_template' %}" class="btn btn-primary">Import from JSON</a>
+            {% endif %}
         </div>
     </div>
     {% if templates %}
