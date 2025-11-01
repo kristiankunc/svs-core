@@ -35,7 +35,9 @@
                                 </li>
                             {% else %}
                                 <li class="nav-item">
-                                    <span class="nav-link"><strong>{{ user.name }}</strong></span>
+                                    <span class="nav-link"><strong>{{ user.name }}</strong>
+                                        {% if user.is_admin %}(Admin){% endif %}
+                                    </span>
                                 </li>
                                 <li class="nav-item">
                                     <a class="btn btn-danger" href="/logout/">Logout</a>
@@ -46,6 +48,22 @@
                 </div>
             </nav>
         </header>
+        {% if messages %}
+            <div class="container">
+                <div class="alert-container">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show"
+                             role="alert">
+                            {{ message }}
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="alert"
+                                    aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
         <main class="container">
             {% block content %}{% endblock %}
         </main>

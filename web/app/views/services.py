@@ -1,6 +1,7 @@
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path
+from django.utils.timezone import now
 
 from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
 from svs_core.docker.service import Service

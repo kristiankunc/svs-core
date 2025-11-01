@@ -14,6 +14,7 @@ def index(request):
 def login(request: HttpRequest):
     if DEBUG:
         request.session["user_id"] = 1
+        request.session["is_admin"] = True
         return redirect("index")
 
     if not request.method == "POST":
@@ -30,6 +31,7 @@ def login(request: HttpRequest):
 
         if user and user.check_password(password):
             request.session["user_id"] = user.id
+            request.session["is_admin"] = user.is_admin()
             return redirect("index")
 
     return render(request, "base/login.html", {"error": "Invalid credentials"})
