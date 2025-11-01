@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.http import HttpRequest
 from django.shortcuts import redirect, render
@@ -12,13 +13,8 @@ def index(request):
 
 
 def login(request: HttpRequest):
-    if DEBUG:
-        request.session["user_id"] = 1
-        request.session["is_admin"] = True
-        return redirect("index")
-
     if not request.method == "POST":
-        return render(request, "login.html")
+        return render(request, "base/login.html")
 
     username = request.POST.get("username")
     password = request.POST.get("password")
@@ -34,7 +30,8 @@ def login(request: HttpRequest):
             request.session["is_admin"] = user.is_admin()
             return redirect("index")
 
-    return render(request, "base/login.html", {"error": "Invalid credentials"})
+    messages.error(request, "Invalid username or password.")
+    return render(request, "base/login.html")
 
 
 def logout(request: HttpRequest):

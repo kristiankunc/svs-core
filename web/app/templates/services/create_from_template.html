@@ -11,15 +11,6 @@
             </p>
         </div>
     </div>
-    {% if error %}
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>Error:</strong> {{ error }}
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert"
-                    aria-label="Close"></button>
-        </div>
-    {% endif %}
     <form method="post" class="row">
         {% csrf_token %}
         <!-- Basic Information -->
@@ -35,9 +26,9 @@
                                class="form-control"
                                id="name"
                                name="name"
-                               placeholder="{{ template.name }}-service"
+                               required
                                value="{{ request.POST.name }}">
-                        <small class="form-text text-muted">Leave blank to use default name</small>
+                        <small class="form-text text-muted">Service name is required</small>
                     </div>
                     <div class="mb-3">
                         <label for="domain" class="form-label">Domain (Optional)</label>
@@ -77,7 +68,8 @@
                                                    class="form-control form-control-sm"
                                                    name="env_value[]"
                                                    value="{{ var.value }}"
-                                                   placeholder="{{ var.value }}">
+                                                   placeholder="{{ var.value }}"
+                                                   {% if not is_admin %}readonly{% endif %}>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -115,7 +107,8 @@
                                                    class="form-control form-control-sm"
                                                    name="port_host[]"
                                                    value="{% if port.host_port %}{{ port.host_port }}{% endif %}"
-                                                   placeholder="{% if port.host_port %}{{ port.host_port }}{% else %}dynamic{% endif %}">
+                                                   placeholder="{% if port.host_port %}{{ port.host_port }}{% else %}auto-generated{% endif %}"
+                                                   {% if not is_admin and not port.host_port %}readonly disabled{% endif %}>
                                         </td>
                                         <td>
                                             <code>{{ port.container_port }}</code>
@@ -126,7 +119,7 @@
                         </table>
                     </div>
                     <div class="card-body pt-0 border-top">
-                        <small class="text-muted">Leave host port blank for dynamic assignment</small>
+                        <small class="text-muted">Leave host port blank for automatic assignment</small>
                     </div>
                 </div>
             {% endif %}
@@ -156,7 +149,8 @@
                                                    class="form-control form-control-sm"
                                                    name="volume_host[]"
                                                    value="{% if volume.host_path %}{{ volume.host_path }}{% endif %}"
-                                                   placeholder="{% if volume.host_path %}{{ volume.host_path }}{% else %}anonymous{% endif %}">
+                                                   placeholder="{% if volume.host_path %}{{ volume.host_path }}{% else %}auto-generated{% endif %}"
+                                                   {% if not is_admin and not volume.host_path %}readonly disabled{% endif %}>
                                         </td>
                                         <td>
                                             <code>{{ volume.container_path }}</code>
@@ -167,10 +161,73 @@
                         </table>
                     </div>
                     <div class="card-body pt-0 border-top">
-                        <small class="text-muted">Leave host path blank for anonymous volumes</small>
+                        <small class="text-muted">Leave host path blank for auto-generated volumes</small>
                     </div>
                 </div>
             {% endif %}
+            <!-- Healthcheck Configuration -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Healthcheck</h5>
+                    <small class="text-muted">Optional</small>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="healthcheck_test" class="form-label">Health Check Test Command</label>
+                        <input type="text"
+                               class="form-control"
+                               id="healthcheck_test"
+                               name="healthcheck_test"
+                               placeholder="e.g., curl http://localhost:80/"
+                               value="{% if request.POST.healthcheck_test %}{{ request.POST.healthcheck_test }}{% elif template.healthcheck and template.healthcheck.test %}{{ template.healthcheck.test|join:' ' }}{% endif %}">
+                        <small class="form-text text-muted">Command to check container health</small>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="healthcheck_interval" class="form-label">Interval (seconds)</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="healthcheck_interval"
+                                   name="healthcheck_interval"
+                                   placeholder="30"
+                                   value="{% if request.POST.healthcheck_interval %}{{ request.POST.healthcheck_interval }}{% elif template.healthcheck and template.healthcheck.interval %}{{ template.healthcheck.interval }}{% endif %}">
+                            <small class="form-text text-muted">Time between checks</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="healthcheck_timeout" class="form-label">Timeout (seconds)</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="healthcheck_timeout"
+                                   name="healthcheck_timeout"
+                                   placeholder="10"
+                                   value="{% if request.POST.healthcheck_timeout %}{{ request.POST.healthcheck_timeout }}{% elif template.healthcheck and template.healthcheck.timeout %}{{ template.healthcheck.timeout }}{% endif %}">
+                            <small class="form-text text-muted">Time to wait before failing</small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="healthcheck_retries" class="form-label">Retries</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="healthcheck_retries"
+                                   name="healthcheck_retries"
+                                   placeholder="3"
+                                   value="{% if request.POST.healthcheck_retries %}{{ request.POST.healthcheck_retries }}{% elif template.healthcheck and template.healthcheck.retries %}{{ template.healthcheck.retries }}{% endif %}">
+                            <small class="form-text text-muted">Consecutive failures to mark unhealthy</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="healthcheck_start_period" class="form-label">Start Period (seconds)</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="healthcheck_start_period"
+                                   name="healthcheck_start_period"
+                                   placeholder="0"
+                                   value="{% if request.POST.healthcheck_start_period %}{{ request.POST.healthcheck_start_period }}{% elif template.healthcheck and template.healthcheck.start_period %}{{ template.healthcheck.start_period }}{% endif %}">
+                            <small class="form-text text-muted">Time before first check</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <!-- Summary Sidebar -->
         <div class="col-lg-4">

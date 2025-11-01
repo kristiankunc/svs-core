@@ -11,4 +11,7 @@ def user_render_injector(request):
         except User.DoesNotExist:
             pass
 
+    print("Injected user:", user)
+    print("Is admin:", request.session.get("is_admin", False))
+
     return {"user": user, "is_admin": request.session.get("is_admin", False)}

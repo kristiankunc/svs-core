@@ -3,7 +3,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path
 from django.utils.timezone import now
 
-from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
+from svs_core.docker.json_properties import (
+    EnvVariable,
+    ExposedPort,
+    Healthcheck,
+    Label,
+    Volume,
+)
 from svs_core.docker.service import Service
 from svs_core.docker.template import Template
 from svs_core.users.user import User
@@ -15,8 +21,18 @@ def create_from_template(request: HttpRequest, template_id: int):
     template = get_object_or_404(Template, id=template_id)
 
     if request.method == "POST":
-        service_name = request.POST.get("name", "")
-        domain = request.POST.get("domain", "")
+        service_name = request.POST.get("name", "").strip()
+        domain = request.POST.get("domain", "").strip()
+
+        if not service_name:
+            return render(
+                request,
+                "services/create_from_template.html",
+                {
+                    "template": template,
+                    "error": "Service name is required",
+                },
+            )
 
         user_id = request.session.get("user_id")
         if not user_id:
@@ -26,6 +42,8 @@ def create_from_template(request: HttpRequest, template_id: int):
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             return redirect("login")
+
+        is_admin = request.session.get("is_admin", False)
 
         override_env = []
         env_keys = request.POST.getlist("env_key[]")
@@ -42,6 +60,18 @@ def create_from_template(request: HttpRequest, template_id: int):
                 try:
                     host_port = int(host) if host else None
                     container_port = int(container)
+
+                    # Check if non-admin is trying to set auto-generated port
+                    if not is_admin and not host_port:
+                        return render(
+                            request,
+                            "services/create_from_template.html",
+                            {
+                                "template": template,
+                                "error": "Only administrators can set auto-generated ports",
+                            },
+                        )
+
                     override_ports.append(
                         ExposedPort(host_port=host_port, container_port=container_port)
                     )
@@ -53,19 +83,50 @@ def create_from_template(request: HttpRequest, template_id: int):
         vol_container = request.POST.getlist("volume_container[]")
         for host, container in zip(vol_host, vol_container):
             if container:
+                # Check if non-admin is trying to set auto-generated volume
+                if not is_admin and not host:
+                    return render(
+                        request,
+                        "services/create_from_template.html",
+                        {
+                            "template": template,
+                            "error": "Only administrators can set auto-generated volumes",
+                        },
+                    )
+
                 override_volumes.append(
                     Volume(host_path=host if host else None, container_path=container)
                 )
 
+        override_healthcheck = None
+        healthcheck_test = request.POST.get("healthcheck_test", "").strip()
+        if healthcheck_test:
+            interval = request.POST.get("healthcheck_interval", "")
+            timeout = request.POST.get("healthcheck_timeout", "")
+            retries = request.POST.get("healthcheck_retries", "")
+            start_period = request.POST.get("healthcheck_start_period", "")
+
+            try:
+                override_healthcheck = Healthcheck(
+                    test=healthcheck_test.split(),
+                    interval=int(interval) if interval else None,
+                    timeout=int(timeout) if timeout else None,
+                    retries=int(retries) if retries else None,
+                    start_period=int(start_period) if start_period else None,
+                )
+            except ValueError:
+                pass
+
         try:
             service = Service.create_from_template(
-                name=service_name or f"{template.name}-service",
+                name=service_name,
                 template_id=template_id,
                 user=user,
                 domain=domain or None,
                 override_env=override_env if override_env else None,
                 override_ports=override_ports if override_ports else None,
                 override_volumes=override_volumes if override_volumes else None,
+                override_healthcheck=override_healthcheck,
             )
             return redirect("detail_service", service_id=service.id)
         except Exception as e:
@@ -99,7 +160,18 @@ def list_services(request: HttpRequest):
     is_admin = request.session.get("is_admin", False)
 
     if is_admin:
-        services = Service.objects.all()
+        all_services = Service.objects.all()
+        owned_services = [s for s in all_services if s.user_id == user_id]
+        other_services = [s for s in all_services if s.user_id != user_id]
+        return render(
+            request,
+            "services/list.html",
+            {
+                "owned_services": owned_services,
+                "other_services": other_services,
+                "is_admin": is_admin,
+            },
+        )
     elif user_id:
         services = Service.objects.filter(user_id=user_id)
     else:
