@@ -214,11 +214,18 @@
                     <h5 class="mb-0">Actions</h5>
                 </div>
                 <div class="card-body d-grid gap-2">
-                    <button class="btn btn-success">Start Service</button>
-                    <button class="btn btn-warning">Stop Service</button>
-                    <a href="#" class="btn btn-outline-secondary">View Logs</a>
-                    <a href="#" class="btn btn-outline-secondary">Edit Configuration</a>
-                    <a href="#" class="btn btn-outline-danger">Delete Service</a>
+                    <form action="{% url 'start_service' service.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success w-100">Start Service</button>
+                    </form>
+                    <form action="{% url 'stop_service' service.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-warning w-100">Stop Service</button>
+                    </form>
+                    <form action="{% url 'delete_service' service.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger w-100">Delete Service</button>
+                    </form>
                 </div>
             </div>
         </div>

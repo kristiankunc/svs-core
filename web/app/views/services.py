@@ -6,6 +6,7 @@ from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Vol
 from svs_core.docker.service import Service
 from svs_core.docker.template import Template
 from svs_core.users.user import User
+from web.app.lib.owner_check import is_owner_or_admin
 
 
 def create_from_template(request: HttpRequest, template_id: int):
@@ -106,6 +107,39 @@ def list_services(request: HttpRequest):
     return render(request, "services/list.html", {"services": services})
 
 
+def start(request: HttpRequest, service_id: int):
+    """Start a service."""
+    service = get_object_or_404(Service, id=service_id)
+
+    if not is_owner_or_admin(request, service):
+        return redirect("detail_service", service_id=service.id)
+
+    service.start()
+    return redirect("detail_service", service_id=service.id)
+
+
+def stop(request: HttpRequest, service_id: int):
+    """Stop a service."""
+    service = get_object_or_404(Service, id=service_id)
+
+    if not is_owner_or_admin(request, service):
+        return redirect("detail_service", service_id=service.id)
+
+    service.stop()
+    return redirect("detail_service", service_id=service.id)
+
+
+def delete(request: HttpRequest, service_id: int):
+    """Delete a service."""
+    service = get_object_or_404(Service, id=service_id)
+
+    if not is_owner_or_admin(request, service):
+        return redirect("detail_service", service_id=service.id)
+
+    service.delete()
+    return redirect("list_services")
+
+
 urlpatterns = [
     path("services/", list_services, name="list_services"),
     path(
@@ -114,4 +148,7 @@ urlpatterns = [
         name="create_service_from_template",
     ),
     path("services/<int:service_id>/", detail, name="detail_service"),
+    path("services/<int:service_id>/start/", start, name="start_service"),
+    path("services/<int:service_id>/stop/", stop, name="stop_service"),
+    path("services/<int:service_id>/delete/", delete, name="delete_service"),
 ]
