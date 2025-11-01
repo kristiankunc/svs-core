@@ -1,0 +1,38 @@
+name: "svs-core"
+
+services:
+  db:
+    image: postgres:latest
+    restart: unless-stopped
+    container_name: svs-db
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+  caddy:
+    image: lucaslorentz/caddy-docker-proxy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - CADDY_INGRESS_NETWORK=caddy
+    networks:
+      - caddy
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
+
+networks:
+  caddy:
+    driver: bridge
