@@ -1,0 +1,30 @@
+FROM cruizba/ubuntu-dind:jammy-latest
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+#
+RUN apt-get update && apt-get install -y \
+    curl git sudo nano \
+    libpq-dev python3-dev build-essential
+
+# Install pyenv
+ENV PYENV_ROOT=/opt/pyenv
+ENV PATH=$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
+RUN curl https://pyenv.run | bash
+
+# Install Python 3.11 and set it global for pipx
+RUN pyenv install 3.11.14 && pyenv global 3.11.14
+
+# Install pipx with this Python
+RUN python -m pip install --upgrade pip && python -m pip install pipx && pipx ensurepath
+
+# Then you can do
+RUN PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install svs-core
+
+RUN printf '%s\n' 'PIPX_HOME="/opt/pipx"' 'PIPX_BIN_DIR="/usr/local/bin"' | tee -a /etc/environment
+
+COPY install.sh /root/install.sh
+
+COPY sandbox-env/docker-compose.template.yml /root/docker-compose.yml
+COPY sandbox-env/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
