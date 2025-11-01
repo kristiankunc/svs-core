@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.0](https://github.com/kristiankunc/svs-core/compare/v0.4.1...v0.5.0) (2025-11-01)
+
+
+### Features
+
+* Consolidate Docker image name and tags into a single param ([3b56629](https://github.com/kristiankunc/svs-core/commit/3b566295ec432d10dcb4899a9fbb8c28614dcd4f))
+
+
+### Bug Fixes
+
+* Add service log obtaining ([50868d5](https://github.com/kristiankunc/svs-core/commit/50868d5837116ff4b88cbdffdbc8d64e2705f8cb))
+
 ## [0.4.1](https://github.com/kristiankunc/svs-core/compare/v0.4.0...v0.4.1) (2025-10-31)
 
 
