@@ -51,7 +51,7 @@ class TestTemplate:
         assert template.start_cmd == "sh -c 'echo hello'"
 
         # Verify DockerImageManager.pull was called correctly
-        mock_pull.assert_called_once_with(image_name, tag)
+        mock_pull.assert_called_once_with(f"{image_name}:{tag}")
 
         # Verify JSON properties
         assert len(template.default_env) == 1
@@ -208,7 +208,7 @@ class TestTemplate:
         assert template.default_ports[0].host_port == 6379
 
         # Verify DockerImageManager.pull was called correctly
-        mock_pull.assert_called_with("redis", "alpine")
+        mock_pull.assert_called_with("redis:alpine")
 
     @pytest.mark.integration
     @pytest.mark.django_db
@@ -291,7 +291,7 @@ class TestTemplate:
         assert template.healthcheck.retries == 3
 
         # Verify DockerImageManager.pull was called correctly
-        mock_pull.assert_called_with("nginx", "latest")
+        mock_pull.assert_called_with("nginx:latest")
 
     @pytest.mark.integration
     @pytest.mark.django_db
