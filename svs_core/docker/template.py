@@ -190,14 +190,8 @@ class Template(TemplateModel):
         )
 
         if type == TemplateType.IMAGE and image is not None:
-            # Parse the image name to handle tags correctly
-            if ":" in image:
-                image_name, tag = image.split(":", 1)
-                if not DockerImageManager.exists(image_name, tag):
-                    DockerImageManager.pull(image_name, tag)
-            else:
-                if not DockerImageManager.exists(image):
-                    DockerImageManager.pull(image, "latest")
+            if not DockerImageManager.exists(image):
+                DockerImageManager.pull(image)
 
         elif type == TemplateType.BUILD and dockerfile is not None:
             print(f"Building image for template {name} from dockerfile")
