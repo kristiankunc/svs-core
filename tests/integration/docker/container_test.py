@@ -16,12 +16,8 @@ class TestDockerContainerManager:
     @pytest.fixture(scope="session", autouse=True)
     def pull_test_image(self):
         """Fixture to pull the test image before all tests."""
-        if not DockerImageManager.exists(
-            self.TEST_IMAGE.split(":")[0], self.TEST_IMAGE.split(":")[1]
-        ):
-            DockerImageManager.pull(
-                self.TEST_IMAGE.split(":")[0], self.TEST_IMAGE.split(":")[1]
-            )
+        if not DockerImageManager.exists(self.TEST_IMAGE):
+            DockerImageManager.pull(self.TEST_IMAGE)
 
     @pytest.fixture(autouse=True)
     def cleanup_test_containers(self):

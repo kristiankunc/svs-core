@@ -14,18 +14,16 @@ class DockerImageManager:
     def build_from_dockerfile(
         image_name: str,
         dockerfile_content: str,
-        tag: str = "latest",
     ) -> None:
         """Build a Docker image from an in-memory Dockerfile.
 
         Args:
             image_name (str): Name of the image.
             dockerfile_content (str): Dockerfile contents.
-            tag (str): Image tag.
         """
         client = get_docker_client()
 
-        get_logger(__name__).debug(f"Building image {image_name}:{tag} from Dockerfile")
+        get_logger(__name__).debug(f"Building image {image_name} from Dockerfile")
 
         with tempfile.TemporaryDirectory() as tmpdir:
             dockerfile_path = os.path.join(tmpdir, "Dockerfile")
@@ -34,32 +32,31 @@ class DockerImageManager:
 
             client.images.build(
                 path=tmpdir,
-                tag=f"{image_name}:{tag}",
+                tag=image_name,
                 rm=True,
                 forcerm=True,
                 labels={"svs": "true"},
             )
 
     @staticmethod
-    def exists(image_name: str, tag: str = "latest") -> bool:
+    def exists(image_name: str) -> bool:
         """Check if a Docker image exists locally.
 
         Args:
             image_name (str): Name of the image.
-            tag (str): Image tag.
 
         Returns:
             bool: True if the image exists, False otherwise.
         """
         client = get_docker_client()
         try:
-            client.images.get(f"{image_name}:{tag}")
+            client.images.get(image_name)
             return True
         except Exception:
             return False
 
     @staticmethod
-    def remove(image_name: str, tag: str = "latest") -> None:
+    def remove(image_name: str) -> None:
         """Remove a Docker image from the local system.
 
         Args:
@@ -71,17 +68,17 @@ class DockerImageManager:
         """
         client = get_docker_client()
 
-        get_logger(__name__).debug(f"Removing image {image_name}:{tag}")
+        get_logger(__name__).debug(f"Removing image {image_name}:")
 
         try:
-            client.images.remove(f"{image_name}:{tag}", force=True)
+            client.images.remove(image_name, force=True)
         except Exception as e:
             raise Exception(
-                f"Failed to remove image {image_name}:{tag}. Error: {str(e)}"
+                f"Failed to remove image {image_name}. Error: {str(e)}"
             ) from e
 
     @staticmethod
-    def pull(image_name: str, tag: str = "latest") -> None:
+    def pull(image_name: str) -> None:
         """Pull a Docker image from a registry.
 
         Args:
@@ -90,13 +87,13 @@ class DockerImageManager:
         """
         client = get_docker_client()
 
-        get_logger(__name__).debug(f"Pulling image {image_name}:{tag}")
+        get_logger(__name__).debug(f"Pulling image {image_name}")
 
         try:
-            client.images.pull(f"{image_name}:{tag}")
+            client.images.pull(f"{image_name}")
         except Exception as e:
             raise Exception(
-                f"Failed to pull image {image_name}:{tag}. Error: {str(e)}"
+                f"Failed to pull image {image_name}. Error: {str(e)}"
             ) from e
 
     @staticmethod
