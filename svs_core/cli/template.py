@@ -41,14 +41,14 @@ def list_templates() -> None:
 
 @app.command("delete")
 def delete_template(
-    template_name: str = typer.Argument(..., help="Name of the template to delete")
+    template_id: str = typer.Argument(..., help="ID of the template to delete")
 ) -> None:
-    """Delete a template by name."""
+    """Delete a template by ID."""
 
-    template = Template.objects.get(name=template_name)
+    template = Template.objects.get(id=template_id)
     if not template:
-        typer.echo(f"❌ Template '{template_name}' not found.", err=True)
+        typer.echo(f"❌ Template with ID '{template_id}' not found.", err=True)
         return
 
     template.delete()
-    typer.echo(f"✅ Template '{template_name}' deleted successfully.")
+    typer.echo(f"✅ Template with ID '{template_id}' deleted successfully.")

@@ -19,7 +19,6 @@
 		}
 	],
 	"description": "A minimal NGINX web server with default config",
-	"dockerfile": null,
 	"healthcheck": {
 		"interval": 30,
 		"retries": 3,
