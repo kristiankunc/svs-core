@@ -1,4 +1,5 @@
 {
+	"$schema": "https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/service_templates/schema.json",
 	"args": [],
 	"default_env": {},
 	"default_ports": [
