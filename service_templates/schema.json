@@ -1,0 +1,208 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"additionalProperties": false,
+	"dependencies": {
+		"dockerfile": {
+			"properties": {
+				"type": {
+					"const": "build"
+				}
+			}
+		},
+		"image": {
+			"properties": {
+				"type": {
+					"const": "image"
+				}
+			}
+		}
+	},
+	"properties": {
+		"args": {
+			"items": {
+				"type": "string"
+			},
+			"type": [
+				"array",
+				"null"
+			]
+		},
+		"default_env": {
+			"oneOf": [
+				{
+					"additionalProperties": {
+						"type": "string"
+					},
+					"type": "object"
+				},
+				{
+					"items": {
+						"additionalProperties": {
+							"type": "string"
+						},
+						"maxProperties": 1,
+						"minProperties": 1,
+						"type": "object"
+					},
+					"type": "array"
+				}
+			]
+		},
+		"default_ports": {
+			"items": {
+				"oneOf": [
+					{
+						"additionalProperties": false,
+						"properties": {
+							"container": {
+								"type": "integer"
+							},
+							"host": {
+								"type": [
+									"integer",
+									"null"
+								]
+							}
+						},
+						"required": [
+							"container"
+						]
+					},
+					{
+						"additionalProperties": {
+							"type": "integer"
+						},
+						"maxProperties": 1,
+						"minProperties": 1
+					}
+				],
+				"type": "object"
+			},
+			"type": "array"
+		},
+		"default_volumes": {
+			"items": {
+				"oneOf": [
+					{
+						"additionalProperties": false,
+						"properties": {
+							"container": {
+								"type": "string"
+							},
+							"host": {
+								"type": [
+									"string",
+									"null"
+								]
+							}
+						},
+						"required": [
+							"container"
+						]
+					},
+					{
+						"additionalProperties": {
+							"type": "string"
+						},
+						"maxProperties": 1,
+						"minProperties": 1
+					}
+				],
+				"type": "object"
+			},
+			"type": "array"
+		},
+		"description": {
+			"type": "string"
+		},
+		"dockerfile": {
+			"type": [
+				"string",
+				"null"
+			]
+		},
+		"healthcheck": {
+			"additionalProperties": false,
+			"properties": {
+				"interval": {
+					"minimum": 0,
+					"type": "integer"
+				},
+				"retries": {
+					"minimum": 0,
+					"type": "integer"
+				},
+				"start_period": {
+					"minimum": 0,
+					"type": "integer"
+				},
+				"test": {
+					"items": {
+						"type": "string"
+					},
+					"minItems": 1,
+					"type": "array"
+				},
+				"timeout": {
+					"minimum": 0,
+					"type": "integer"
+				}
+			},
+			"type": [
+				"object",
+				"null"
+			]
+		},
+		"image": {
+			"type": "string"
+		},
+		"labels": {
+			"oneOf": [
+				{
+					"additionalProperties": {
+						"type": "string"
+					},
+					"type": "object"
+				},
+				{
+					"items": {
+						"additionalProperties": {
+							"type": "string"
+						},
+						"maxProperties": 1,
+						"minProperties": 1,
+						"type": "object"
+					},
+					"type": "array"
+				}
+			]
+		},
+		"name": {
+			"minLength": 1,
+			"type": "string"
+		},
+		"start_cmd": {
+			"items": {
+				"type": "string"
+			},
+			"type": [
+				"string",
+				"array",
+				"null"
+			]
+		},
+		"type": {
+			"enum": [
+				"image",
+				"build"
+			],
+			"type": "string"
+		}
+	},
+	"required": [
+		"name",
+		"type"
+	],
+	"title": "Template",
+	"type": "object"
+}
