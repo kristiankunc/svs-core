@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/kristiankunc/svs-core/compare/v0.5.0...v0.5.1) (2025-11-02)
+
+
+### Bug Fixes
+
+* Use template id to identify templates in cli ([040eccb](https://github.com/kristiankunc/svs-core/commit/040eccbeccf0211323c4e03b4b9fe56e899424b7))
+
 ## [0.5.0](https://github.com/kristiankunc/svs-core/compare/v0.4.1...v0.5.0) (2025-11-01)
 
 
