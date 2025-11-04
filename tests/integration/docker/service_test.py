@@ -112,7 +112,9 @@ class TestService:
         assert call_args["image"] == "nginx:latest"
         assert call_args["command"] == "nginx -g 'daemon off;'"
         assert call_args["args"] == ["--no-cache"]
-        assert call_args["ports"] == {80: 8080}
+        assert len(call_args["ports"]) == 1
+        assert call_args["ports"][0].container_port == 80
+        assert call_args["ports"][0].host_port == 8080
 
         # Verify JSON properties
         assert len(service.env) == 2
@@ -241,7 +243,8 @@ class TestService:
             template_id=test_template.id,
             user=test_user,
             override_env=[
-                EnvVariable(key="NGINX_PORT", value="8080"),  # Override template's 80
+                # Override template's 80
+                EnvVariable(key="NGINX_PORT", value="8080"),
                 EnvVariable(key="NEW_VAR", value="new_value"),  # New var
             ],
         )
