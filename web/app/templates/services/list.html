@@ -31,12 +31,8 @@
                             {% endif %}
                         </div>
                         <div class="card-footer bg-white border-top">
-                            <div class="btn-group w-100" role="group">
-                                <a href="{% url 'detail_service' service.id %}"
-                                   class="btn btn-sm btn-outline-primary">View</a>
-                                <a href="#" class="btn btn-sm btn-outline-secondary">Manage</a>
-                                <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
-                            </div>
+                            <a href="{% url 'detail_service' service.id %}"
+                               class="btn btn-sm btn-outline-primary w-100">View</a>
                         </div>
                     </div>
                 </div>

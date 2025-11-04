@@ -9,7 +9,8 @@
 				"tamasfe.even-better-toml",
 				"ms-python.mypy-type-checker",
 				"ms-ossdata.vscode-pgsql",
-				"redhat.vscode-yaml"
+				"redhat.vscode-yaml",
+				"batisteo.vscode-django"
 			],
 			"settings": {
 				"[yaml]": {
@@ -27,12 +28,7 @@
 					"/home/vscode/.venv/bin/mypy"
 				],
 				"python.analysis.typeCheckingMode": "off",
-				"python.defaultInterpreterPath": "/home/vscode/.venv/bin/python",
-				"python.testing.pytestArgs": [
-					"tests"
-				],
-				"python.testing.pytestEnabled": true,
-				"python.testing.unittestEnabled": false
+				"python.defaultInterpreterPath": "/home/vscode/.venv/bin/python"
 			}
 		}
 	},

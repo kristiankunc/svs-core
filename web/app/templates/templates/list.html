@@ -28,16 +28,8 @@
                             {% endif %}
                         </div>
                         <div class="card-footer bg-white border-top">
-                            <div class="btn-group w-100" role="group">
-                                <a href="{% url 'detail_template' template.id %}"
-                                   class="btn btn-sm btn-outline-primary">View</a>
-                                {% if is_admin %}
-                                    <a href="#" class="btn btn-sm btn-outline-secondary">Edit</a>
-                                    <a href="{% url 'delete_template' template.id %}"
-                                       class="btn btn-sm btn-outline-danger"
-                                       onclick="return confirm('Are you sure you want to delete this template?');">Delete</a>
-                                {% endif %}
-                            </div>
+                            <a href="{% url 'detail_template' template.id %}"
+                               class="btn btn-sm btn-outline-primary w-100">View</a>
                         </div>
                     </div>
                 </div>
