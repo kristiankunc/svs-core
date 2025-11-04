@@ -122,7 +122,6 @@ class TestDockerContainerManager:
         with tempfile.TemporaryDirectory() as host_dir:
             volumes = [
                 Volume(host_path=host_dir, container_path="/data"),
-                Volume(host_path=None, container_path="/tmp"),
             ]
 
             container = DockerContainerManager.create_container(
