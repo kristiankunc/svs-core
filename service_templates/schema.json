@@ -84,6 +84,7 @@
 			"type": "array"
 		},
 		"default_volumes": {
+			"description": "Array of volume mounts. Each volume is an object with container_path as key and host_path (or null for anonymous volumes) as value.",
 			"items": {
 				"additionalProperties": {
 					"type": [
@@ -91,8 +92,13 @@
 						"null"
 					]
 				},
+				"description": "Single volume mount in format {container_path: host_path} or {container_path: null}",
 				"maxProperties": 1,
 				"minProperties": 1,
+				"propertyNames": {
+					"description": "Container path (must start with /)",
+					"type": "string"
+				},
 				"type": "object"
 			},
 			"type": "array"

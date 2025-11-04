@@ -216,17 +216,33 @@
                 <div class="card-body d-grid gap-2">
                     <form action="{% url 'start_service' service.id %}" method="post">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-success w-100">Start Service</button>
+                        <button type="submit"
+                                class="btn btn-success w-100"
+                                {% if service.status.value == 'running' %}disabled{% endif %}>Start Service</button>
                     </form>
                     <form action="{% url 'stop_service' service.id %}" method="post">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-warning w-100">Stop Service</button>
+                        <button type="submit"
+                                class="btn btn-warning w-100"
+                                {% if service.status.value != 'running' %}disabled{% endif %}>Stop Service</button>
+                    </form>
+                    <form action="{% url 'restart_service' service.id %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn btn-primary w-100"
+                                {% if service.status.value != 'running' %}disabled{% endif %}>Restart Service</button>
                     </form>
                     <a href="{% url 'view_service_logs' service.id %}"
                        class="btn btn-info w-100">View Logs</a>
-                    <form action="{% url 'delete_service' service.id %}" method="post">
+                    <form action="{% url 'delete_service' service.id %}"
+                          method="post"
+                          onsubmit="return confirm('Are you sure you want to delete the service {{ service.name }}? This action cannot be undone.');">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger w-100">Delete Service</button>
+                        <button type="submit"
+                                class="btn btn-outline-danger w-100"
+                                {% if service.status.value == 'running' %}disabled title="Stop the service before deleting"{% endif %}>
+                            Delete Service
+                        </button>
                     </form>
                 </div>
             </div>

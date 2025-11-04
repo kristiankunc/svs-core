@@ -130,6 +130,18 @@ def stop(request: HttpRequest, service_id: int):
     return redirect("detail_service", service_id=service.id)
 
 
+def restart(request: HttpRequest, service_id: int):
+    """Restart a service."""
+    service = get_object_or_404(Service, id=service_id)
+
+    if not is_owner_or_admin(request, service):
+        return redirect("detail_service", service_id=service.id)
+
+    service.stop()
+    service.start()
+    return redirect("detail_service", service_id=service.id)
+
+
 def delete(request: HttpRequest, service_id: int):
     """Delete a service."""
     service = get_object_or_404(Service, id=service_id)
@@ -162,6 +174,7 @@ urlpatterns = [
     path("services/<int:service_id>/", detail, name="detail_service"),
     path("services/<int:service_id>/start/", start, name="start_service"),
     path("services/<int:service_id>/stop/", stop, name="stop_service"),
+    path("services/<int:service_id>/restart/", restart, name="restart_service"),
     path("services/<int:service_id>/delete/", delete, name="delete_service"),
     path("services/<int:service_id>/logs/", view_logs, name="view_service_logs"),
 ]
