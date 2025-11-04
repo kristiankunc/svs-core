@@ -30,7 +30,7 @@ class KeyValue(Generic[K, V]):
 
         key = next(iter(data))
         value = data[key]
-        return cls(key, value)  # type: ignore[arg-type]
+        return cls(key, value)
 
     @classmethod
     def from_dict_array(cls, data: list[dict[K, V]]) -> list[Self]:
@@ -128,7 +128,6 @@ class Volume(KeyValue[str, str | None]):
         # Store in key/value, but with swapped semantics for proper merging
         # key = container_path (for identification during merge)
         # value = host_path (what we're binding to, or None for anonymous volumes)
-        # type: ignore[arg-type]
         super().__init__(key=container_path, value=host_path)
 
     @property
