@@ -76,8 +76,7 @@ class TestTemplate:
     @pytest.mark.integration
     @pytest.mark.django_db
     @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
-    @patch("svs_core.docker.template.DockerImageManager.build_from_dockerfile")
-    def test_create_build_template(self, mock_build, mock_exists):
+    def test_create_build_template(self, mock_exists):
         """Test creating a build-based template."""
         dockerfile_content = """
         FROM alpine:latest
@@ -98,9 +97,6 @@ class TestTemplate:
         assert template.type == TemplateType.BUILD
         assert template.dockerfile == dockerfile_content
         assert template.description == "Test Build Template"
-
-        # Verify build_from_dockerfile was called correctly
-        mock_build.assert_called_once_with("test-build", dockerfile_content)
 
     @pytest.mark.integration
     @pytest.mark.django_db
@@ -185,7 +181,7 @@ class TestTemplate:
             "description": "Redis template from JSON",
             "default_env": {"REDIS_PORT": "6379", "REDIS_PASSWORD": "secret"},
             "default_ports": [{"container": 6379, "host": 6379}],
-            "default_volumes": [{"/data": "/var/redis/data"}],
+            "default_volumes": [{"host": "/var/redis/data", "container": "/data"}],
             "start_cmd": "redis-server --requirepass secret",
             "labels": {"service": "cache", "version": "7.0"},
         }

@@ -194,8 +194,9 @@ class Template(TemplateModel):
                 DockerImageManager.pull(image)
 
         elif type == TemplateType.BUILD and dockerfile is not None:
-            print(f"Building image for template {name} from dockerfile")
-            DockerImageManager.build_from_dockerfile(name, dockerfile)
+            get_logger(__name__).debug(
+                f"Template {name} created as BUILD type. Image will be built on-demand when services are created."
+            )
 
         return cast(Template, template)
 
@@ -280,21 +281,10 @@ class Template(TemplateModel):
                         "Must contain either 'host' and 'container' fields or be a single key-value pair."
                     )
 
-        # Process default_volumes: Format {container_path: host_path}
+        # Process default_volumes: handle named field format only
+        # Format: [{"host": "/path/to/host", "container": "/path/to/container"}]
         default_volumes_data = data.get("default_volumes", [])
-        default_volumes_list = []
-        for vol_data in default_volumes_data:
-            if isinstance(vol_data, dict):
-                if len(vol_data) != 1:
-                    raise ValueError(
-                        f"Invalid volume specification: {vol_data}. "
-                        "Must be a single key-value pair {container_path: host_path}."
-                    )
-                container_path = next(iter(vol_data))
-                host_path = vol_data[container_path]
-                default_volumes_list.append(
-                    Volume(host_path=host_path, container_path=container_path)
-                )
+        default_volumes_list = Volume.from_dict_array(default_volumes_data)
 
         # Process labels: handle both flat dict and list formats
         labels_data = data.get("labels", [])

@@ -100,12 +100,48 @@ class ExposedPort(KeyValue[int | None, int]):
         self.key = port
 
     @property
-    def container_port(self) -> int | None:  # noqa: D102
+    def container_port(self) -> int:  # noqa: D102
         return self.value
 
     @container_port.setter
     def container_port(self, port: int) -> None:  # noqa: D102
         self.value = port
+
+    def to_dict(self) -> dict[int | None, int]:
+        """Converts the ExposedPort instance to a dictionary.
+
+        Returns format: {host_port: container_port}
+
+        Returns:
+            dict[int | None, int]: A dictionary representation with host_port as key and container_port as value.
+        """
+        return {self.host_port: self.container_port}  # type: ignore[return-value]
+
+    @classmethod
+    def from_dict(cls, data: dict[int | None, int]) -> "ExposedPort":
+        """Creates an ExposedPort instance from a dictionary.
+
+        Expects format: {host_port: container_port}
+
+        Args:
+            data (dict[int | None, int]): A dictionary with host_port and container_port.
+
+        Returns:
+            ExposedPort: A new ExposedPort instance.
+
+        Raises:
+            ValueError: If the dictionary doesn't contain exactly one key-value pair.
+        """
+        if len(data) != 1:
+            raise ValueError("Expected exactly one host_port->container_port pair")
+
+        host_port: int | None = next(iter(data))
+        container_port: int = data[host_port]
+
+        return cls(
+            host_port=host_port,
+            container_port=container_port,
+        )
 
 
 class Volume(KeyValue[str, str | None]):
@@ -160,10 +196,10 @@ class Volume(KeyValue[str, str | None]):
     def to_dict(self) -> dict[str, str | None]:
         """Converts the Volume instance to a dictionary.
 
-        Returns format: {container_path: host_path} or {container_path: null} for anonymous volumes.
+        Returns format: {container_path: host_path}
 
         Returns:
-            dict[str, str | None]: A dictionary representation with container_path as key.
+            dict[str, str | None]: A dictionary representation with container_path as key and host_path as value.
         """
         return {self.container_path: self.host_path}
 
@@ -171,10 +207,10 @@ class Volume(KeyValue[str, str | None]):
     def from_dict(cls, data: dict[str, str | None]) -> "Volume":
         """Creates a Volume instance from a dictionary.
 
-        Expects format: {container_path: host_path} or {container_path: null}
+        Expects format: {container_path: host_path}
 
         Args:
-            data (dict[str, str | None]): A dictionary with a single key-value pair.
+            data (dict[str, str | None]): A dictionary with container_path and host_path.
 
         Returns:
             Volume: A new Volume instance.
@@ -183,10 +219,15 @@ class Volume(KeyValue[str, str | None]):
             ValueError: If the dictionary doesn't contain exactly one key-value pair.
         """
         if len(data) != 1:
-            raise ValueError("Expected exactly one KV pair for volume")
+            raise ValueError("Expected exactly one container_path->host_path pair")
 
-        container_path = next(iter(data))
+        container_path: str = next(iter(data))
         host_path = data[container_path]
+
+        # Ensure None is preserved, not converted to string "null"
+        if host_path == "null":
+            host_path = None
+
         return cls(
             host_path=host_path,
             container_path=container_path,

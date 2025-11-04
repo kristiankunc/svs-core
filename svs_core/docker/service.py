@@ -3,8 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, List, TypeVar, Union, cast
 
-from svs_core.db.models import ServiceModel, ServiceStatus
+from svs_core.db.models import ServiceModel, ServiceStatus, TemplateType
 from svs_core.docker.container import DockerContainerManager
+from svs_core.docker.image import DockerImageManager
 from svs_core.docker.json_properties import (
     EnvVariable,
     ExposedPort,
@@ -331,6 +332,26 @@ class Service(ServiceModel):
             template = Template.objects.get(id=template_id)
         except Template.DoesNotExist:
             raise ValueError(f"Template with ID {template_id} does not exist")
+
+        # Handle BUILD type templates: build the image on-demand
+        if template.type == TemplateType.BUILD and template.dockerfile:
+            # Generate a unique image name based on service name and template
+            build_image_name = f"{template.name.lower()}-{name.lower()}:latest"
+
+            get_logger(__name__).info(
+                f"Building image '{build_image_name}' on-demand for service '{name}' from template '{template.name}'"
+            )
+
+            # Build the image from the template's dockerfile
+            DockerImageManager.build_from_dockerfile(
+                build_image_name, template.dockerfile
+            )
+
+            # Use the built image for this service
+            image = build_image_name
+            get_logger(__name__).debug(
+                f"Successfully built image '{build_image_name}' for service '{name}'"
+            )
 
         # Use template defaults if not provided
         if image is None:

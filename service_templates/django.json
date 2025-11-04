@@ -1,0 +1,37 @@
+{
+	"$schema": "https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/service_templates/schema.json",
+	"args": [],
+	"default_env": {
+		"DEBUG": "True",
+		"DJANGO_SETTINGS_MODULE": "project.settings"
+	},
+	"default_ports": [
+		{
+			"container": 8000,
+			"host": null
+		}
+	],
+	"default_volumes": [
+		{
+			"container": "/app/data",
+			"host": null
+		}
+	],
+	"description": "Django application container built on-demand from source",
+	"dockerfile": "FROM python:3.11-slim\n\nWORKDIR /app\n\n# Install system dependencies\nRUN apt-get update && apt-get install -y \\\n    gcc \\\n    postgresql-client \\\n    && rm -rf /var/lib/apt/lists/*\n\n# Copy requirements and install Python dependencies\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\n# Copy application code\nCOPY . .\n\n# Collect static files (optional)\nRUN python manage.py collectstatic --noinput || true\n\n# Expose port\nEXPOSE 8000\n\n# Health check\nHEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \\\n    CMD curl -f http://localhost:8000/ || exit 1\n\n# Run Django development server\nCMD [\"python\", \"manage.py\", \"runserver\", \"0.0.0.0:8000\"]",
+	"healthcheck": {
+		"interval": 30,
+		"retries": 3,
+		"start_period": 5,
+		"test": [
+			"CMD",
+			"curl",
+			"-f",
+			"http://localhost:8000/"
+		],
+		"timeout": 10
+	},
+	"name": "django-app",
+	"start_cmd": "python manage.py runserver 0.0.0.0:8000",
+	"type": "build"
+}
