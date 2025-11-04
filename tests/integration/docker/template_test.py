@@ -231,7 +231,7 @@ class TestTemplate:
         assert "string-test" in string_repr
         assert "busybox:latest" in string_repr
         assert "TEST=value" in string_repr
-        assert "80=8080" in string_repr
+        assert "8080=80" in string_repr
         assert "/app=/host/app" in string_repr
         assert "test=['CMD', 'test', '-e', '/tmp/healthy']" in string_repr
 
