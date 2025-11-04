@@ -280,33 +280,21 @@ class Template(TemplateModel):
                         "Must contain either 'host' and 'container' fields or be a single key-value pair."
                     )
 
-        # Process default_volumes: handle both formats
-        # Format 1: [{"host_path": "/host", "container_path": "/container"}]
-        # Format 2: [{"host": "/host", "container": "/container"}]
+        # Process default_volumes: Format {container_path: host_path}
         default_volumes_data = data.get("default_volumes", [])
         default_volumes_list = []
         for vol_data in default_volumes_data:
             if isinstance(vol_data, dict):
-                # Handle named field format: {"host": "/host", "container": "/container"}
-                if "host" in vol_data and "container" in vol_data:
-                    default_volumes_list.append(
-                        Volume(
-                            host_path=vol_data["host"],
-                            container_path=vol_data["container"],
-                        )
-                    )
-                # Handle single key-value format: {"/host": "/container"}
-                elif len(vol_data) == 1:
-                    host_path = next(iter(vol_data))
-                    container_path = vol_data[host_path]
-                    default_volumes_list.append(
-                        Volume(host_path=host_path, container_path=container_path)
-                    )
-                else:
+                if len(vol_data) != 1:
                     raise ValueError(
                         f"Invalid volume specification: {vol_data}. "
-                        "Must contain either 'host' and 'container' fields or be a single key-value pair."
+                        "Must be a single key-value pair {container_path: host_path}."
                     )
+                container_path = next(iter(vol_data))
+                host_path = vol_data[container_path]
+                default_volumes_list.append(
+                    Volume(host_path=host_path, container_path=container_path)
+                )
 
         # Process labels: handle both flat dict and list formats
         labels_data = data.get("labels", [])

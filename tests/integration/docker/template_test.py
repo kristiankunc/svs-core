@@ -185,7 +185,7 @@ class TestTemplate:
             "description": "Redis template from JSON",
             "default_env": {"REDIS_PORT": "6379", "REDIS_PASSWORD": "secret"},
             "default_ports": [{"container": 6379, "host": 6379}],
-            "default_volumes": [{"container": "/data", "host": "/var/redis/data"}],
+            "default_volumes": [{"/data": "/var/redis/data"}],
             "start_cmd": "redis-server --requirepass secret",
             "labels": {"service": "cache", "version": "7.0"},
         }
@@ -236,7 +236,7 @@ class TestTemplate:
         assert "busybox:latest" in string_repr
         assert "TEST=value" in string_repr
         assert "80=8080" in string_repr
-        assert "/host/app=/app" in string_repr
+        assert "/app=/host/app" in string_repr
         assert "test=['CMD', 'test', '-e', '/tmp/healthy']" in string_repr
 
     @pytest.mark.integration

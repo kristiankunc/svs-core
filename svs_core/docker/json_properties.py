@@ -30,7 +30,7 @@ class KeyValue(Generic[K, V]):
 
         key = next(iter(data))
         value = data[key]
-        return cls(key if key != "null" else None, value)  # type: ignore[arg-type]
+        return cls(key, value)  # type: ignore[arg-type]
 
     @classmethod
     def from_dict_array(cls, data: list[dict[K, V]]) -> list[Self]:
@@ -108,37 +108,90 @@ class ExposedPort(KeyValue[int | None, int]):
         self.value = port
 
 
-class Volume(KeyValue[str | None, str]):
+class Volume(KeyValue[str, str | None]):
     """Represents a volume for a Docker container.
 
-    Binds: host_path=container_path
+    Binds: container_path=host_path
+
+    Note: The key is the container_path and value is the host_path (or None for anonymous volumes).
+    This allows proper merging of volumes by container path.
+    Serialization uses the format {container_path: host_path} or {container_path: null} for anonymous.
     """
 
     def __init__(self, host_path: str | None, container_path: str):
         """Initializes a Volume instance.
 
         Args:
-            host_path (str): The path on the host machine.
+            host_path (str | None): The path on the host machine, or None for anonymous volumes.
             container_path (str): The path inside the Docker container.
         """
-
-        super().__init__(key=host_path, value=container_path)
+        # Store in key/value, but with swapped semantics for proper merging
+        # key = container_path (for identification during merge)
+        # value = host_path (what we're binding to, or None for anonymous volumes)
+        # type: ignore[arg-type]
+        super().__init__(key=container_path, value=host_path)
 
     @property
     def host_path(self) -> str | None:  # noqa: D102
-        return self.key
+        return self.value
 
     @host_path.setter
     def host_path(self, path: str | None) -> None:  # noqa: D102
-        self.key = path
+        self.value = path
 
     @property
-    def container_path(self) -> str | None:  # noqa: D102
-        return self.value
+    def container_path(self) -> str:  # noqa: D102
+        return self.key
 
     @container_path.setter
     def container_path(self, path: str) -> None:  # noqa: D102
-        self.value = path
+        self.key = path
+
+    def __str__(self) -> str:
+        """Return a string representation.
+
+        Showing container_path=host_path format.
+
+        Returns:
+            str: A string representation of the volume.
+        """
+
+        return f"Volume({self.container_path}={self.host_path})"
+
+    def to_dict(self) -> dict[str, str | None]:
+        """Converts the Volume instance to a dictionary.
+
+        Returns format: {container_path: host_path} or {container_path: null} for anonymous volumes.
+
+        Returns:
+            dict[str, str | None]: A dictionary representation with container_path as key.
+        """
+        return {self.container_path: self.host_path}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, str | None]) -> "Volume":
+        """Creates a Volume instance from a dictionary.
+
+        Expects format: {container_path: host_path} or {container_path: null}
+
+        Args:
+            data (dict[str, str | None]): A dictionary with a single key-value pair.
+
+        Returns:
+            Volume: A new Volume instance.
+
+        Raises:
+            ValueError: If the dictionary doesn't contain exactly one key-value pair.
+        """
+        if len(data) != 1:
+            raise ValueError("Expected exactly one KV pair for volume")
+
+        container_path = next(iter(data))
+        host_path = data[container_path]
+        return cls(
+            host_path=host_path,
+            container_path=container_path,
+        )
 
 
 class Healthcheck:  # noqa: D101

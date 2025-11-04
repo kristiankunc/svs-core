@@ -10,12 +10,10 @@
 	],
 	"default_volumes": [
 		{
-			"container": "/usr/share/nginx/html",
-			"host": null
+			"/usr/share/nginx/html": null
 		},
 		{
-			"container": "/etc/nginx/conf.d",
-			"host": null
+			"/etc/nginx/conf.d": null
 		}
 	],
 	"description": "A minimal NGINX web server with default config",
