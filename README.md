@@ -2,6 +2,11 @@
 
 **SVS is an open-source python library for managing self-hosted services on a linux server.**
 
+[![PyPI version](https://img.shields.io/pypi/v/svs-core.svg)](https://pypi.org/project/svs-core/)
+[![codecov](https://codecov.io/gh/kristiankunc/svs-core/branch/main/graph/badge.svg)](https://codecov.io/gh/kristiankunc/svs-core)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://pre-commit.com/)
+[![Release Please](https://img.shields.io/badge/release--please-automated-blue)](https://github.com/googleapis/release-please)
+
 ## Goals
 
 The goal of this project is to provide a simple and easy-to-use library for managing self-hosted services on a linux server. It is designed to be used by developers who want to automate the management of their self-hosted services, such as web servers, databases, and other applications.
