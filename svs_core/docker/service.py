@@ -425,10 +425,8 @@ class Service(ServiceModel):
             command=service_instance.command,
             args=service_instance.args,
             labels=all_labels,
-            ports={
-                port.container_port: port.host_port
-                for port in service_instance.exposed_ports
-            },
+            ports=service_instance.exposed_ports,
+            volumes=service_instance.volumes,
         )
 
         service_instance.container_id = container.id

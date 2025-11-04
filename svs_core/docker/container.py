@@ -3,7 +3,7 @@ from typing import Optional
 from docker.models.containers import Container
 
 from svs_core.docker.base import get_docker_client
-from svs_core.docker.json_properties import Label
+from svs_core.docker.json_properties import ExposedPort, Label, Volume
 from svs_core.shared.logger import get_logger
 
 
@@ -14,50 +14,71 @@ class DockerContainerManager:
     def create_container(
         name: str,
         image: str,
-        command: Optional[str] = None,
-        args: Optional[list[str]] = None,
+        command: str | None = None,
+        args: list[str] | None = None,
         labels: list[Label] = [],
-        ports: Optional[dict[str, int]] = None,
+        ports: list[ExposedPort] | None = None,
+        volumes: list[Volume] | None = None,
     ) -> Container:
         """Create a Docker container.
 
         Args:
             name (str): The name of the container.
             image (str): The Docker image to use.
-            command (Optional[str]): The command to run in the container.
-            args (Optional[List[str]]): The arguments for the command.
-                These will be combined with command to form the full command.
-            labels (List[Label]): Docker labels to apply to the container.
-            ports (Optional[Dict[str, int]]): Port mappings for the container in the format {"container_port/protocol": host_port}.
+            command (str | None): The command to run in the container.
+            args (list[str] | None): The arguments for the command.
+            labels (list[Label]): List of labels to assign to the container.
+            ports (list[ExposedPort] | None): List of ports to expose.
+            volumes (list[Volume] | None): List of volumes to mount.
 
         Returns:
             Container: The created Docker container instance.
+
+        Raises:
+            ValueError: If volume paths are not properly specified.
         """
         client = get_docker_client()
 
-        # Combine command and args if both are provided
         full_command = None
         if command and args:
-            # Create a string with command and all args
             full_command = f"{command} {' '.join(args)}"
         elif command:
             full_command = command
         elif args:
-            # If only args are provided, join them as a command
             full_command = " ".join(args)
 
+        docker_ports = {}
+        if ports:
+            for port in ports:
+                docker_ports[f"{port.container_port}/tcp"] = port.host_port
+
+        volume_mounts: list[str] = []
+        if volumes:
+            for volume in volumes:
+                if volume.host_path and volume.container_path:
+                    volume_mounts.append(f"{volume.host_path}:{volume.container_path}")
+                else:
+                    raise ValueError(
+                        "Both host_path and container_path must be provided for Volume."
+                    )
+
         get_logger(__name__).debug(
-            f"Creating container with config: name={name}, image={image}, command={full_command}, labels={labels}, ports={ports}"
+            f"Creating container with config: name={name}, image={image}, command={full_command}, labels={labels}, ports={docker_ports}, volumes={volume_mounts}"
         )
 
-        return client.containers.create(
-            image=image,
-            name=name,
-            command=full_command,
-            detach=True,
-            labels={label.key: label.value for label in labels},
-            ports=ports or {},
-        )
+        create_kwargs = {
+            "image": image,
+            "name": name,
+            "detach": True,
+            "labels": {label.key: label.value for label in labels},
+            "ports": docker_ports or {},
+            "volumes": volume_mounts or [],
+        }
+
+        if full_command is not None:
+            create_kwargs["command"] = full_command
+
+        return client.containers.create(**create_kwargs)
 
     @staticmethod
     def get_container(container_id: str) -> Optional[Container]:

@@ -4,7 +4,7 @@ import pytest
 
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.image import DockerImageManager
-from svs_core.docker.json_properties import Label
+from svs_core.docker.json_properties import ExposedPort, Label, Volume
 
 
 class TestDockerContainerManager:
@@ -88,23 +88,56 @@ class TestDockerContainerManager:
 
     @pytest.mark.integration
     def test_create_container_with_ports(self) -> None:
-        """Test creating a Docker container with port mappings."""
-        ports = {"80/tcp": 49152}
+        """Test creating a Docker container with ExposedPort objects."""
+        exposed_ports = [
+            ExposedPort(host_port=8080, container_port=80),
+            ExposedPort(host_port=None, container_port=443),
+        ]
 
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
             command="tail",
             args=["-f", "/dev/null"],
-            ports=ports,
+            ports=exposed_ports,
         )
 
         assert container is not None
+
+        # Verify ports are properly configured
+        container_ports = container.ports
+        assert container_ports is not None
 
         DockerContainerManager.start_container(container)
         container.reload()
 
         assert container.status == "running"
+
+    @pytest.mark.integration
+    def test_create_container_with_volumes(self, tmp_path: object) -> None:
+        """Test creating a Docker container with Volume objects."""
+        import tempfile
+
+        # Create temporary directories for volume mapping
+        with tempfile.TemporaryDirectory() as host_dir:
+            volumes = [
+                Volume(host_path=host_dir, container_path="/data"),
+                Volume(host_path=None, container_path="/tmp"),
+            ]
+
+            container = DockerContainerManager.create_container(
+                name=self.TEST_CONTAINER_NAME,
+                image=self.TEST_IMAGE,
+                command="tail",
+                args=["-f", "/dev/null"],
+                volumes=volumes,
+            )
+
+            assert container is not None
+
+            # Verify volumes are properly configured
+            container_mounts = container.attrs.get("Mounts", [])
+            assert container_mounts is not None
 
     @pytest.mark.integration
     def test_get_container(self) -> None:
