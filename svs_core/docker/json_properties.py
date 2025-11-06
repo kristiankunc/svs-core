@@ -77,28 +77,15 @@ class EnvVariable(KeyValue[str, str]):
     def from_dict(cls, data: dict[str, str]) -> "EnvVariable":
         """Creates an EnvVariable instance from a dictionary.
 
-        Supports both new format {"key": name, "value": value}
-        and legacy format {name: value}.
-
         Args:
-            data (dict[str, str]): A dictionary.
+            data (dict[str, str]): A dictionary with "key" and "value" fields.
 
         Returns:
             EnvVariable: A new EnvVariable instance.
         """
-        # Try new format first
-        if "key" in data and "value" in data:
-            return cls(key=data["key"], value=data["value"])
-
-        # Fall back to legacy format (single key-value pair)
-        if len(data) == 1:
-            key = next(iter(data))
-            value = data[key]
-            return cls(key=key, value=value)
-
-        raise ValueError(
-            "Dictionary must contain either 'key'/'value' fields or be a single key-value pair"
-        )
+        if "key" not in data or "value" not in data:
+            raise ValueError("Dictionary must contain 'key' and 'value' fields")
+        return cls(key=data["key"], value=data["value"])
 
 
 class Label(KeyValue[str, str]):
@@ -108,28 +95,15 @@ class Label(KeyValue[str, str]):
     def from_dict(cls, data: dict[str, str]) -> "Label":  # type: ignore[override]
         """Creates a Label instance from a dictionary.
 
-        Supports both new format {"key": name, "value": value}
-        and legacy format {name: value}.
-
         Args:
-            data (dict[str, str]): A dictionary.
+            data (dict[str, str]): A dictionary with "key" and "value" fields.
 
         Returns:
             Label: A new Label instance.
         """
-        # Try new format first
-        if "key" in data and "value" in data:
-            return cls(key=data["key"], value=data["value"])
-
-        # Fall back to legacy format (single key-value pair)
-        if len(data) == 1:
-            key = next(iter(data))
-            value = data[key]
-            return cls(key=key, value=value)
-
-        raise ValueError(
-            "Dictionary must contain either 'key'/'value' fields or be a single key-value pair"
-        )
+        if "key" not in data or "value" not in data:
+            raise ValueError("Dictionary must contain 'key' and 'value' fields")
+        return cls(key=data["key"], value=data["value"])
 
 
 class ExposedPort(KeyValue[int | None, int]):

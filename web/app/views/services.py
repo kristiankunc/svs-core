@@ -31,38 +31,33 @@ def create_from_template(request: HttpRequest, template_id: int):
         env_keys = request.POST.getlist("env_key[]")
         env_values = request.POST.getlist("env_value[]")
         for key, value in zip(env_keys, env_values):
-            if key:
-                override_env.append(EnvVariable(key=key, value=value))
+            override_env.append(EnvVariable(key=key, value=value))
 
         override_ports = []
         port_host = request.POST.getlist("port_host[]")
         port_container = request.POST.getlist("port_container[]")
         for host, container in zip(port_host, port_container):
-            if container:
-                try:
-                    host_port = int(host) if host else None
-                    container_port = int(container)
-                    override_ports.append(
-                        ExposedPort(host_port=host_port, container_port=container_port)
-                    )
-                except ValueError:
-                    pass
+            override_ports.append(
+                ExposedPort(
+                    host_port=int(host) if host else None,
+                    container_port=int(container) if container else None,
+                )
+            )
 
         override_volumes = []
         vol_host = request.POST.getlist("volume_host[]")
         vol_container = request.POST.getlist("volume_container[]")
         for host, container in zip(vol_host, vol_container):
-            if container:
-                override_volumes.append(
-                    Volume(host_path=host if host else None, container_path=container)
-                )
+            override_volumes.append(
+                Volume(host_path=host if host else None, container_path=container)
+            )
 
         try:
             service = Service.create_from_template(
-                name=service_name or f"{template.name}-service",
+                name=service_name,
                 template_id=template_id,
                 user=user,
-                domain=domain or None,
+                domain=domain if domain else None,
                 override_env=override_env if override_env else None,
                 override_ports=override_ports if override_ports else None,
                 override_volumes=override_volumes if override_volumes else None,

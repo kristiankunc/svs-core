@@ -245,13 +245,13 @@ class Template(TemplateModel):
                 "Build type templates must specify a 'dockerfile' field in import data"
             )
 
-        # Process default_env: handle both flat dict and list formats
+        # Process default_env: should be a list of {"key": ..., "value": ...} dicts
         default_env_data = data.get("default_env", [])
-        if isinstance(default_env_data, dict):
-            # Convert flat dict to list of dicts format: {"KEY": "value"} -> [{"KEY": "value"}]
-            default_env_list = [{k: v} for k, v in default_env_data.items()]
-        else:
-            default_env_list = default_env_data
+        if not isinstance(default_env_data, list):
+            raise ValueError(
+                "default_env must be a list, got {type(default_env_data).__name__}"
+            )
+        default_env_list = default_env_data
 
         # Process default_ports: strict parsing according to schema
         # Schema format: [{"host": 8080, "container": 80}] with "container" required and "host" optional
@@ -317,13 +317,11 @@ class Template(TemplateModel):
                 Volume(host_path=host_path, container_path=container_path)
             )
 
-        # Process labels: handle both flat dict and list formats
+        # Process labels: should be a list of {"key": ..., "value": ...} dicts
         labels_data = data.get("labels", [])
-        if isinstance(labels_data, dict):
-            # Convert flat dict to list of dicts format: {"KEY": "value"} -> [{"KEY": "value"}]
-            labels_list = [{k: v} for k, v in labels_data.items()]
-        else:
-            labels_list = labels_data
+        if not isinstance(labels_data, list):
+            raise ValueError("labels must be a list, got {type(labels_data).__name__}")
+        labels_list = labels_data
 
         # Delegate to create method for further validation
         template: "Template" = cls.create(
