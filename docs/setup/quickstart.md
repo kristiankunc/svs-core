@@ -94,6 +94,9 @@ You can use the example compose file to set up these services. Make sure to conf
 
 Install `pipx` to safely install the CLI globally without affecting system packages. Follow the official [pipx installation guide](https://pipx.pypa.io/stable/) to install pipx.
 
+??? question "Why PIPX?"
+    Pipx allows you to install and run Python applications in isolated environments. This prevents dependency conflicts with other Python packages on your system.
+
 ### Install the CLI globally
 
 ```bash
