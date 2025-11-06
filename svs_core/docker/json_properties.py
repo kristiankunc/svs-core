@@ -172,34 +172,27 @@ class ExposedPort(KeyValue[int, int | None]):
     def from_dict(cls, data: dict[str, int | None]) -> "ExposedPort":
         """Creates an ExposedPort instance from a dictionary.
 
-        Supports both new format {"key": container_port, "value": host_port}
-        and legacy format {"host": host_port, "container": container_port}.
+        Expects format {"key": container_port, "value": host_port}.
 
         Args:
-            data (dict[str, int | None]): A dictionary with either "key"/"value" or "host"/"container" fields.
+            data (dict[str, int | None]): A dictionary with "key" and "value" fields.
 
         Returns:
             ExposedPort: A new ExposedPort instance.
 
         Raises:
-            ValueError: If the dictionary doesn't contain required fields.
+            ValueError: If the dictionary doesn't contain required fields or has invalid types.
         """
-        # Try new format first
-        if "key" in data and "value" in data:
-            return cls(
-                host_port=data["value"],
-                container_port=data["key"],
-            )
+        if "key" not in data or "value" not in data:
+            raise ValueError("Dictionary must contain 'key' and 'value' fields")
 
-        # Fall back to legacy format
-        if "container" in data:
-            return cls(
-                host_port=data.get("host"),
-                container_port=data["container"],
-            )
+        container_port = data["key"]
+        if not isinstance(container_port, int):
+            raise ValueError("'key' (container_port) must be an integer")
 
-        raise ValueError(
-            "Dictionary must contain either 'key'/'value' or 'container' fields"
+        return cls(
+            host_port=data["value"],
+            container_port=container_port,
         )
 
 
@@ -254,34 +247,27 @@ class Volume(KeyValue[str, str | None]):
     def from_dict(cls, data: dict[str, str | None]) -> "Volume":
         """Creates a Volume instance from a dictionary.
 
-        Supports both new format {"key": container_path, "value": host_path}
-        and legacy format {"host": host_path, "container": container_path}.
+        Expects format {"key": container_path, "value": host_path}.
 
         Args:
-            data (dict[str, str | None]): A dictionary with either "key"/"value" or "host"/"container" fields.
+            data (dict[str, str | None]): A dictionary with "key" and "value" fields.
 
         Returns:
             Volume: A new Volume instance.
 
         Raises:
-            ValueError: If the dictionary doesn't contain required fields.
+            ValueError: If the dictionary doesn't contain required fields or has invalid types.
         """
-        # Try new format first
-        if "key" in data and "value" in data:
-            return cls(
-                host_path=data["value"],
-                container_path=data["key"],
-            )
+        if "key" not in data or "value" not in data:
+            raise ValueError("Dictionary must contain 'key' and 'value' fields")
 
-        # Fall back to legacy format
-        if "container" in data:
-            return cls(
-                host_path=data.get("host"),
-                container_path=data["container"],
-            )
+        container_path = data["key"]
+        if not isinstance(container_path, str):
+            raise ValueError("'key' (container_path) must be a string")
 
-        raise ValueError(
-            "Dictionary must contain either 'key'/'value' or 'container' fields"
+        return cls(
+            host_path=data["value"],
+            container_path=container_path,
         )
 
 
