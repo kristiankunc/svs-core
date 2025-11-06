@@ -3,8 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, List, TypeVar, Union, cast
 
-from svs_core.db.models import ServiceModel, ServiceStatus
+from svs_core.db.models import ServiceModel, ServiceStatus, TemplateType
 from svs_core.docker.container import DockerContainerManager
+from svs_core.docker.image import DockerImageManager
 from svs_core.docker.json_properties import (
     EnvVariable,
     ExposedPort,
@@ -62,7 +63,12 @@ class Service(ServiceModel):
         """Merges two lists of key-value pairs.
 
         Overrides in the second list will replace those in the first list
-        based on matching keys. Non-matching items from both lists are included.
+        based on matching identifiers:
+        - For ExposedPort: merge by container_port (value)
+        - For Volume: merge by container_path (value)
+        - For others: merge by key
+
+        Non-matching items from both lists are included.
 
         Args:
             base (List[T]): The base list of key-value pairs.
@@ -71,11 +77,21 @@ class Service(ServiceModel):
         Returns:
             List[T]: The merged list of key-value pairs.
         """
+        from svs_core.docker.json_properties import ExposedPort, Volume
 
-        merged: dict[Any, T] = {item.key: item for item in base}
+        # Determine merge key based on type
+        def get_merge_key(item: T) -> Any:
+            if isinstance(item, ExposedPort):
+                return item.container_port  # Merge by container_port (value)
+            elif isinstance(item, Volume):
+                return item.container_path  # Merge by container_path (value)
+            else:
+                return item.key  # Default: merge by key
+
+        merged: dict[Any, T] = {get_merge_key(item): item for item in base}
 
         for override in overrides:
-            merged[override.key] = override
+            merged[get_merge_key(override)] = override
 
         return list(merged.values())
 
@@ -331,6 +347,26 @@ class Service(ServiceModel):
             template = Template.objects.get(id=template_id)
         except Template.DoesNotExist:
             raise ValueError(f"Template with ID {template_id} does not exist")
+
+        # Handle BUILD type templates: build the image on-demand
+        if template.type == TemplateType.BUILD and template.dockerfile:
+            # Generate a unique image name based on service name and template
+            build_image_name = f"{template.name.lower()}-{name.lower()}:latest"
+
+            get_logger(__name__).info(
+                f"Building image '{build_image_name}' on-demand for service '{name}' from template '{template.name}'"
+            )
+
+            # Build the image from the template's dockerfile
+            DockerImageManager.build_from_dockerfile(
+                build_image_name, template.dockerfile
+            )
+
+            # Use the built image for this service
+            image = build_image_name
+            get_logger(__name__).debug(
+                f"Successfully built image '{build_image_name}' for service '{name}'"
+            )
 
         # Use template defaults if not provided
         if image is None:

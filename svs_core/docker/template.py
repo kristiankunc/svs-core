@@ -194,8 +194,9 @@ class Template(TemplateModel):
                 DockerImageManager.pull(image)
 
         elif type == TemplateType.BUILD and dockerfile is not None:
-            print(f"Building image for template {name} from dockerfile")
-            DockerImageManager.build_from_dockerfile(name, dockerfile)
+            get_logger(__name__).debug(
+                f"Template {name} created as BUILD type. Image will be built on-demand when services are created."
+            )
 
         return cast(Template, template)
 
@@ -252,49 +253,69 @@ class Template(TemplateModel):
         else:
             default_env_list = default_env_data
 
-        # Process default_ports: handle both formats
-        # Format 1: [{"host_port": 8080, "container_port": 80}] (single key-value format)
-        # Format 2: [{"host": 8080, "container": 80}] (named field format)
+        # Process default_ports: strict parsing according to schema
+        # Schema format: [{"host": 8080, "container": 80}] with "container" required and "host" optional
         default_ports_data = data.get("default_ports", [])
         default_ports_list = []
         for port_data in default_ports_data:
-            if isinstance(port_data, dict):
-                # Handle named field format: {"host": 8080, "container": 80}
-                if "host" in port_data and "container" in port_data:
-                    default_ports_list.append(
-                        ExposedPort(
-                            host_port=port_data["host"],
-                            container_port=port_data["container"],
-                        )
-                    )
-                # Handle single key-value format: {8080: 80}
-                elif len(port_data) == 1:
-                    host_port = next(iter(port_data))
-                    container_port = port_data[host_port]
-                    default_ports_list.append(
-                        ExposedPort(host_port=host_port, container_port=container_port)
-                    )
-                else:
-                    raise ValueError(
-                        f"Invalid port specification: {port_data}. "
-                        "Must contain either 'host' and 'container' fields or be a single key-value pair."
-                    )
+            if not isinstance(port_data, dict):
+                raise ValueError(
+                    f"Invalid port specification: {port_data}. Must be a dictionary."
+                )
 
-        # Process default_volumes: Format {container_path: host_path}
+            if "container" not in port_data:
+                raise ValueError(
+                    f"Invalid port specification: {port_data}. Must contain 'container' field."
+                )
+
+            container_port = port_data["container"]
+            host_port = port_data.get("host")
+
+            if not isinstance(container_port, int):
+                raise ValueError(
+                    f"Port container must be an integer, got {type(container_port).__name__}"
+                )
+
+            if host_port is not None and not isinstance(host_port, int):
+                raise ValueError(
+                    f"Port host must be an integer or null, got {type(host_port).__name__}"
+                )
+
+            default_ports_list.append(
+                ExposedPort(host_port=host_port, container_port=container_port)
+            )
+
+        # Process default_volumes: strict parsing according to schema
+        # Schema format: [{"host": "/path", "container": "/app"}] with "container" required and "host" optional
         default_volumes_data = data.get("default_volumes", [])
         default_volumes_list = []
         for vol_data in default_volumes_data:
-            if isinstance(vol_data, dict):
-                if len(vol_data) != 1:
-                    raise ValueError(
-                        f"Invalid volume specification: {vol_data}. "
-                        "Must be a single key-value pair {container_path: host_path}."
-                    )
-                container_path = next(iter(vol_data))
-                host_path = vol_data[container_path]
-                default_volumes_list.append(
-                    Volume(host_path=host_path, container_path=container_path)
+            if not isinstance(vol_data, dict):
+                raise ValueError(
+                    f"Invalid volume specification: {vol_data}. Must be a dictionary."
                 )
+
+            if "container" not in vol_data:
+                raise ValueError(
+                    f"Invalid volume specification: {vol_data}. Must contain 'container' field."
+                )
+
+            container_path = vol_data["container"]
+            host_path = vol_data.get("host")
+
+            if not isinstance(container_path, str):
+                raise ValueError(
+                    f"Volume container must be a string, got {type(container_path).__name__}"
+                )
+
+            if host_path is not None and not isinstance(host_path, str):
+                raise ValueError(
+                    f"Volume host must be a string or null, got {type(host_path).__name__}"
+                )
+
+            default_volumes_list.append(
+                Volume(host_path=host_path, container_path=container_path)
+            )
 
         # Process labels: handle both flat dict and list formats
         labels_data = data.get("labels", [])

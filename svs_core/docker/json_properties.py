@@ -15,29 +15,30 @@ class KeyValue(Generic[K, V]):
         return f"{self.__class__.__name__}({self.key}={self.value})"
 
     @classmethod
-    def from_dict(cls, data: dict[K, V]) -> Self:
+    def from_dict(cls, data: dict[str, K | V]) -> Self:
         """Creates a KeyValue instance from a dictionary.
 
         Args:
-            data (dict[K, V]): A dictionary containing a single key-value pair.
+            data (dict[str, K | V]): A dictionary with "key" and "value" fields.
 
         Returns:
             Self: A new KeyValue instance.
         """
+        if "key" not in data or "value" not in data:
+            raise ValueError("'key' and 'value' fields are required in dictionary")
+        if len(data) > 2:
+            raise ValueError("Expected only 'key' and 'value' fields")
 
-        if len(data) != 1:
-            raise ValueError("Expected exactly one KV pair")
-
-        key = next(iter(data))
-        value = data[key]
-        return cls(key, value)
+        key = data["key"]
+        value = data["value"]
+        return cls(key, value)  # type: ignore[arg-type]
 
     @classmethod
-    def from_dict_array(cls, data: list[dict[K, V]]) -> list[Self]:
+    def from_dict_array(cls, data: list[dict[str, K | V]]) -> list[Self]:
         """Creates a list of KeyValue instances from a list of dictionaries.
 
         Args:
-            data (list[dict[K, V]]): A list of dictionaries, each containing a single key-value pair.
+            data (list[dict[str, K | V]]): A list of dictionaries, each with "key" and "value" fields.
 
         Returns:
             list[Self]: A list of KeyValue instances.
@@ -45,48 +46,108 @@ class KeyValue(Generic[K, V]):
         return [cls.from_dict(item) for item in data]
 
     @classmethod
-    def to_dict_array(cls, items: list[Self]) -> list[dict[K, V]]:
+    def to_dict_array(cls, items: list[Self]) -> list[dict[str, K | V]]:
         """Converts a list of KeyValue instances to a list of dictionaries.
 
         Args:
             items (list[Self]): A list of KeyValue instances.
 
         Returns:
-            list[dict[K, V]]: A list of dictionaries.
+            list[dict[str, K | V]]: A list of dictionaries.
         """
 
         return [item.to_dict() for item in items or []]
 
-    def to_dict(self) -> dict[K, V]:
+    def to_dict(self) -> dict[str, K | V]:
         """Converts the KeyValue instance to a dictionary.
 
         Returns:
-            dict[K, V]: A dictionary representation of the key-value pair.
+            dict[str, K | V]: A dictionary with "key" and "value" fields.
         """
 
-        return {self.key: self.value}
+        # type: ignore[return-value]
+        return {"key": self.key, "value": self.value}
 
 
 class EnvVariable(KeyValue[str, str]):
     """Environment variable represented as a key-value pair."""
 
+    @classmethod
+    # type: ignore[override]
+    def from_dict(cls, data: dict[str, str]) -> "EnvVariable":
+        """Creates an EnvVariable instance from a dictionary.
+
+        Supports both new format {"key": name, "value": value}
+        and legacy format {name: value}.
+
+        Args:
+            data (dict[str, str]): A dictionary.
+
+        Returns:
+            EnvVariable: A new EnvVariable instance.
+        """
+        # Try new format first
+        if "key" in data and "value" in data:
+            return cls(key=data["key"], value=data["value"])
+
+        # Fall back to legacy format (single key-value pair)
+        if len(data) == 1:
+            key = next(iter(data))
+            value = data[key]
+            return cls(key=key, value=value)
+
+        raise ValueError(
+            "Dictionary must contain either 'key'/'value' fields or be a single key-value pair"
+        )
+
 
 class Label(KeyValue[str, str]):
     """Docker label represented as a key-value pair."""
+
+    @classmethod
+    def from_dict(cls, data: dict[str, str]) -> "Label":  # type: ignore[override]
+        """Creates a Label instance from a dictionary.
+
+        Supports both new format {"key": name, "value": value}
+        and legacy format {name: value}.
+
+        Args:
+            data (dict[str, str]): A dictionary.
+
+        Returns:
+            Label: A new Label instance.
+        """
+        # Try new format first
+        if "key" in data and "value" in data:
+            return cls(key=data["key"], value=data["value"])
+
+        # Fall back to legacy format (single key-value pair)
+        if len(data) == 1:
+            key = next(iter(data))
+            value = data[key]
+            return cls(key=key, value=value)
+
+        raise ValueError(
+            "Dictionary must contain either 'key'/'value' fields or be a single key-value pair"
+        )
 
 
 class ExposedPort(KeyValue[int | None, int]):
     """Represents an exposed port for a Docker container.
 
     Binds: host_port=container_port
+
+    Note: Uses key=host_port (optional) and value=container_port (mandatory) for storage.
+    This ensures container_port is always present for merging operations.
+    Serialization uses the format {"key": host_port, "value": container_port}.
     """
 
     def __init__(self, host_port: int | None, container_port: int):
         """Initializes an ExposedPort instance.
 
         Args:
-            host_port (int): The port on the host machine.
-            container_port (int): The port inside the Docker container.
+            host_port (int | None): The port on the host machine, or None for dynamic assignment.
+            container_port (int): The port inside the Docker container (mandatory).
         """
 
         super().__init__(key=host_port, value=container_port)
@@ -96,11 +157,11 @@ class ExposedPort(KeyValue[int | None, int]):
         return self.key
 
     @host_port.setter
-    def host_port(self, port: int) -> None:  # noqa: D102
+    def host_port(self, port: int | None) -> None:  # noqa: D102
         self.key = port
 
     @property
-    def container_port(self) -> int | None:  # noqa: D102
+    def container_port(self) -> int:  # noqa: D102
         return self.value
 
     @container_port.setter
@@ -108,14 +169,14 @@ class ExposedPort(KeyValue[int | None, int]):
         self.value = port
 
 
-class Volume(KeyValue[str, str | None]):
+class Volume(KeyValue[str | None, str]):
     """Represents a volume for a Docker container.
 
     Binds: container_path=host_path
 
-    Note: The key is the container_path and value is the host_path (or None for anonymous volumes).
-    This allows proper merging of volumes by container path.
-    Serialization uses the format {container_path: host_path} or {container_path: null} for anonymous.
+    Note: Uses key=host_path (optional) and value=container_path (mandatory) for storage.
+    This ensures container_path is always present for merging operations.
+    Serialization uses the format {"key": host_path, "value": container_path}.
     """
 
     def __init__(self, host_path: str | None, container_path: str):
@@ -123,28 +184,25 @@ class Volume(KeyValue[str, str | None]):
 
         Args:
             host_path (str | None): The path on the host machine, or None for anonymous volumes.
-            container_path (str): The path inside the Docker container.
+            container_path (str): The path inside the Docker container (mandatory).
         """
-        # Store in key/value, but with swapped semantics for proper merging
-        # key = container_path (for identification during merge)
-        # value = host_path (what we're binding to, or None for anonymous volumes)
-        super().__init__(key=container_path, value=host_path)
+        super().__init__(key=host_path, value=container_path)
 
     @property
     def host_path(self) -> str | None:  # noqa: D102
-        return self.value
+        return self.key
 
     @host_path.setter
     def host_path(self, path: str | None) -> None:  # noqa: D102
-        self.value = path
+        self.key = path
 
     @property
     def container_path(self) -> str:  # noqa: D102
-        return self.key
+        return self.value
 
     @container_path.setter
     def container_path(self, path: str) -> None:  # noqa: D102
-        self.key = path
+        self.value = path
 
     def __str__(self) -> str:
         """Return a string representation.
@@ -156,41 +214,6 @@ class Volume(KeyValue[str, str | None]):
         """
 
         return f"Volume({self.container_path}={self.host_path})"
-
-    def to_dict(self) -> dict[str, str | None]:
-        """Converts the Volume instance to a dictionary.
-
-        Returns format: {container_path: host_path} or {container_path: null} for anonymous volumes.
-
-        Returns:
-            dict[str, str | None]: A dictionary representation with container_path as key.
-        """
-        return {self.container_path: self.host_path}
-
-    @classmethod
-    def from_dict(cls, data: dict[str, str | None]) -> "Volume":
-        """Creates a Volume instance from a dictionary.
-
-        Expects format: {container_path: host_path} or {container_path: null}
-
-        Args:
-            data (dict[str, str | None]): A dictionary with a single key-value pair.
-
-        Returns:
-            Volume: A new Volume instance.
-
-        Raises:
-            ValueError: If the dictionary doesn't contain exactly one key-value pair.
-        """
-        if len(data) != 1:
-            raise ValueError("Expected exactly one KV pair for volume")
-
-        container_path = next(iter(data))
-        host_path = data[container_path]
-        return cls(
-            host_path=host_path,
-            container_path=container_path,
-        )
 
 
 class Healthcheck:  # noqa: D101
