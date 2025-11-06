@@ -88,6 +88,12 @@ You can use the example compose file to set up these services. Make sure to conf
     PGPORT=5432
     ```
 
+After confuguring the compose file and the `.env` file, start the services via
+
+```bash
+$ docker-compose up -d
+```
+
 ## Application setup
 
 ### Install pipx
