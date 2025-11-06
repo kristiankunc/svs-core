@@ -1,42 +1,19 @@
 from __future__ import annotations
 
 import re
-
 from typing import cast
 
 from svs_core.db.models import UserModel
 from svs_core.docker.network import DockerNetworkManager
-from svs_core.shared.exceptions import (
-    AlreadyExistsException,
-    InvalidOperationException,
-    SVSException,
+from svs_core.exceptions.base import AlreadyExistsException, InvalidOperationException
+from svs_core.exceptions.user import (
+    InvalidPasswordException,
+    InvalidUsernameException,
 )
 from svs_core.shared.hash import hash_password
 from svs_core.shared.logger import get_logger
 from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.system import SystemUserManager
-
-
-class InvalidUsernameException(SVSException):
-    """Exception raised when the provided username is invalid.
-
-    When created, a system users and a docker network will be created
-    holding the same name.
-    """
-
-    def __init__(self, username: str):
-        super().__init__(f"Invalid username: '{username}'.")
-        self.username = username
-
-
-class InvalidPasswordException(SVSException):
-    """Exception raised when the provided password is invalid."""
-
-    def __init__(self, password: str):
-        super().__init__(
-            f"Invalid password: '{password}'. Password must be at least 8 characters long."
-        )
-        self.password = password
 
 
 class User(UserModel):
@@ -64,7 +41,7 @@ class User(UserModel):
         if not cls.is_username_valid(name):
             raise InvalidUsernameException(name)
         if not cls.is_password_valid(password):
-            raise InvalidPasswordException(password)
+            raise InvalidPasswordException()
         if cls.username_exists(name):
             raise AlreadyExistsException(entity="User", identifier=name)
 

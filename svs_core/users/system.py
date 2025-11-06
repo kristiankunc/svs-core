@@ -19,7 +19,8 @@ class SystemUserManager:
             admin (bool, optional): Whether to add the user to the admin group. Defaults to False.
         """
         run_command(f"sudo useradd -m {username}", check=True)
-        run_command(f"echo '{username}:{password}' | sudo chpasswd", check=True)
+        run_command(
+            f"echo '{username}:{password}' | sudo chpasswd", check=True)
         # run_command(f"sudo usermod -aG svs-users {username}", check=True)
 
         if admin:
@@ -50,7 +51,8 @@ class SystemUserManager:
         Returns:
             bool: True if the user is in the group, False otherwise.
         """
-        result = run_command(f"groups {username} | grep -qw {groupname}", check=False)
+        result = run_command(
+            f"groups {username} | grep -qw {groupname}", check=False)
         return result.returncode == 0
 
     @staticmethod
@@ -58,18 +60,28 @@ class SystemUserManager:
         """Returns the username of the user who initiated the session.
 
         Attempts to grab the user if ran by sudo.
-        """
 
+        Returns:
+            str: The system username.
+
+        Raises:
+            RuntimeError: If the current user cannot be determined.
+        """
         try:
             return os.getlogin()
         except OSError:
-            if "SUDO_USER" in os.environ:
-                return os.environ["SUDO_USER"]
+            pass
 
-            try:
-                return pwd.getpwuid(os.getuid()).pw_name
-            except Exception:
-                return getpass.getuser()
+        if "SUDO_USER" in os.environ:
+            return os.environ["SUDO_USER"]
 
+        try:
+            return pwd.getpwuid(os.getuid()).pw_name
+        except Exception:
+            pass
+
+        # Fallback to getpass
+        try:
+            return getpass.getuser()
         except Exception as e:
             raise RuntimeError("Failed to get current user") from e

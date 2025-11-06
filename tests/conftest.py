@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from svs_core.docker.network import DockerNetworkManager
+from svs_core.users.user import User
 
 
 @pytest.fixture
@@ -12,17 +13,23 @@ def db(django_db_setup, django_db_blocker):
         yield
 
 
-@pytest.fixture()
-def mock_system_user_manager(mocker):
-    """Mock system user manager to prevent system calls during tests."""
+@pytest.fixture
+def svs_user(db, mocker, tmp_path, request):
+    mocker.patch("svs_core.docker.network.DockerNetworkManager.create_network")
+    mocker.patch("svs_core.docker.network.DockerNetworkManager.delete_network")
     mocker.patch(
-        "svs_core.users.system.SystemUserManager.create_user",
-        return_value=None,
-    )
-    return mocker.patch(
-        "svs_core.users.system.SystemUserManager.delete_user",
-        return_value=None,
-    )
+        "svs_core.users.user.SystemUserManager.is_user_in_group", return_value=False)
+
+    user = User.create("testuser", "12345678")
+
+    yield user
+
+    try:
+        user.delete()
+    except Exception as e:
+        user_still_exists = User.objects.filter(name=user.name).exists()
+        if user_still_exists:
+            print(f"Warning: Failed to delete user during cleanup: {user}", e)
 
 
 @pytest.fixture
