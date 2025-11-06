@@ -208,6 +208,89 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
+    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+    @patch("svs_core.docker.template.DockerImageManager.pull")
+    def test_import_from_json_new_schema_format(self, mock_pull, mock_exists):
+        """Test importing a template from JSON with new schema format
+        (container/host keys)."""
+        json_data = {
+            "name": "django-app",
+            "type": "build",
+            "description": "Django application",
+            "dockerfile": "FROM python:3.11-slim\nWORKDIR /app",
+            "default_env": {
+                "DEBUG": "True",
+                "DJANGO_SETTINGS_MODULE": "project.settings",
+            },
+            "default_ports": [{"container": 8000, "host": None}],
+            "default_volumes": [{"container": "/app/data", "host": None}],
+            "healthcheck": {
+                "test": ["CMD", "curl", "-f", "http://localhost:8000/"],
+                "interval": 30,
+                "timeout": 10,
+                "retries": 3,
+                "start_period": 5,
+            },
+            "start_cmd": "python manage.py runserver 0.0.0.0:8000",
+            "args": [],
+        }
+
+        template = Template.import_from_json(json_data)
+
+        assert template.id is not None
+        assert template.name == "django-app"
+        assert template.type == TemplateType.BUILD
+        assert template.description == "Django application"
+        assert template.dockerfile == "FROM python:3.11-slim\nWORKDIR /app"
+
+        # Verify environment variables
+        assert len(template.default_env) == 2
+        env_vars = {ev.key: ev.value for ev in template.default_env}
+        assert env_vars == {
+            "DEBUG": "True",
+            "DJANGO_SETTINGS_MODULE": "project.settings",
+        }
+
+        # Verify ports (new schema format: container=8000, host=None)
+        assert len(template.default_ports) == 1
+        assert template.default_ports[0].container_port == 8000
+        assert template.default_ports[0].host_port is None
+
+        # Verify volumes (new schema format: container=/app/data, host=None)
+        assert len(template.default_volumes) == 1
+        assert template.default_volumes[0].container_path == "/app/data"
+        assert template.default_volumes[0].host_path is None
+
+        # Verify healthcheck
+        assert template.healthcheck is not None
+        assert template.healthcheck.test == [
+            "CMD",
+            "curl",
+            "-f",
+            "http://localhost:8000/",
+        ]
+        assert (
+            template.healthcheck.interval is not None
+            and int(template.healthcheck.interval) == 30
+        )
+        assert (
+            template.healthcheck.timeout is not None
+            and int(template.healthcheck.timeout) == 10
+        )
+        assert (
+            template.healthcheck.retries is not None
+            and int(template.healthcheck.retries) == 3
+        )
+        assert (
+            template.healthcheck.start_period is not None
+            and int(template.healthcheck.start_period) == 5
+        )
+
+        assert template.start_cmd == "python manage.py runserver 0.0.0.0:8000"
+        assert template.args == []
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
     @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
     @patch("svs_core.docker.template.DockerImageManager.pull")
     def test_template_string_representation(self, mock_pull, mock_exists):
@@ -231,7 +314,7 @@ class TestTemplate:
         assert "string-test" in string_repr
         assert "busybox:latest" in string_repr
         assert "TEST=value" in string_repr
-        assert "8080=80" in string_repr
+        assert "80=8080" in string_repr  # Now host_port=key, container_port=value
         assert "/app=/host/app" in string_repr
         assert "test=['CMD', 'test', '-e', '/tmp/healthy']" in string_repr
 

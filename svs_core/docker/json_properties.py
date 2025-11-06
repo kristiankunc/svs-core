@@ -132,13 +132,14 @@ class Label(KeyValue[str, str]):
         )
 
 
-class ExposedPort(KeyValue[int, int | None]):
+class ExposedPort(KeyValue[int | None, int]):
     """Represents an exposed port for a Docker container.
 
     Binds: host_port=container_port
 
-    Note: The key is the container_port (mandatory) and value is the host_port (optional).
-    Serialization uses the format {"key": container_port, "value": host_port}.
+    Note: Uses key=host_port (optional) and value=container_port (mandatory) for storage.
+    This ensures container_port is always present for merging operations.
+    Serialization uses the format {"key": host_port, "value": container_port}.
     """
 
     def __init__(self, host_port: int | None, container_port: int):
@@ -149,61 +150,33 @@ class ExposedPort(KeyValue[int, int | None]):
             container_port (int): The port inside the Docker container (mandatory).
         """
 
-        super().__init__(key=container_port, value=host_port)
+        super().__init__(key=host_port, value=container_port)
 
     @property
     def host_port(self) -> int | None:  # noqa: D102
-        return self.value
+        return self.key
 
     @host_port.setter
     def host_port(self, port: int | None) -> None:  # noqa: D102
-        self.value = port
+        self.key = port
 
     @property
     def container_port(self) -> int:  # noqa: D102
-        return self.key
+        return self.value
 
     @container_port.setter
     def container_port(self, port: int) -> None:  # noqa: D102
-        self.key = port
-
-    @classmethod
-    # type: ignore[override]
-    def from_dict(cls, data: dict[str, int | None]) -> "ExposedPort":
-        """Creates an ExposedPort instance from a dictionary.
-
-        Expects format {"key": container_port, "value": host_port}.
-
-        Args:
-            data (dict[str, int | None]): A dictionary with "key" and "value" fields.
-
-        Returns:
-            ExposedPort: A new ExposedPort instance.
-
-        Raises:
-            ValueError: If the dictionary doesn't contain required fields or has invalid types.
-        """
-        if "key" not in data or "value" not in data:
-            raise ValueError("Dictionary must contain 'key' and 'value' fields")
-
-        container_port = data["key"]
-        if not isinstance(container_port, int):
-            raise ValueError("'key' (container_port) must be an integer")
-
-        return cls(
-            host_port=data["value"],
-            container_port=container_port,
-        )
+        self.value = port
 
 
-class Volume(KeyValue[str, str | None]):
+class Volume(KeyValue[str | None, str]):
     """Represents a volume for a Docker container.
 
     Binds: container_path=host_path
 
-    Note: The key is the container_path (mandatory) and value is the host_path (optional).
-    This allows proper merging of volumes by container path.
-    Serialization uses the format {"key": container_path, "value": host_path}.
+    Note: Uses key=host_path (optional) and value=container_path (mandatory) for storage.
+    This ensures container_path is always present for merging operations.
+    Serialization uses the format {"key": host_path, "value": container_path}.
     """
 
     def __init__(self, host_path: str | None, container_path: str):
@@ -213,23 +186,23 @@ class Volume(KeyValue[str, str | None]):
             host_path (str | None): The path on the host machine, or None for anonymous volumes.
             container_path (str): The path inside the Docker container (mandatory).
         """
-        super().__init__(key=container_path, value=host_path)
+        super().__init__(key=host_path, value=container_path)
 
     @property
     def host_path(self) -> str | None:  # noqa: D102
-        return self.value
+        return self.key
 
     @host_path.setter
     def host_path(self, path: str | None) -> None:  # noqa: D102
-        self.value = path
+        self.key = path
 
     @property
     def container_path(self) -> str:  # noqa: D102
-        return self.key
+        return self.value
 
     @container_path.setter
     def container_path(self, path: str) -> None:  # noqa: D102
-        self.key = path
+        self.value = path
 
     def __str__(self) -> str:
         """Return a string representation.
@@ -241,34 +214,6 @@ class Volume(KeyValue[str, str | None]):
         """
 
         return f"Volume({self.container_path}={self.host_path})"
-
-    @classmethod
-    # type: ignore[override]
-    def from_dict(cls, data: dict[str, str | None]) -> "Volume":
-        """Creates a Volume instance from a dictionary.
-
-        Expects format {"key": container_path, "value": host_path}.
-
-        Args:
-            data (dict[str, str | None]): A dictionary with "key" and "value" fields.
-
-        Returns:
-            Volume: A new Volume instance.
-
-        Raises:
-            ValueError: If the dictionary doesn't contain required fields or has invalid types.
-        """
-        if "key" not in data or "value" not in data:
-            raise ValueError("Dictionary must contain 'key' and 'value' fields")
-
-        container_path = data["key"]
-        if not isinstance(container_path, str):
-            raise ValueError("'key' (container_path) must be a string")
-
-        return cls(
-            host_path=data["value"],
-            container_path=container_path,
-        )
 
 
 class Healthcheck:  # noqa: D101

@@ -63,7 +63,12 @@ class Service(ServiceModel):
         """Merges two lists of key-value pairs.
 
         Overrides in the second list will replace those in the first list
-        based on matching keys. Non-matching items from both lists are included.
+        based on matching identifiers:
+        - For ExposedPort: merge by container_port (value)
+        - For Volume: merge by container_path (value)
+        - For others: merge by key
+
+        Non-matching items from both lists are included.
 
         Args:
             base (List[T]): The base list of key-value pairs.
@@ -72,11 +77,21 @@ class Service(ServiceModel):
         Returns:
             List[T]: The merged list of key-value pairs.
         """
+        from svs_core.docker.json_properties import ExposedPort, Volume
 
-        merged: dict[Any, T] = {item.key: item for item in base}
+        # Determine merge key based on type
+        def get_merge_key(item: T) -> Any:
+            if isinstance(item, ExposedPort):
+                return item.container_port  # Merge by container_port (value)
+            elif isinstance(item, Volume):
+                return item.container_path  # Merge by container_path (value)
+            else:
+                return item.key  # Default: merge by key
+
+        merged: dict[Any, T] = {get_merge_key(item): item for item in base}
 
         for override in overrides:
-            merged[override.key] = override
+            merged[get_merge_key(override)] = override
 
         return list(merged.values())
 
