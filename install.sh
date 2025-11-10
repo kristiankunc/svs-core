@@ -101,8 +101,10 @@ storage_setup() {
     echo "Setting up /var/svs storage..."
 
     sudo mkdir -p /var/svs
+    sudo mkdir -p /var/svs/volumes
     sudo chown -R root:svs-admins /var/svs
     sudo chmod 2775 /var/svs
+    sudo chmod 2775 /var/svs/volumes
     echo "✅ /var/svs created and permissions set."
 }
 

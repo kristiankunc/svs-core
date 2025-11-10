@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from svs_core.docker.json_properties import Volume
-from svs_core.shared.shell import create_directory, remove_directory
+from svs_core.shared.shell import create_directory, remove_directory, run_command
 
 if TYPE_CHECKING:
     from svs_core.users.user import User
@@ -42,6 +42,13 @@ class SystemVolumeManager:
             volume_path = base_resolved / str(user.id) / volume_id
             if not volume_path.exists():
                 create_directory(volume_path.as_posix())
+                # Set owner to the user and group to svs-admins
+                run_command(
+                    f"chown {user.name}:svs-admins {volume_path.as_posix()}",
+                    use_svs_user=False,
+                )
+                # Set permissions to allow owner and group full access (770)
+                run_command(f"chmod 770 {volume_path.as_posix()}", use_svs_user=False)
 
                 return volume_path
 

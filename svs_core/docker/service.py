@@ -62,7 +62,8 @@ class Service(ServiceModel):
     def _merge_overrides(base: List[T], overrides: List[T]) -> List[T]:
         """Merges two lists of key-value pairs.
 
-        Overrides in the second list will replace those in the first list
+        If either list is empty, returns the non-empty one. Otherwise,
+        overrides in the second list will replace those in the first list
         based on matching identifiers:
         - For ExposedPort: merge by container_port (value)
         - For Volume: merge by container_path (value)
@@ -77,6 +78,12 @@ class Service(ServiceModel):
         Returns:
             List[T]: The merged list of key-value pairs.
         """
+        # Handle empty lists
+        if not base:
+            return overrides if overrides else []
+        if not overrides:
+            return base
+
         from svs_core.docker.json_properties import ExposedPort, Volume
 
         # Determine merge key based on type
@@ -448,7 +455,6 @@ class Service(ServiceModel):
 
         # Update service with all labels (system + model)
         service_instance.labels = all_labels
-        print(service_instance.labels)
 
         if not service_instance.image:
             raise ValueError("Service must have an image specified")

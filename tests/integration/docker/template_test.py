@@ -179,11 +179,17 @@ class TestTemplate:
             "type": "image",
             "image": "redis:alpine",
             "description": "Redis template from JSON",
-            "default_env": {"REDIS_PORT": "6379", "REDIS_PASSWORD": "secret"},
+            "default_env": [
+                {"key": "REDIS_PORT", "value": "6379"},
+                {"key": "REDIS_PASSWORD", "value": "secret"},
+            ],
             "default_ports": [{"container": 6379, "host": 6379}],
             "default_volumes": [{"host": "/var/redis/data", "container": "/data"}],
             "start_cmd": "redis-server --requirepass secret",
-            "labels": {"service": "cache", "version": "7.0"},
+            "labels": [
+                {"key": "service", "value": "cache"},
+                {"key": "version", "value": "7.0"},
+            ],
         }
 
         template = Template.import_from_json(json_data)
@@ -218,10 +224,10 @@ class TestTemplate:
             "type": "build",
             "description": "Django application",
             "dockerfile": "FROM python:3.11-slim\nWORKDIR /app",
-            "default_env": {
-                "DEBUG": "True",
-                "DJANGO_SETTINGS_MODULE": "project.settings",
-            },
+            "default_env": [
+                {"key": "DEBUG", "value": "True"},
+                {"key": "DJANGO_SETTINGS_MODULE", "value": "project.settings"},
+            ],
             "default_ports": [{"container": 8000, "host": None}],
             "default_volumes": [{"container": "/app/data", "host": None}],
             "healthcheck": {

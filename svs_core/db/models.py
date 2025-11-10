@@ -72,11 +72,11 @@ class TemplateModel(BaseModel):
     start_cmd = models.CharField(max_length=512, null=True, blank=True)
     args = models.JSONField(null=True, blank=True, default=list)
 
-    _default_env = models.JSONField(null=True, blank=True, default=dict)
+    _default_env = models.JSONField(null=True, blank=True, default=list)
     _default_ports = models.JSONField(null=True, blank=True, default=list)
     _default_volumes = models.JSONField(null=True, blank=True, default=list)
     _healthcheck = models.JSONField(null=True, blank=True, default=dict)
-    _labels = models.JSONField(null=True, blank=True, default=dict)
+    _labels = models.JSONField(null=True, blank=True, default=list)
 
     @property
     def default_env(self) -> list[EnvVariable]:  # noqa: D102
@@ -165,10 +165,10 @@ class ServiceModel(BaseModel):
     command = models.CharField(max_length=512, null=True, blank=True)
     args = models.JSONField(null=True, blank=True, default=list)
 
-    _env = models.JSONField(null=True, blank=True, default=dict)
+    _env = models.JSONField(null=True, blank=True, default=list)
     _exposed_ports = models.JSONField(null=True, blank=True, default=list)
     _volumes = models.JSONField(null=True, blank=True, default=list)
-    _labels = models.JSONField(null=True, blank=True, default=dict)
+    _labels = models.JSONField(null=True, blank=True, default=list)
     _healthcheck = models.JSONField(null=True, blank=True, default=dict)
     _networks = models.JSONField(null=True, blank=True, default=list)
 
