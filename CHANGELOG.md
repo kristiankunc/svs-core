@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.0](https://github.com/kristiankunc/svs-core/compare/v0.5.0...v0.6.0) (2025-11-10)
+
+
+### Features
+
+* Rework json props once again ([#83](https://github.com/kristiankunc/svs-core/issues/83)) ([f0e5a1c](https://github.com/kristiankunc/svs-core/commit/f0e5a1cc409080e7ddea479c43ed46008d1b8cd4))
+
+
+### Bug Fixes
+
+* Fix volume creation permissions ([#84](https://github.com/kristiankunc/svs-core/issues/84)) ([d8bd47d](https://github.com/kristiankunc/svs-core/commit/d8bd47d9c7449f856caad8025572e10e4a60f920))
+* Properly mount service volumes ([93d8127](https://github.com/kristiankunc/svs-core/commit/93d8127e6635feb09b0d83a5316286048a786ca4))
+* Use host volume as key in json props ([81a1a02](https://github.com/kristiankunc/svs-core/commit/81a1a02fb9f407c65ddbd26f642f6f2d457e67e2))
+* Use template id to identify templates in cli ([040eccb](https://github.com/kristiankunc/svs-core/commit/040eccbeccf0211323c4e03b4b9fe56e899424b7))
+
 ## [0.5.0](https://github.com/kristiankunc/svs-core/compare/v0.4.1...v0.5.0) (2025-11-01)
 
 
