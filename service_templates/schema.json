@@ -31,25 +31,27 @@
 			]
 		},
 		"default_env": {
-			"oneOf": [
-				{
-					"additionalProperties": {
+			"items": {
+				"additionalProperties": {
+					"type": "string"
+				},
+				"maxProperties": 2,
+				"minProperties": 2,
+				"properties": {
+					"key": {
 						"type": "string"
 					},
-					"type": "object"
+					"value": {
+						"type": "string"
+					}
 				},
-				{
-					"items": {
-						"additionalProperties": {
-							"type": "string"
-						},
-						"maxProperties": 1,
-						"minProperties": 1,
-						"type": "object"
-					},
-					"type": "array"
-				}
-			]
+				"required": [
+					"key",
+					"value"
+				],
+				"type": "object"
+			},
+			"type": "array"
 		},
 		"default_ports": {
 			"items": {
@@ -150,25 +152,27 @@
 			"type": "string"
 		},
 		"labels": {
-			"oneOf": [
-				{
-					"additionalProperties": {
+			"items": {
+				"additionalProperties": {
+					"type": "string"
+				},
+				"maxProperties": 2,
+				"minProperties": 2,
+				"properties": {
+					"key": {
 						"type": "string"
 					},
-					"type": "object"
+					"value": {
+						"type": "string"
+					}
 				},
-				{
-					"items": {
-						"additionalProperties": {
-							"type": "string"
-						},
-						"maxProperties": 1,
-						"minProperties": 1,
-						"type": "object"
-					},
-					"type": "array"
-				}
-			]
+				"required": [
+					"key",
+					"value"
+				],
+				"type": "object"
+			},
+			"type": "array"
 		},
 		"name": {
 			"minLength": 1,

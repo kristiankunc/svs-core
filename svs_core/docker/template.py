@@ -249,7 +249,7 @@ class Template(TemplateModel):
         default_env_data = data.get("default_env", [])
         if not isinstance(default_env_data, list):
             raise ValueError(
-                "default_env must be a list, got {type(default_env_data).__name__}"
+                f"default_env must be a list, got {type(default_env_data).__name__}"
             )
         default_env_list = default_env_data
 
@@ -320,7 +320,7 @@ class Template(TemplateModel):
         # Process labels: should be a list of {"key": ..., "value": ...} dicts
         labels_data = data.get("labels", [])
         if not isinstance(labels_data, list):
-            raise ValueError("labels must be a list, got {type(labels_data).__name__}")
+            raise ValueError(f"labels must be a list, got {type(labels_data).__name__}")
         labels_list = labels_data
 
         # Delegate to create method for further validation
