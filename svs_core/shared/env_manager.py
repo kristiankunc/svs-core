@@ -103,6 +103,14 @@ class EnvManager:
                 key, value = line.strip().split("=", 1)
                 env_vars[key] = value
 
+        # Expand environment variables in the values
+        for key in env_vars:
+            value = env_vars[key]
+            for var_key, var_value in env_vars.items():
+                value = value.replace(f"${{{var_key}}}", var_value)
+            env_vars[key] = value
+            env_vars[key] = os.path.expandvars(env_vars[key])
+
         return env_vars
 
     @classmethod

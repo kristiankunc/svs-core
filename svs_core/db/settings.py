@@ -13,8 +13,8 @@ INSTALLED_APPS = [
     "svs_core.apps.SvsCoreConfig",
 ]
 
-
-DATABASES = {"default": dj_database_url.parse(EnvManager.get_database_url())}
+database_url = EnvManager.get_database_url()
+DATABASES = {"default": dj_database_url.parse(database_url)}
 
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 
