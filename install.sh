@@ -174,12 +174,6 @@ EOL"
         sudo bash -c "echo DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB > $env_path"
         echo "✅ $env_path created with DATABASE_URL."
     fi
-
-    # Ensure log file has proper permissions for all users in svs-admins group
-    sudo touch /etc/svs/svs.log
-    sudo chmod 664 /etc/svs/svs.log
-    sudo chown root:svs-admins /etc/svs/svs.log
-    echo "✅ Log file permissions set."
 }
 
 storage_setup() {
@@ -191,6 +185,11 @@ storage_setup() {
     sudo chmod 2775 /var/svs
     sudo chmod 2775 /var/svs/volumes
     echo "✅ /var/svs created and permissions set."
+
+    # Ensure /etc/svs directory exists with proper permissions
+    sudo mkdir -p /etc/svs
+    sudo chown root:svs-admins /etc/svs
+    sudo chmod 2775 /etc/svs
 }
 
 django_migrations() {
@@ -250,7 +249,6 @@ init() {
     fi
 
     echo "✅ SVS environment initialization complete."
-    echo "Please configure the /etc/svs/.env file before starting SVS services."
 }
 
 # Parse arguments
