@@ -8,20 +8,16 @@ from svs_core.docker.json_properties import ExposedPort, Label, Volume
 
 
 class TestDockerContainerManager:
-    """Integration tests for the DockerContainerManager class."""
-
     TEST_IMAGE = "alpine:latest"
     TEST_CONTAINER_NAME = f"svs-test-container-{str(uuid.uuid4())[:8]}"
 
     @pytest.fixture(scope="session", autouse=True)
     def pull_test_image(self):
-        """Fixture to pull the test image before all tests."""
         if not DockerImageManager.exists(self.TEST_IMAGE):
             DockerImageManager.pull(self.TEST_IMAGE)
 
     @pytest.fixture(autouse=True)
     def cleanup_test_containers(self):
-        """Fixture to clean up test containers before and after tests."""
         self.cleanup_container()
 
         yield
@@ -29,7 +25,6 @@ class TestDockerContainerManager:
         self.cleanup_container()
 
     def cleanup_container(self) -> None:
-        """Helper method to clean up test container if it exists."""
         container = DockerContainerManager.get_container(self.TEST_CONTAINER_NAME)
         if container:
             DockerContainerManager.remove(self.TEST_CONTAINER_NAME)

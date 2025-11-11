@@ -16,13 +16,11 @@ def mock_base_volume_path(monkeypatch, tmp_path):
 
 @pytest.fixture
 def mock_run_command(mocker):
-    """Mock the run_command function to prevent actual shell execution."""
     return mocker.patch("svs_core.shared.volumes.run_command")
 
 
 @pytest.fixture
 def mock_user(mocker):
-    """Create a mock user object."""
     user = mocker.Mock()
     user.id = 123
     user.name = "testuser"

@@ -59,8 +59,6 @@ def test_user() -> Generator[User, None, None]:
 
 
 class TestService:
-    """Integration tests for the Service class."""
-
     @pytest.mark.integration
     @pytest.mark.django_db
     @patch("svs_core.docker.service.DockerContainerManager.create_container")
