@@ -7,6 +7,7 @@ automated_yes=false
 admin_user=""
 admin_password=""
 python_path="/opt/pipx/venvs/svs-core/bin/python"
+setup_scope="all"
 
 confirm() {
     if [ "$automated_yes" = true ]; then
@@ -31,20 +32,21 @@ verify_prerequisites() {
         confirm
     fi
 
-    # Check if Docker is installed
-    if command -v docker &> /dev/null; then
-        echo "✅ Docker is installed."
+    # Check if Docker service is running
+    if command -v systemctl &> /dev/null; then
+        if systemctl is-active --quiet docker; then
+            echo "✅ Docker service is running."
+        else
+            echo "❌ Docker service is not running."
+            confirm
+        fi
     else
-        echo "❌ Docker is not installed or not in PATH."
-        confirm
-    fi
-
-    # Check if required Docker containers are running
-    if docker ps --filter 'name=svs-db' --filter 'name=caddy' --format '{{.Names}}' | grep -qE "svs-db|caddy"; then
-        echo "✅ Required Docker containers are running."
-    else
-        echo "❌ Required Docker containers 'svs-db' and 'caddy' are not running."
-        confirm
+        if ps aux | grep -q '[d]ockerd'; then
+            echo "✅ Docker service is running."
+        else
+            echo "❌ Docker service is not running."
+            confirm
+        fi
     fi
 }
 
@@ -88,31 +90,12 @@ docker_setup() {
     sudo mkdir -p /etc/svs/docker
     sudo chown -R root:svs-admins /etc/svs/docker
 
-    POSTGRES_USER=svs
-    POSTGRES_PASSWORD=$(openssl rand -base64 12)
-    POSTGRES_DB=svsdb
-    POSTGRES_HOST=localhost
-
-    # Create stack.env only if it doesn't exist
-    stack_env_path="/etc/svs/docker/stack.env"
-    if [ -f "$stack_env_path" ]; then
-        echo "✅ $stack_env_path already exists."
-    else
-        sudo bash -c "cat > $stack_env_path <<EOL
-POSTGRES_USER=$POSTGRES_USER
-POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-POSTGRES_DB=$POSTGRES_DB
-POSTGRES_HOST=$POSTGRES_HOST
-EOL"
-        echo "✅ $stack_env_path created."
-    fi
-
-    # Create docker-compose.yml only if it doesn't exist
     compose_path="/etc/svs/docker/docker-compose.yml"
-    if [ -f "$compose_path" ]; then
-        echo "✅ $compose_path already exists."
-    else
-        sudo bash -c "cat > $compose_path <<EOL$(cat << 'EOF'
+    stack_env_path="/etc/svs/docker/stack.env"
+
+    # Create docker-compose.yml first
+    if [ ! -f "$compose_path" ]; then
+        sudo bash -c 'cat > '"$compose_path"' <<'"'"'EOF'"'"'
 name: "svs-core"
 
 services:
@@ -123,7 +106,7 @@ services:
     ports:
       - "5432:5432"
     env_file:
-      - .env
+      - stack.env
     volumes:
       - pgdata:/var/lib/postgresql
 
@@ -152,11 +135,29 @@ networks:
   caddy:
     driver: bridge
 EOF
-)"
+'
         echo "✅ $compose_path created."
+    else
+        echo "✅ $compose_path already exists."
     fi
 
-    # start the compose stack as deamon and wait for db to be ready
+
+    POSTGRES_USER=svs
+    # Generate a URL-safe password using only hexadecimal characters
+    POSTGRES_PASSWORD=$(openssl rand -hex 16)
+    POSTGRES_DB=svsdb
+    POSTGRES_HOST=localhost
+
+    # Create stack.env
+    sudo bash -c "cat > $stack_env_path <<EOL
+POSTGRES_USER=$POSTGRES_USER
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+POSTGRES_DB=$POSTGRES_DB
+POSTGRES_HOST=$POSTGRES_HOST
+EOL"
+    echo "✅ $stack_env_path created."
+
+    # start the compose stack as daemon and wait for db to be ready
     sudo docker-compose -f $compose_path --env-file $stack_env_path up -d
     echo "Waiting for PostgreSQL to be ready..."
     until sudo docker exec svs-db pg_isready -U $POSTGRES_USER; do
@@ -173,6 +174,12 @@ EOF
         sudo bash -c "echo DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB > $env_path"
         echo "✅ $env_path created with DATABASE_URL."
     fi
+
+    # Ensure log file has proper permissions for all users in svs-admins group
+    sudo touch /etc/svs/svs.log
+    sudo chmod 664 /etc/svs/svs.log
+    sudo chown root:svs-admins /etc/svs/svs.log
+    echo "✅ Log file permissions set."
 }
 
 storage_setup() {
@@ -189,7 +196,9 @@ storage_setup() {
 django_migrations() {
     echo "Running Django migrations..."
 
-    if $python_path -m django migrate svs_core; then
+    DATABASE_URL=$(sudo cat /etc/svs/.env | grep DATABASE_URL | cut -d '=' -f2-)
+
+    if  DATABASE_URL="$DATABASE_URL" $python_path -m django migrate svs_core; then
         echo "✅ Django migrations completed."
     else
         echo "❌ Failed to run Django migrations."
@@ -224,13 +233,21 @@ init() {
 
     export DJANGO_SETTINGS_MODULE=svs_core.db.settings
 
-    verify_prerequisites
-    permissions_setup
-    create_svs_user
-    docker_setup
-    storage_setup
-    django_migrations
-    create_admin_user
+    if [ "$setup_scope" = "all" ] || [ "$setup_scope" = "system" ]; then
+        verify_prerequisites
+        permissions_setup
+        create_svs_user
+        storage_setup
+    fi
+
+    if [ "$setup_scope" = "all" ] || [ "$setup_scope" = "docker" ]; then
+        docker_setup
+        django_migrations
+    fi
+
+    if [ "$setup_scope" = "all" ]; then
+        create_admin_user
+    fi
 
     echo "✅ SVS environment initialization complete."
     echo "Please configure the /etc/svs/.env file before starting SVS services."
@@ -255,6 +272,14 @@ while [[ "$#" -gt 0 ]]; do
             python_path="$2"
             shift 2
             ;;
+        --scope)
+            setup_scope="$2"
+            if [ "$setup_scope" != "all" ] && [ "$setup_scope" != "system" ] && [ "$setup_scope" != "docker" ]; then
+                echo "❌ Invalid scope: $setup_scope. Must be 'all', 'system', or 'docker'."
+                exit 1
+            fi
+            shift 2
+            ;;
         --help)
             echo "Usage: install.sh [options]"
             echo ""
@@ -263,11 +288,13 @@ while [[ "$#" -gt 0 ]]; do
             echo "  --user USERNAME           Specify admin username."
             echo "  --password PASSWORD       Specify admin password."
             echo "  --python-path PATH        Specify the Python interpreter path."
+            echo "  --scope SCOPE             Scope of setup: 'all' (default), 'system', or 'docker'."
+            echo "                            'system' - User creation and directory setup"
+            echo "                            'docker' - Docker compose, containers, and Django migrations"
+            echo "                            'all'    - Full setup including admin user creation"
             exit 0
             ;;
         *)
-
-
             echo "Unknown option: $1"
             exit 1
             ;;

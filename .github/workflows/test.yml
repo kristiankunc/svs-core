@@ -92,7 +92,7 @@ jobs:
       - name: Run setup script
         run: |
           chmod +x ./install.sh
-          ./install.sh -y --user test_admin --password test_password
+          ./install.sh -y --scope system --user test_admin --password test_password
 
       - name: Run tests
         run: |

@@ -9,11 +9,12 @@ from typing import Optional
 import django
 import typer
 
-os.environ["DJANGO_SETTINGS_MODULE"] = "svs_core.db.settings"
-
 from svs_core.cli.state import set_current_user
 from svs_core.shared.env_manager import EnvManager
 from svs_core.shared.logger import get_logger
+
+os.environ["DJANGO_SETTINGS_MODULE"] = "svs_core.db.settings"
+
 
 django.setup()
 
