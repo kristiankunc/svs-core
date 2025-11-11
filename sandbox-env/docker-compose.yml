@@ -7,5 +7,3 @@ services:
     container_name: svs-core
     privileged: true
     restart: no
-    env_file:
-      - .env

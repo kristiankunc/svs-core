@@ -78,22 +78,100 @@ create_svs_user() {
     fi
 }
 
-env_setup() {
-    echo "Setting up /etc/svs/.env file..."
+docker_setup() {
+    echo "Setting up Docker environment..."
+
+    sudo mkdir -p /etc/svs
+    sudo chown -R root:svs-admins /etc/svs
+    sudo chmod 2775 /etc/svs
+
+    sudo mkdir -p /etc/svs/docker
+    sudo chown -R root:svs-admins /etc/svs/docker
+
+    POSTGRES_USER=svs
+    POSTGRES_PASSWORD=$(openssl rand -base64 12)
+    POSTGRES_DB=svsdb
+    POSTGRES_HOST=localhost
+
+    # Create stack.env only if it doesn't exist
+    stack_env_path="/etc/svs/docker/stack.env"
+    if [ -f "$stack_env_path" ]; then
+        echo "✅ $stack_env_path already exists."
+    else
+        sudo bash -c "cat > $stack_env_path <<EOL
+POSTGRES_USER=$POSTGRES_USER
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+POSTGRES_DB=$POSTGRES_DB
+POSTGRES_HOST=$POSTGRES_HOST
+EOL"
+        echo "✅ $stack_env_path created."
+    fi
+
+    # Create docker-compose.yml only if it doesn't exist
+    compose_path="/etc/svs/docker/docker-compose.yml"
+    if [ -f "$compose_path" ]; then
+        echo "✅ $compose_path already exists."
+    else
+        sudo bash -c "cat > $compose_path <<EOL$(cat << 'EOF'
+name: "svs-core"
+
+services:
+  db:
+    image: postgres:latest
+    restart: unless-stopped
+    container_name: svs-db
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+  caddy:
+    image: lucaslorentz/caddy-docker-proxy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - CADDY_INGRESS_NETWORK=caddy
+    networks:
+      - caddy
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
+
+networks:
+  caddy:
+    driver: bridge
+EOF
+)"
+        echo "✅ $compose_path created."
+    fi
+
+    # start the compose stack as deamon and wait for db to be ready
+    sudo docker-compose -f $compose_path --env-file $stack_env_path up -d
+    echo "Waiting for PostgreSQL to be ready..."
+    until sudo docker exec svs-db pg_isready -U $POSTGRES_USER; do
+        sleep 2
+    done
 
     env_path="/etc/svs/.env"
-
     if [ -f "$env_path" ]; then
-        echo "✅ /etc/svs/.env already exists."
+        echo "✅ $env_path already exists."
     else
-        sudo mkdir -p /etc/svs
-        sudo chown -R root:svs-admins /etc/svs
-        sudo chmod 2775 /etc/svs
         sudo touch "$env_path"
         sudo chmod 640 "$env_path"
         sudo chown svs:svs-admins "$env_path"
-        echo "✅ /etc/svs/.env created and permissions set. Pleae configure DATABASE_URL and re-run"
-        exit 0
+        sudo bash -c "echo DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB > $env_path"
+        echo "✅ $env_path created with DATABASE_URL."
     fi
 }
 
@@ -149,7 +227,7 @@ init() {
     verify_prerequisites
     permissions_setup
     create_svs_user
-    env_setup
+    docker_setup
     storage_setup
     django_migrations
     create_admin_user
@@ -177,7 +255,19 @@ while [[ "$#" -gt 0 ]]; do
             python_path="$2"
             shift 2
             ;;
+        --help)
+            echo "Usage: install.sh [options]"
+            echo ""
+            echo "Options:"
+            echo "  -y, --yes                 Run in automated mode, skipping confirmations."
+            echo "  --user USERNAME           Specify admin username."
+            echo "  --password PASSWORD       Specify admin password."
+            echo "  --python-path PATH        Specify the Python interpreter path."
+            exit 0
+            ;;
         *)
+
+
             echo "Unknown option: $1"
             exit 1
             ;;

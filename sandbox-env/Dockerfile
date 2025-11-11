@@ -25,6 +25,5 @@ RUN printf '%s\n' 'PIPX_HOME="/opt/pipx"' 'PIPX_BIN_DIR="/usr/local/bin"' | tee 
 
 COPY install.sh /root/install.sh
 
-COPY sandbox-env/docker-compose.template.yml /root/docker-compose.yml
 COPY sandbox-env/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
