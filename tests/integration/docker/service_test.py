@@ -20,7 +20,6 @@ from svs_core.users.user import User
 
 @pytest.fixture
 def test_template() -> Generator[Template, None, None]:
-    """Create a test template for service creation tests."""
     with patch("svs_core.docker.template.DockerImageManager.exists", return_value=True):
         with patch("svs_core.docker.template.DockerImageManager.pull"):
             template = Template.create(
@@ -53,7 +52,6 @@ def test_template() -> Generator[Template, None, None]:
 
 @pytest.fixture
 def test_user() -> Generator[User, None, None]:
-    """Create a test user for service creation tests."""
     with patch("svs_core.users.user.DockerNetworkManager.create_network"):
         with patch("svs_core.users.user.SystemUserManager.create_user"):
             user = User.create(name="testuser", password="password123")
@@ -67,7 +65,6 @@ class TestService:
     @pytest.mark.django_db
     @patch("svs_core.docker.service.DockerContainerManager.create_container")
     def test_service_create(self, mock_create_container, test_template, test_user):
-        """Test creating a service directly."""
         # Mock container creation
         mock_container = MagicMock()
         mock_container.id = "test_container_id"

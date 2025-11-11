@@ -36,7 +36,6 @@ class TestDockerContainerManager:
 
     @pytest.mark.integration
     def test_create_container(self) -> None:
-        """Test creating a Docker container."""
         # Create a container
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
@@ -53,7 +52,6 @@ class TestDockerContainerManager:
 
     @pytest.mark.integration
     def test_create_container_with_command(self) -> None:
-        """Test creating a Docker container with a command."""
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
@@ -70,7 +68,6 @@ class TestDockerContainerManager:
 
     @pytest.mark.integration
     def test_create_container_with_labels(self) -> None:
-        """Test creating a Docker container with labels."""
         labels = [
             Label(key="com.svs.test1", value="value1"),
             Label(key="com.svs.test2", value="value2"),
@@ -88,7 +85,6 @@ class TestDockerContainerManager:
 
     @pytest.mark.integration
     def test_create_container_with_ports(self) -> None:
-        """Test creating a Docker container with ExposedPort objects."""
         exposed_ports = [
             ExposedPort(host_port=8080, container_port=80),
             ExposedPort(host_port=None, container_port=443),
@@ -115,7 +111,6 @@ class TestDockerContainerManager:
 
     @pytest.mark.integration
     def test_create_container_with_volumes(self, tmp_path: object) -> None:
-        """Test creating a Docker container with Volume objects."""
         import tempfile
 
         # Create temporary directories for volume mapping
@@ -140,7 +135,6 @@ class TestDockerContainerManager:
 
     @pytest.mark.integration
     def test_get_container(self) -> None:
-        """Test getting a Docker container by ID."""
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
@@ -155,14 +149,12 @@ class TestDockerContainerManager:
 
     @pytest.mark.integration
     def test_get_container_nonexistent(self) -> None:
-        """Test getting a nonexistent Docker container."""
         container = DockerContainerManager.get_container(f"nonexistent-{uuid.uuid4()}")
 
         assert container is None
 
     @pytest.mark.integration
     def test_get_all(self) -> None:
-        """Test getting all Docker containers."""
         DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
@@ -176,7 +168,6 @@ class TestDockerContainerManager:
 
     @pytest.mark.integration
     def test_remove(self) -> None:
-        """Test removing a Docker container."""
         DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
@@ -192,13 +183,11 @@ class TestDockerContainerManager:
 
     @pytest.mark.integration
     def test_remove_nonexistent(self) -> None:
-        """Test removing a nonexistent Docker container."""
         with pytest.raises(Exception):
             DockerContainerManager.remove(f"nonexistent-{uuid.uuid4()}")
 
     @pytest.mark.integration
     def test_start_container(self) -> None:
-        """Test starting a Docker container."""
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,

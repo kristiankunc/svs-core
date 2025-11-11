@@ -23,7 +23,6 @@ class TestTemplate:
     @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
     @patch("svs_core.docker.template.DockerImageManager.pull")
     def test_create_image_template(self, mock_pull, mock_exists):
-        """Test creating an image-based template."""
         # Use a small, public image for testing
         image_name = "alpine"
         tag = "latest"
@@ -77,7 +76,6 @@ class TestTemplate:
     @pytest.mark.django_db
     @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
     def test_create_build_template(self, mock_exists):
-        """Test creating a build-based template."""
         dockerfile_content = """
         FROM alpine:latest
         RUN apk add --no-cache python3
@@ -103,7 +101,6 @@ class TestTemplate:
     @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
     @patch("svs_core.docker.template.DockerImageManager.pull")
     def test_template_properties(self, mock_pull, mock_exists):
-        """Test template property accessors."""
         template = Template.create(
             name="test-properties",
             type=TemplateType.IMAGE,
@@ -173,7 +170,6 @@ class TestTemplate:
     @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
     @patch("svs_core.docker.template.DockerImageManager.pull")
     def test_import_from_json(self, mock_pull, mock_exists):
-        """Test importing a template from JSON data."""
         json_data = {
             "name": "json-template",
             "type": "image",
@@ -217,8 +213,6 @@ class TestTemplate:
     @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
     @patch("svs_core.docker.template.DockerImageManager.pull")
     def test_import_from_json_new_schema_format(self, mock_pull, mock_exists):
-        """Test importing a template from JSON with new schema format
-        (container/host keys)."""
         json_data = {
             "name": "django-app",
             "type": "build",
@@ -300,7 +294,6 @@ class TestTemplate:
     @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
     @patch("svs_core.docker.template.DockerImageManager.pull")
     def test_template_string_representation(self, mock_pull, mock_exists):
-        """Test the string representation of a template."""
         template = Template.create(
             name="string-test",
             type=TemplateType.IMAGE,
@@ -329,7 +322,6 @@ class TestTemplate:
     @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
     @patch("svs_core.docker.template.DockerImageManager.pull")
     def test_import_from_nginx_json_file(self, mock_pull, mock_exists):
-        """Test importing a template from the nginx.json file."""
         # Path to the nginx.json template file
         template_path = os.path.join(
             os.path.dirname(
@@ -383,7 +375,6 @@ class TestTemplate:
     @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
     @patch("svs_core.docker.template.DockerImageManager.pull")
     def test_validation_errors(self, mock_pull, mock_exists):
-        """Test validation errors when creating templates."""
         # Test empty name
         with pytest.raises(ValueError, match="Template name cannot be empty"):
             Template.create(name="", type=TemplateType.IMAGE, image="alpine")
@@ -490,7 +481,6 @@ class TestTemplate:
     @patch("svs_core.docker.template.DockerImageManager.build_from_dockerfile")
     @patch("svs_core.docker.template.DockerImageManager.remove")
     def test_delete_build_template(self, mock_remove, mock_build, mock_exists):
-        """Test deleting a build-based template."""
         dockerfile_content = "FROM alpine:latest\nRUN echo 'test'"
 
         template = Template.create(

@@ -24,8 +24,6 @@ class TestEnvManager:
     @pytest.mark.unit
     @patch("svs_core.shared.env_manager.run_command")
     def test_open_env_file_success(self, mock_run_command):
-        """Test successful reading of .env file with comments and empty
-        lines."""
         mock_result = MagicMock()
         mock_result.stdout = (
             "# Comment\n"
@@ -45,8 +43,6 @@ class TestEnvManager:
     @pytest.mark.unit
     @patch("svs_core.shared.env_manager.run_command")
     def test_open_env_file_returns_empty_dict_on_none_result(self, mock_run_command):
-        """Test that an empty dict is returned when run_command returns
-        None."""
         mock_run_command.return_value = None
 
         result = EnvManager._open_env_file(Path("/test/.env"))
@@ -56,7 +52,6 @@ class TestEnvManager:
     @pytest.mark.unit
     @patch("svs_core.shared.env_manager.run_command")
     def test_open_env_file_raises_on_command_error(self, mock_run_command):
-        """Test that FileNotFoundError is raised when command fails."""
         mock_run_command.side_effect = subprocess.CalledProcessError(1, "cat")
 
         with pytest.raises(FileNotFoundError):
@@ -66,7 +61,6 @@ class TestEnvManager:
     @patch("svs_core.shared.env_manager.EnvManager._open_env_file")
     @patch.dict(os.environ, {}, clear=True)
     def test_load_env_success(self, mock_open_env_file):
-        """Test successful loading and merging of environment variables."""
         mock_open_env_file.return_value = {
             "RUNTIME_ENVIRONMENT": "development",
             "DATABASE_URL": "postgres://localhost",
@@ -83,7 +77,6 @@ class TestEnvManager:
     @pytest.mark.unit
     @patch("svs_core.shared.env_manager.EnvManager._open_env_file")
     def test_load_env_os_environ_takes_precedence(self, mock_open_env_file):
-        """Test that os.environ takes precedence over .env file."""
         mock_open_env_file.return_value = {
             "RUNTIME_ENVIRONMENT": "development",
             "DATABASE_URL": "postgres://localhost",
@@ -98,7 +91,6 @@ class TestEnvManager:
     @pytest.mark.unit
     @patch("svs_core.shared.env_manager.EnvManager._open_env_file")
     def test_load_env_file_not_found(self, mock_open_env_file):
-        """Test that _env_loaded is True even if file not found."""
         mock_open_env_file.side_effect = FileNotFoundError("Not found")
 
         EnvManager._load_env()
@@ -108,7 +100,6 @@ class TestEnvManager:
     @pytest.mark.unit
     @patch("svs_core.shared.env_manager.EnvManager._load_env")
     def test_get_runtime_environment_values(self, mock_load_env):
-        """Test getting different runtime environments."""
         EnvManager._env_loaded = True
 
         test_cases = [
@@ -124,7 +115,6 @@ class TestEnvManager:
     @pytest.mark.unit
     @patch("svs_core.shared.env_manager.EnvManager._load_env")
     def test_get_runtime_environment_defaults_to_production(self, mock_load_env):
-        """Test that runtime environment defaults to PRODUCTION if not set."""
         EnvManager._env_loaded = True
         EnvManager._env_vars = {}
 
@@ -135,7 +125,6 @@ class TestEnvManager:
     @pytest.mark.unit
     @patch("svs_core.shared.env_manager.EnvManager._load_env")
     def test_get_database_url(self, mock_load_env):
-        """Test getting DATABASE_URL when set and when not set."""
         EnvManager._env_loaded = True
 
         # Test when set
@@ -149,8 +138,6 @@ class TestEnvManager:
     @pytest.mark.unit
     @patch("svs_core.shared.env_manager.EnvManager._load_env")
     def test_get_calls_load_env_on_first_call(self, mock_load_env):
-        """Test that _get calls _load_env on first call but not on subsequent
-        calls."""
 
         def set_loaded():
             EnvManager._env_loaded = True
@@ -171,8 +158,6 @@ class TestEnvManager:
     @pytest.mark.unit
     @patch("svs_core.shared.env_manager.run_command")
     def test_integration_full_env_loading_flow(self, mock_run_command):
-        """Test the full flow of loading and retrieving environment
-        variables."""
         EnvManager._env_loaded = False
         EnvManager._env_vars = {}
 
