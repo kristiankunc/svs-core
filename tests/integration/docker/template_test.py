@@ -1,9 +1,9 @@
 import json
 import os
 
-from unittest.mock import patch
-
 import pytest
+
+from pytest_mock import MockerFixture
 
 from svs_core.db.models import TemplateType
 from svs_core.docker.json_properties import (
@@ -20,9 +20,10 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
-    @patch("svs_core.docker.template.DockerImageManager.pull")
-    def test_create_image_template(self, mock_pull, mock_exists):
+    def test_create_image_template(self, mocker: MockerFixture):
+        mock_exists = mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+        mock_pull = mocker.patch("svs_core.docker.template.DockerImageManager.pull")
+        
         # Use a small, public image for testing
         image_name = "alpine"
         tag = "latest"
@@ -74,8 +75,8 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
-    def test_create_build_template(self, mock_exists):
+    def test_create_build_template(self, mocker: MockerFixture):
+        mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
         dockerfile_content = """
         FROM alpine:latest
         RUN apk add --no-cache python3
@@ -98,9 +99,9 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
-    @patch("svs_core.docker.template.DockerImageManager.pull")
-    def test_template_properties(self, mock_pull, mock_exists):
+    def test_template_properties(self, mocker: MockerFixture):
+        mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
+        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
         template = Template.create(
             name="test-properties",
             type=TemplateType.IMAGE,
@@ -167,9 +168,9 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
-    @patch("svs_core.docker.template.DockerImageManager.pull")
-    def test_import_from_json(self, mock_pull, mock_exists):
+    def test_import_from_json(self, mocker: MockerFixture):
+        mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+        mock_pull = mocker.patch("svs_core.docker.template.DockerImageManager.pull")
         json_data = {
             "name": "json-template",
             "type": "image",
@@ -210,9 +211,9 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
-    @patch("svs_core.docker.template.DockerImageManager.pull")
-    def test_import_from_json_new_schema_format(self, mock_pull, mock_exists):
+    def test_import_from_json_new_schema_format(self, mocker: MockerFixture):
+        mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
         json_data = {
             "name": "django-app",
             "type": "build",
@@ -291,9 +292,9 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
-    @patch("svs_core.docker.template.DockerImageManager.pull")
-    def test_template_string_representation(self, mock_pull, mock_exists):
+    def test_template_string_representation(self, mocker: MockerFixture):
+        mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
+        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
         template = Template.create(
             name="string-test",
             type=TemplateType.IMAGE,
@@ -319,9 +320,9 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
-    @patch("svs_core.docker.template.DockerImageManager.pull")
-    def test_import_from_nginx_json_file(self, mock_pull, mock_exists):
+    def test_import_from_nginx_json_file(self, mocker: MockerFixture):
+        mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+        mock_pull = mocker.patch("svs_core.docker.template.DockerImageManager.pull")
         # Path to the nginx.json template file
         template_path = os.path.join(
             os.path.dirname(
@@ -372,9 +373,9 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
-    @patch("svs_core.docker.template.DockerImageManager.pull")
-    def test_validation_errors(self, mock_pull, mock_exists):
+    def test_validation_errors(self, mocker: MockerFixture):
+        mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
+        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
         # Test empty name
         with pytest.raises(ValueError, match="Template name cannot be empty"):
             Template.create(name="", type=TemplateType.IMAGE, image="alpine")
@@ -402,12 +403,10 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
-    @patch("svs_core.docker.template.DockerImageManager.pull")
-    @patch("svs_core.docker.template.DockerImageManager.remove")
-    def test_delete_template_without_services(
-        self, mock_remove, mock_pull, mock_exists
-    ):
+    def test_delete_template_without_services(self, mocker: MockerFixture):
+        mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
+        mock_remove = mocker.patch("svs_core.docker.template.DockerImageManager.remove")
         """Test deleting a template that is not associated with any
         services."""
         template = Template.create(
@@ -433,13 +432,11 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
-    @patch("svs_core.docker.template.DockerImageManager.pull")
-    @patch("svs_core.users.user.DockerNetworkManager.create_network")
-    @patch("svs_core.users.user.SystemUserManager.create_user")
-    def test_delete_template_with_services_raises_error(
-        self, mock_system_user, mock_network, mock_pull, mock_exists
-    ):
+    def test_delete_template_with_services_raises_error(self, mocker: MockerFixture):
+        mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=False)
+        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
+        mocker.patch("svs_core.users.user.DockerNetworkManager.create_network")
+        mocker.patch("svs_core.users.user.SystemUserManager.create_user")
         """Test that deleting a template with associated services raises an
         error."""
         from svs_core.db.models import ServiceModel
@@ -477,10 +474,10 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    @patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
-    @patch("svs_core.docker.template.DockerImageManager.build_from_dockerfile")
-    @patch("svs_core.docker.template.DockerImageManager.remove")
-    def test_delete_build_template(self, mock_remove, mock_build, mock_exists):
+    def test_delete_build_template(self, mocker: MockerFixture):
+        mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
+        mocker.patch("svs_core.docker.template.DockerImageManager.build_from_dockerfile")
+        mock_remove = mocker.patch("svs_core.docker.template.DockerImageManager.remove")
         dockerfile_content = "FROM alpine:latest\nRUN echo 'test'"
 
         template = Template.create(

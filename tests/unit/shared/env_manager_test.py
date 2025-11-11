@@ -2,9 +2,10 @@ import os
 import subprocess
 
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+
+from pytest_mock import MockerFixture
 
 from svs_core.shared.env_manager import EnvManager
 from svs_core.shared.shell import run_command
@@ -22,16 +23,15 @@ def reset_env_manager():
 
 class TestEnvManager:
     @pytest.mark.unit
-    @patch("svs_core.shared.env_manager.run_command")
-    def test_open_env_file_success(self, mock_run_command):
-        mock_result = MagicMock()
+    def test_open_env_file_success(self, mocker: MockerFixture):
+        mock_result = mocker.MagicMock()
         mock_result.stdout = (
             "# Comment\n"
             "RUNTIME_ENVIRONMENT=development\n"
             "\n"
             "DATABASE_URL=postgres://user:pass=123@localhost\n"
         )
-        mock_run_command.return_value = mock_result
+        mock_run_command = mocker.patch("svs_core.shared.env_manager.run_command", return_value=mock_result)
 
         result = EnvManager._open_env_file(Path("/test/.env"))
 
@@ -41,30 +41,27 @@ class TestEnvManager:
         }
 
     @pytest.mark.unit
-    @patch("svs_core.shared.env_manager.run_command")
-    def test_open_env_file_returns_empty_dict_on_none_result(self, mock_run_command):
-        mock_run_command.return_value = None
+    def test_open_env_file_returns_empty_dict_on_none_result(self, mocker: MockerFixture):
+        mocker.patch("svs_core.shared.env_manager.run_command", return_value=None)
 
         result = EnvManager._open_env_file(Path("/test/.env"))
 
         assert result == {}
 
     @pytest.mark.unit
-    @patch("svs_core.shared.env_manager.run_command")
-    def test_open_env_file_raises_on_command_error(self, mock_run_command):
-        mock_run_command.side_effect = subprocess.CalledProcessError(1, "cat")
+    def test_open_env_file_raises_on_command_error(self, mocker: MockerFixture):
+        mocker.patch("svs_core.shared.env_manager.run_command", side_effect=subprocess.CalledProcessError(1, "cat"))
 
         with pytest.raises(FileNotFoundError):
             EnvManager._open_env_file(Path("/test/.env"))
 
     @pytest.mark.unit
-    @patch("svs_core.shared.env_manager.EnvManager._open_env_file")
-    @patch.dict(os.environ, {}, clear=True)
-    def test_load_env_success(self, mock_open_env_file):
-        mock_open_env_file.return_value = {
+    def test_load_env_success(self, mocker: MockerFixture):
+        mocker.patch.dict(os.environ, {}, clear=True)
+        mock_open_env_file = mocker.patch("svs_core.shared.env_manager.EnvManager._open_env_file", return_value={
             "RUNTIME_ENVIRONMENT": "development",
             "DATABASE_URL": "postgres://localhost",
-        }
+        })
 
         EnvManager._load_env()
 
@@ -75,31 +72,29 @@ class TestEnvManager:
         }
 
     @pytest.mark.unit
-    @patch("svs_core.shared.env_manager.EnvManager._open_env_file")
-    def test_load_env_os_environ_takes_precedence(self, mock_open_env_file):
-        mock_open_env_file.return_value = {
+    def test_load_env_os_environ_takes_precedence(self, mocker: MockerFixture):
+        mock_open_env_file = mocker.patch("svs_core.shared.env_manager.EnvManager._open_env_file", return_value={
             "RUNTIME_ENVIRONMENT": "development",
             "DATABASE_URL": "postgres://localhost",
-        }
+        })
 
-        with patch.dict(os.environ, {"RUNTIME_ENVIRONMENT": "production"}, clear=True):
-            EnvManager._load_env()
+        mocker.patch.dict(os.environ, {"RUNTIME_ENVIRONMENT": "production"}, clear=True)
+        EnvManager._load_env()
 
-            assert EnvManager._env_vars["RUNTIME_ENVIRONMENT"] == "production"
-            assert EnvManager._env_vars["DATABASE_URL"] == "postgres://localhost"
+        assert EnvManager._env_vars["RUNTIME_ENVIRONMENT"] == "production"
+        assert EnvManager._env_vars["DATABASE_URL"] == "postgres://localhost"
 
     @pytest.mark.unit
-    @patch("svs_core.shared.env_manager.EnvManager._open_env_file")
-    def test_load_env_file_not_found(self, mock_open_env_file):
-        mock_open_env_file.side_effect = FileNotFoundError("Not found")
+    def test_load_env_file_not_found(self, mocker: MockerFixture):
+        mocker.patch("svs_core.shared.env_manager.EnvManager._open_env_file", side_effect=FileNotFoundError("Not found"))
 
         EnvManager._load_env()
 
         assert EnvManager._env_loaded is True
 
     @pytest.mark.unit
-    @patch("svs_core.shared.env_manager.EnvManager._load_env")
-    def test_get_runtime_environment_values(self, mock_load_env):
+    def test_get_runtime_environment_values(self, mocker: MockerFixture):
+        mocker.patch("svs_core.shared.env_manager.EnvManager._load_env")
         EnvManager._env_loaded = True
 
         test_cases = [
@@ -113,8 +108,8 @@ class TestEnvManager:
             assert EnvManager.get_runtime_environment() == expected
 
     @pytest.mark.unit
-    @patch("svs_core.shared.env_manager.EnvManager._load_env")
-    def test_get_runtime_environment_defaults_to_production(self, mock_load_env):
+    def test_get_runtime_environment_defaults_to_production(self, mocker: MockerFixture):
+        mocker.patch("svs_core.shared.env_manager.EnvManager._load_env")
         EnvManager._env_loaded = True
         EnvManager._env_vars = {}
 
@@ -123,8 +118,8 @@ class TestEnvManager:
         assert result == EnvManager.RuntimeEnvironment.PRODUCTION
 
     @pytest.mark.unit
-    @patch("svs_core.shared.env_manager.EnvManager._load_env")
-    def test_get_database_url(self, mock_load_env):
+    def test_get_database_url(self, mocker: MockerFixture):
+        mocker.patch("svs_core.shared.env_manager.EnvManager._load_env")
         EnvManager._env_loaded = True
 
         # Test when set
@@ -136,16 +131,14 @@ class TestEnvManager:
         assert EnvManager.get_database_url() is None
 
     @pytest.mark.unit
-    @patch("svs_core.shared.env_manager.EnvManager._load_env")
-    def test_get_calls_load_env_on_first_call(self, mock_load_env):
-
+    def test_get_calls_load_env_on_first_call(self, mocker: MockerFixture):
         def set_loaded():
             EnvManager._env_loaded = True
             EnvManager._env_vars = {"RUNTIME_ENVIRONMENT": "development"}
 
         EnvManager._env_loaded = False
         EnvManager._env_vars = {}
-        mock_load_env.side_effect = set_loaded
+        mock_load_env = mocker.patch("svs_core.shared.env_manager.EnvManager._load_env", side_effect=set_loaded)
 
         # First call should trigger _load_env
         result1 = EnvManager._get(EnvManager.EnvVarKeys.RUNTIME_ENVIRONMENT)
@@ -156,20 +149,19 @@ class TestEnvManager:
         assert mock_load_env.call_count == 1
 
     @pytest.mark.unit
-    @patch("svs_core.shared.env_manager.run_command")
-    def test_integration_full_env_loading_flow(self, mock_run_command):
+    def test_integration_full_env_loading_flow(self, mocker: MockerFixture):
         EnvManager._env_loaded = False
         EnvManager._env_vars = {}
 
-        mock_result = MagicMock()
+        mock_result = mocker.MagicMock()
         mock_result.stdout = (
             "ENVIRONMENT=development\n" "DATABASE_URL=postgres://localhost/testdb"
         )
-        mock_run_command.return_value = mock_result
+        mock_run_command = mocker.patch("svs_core.shared.env_manager.run_command", return_value=mock_result)
 
-        with patch.dict(os.environ, {}, clear=True):
-            runtime_env = EnvManager.get_runtime_environment()
-            db_url = EnvManager.get_database_url()
+        mocker.patch.dict(os.environ, {}, clear=True)
+        runtime_env = EnvManager.get_runtime_environment()
+        db_url = EnvManager.get_database_url()
 
-            assert runtime_env == EnvManager.RuntimeEnvironment.DEVELOPMENT
-            assert db_url == "postgres://localhost/testdb"
+        assert runtime_env == EnvManager.RuntimeEnvironment.DEVELOPMENT
+        assert db_url == "postgres://localhost/testdb"
