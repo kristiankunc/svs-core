@@ -141,21 +141,25 @@ EOF
         echo "✅ $compose_path already exists."
     fi
 
-
     POSTGRES_USER=svs
-    # Generate a URL-safe password using only hexadecimal characters
-    POSTGRES_PASSWORD=$(openssl rand -hex 16)
     POSTGRES_DB=svsdb
     POSTGRES_HOST=localhost
 
-    # Create stack.env
-    sudo bash -c "cat > $stack_env_path <<EOL
+    # Check if stack.env exists and read existing credentials
+    if [ -f "$stack_env_path" ]; then
+        echo "✅ $stack_env_path already exists."
+        POSTGRES_PASSWORD=$(sudo grep "POSTGRES_PASSWORD=" "$stack_env_path" | cut -d'=' -f2)
+    else
+        # Generate a URL-safe password using only hexadecimal characters
+        POSTGRES_PASSWORD=$(openssl rand -hex 16)
+        sudo bash -c "cat > $stack_env_path <<EOL
 POSTGRES_USER=$POSTGRES_USER
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 POSTGRES_DB=$POSTGRES_DB
 POSTGRES_HOST=$POSTGRES_HOST
 EOL"
-    echo "✅ $stack_env_path created."
+        echo "✅ $stack_env_path created."
+    fi
 
     # start the compose stack as daemon and wait for db to be ready
     sudo docker-compose -f $compose_path --env-file $stack_env_path up -d
@@ -190,6 +194,13 @@ storage_setup() {
     sudo mkdir -p /etc/svs
     sudo chown root:svs-admins /etc/svs
     sudo chmod 2775 /etc/svs
+
+    # Create log file
+    sudo touch /var/svs/svs.log
+    sudo chown svs:svs-admins /var/svs/svs.log
+    sudo chmod 660 /var/svs/svs.log
+    sudo chattr +a /var/svs/svs.log
+    echo "✅ /var/svs/svs.log created and permissions set."
 }
 
 django_migrations() {
