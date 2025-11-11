@@ -90,7 +90,9 @@ class EnvManager:
 
         try:
             res = run_command(
-                f"cat {path.as_posix()}", logger=get_logger(__name__, independent=True)
+                f"cat {path.as_posix()}",
+                logger=get_logger(__name__, independent=True),
+                use_svs_user=True,
             )
         except subprocess.CalledProcessError:
             raise FileNotFoundError(f"Environment file not found: {path.as_posix()}")

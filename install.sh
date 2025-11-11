@@ -67,6 +67,10 @@ permissions_setup() {
 
     echo "ALL ALL=NOPASSWD: /usr/local/bin/svs" | sudo tee -a /etc/sudoers
     echo "✅ /usr/local/bin/svs is runnable with sudo for all"
+
+    # Allow the svs script to switch to svs user internally without password
+    echo "%svs-admins ALL=(svs) NOPASSWD: /usr/local/bin/svs" | sudo tee -a /etc/sudoers
+    echo "✅ svs script can run as svs user without password prompt"
 }
 
 create_svs_user() {
