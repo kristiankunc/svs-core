@@ -83,10 +83,6 @@ create_svs_user() {
 docker_setup() {
     echo "Setting up Docker environment..."
 
-    sudo mkdir -p /etc/svs
-    sudo chown -R root:svs-admins /etc/svs
-    sudo chmod 2775 /etc/svs
-
     sudo mkdir -p /etc/svs/docker
     sudo chown -R root:svs-admins /etc/svs/docker
 
@@ -181,26 +177,26 @@ EOL"
 }
 
 storage_setup() {
-    echo "Setting up /var/svs storage..."
+    echo "Setting up storage directories..."
 
+    # Setup /etc/svs directory
+    sudo mkdir -p /etc/svs
+    sudo chown root:svs-admins /etc/svs
+    sudo chmod 2775 /etc/svs
+
+    # Setup /var/svs directory
     sudo mkdir -p /var/svs
     sudo mkdir -p /var/svs/volumes
     sudo chown -R root:svs-admins /var/svs
     sudo chmod 2775 /var/svs
     sudo chmod 2775 /var/svs/volumes
-    echo "✅ /var/svs created and permissions set."
 
-    # Ensure /etc/svs directory exists with proper permissions
-    sudo mkdir -p /etc/svs
-    sudo chown root:svs-admins /etc/svs
-    sudo chmod 2775 /etc/svs
+    # Create log file with proper permissions
+    sudo touch /etc/svs/svs.log
+    sudo chown svs:svs-admins /etc/svs/svs.log
+    sudo chmod 660 /etc/svs/svs.log
 
-    # Create log file
-    sudo touch /var/svs/svs.log
-    sudo chown svs:svs-admins /var/svs/svs.log
-    sudo chmod 660 /var/svs/svs.log
-    sudo chattr +a /var/svs/svs.log
-    echo "✅ /var/svs/svs.log created and permissions set."
+    echo "✅ Storage directories and permissions set."
 }
 
 django_migrations() {
@@ -243,19 +239,16 @@ init() {
 
     export DJANGO_SETTINGS_MODULE=svs_core.db.settings
 
-    if [ "$setup_scope" = "all" ] || [ "$setup_scope" = "system" ]; then
-        verify_prerequisites
-        permissions_setup
-        create_svs_user
-        storage_setup
-    fi
+    # System setup: user creation and directory setup
+    verify_prerequisites
+    permissions_setup
+    create_svs_user
+    storage_setup
 
-    if [ "$setup_scope" = "all" ] || [ "$setup_scope" = "docker" ]; then
+    # Docker and Django setup (only if scope is "all")
+    if [ "$setup_scope" = "all" ]; then
         docker_setup
         django_migrations
-    fi
-
-    if [ "$setup_scope" = "all" ]; then
         create_admin_user
     fi
 
@@ -283,8 +276,8 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --scope)
             setup_scope="$2"
-            if [ "$setup_scope" != "all" ] && [ "$setup_scope" != "system" ] && [ "$setup_scope" != "docker" ]; then
-                echo "❌ Invalid scope: $setup_scope. Must be 'all', 'system', or 'docker'."
+            if [ "$setup_scope" != "all" ] && [ "$setup_scope" != "system" ]; then
+                echo "❌ Invalid scope: $setup_scope. Must be 'all' or 'system'."
                 exit 1
             fi
             shift 2
@@ -297,10 +290,9 @@ while [[ "$#" -gt 0 ]]; do
             echo "  --user USERNAME           Specify admin username."
             echo "  --password PASSWORD       Specify admin password."
             echo "  --python-path PATH        Specify the Python interpreter path."
-            echo "  --scope SCOPE             Scope of setup: 'all' (default), 'system', or 'docker'."
-            echo "                            'system' - User creation and directory setup"
-            echo "                            'docker' - Docker compose, containers, and Django migrations"
-            echo "                            'all'    - Full setup including admin user creation"
+            echo "  --scope SCOPE             Scope of setup: 'all' (default) or 'system'."
+            echo "                            'system' - User creation and directory setup only"
+            echo "                            'all'    - Full setup including Docker, migrations, and admin user"
             exit 0
             ;;
         *)
