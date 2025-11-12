@@ -80,10 +80,6 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-qemu-action@v3
 
-      - name: Build & Start Containers
-        run: |
-          docker compose -f .github/extra/docker-compose.yml up -d --build
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
