@@ -81,9 +81,7 @@ class TestUserIntegration:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_check_password(
-        self, mock_docker_network_create, mock_system_user_create
-    ):
+    def test_check_password(self, mock_docker_network_create, mock_system_user_create):
         username = "pwtest"
         password = "password123"
         user = User.create(name=username, password=password)
