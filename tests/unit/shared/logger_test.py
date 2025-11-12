@@ -58,23 +58,38 @@ class TestLogger:
     def test_file_handler_in_production(
         self, tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        log_file = tmp_path / "svs-core.log"
+        log_file.write_text("")
+
         mocker.patch(
             "svs_core.shared.env_manager.EnvManager.get_runtime_environment",
             return_value=EnvManager.RuntimeEnvironment.PRODUCTION,
         )
 
-        mocker.patch(
-            "svs_core.shared.logger.Path.as_posix",
-            return_value=(tmp_path / "svs-core.log").as_posix(),
-        )
+        def mock_path(path_str):
+            if "svs.log" in path_str:
+                return log_file
+            return Path(path_str)
 
-        log_file = tmp_path / "svs-core.log"
+        mocker.patch(
+            "svs_core.shared.logger.Path",
+            side_effect=mock_path,
+        )
 
         logger = get_logger("prod_test")
         logger.info("hello prod")
         time.sleep(0.1)
 
-        content = log_file.read_text()
+        file_handlers = [
+            h for h in logger.handlers if isinstance(h, logging.FileHandler)
+        ]
+        assert (
+            len(file_handlers) > 0
+        ), "FileHandler should be created in production mode"
 
+        for handler in file_handlers:
+            handler.flush()
+
+        content = log_file.read_text()
         assert "[INFO] prod_test" in content
         assert "hello prod" in content
