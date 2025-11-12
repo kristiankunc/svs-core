@@ -60,6 +60,9 @@ class EnvManager:
 
         Returns:
             str: The database URL.
+
+        Raises:
+            EnvironmentError: If the DATABASE_URL environment variable is not set.
         """
         db_url = EnvManager._get(EnvManager.EnvVariables.DATABASE_URL)
         if not db_url:
