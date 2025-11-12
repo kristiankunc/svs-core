@@ -54,9 +54,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Load environment variables from .env.ci
+      - name: Load .env file
         run: |
-          cat .github/extra/.env.ci >> $GITHUB_ENV
+          set -a
+          source .github/extra/.env.ci
+          set +a
+          while IFS='=' read -r key value; do
+            echo "$key=$value" >> $GITHUB_ENV
+          done < <(grep -v '^#' .github/extra/.env.ci | xargs)
 
       - name: Set up Python
         uses: actions/setup-python@v6
