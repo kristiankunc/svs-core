@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/kristiankunc/svs-core/compare/v0.6.0...v0.6.1) (2025-11-12)
+
+
+### Bug Fixes
+
+* Load .env file manually ([9389108](https://github.com/kristiankunc/svs-core/commit/9389108acbf6c45bd3a8678458662315ab45040d))
+
 ## [0.6.0](https://github.com/kristiankunc/svs-core/compare/v0.5.0...v0.6.0) (2025-11-10)
 
 
