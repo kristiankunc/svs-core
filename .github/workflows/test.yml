@@ -55,11 +55,8 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Load environment variables from .env.ci
-        uses: aarcangeli/load-dotenv@v1
-        with:
-          path: .github/extra
-          filenames: .env.ci
-          expand: true
+        run: |
+          cat .github/extra/.env.ci >> $GITHUB_ENV
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -80,15 +77,14 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-qemu-action@v3
 
+      - name: Build & Start Containers
+        run: |
+          docker compose -f .github/extra/docker-compose.yml up -d --build
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
-
-      - name: Run setup script
-        run: |
-          chmod +x ./install.sh
-          ./install.sh -y --scope system --user test_admin --password test_password
 
       - name: Run tests
         run: |

@@ -35,7 +35,7 @@ class EnvManager:
 
     @classmethod
     def _get(cls, value: EnvManager.EnvVarKeys) -> str | None:
-        """Get the value of an environment variable by its key.
+        """Get the value of an environment variable by their key.
 
         Args:
             value (EnvManager.EnvVarKeys): The key of the environment variable.
