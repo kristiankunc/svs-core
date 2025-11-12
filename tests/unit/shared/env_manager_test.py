@@ -95,3 +95,31 @@ class TestEnvManager:
         result = EnvManager._get(EnvManager.EnvVariables.DATABASE_URL)
         assert result is None
         mock_getenv.assert_called_once_with("DATABASE_URL")
+
+    @pytest.mark.unit
+    def test_load_env_file_success(self, mocker: MockerFixture) -> None:
+        env_content = (
+            "ENVIRONMENT=development\nDATABASE_URL=postgres://user:pass@localhost/db\n"
+        )
+        mock_path = mocker.MagicMock()
+        mock_path.exists.return_value = True
+        mocker.patch("svs_core.shared.env_manager.EnvManager.ENV_FILE_PATH", mock_path)
+        mocker.patch("svs_core.shared.env_manager.read_file", return_value=env_content)
+        mock_environ = mocker.patch.dict(os.environ, {})
+
+        EnvManager.load_env_file()
+
+        assert os.environ.get("ENVIRONMENT") == "development"
+        assert os.environ.get("DATABASE_URL") == "postgres://user:pass@localhost/db"
+
+    @pytest.mark.unit
+    def test_load_env_file_not_found_raises_error(self, mocker: MockerFixture) -> None:
+        mock_path = mocker.MagicMock()
+        mock_path.exists.return_value = False
+        mocker.patch("svs_core.shared.env_manager.EnvManager.ENV_FILE_PATH", mock_path)
+        mocker.patch("svs_core.shared.env_manager.get_logger")
+
+        with pytest.raises(FileNotFoundError) as exc_info:
+            EnvManager.load_env_file()
+
+        assert ".env file not found" in str(exc_info.value)

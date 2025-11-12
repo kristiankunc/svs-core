@@ -1,6 +1,7 @@
 import logging
 import subprocess
 
+from pathlib import Path
 from typing import Mapping, Optional
 
 
@@ -38,6 +39,32 @@ def remove_directory(path: str, logger: Optional[logging.Logger] = None) -> None
     logger.log(logging.DEBUG, f"Removing directory at path: {path}")
 
     subprocess.run(command, shell=True, check=True)
+
+
+def read_file(path: Path, logger: Optional[logging.Logger] = None) -> str:
+    """Reads the content of a file at the specified path.
+
+    Args:
+        path (Path): The file path to read.
+        logger (Optional[logging.Logger]): custom log handler.
+
+    Returns:
+        str: The content of the file.
+    """
+
+    if not logger:
+        from svs_core.shared.logger import get_logger
+
+        logger = get_logger(__name__)
+
+    command = f"cat {path.as_posix()}"
+    logger.log(logging.DEBUG, f"Reading file at path: {path.as_posix()}")
+
+    result = subprocess.run(
+        command, shell=True, check=True, capture_output=True, text=True
+    )
+
+    return result.stdout
 
 
 def run_command(

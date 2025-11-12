@@ -9,7 +9,7 @@ from pathlib import Path
 from types import MappingProxyType
 
 from svs_core.shared.logger import get_logger
-from svs_core.shared.shell import run_command
+from svs_core.shared.shell import read_file, run_command
 
 
 class EnvManager:
@@ -28,6 +28,28 @@ class EnvManager:
 
         ENVIRONMENT = "ENVIRONMENT"
         DATABASE_URL = "DATABASE_URL"
+
+    @staticmethod
+    def load_env_file() -> None:
+        """Loads environment variables from the .env file.
+
+        Raises:
+            FileNotFoundError: If the .env file does not exist.
+        """
+
+        if not EnvManager.ENV_FILE_PATH.exists():
+            get_logger(__name__).warning(
+                f".env file not found at {EnvManager.ENV_FILE_PATH}"
+            )
+            raise FileNotFoundError(
+                f".env file not found at {EnvManager.ENV_FILE_PATH}"
+            )
+
+        content = read_file(EnvManager.ENV_FILE_PATH)
+        for line in content.splitlines():
+            if line.strip() and not line.startswith("#"):
+                key, _, value = line.partition("=")
+                os.environ[key.strip()] = value.strip().replace('"', "")
 
     @staticmethod
     def _get(key: EnvVariables) -> str | None:

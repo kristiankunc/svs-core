@@ -6,7 +6,12 @@ import pytest
 
 from pytest_mock import MockerFixture
 
-from svs_core.shared.shell import create_directory, remove_directory, run_command
+from svs_core.shared.shell import (
+    create_directory,
+    read_file,
+    remove_directory,
+    run_command,
+)
 
 
 class TestDirectoryManagement:
@@ -88,6 +93,26 @@ class TestDirectoryManagement:
             remove_directory("/tmp/my test directory")
 
         mock_run.assert_called_once()
+
+
+class TestFileReading:
+    @pytest.mark.unit
+    def test_read_file_success(self, mocker: MockerFixture) -> None:
+        from pathlib import Path
+
+        mock_run = mocker.patch("subprocess.run")
+        mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
+        mock_process.stdout = "file content here\n"
+        mock_run.return_value = mock_process
+
+        result = read_file(Path("/tmp/test.txt"))
+
+        mock_run.assert_called_once()
+        args, kwargs = mock_run.call_args
+        assert "cat /tmp/test.txt" == args[0]
+        assert kwargs.get("shell", False)
+        assert kwargs.get("check", False)
+        assert "file content here\n" == result
 
 
 class TestCommandExecution:

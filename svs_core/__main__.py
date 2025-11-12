@@ -15,6 +15,7 @@ from svs_core.shared.logger import get_logger
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "svs_core.db.settings"
 
+EnvManager.load_env_file()
 
 django.setup()
 
