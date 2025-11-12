@@ -86,6 +86,9 @@ jobs:
       - name: Run tests
         run: |
           source .github/extra/.env.ci
+          echo $DATABASE_URL
+          echo $ENVIRONMENT
+          echo $POSTGRES_DB
           pytest --cov=. --cov-branch --cov-report=xml:coverage.xml
 
       - name: Upload coverage reports to Codecov
