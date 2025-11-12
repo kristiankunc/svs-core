@@ -54,15 +54,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Load .env file
-        run: |
-          set -a
-          source .github/extra/.env.ci
-          set +a
-          while IFS='=' read -r key value; do
-            echo "$key=$value" >> $GITHUB_ENV
-          done < <(grep -v '^#' .github/extra/.env.ci | xargs)
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -84,6 +75,7 @@ jobs:
 
       - name: Build & Start Containers
         run: |
+          source .github/extra/.env.ci
           docker compose -f .github/extra/docker-compose.yml up -d --build
 
       - name: Install dependencies
@@ -93,6 +85,7 @@ jobs:
 
       - name: Run tests
         run: |
+          source .github/extra/.env.ci
           pytest --cov=. --cov-branch --cov-report=xml:coverage.xml
 
       - name: Upload coverage reports to Codecov
