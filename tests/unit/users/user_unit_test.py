@@ -6,7 +6,6 @@ from svs_core.users.user import User
 class TestUser:
     @pytest.mark.unit
     def test_is_username_valid(self, db):
-        """Test the username validation method of the User class."""
         valid_usernames = ["valid_user", "user123", "user-name", "user_name"]
         invalid_usernames = [
             "",
@@ -25,7 +24,6 @@ class TestUser:
 
     @pytest.mark.unit
     def test_is_password_valid(self, db):
-        """Test the password validation method of the User class."""
         assert User.is_password_valid("password123") is True
         assert User.is_password_valid("short") is False
         assert User.is_password_valid(12345678) is False  # type: ignore[arg-type]
@@ -33,7 +31,6 @@ class TestUser:
 
     @pytest.mark.unit
     def test_exceptions(self, db):
-        """Test the exception messages for user-related exceptions."""
         from svs_core.shared.exceptions import AlreadyExistsException
         from svs_core.users.user import (
             InvalidPasswordException,

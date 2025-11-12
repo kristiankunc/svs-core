@@ -12,7 +12,6 @@ from svs_core.shared.shell import create_directory, remove_directory, run_comman
 class TestDirectoryManagement:
     @pytest.mark.unit
     def test_create_directory_basic(self, mocker: MockerFixture) -> None:
-        """Test that create_directory executes the mkdir command."""
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_run.return_value = mock_process
@@ -27,7 +26,6 @@ class TestDirectoryManagement:
 
     @pytest.mark.unit
     def test_create_directory_with_logger(self, mocker: MockerFixture) -> None:
-        """Test that create_directory uses provided logger."""
         mock_run = mocker.patch("subprocess.run")
         mock_logger = mocker.MagicMock()
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
@@ -40,7 +38,6 @@ class TestDirectoryManagement:
 
     @pytest.mark.unit
     def test_create_directory_multiple_paths(self, mocker: MockerFixture) -> None:
-        """Test that create_directory raises an error for paths with spaces."""
         mock_run = mocker.patch("subprocess.run")
         mock_run.side_effect = subprocess.CalledProcessError(
             returncode=1,
@@ -56,7 +53,6 @@ class TestDirectoryManagement:
 
     @pytest.mark.unit
     def test_remove_directory_basic(self, mocker: MockerFixture) -> None:
-        """Test that remove_directory executes the rm -rf command."""
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_run.return_value = mock_process
@@ -71,7 +67,6 @@ class TestDirectoryManagement:
 
     @pytest.mark.unit
     def test_remove_directory_with_logger(self, mocker: MockerFixture) -> None:
-        """Test that remove_directory uses provided logger."""
         mock_run = mocker.patch("subprocess.run")
         mock_logger = mocker.MagicMock()
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
@@ -84,7 +79,6 @@ class TestDirectoryManagement:
 
     @pytest.mark.unit
     def test_remove_directory_with_spaces(self, mocker: MockerFixture) -> None:
-        """Test that remove_directory raises an error for paths with spaces."""
         mock_run = mocker.patch("subprocess.run")
         mock_run.side_effect = subprocess.CalledProcessError(
             returncode=1, cmd="rm -rf /tmp/my test directory", output="", stderr="error"
@@ -99,7 +93,6 @@ class TestDirectoryManagement:
 class TestCommandExecution:
     @pytest.mark.unit
     def test_basic_command_execution(self, mocker: MockerFixture) -> None:
-        """Test that a basic command is executed correctly."""
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_process.stdout = "mocked output"
@@ -121,7 +114,6 @@ class TestCommandExecution:
 
     @pytest.mark.unit
     def test_command_with_environment(self, mocker: MockerFixture) -> None:
-        """Test that environment variables are correctly passed."""
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_process.stdout = "test output"
@@ -142,7 +134,6 @@ class TestCommandExecution:
 
     @pytest.mark.unit
     def test_command_with_check_false(self, mocker: MockerFixture) -> None:
-        """Test that check=False is correctly passed."""
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_process.stdout = "test output"
@@ -158,7 +149,6 @@ class TestCommandExecution:
 
     @pytest.mark.unit
     def test_output_capturing(self, mocker: MockerFixture) -> None:
-        """Test that command output is correctly captured."""
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_process.stdout = "expected stdout"
@@ -175,7 +165,6 @@ class TestCommandExecution:
 
     @pytest.mark.unit
     def test_error_handling(self, mocker: MockerFixture) -> None:
-        """Test that errors are properly propagated when check=True."""
         mock_run = mocker.patch("subprocess.run")
         mock_run.side_effect = subprocess.CalledProcessError(
             returncode=1, cmd="failing command", output="", stderr="command failed"
@@ -191,14 +180,12 @@ class TestCommandExecution:
 
     @pytest.mark.unit
     def test_shell_operators(self, mocker: MockerFixture) -> None:
-        """Test that shell operators like || and && work correctly."""
         mock_run = mocker.patch("subprocess.run")
         mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
         mock_process.stdout = "command output"
         mock_process.stderr = ""
         mock_run.return_value = mock_process
 
-        # Test a command with || (OR) operator
         run_command("test -f /non_existent_file || echo 'file not found'")
 
         args, kwargs = mock_run.call_args
@@ -207,7 +194,6 @@ class TestCommandExecution:
         )
         assert kwargs.get("shell", False)
 
-        # Test a command with && (AND) operator
         run_command("mkdir -p test_dir && echo 'dir created'")
 
         args, kwargs = mock_run.call_args

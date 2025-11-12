@@ -21,17 +21,14 @@ class TestLogger:
             del os.environ["ENV"]
 
     @pytest.mark.unit
-    def test_get_logger_returns_same_instance(self):
-        """Test that get_logger returns the same instance for the same name."""
+    def test_get_logger_returns_same_instance(self) -> None:
         logger1 = get_logger("test")
         logger2 = get_logger("test")
 
         assert logger1 is logger2
 
     @pytest.mark.unit
-    def test_get_logger_default_name(self):
-        """Test that get_logger returns a logger with the default name if none
-        is provided."""
+    def test_get_logger_default_name(self) -> None:
         default_logger = get_logger()
 
         assert isinstance(default_logger, logging.Logger)
@@ -44,7 +41,6 @@ class TestLogger:
         mocker: MockerFixture,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """Test that the logger outputs to stdout in development mode."""
         mocker.patch(
             "svs_core.shared.env_manager.EnvManager.get_runtime_environment",
             return_value=EnvManager.RuntimeEnvironment.DEVELOPMENT,
@@ -62,20 +58,16 @@ class TestLogger:
     def test_file_handler_in_production(
         self, tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test that the logger outputs to a file in production mode."""
-        # Create a temporary log file
         log_file = tmp_path / "svs-core.log"
-        log_file.write_text("")  # Create the actual file
+        log_file.write_text("")
 
         mocker.patch(
             "svs_core.shared.env_manager.EnvManager.get_runtime_environment",
             return_value=EnvManager.RuntimeEnvironment.PRODUCTION,
         )
 
-        # Mock the Path constructor to return our temp log file
         def mock_path(path_str):
             if "svs.log" in path_str:
-                # Return the actual Path object pointing to our temp file
                 return log_file
             return Path(path_str)
 
@@ -88,7 +80,6 @@ class TestLogger:
         logger.info("hello prod")
         time.sleep(0.1)
 
-        # Verify file handler was created
         file_handlers = [
             h for h in logger.handlers if isinstance(h, logging.FileHandler)
         ]
@@ -96,11 +87,9 @@ class TestLogger:
             len(file_handlers) > 0
         ), "FileHandler should be created in production mode"
 
-        # Flush the handler to ensure data is written
         for handler in file_handlers:
             handler.flush()
 
-        # Read and verify the log file content
         content = log_file.read_text()
         assert "[INFO] prod_test" in content
         assert "hello prod" in content

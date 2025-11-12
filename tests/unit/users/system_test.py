@@ -6,10 +6,8 @@ from svs_core.users.system import SystemUserManager
 
 
 class TestSystemUser:
-
     @pytest.mark.unit
     def test_create_normal_user(self, mocker: MockerFixture) -> None:
-
         mock_run_command = mocker.patch("svs_core.users.system.run_command")
         username = "testuser"
         password = "password"
@@ -24,7 +22,6 @@ class TestSystemUser:
 
     @pytest.mark.unit
     def test_create_admin_user(self, mocker: MockerFixture) -> None:
-
         mock_run_command = mocker.patch("svs_core.users.system.run_command")
         username = "adminuser"
         password = "adminpass"
@@ -42,7 +39,6 @@ class TestSystemUser:
 
     @pytest.mark.unit
     def test_delete_user(self, mocker: MockerFixture) -> None:
-
         mock_run_command = mocker.patch("svs_core.users.system.run_command")
         username = "testuser"
 
@@ -54,9 +50,8 @@ class TestSystemUser:
 
     @pytest.mark.unit
     def test_is_user_in_group_user_in_group(self, mocker: MockerFixture) -> None:
-
         mock_run_command = mocker.patch("svs_core.users.system.run_command")
-        mock_run_command.return_value.returncode = 0  # Simulate user is in group
+        mock_run_command.return_value.returncode = 0
 
         username = "testuser"
         groupname = "testgroup"
@@ -70,9 +65,8 @@ class TestSystemUser:
 
     @pytest.mark.unit
     def test_is_user_in_group_user_not_in_group(self, mocker: MockerFixture) -> None:
-
         mock_run_command = mocker.patch("svs_core.users.system.run_command")
-        mock_run_command.return_value.returncode = 1  # Simulate user is not in group
+        mock_run_command.return_value.returncode = 1
 
         username = "testuser"
         groupname = "testgroup"
@@ -86,7 +80,6 @@ class TestSystemUser:
 
     @pytest.mark.unit
     def test_get_system_username_with_sudo(self, mocker: MockerFixture) -> None:
-
         mocker.patch.dict("os.environ", {"SUDO_USER": "sudo_user"})
         mock_getlogin = mocker.patch(
             "svs_core.users.system.os.getlogin", side_effect=OSError
@@ -98,7 +91,6 @@ class TestSystemUser:
 
     @pytest.mark.unit
     def test_get_system_username_without_sudo(self, mocker: MockerFixture) -> None:
-
         mocker.patch.dict("os.environ", {})
         mock_getlogin = mocker.patch(
             "svs_core.users.system.os.getlogin", return_value="normal_user"

@@ -1,5 +1,5 @@
 from pathlib import Path
-from unittest.mock import patch
+from typing import Any
 
 import pytest
 
@@ -16,13 +16,11 @@ def mock_base_volume_path(monkeypatch, tmp_path):
 
 @pytest.fixture
 def mock_run_command(mocker):
-    """Mock the run_command function to prevent actual shell execution."""
     return mocker.patch("svs_core.shared.volumes.run_command")
 
 
 @pytest.fixture
 def mock_user(mocker):
-    """Create a mock user object."""
     user = mocker.Mock()
     user.id = 123
     user.name = "testuser"
@@ -31,8 +29,9 @@ def mock_user(mocker):
 
 class TestVolumes:
     @pytest.mark.unit
-    def test_generate_free_volume_creates_directory(self, mock_user, mock_run_command):
-        """Test that generate_free_volume creates a new directory."""
+    def test_generate_free_volume_creates_directory(
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
         volume_path = SystemVolumeManager.generate_free_volume(mock_user)
 
         assert volume_path.exists()
@@ -42,8 +41,8 @@ class TestVolumes:
 
     @pytest.mark.unit
     def test_generate_free_volume_returns_absolute_path(
-        self, mock_user, mock_run_command
-    ):
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
         """Test that generate_free_volume returns an absolute path."""
         volume_path = SystemVolumeManager.generate_free_volume(mock_user)
 
@@ -51,8 +50,8 @@ class TestVolumes:
 
     @pytest.mark.unit
     def test_generate_free_volume_generates_unique_paths(
-        self, mock_user, mock_run_command
-    ):
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
         """Test that generate_free_volume generates unique paths for multiple
         calls."""
         volume_path1 = SystemVolumeManager.generate_free_volume(mock_user)
@@ -64,8 +63,8 @@ class TestVolumes:
 
     @pytest.mark.unit
     def test_generate_free_volume_creates_nested_directories(
-        self, mock_user, mock_run_command
-    ):
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
         """Test that generate_free_volume creates nested user and volume
         directories."""
         volume_path = SystemVolumeManager.generate_free_volume(mock_user)
@@ -80,8 +79,8 @@ class TestVolumes:
 
     @pytest.mark.unit
     def test_delete_user_volumes_removes_all_volumes(
-        self, mock_user, tmp_path, mock_run_command
-    ):
+        self, mock_user: Any, tmp_path: Any, mock_run_command: Any
+    ) -> None:
         """Test that delete_user_volumes removes all volumes for a user."""
         # Create multiple volumes for the user
         SystemVolumeManager.generate_free_volume(mock_user)
@@ -97,8 +96,8 @@ class TestVolumes:
 
     @pytest.mark.unit
     def test_delete_user_volumes_removes_files_in_volumes(
-        self, mock_user, mock_run_command
-    ):
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
         """Test that delete_user_volumes removes files within volume
         directories."""
         volume_path = SystemVolumeManager.generate_free_volume(mock_user)
@@ -116,16 +115,14 @@ class TestVolumes:
         assert not test_file.exists()
 
     @pytest.mark.unit
-    def test_delete_user_volumes_with_nonexistent_user(self):
-        """Test that delete_user_volumes handles nonexistent users
-        gracefully."""
+    def test_delete_user_volumes_with_nonexistent_user(self) -> None:
         # Should not raise an error
         SystemVolumeManager.delete_user_volumes(999)
 
     @pytest.mark.unit
     def test_delete_user_volumes_removes_only_user_volumes(
-        self, mock_user, mocker, mock_run_command
-    ):
+        self, mock_user: Any, mocker: Any, mock_run_command: Any
+    ) -> None:
         """Test that delete_user_volumes only removes volumes for the specific
         user."""
         # Create volumes for mock_user
@@ -148,8 +145,9 @@ class TestVolumes:
         assert not (SystemVolumeManager.BASE_PATH / str(mock_user.id)).exists()
 
     @pytest.mark.unit
-    def test_volume_id_has_correct_length(self, mock_user, mock_run_command):
-        """Test that generated volume IDs are 16 characters long."""
+    def test_volume_id_has_correct_length(
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
         volume_path = SystemVolumeManager.generate_free_volume(mock_user)
         volume_id = volume_path.name
 
@@ -158,9 +156,9 @@ class TestVolumes:
         assert volume_id.islower()
 
     @pytest.mark.unit
-    def test_generate_free_volume_with_different_users(self, mocker, mock_run_command):
-        """Test that volumes are created in separate directories for different
-        users."""
+    def test_generate_free_volume_with_different_users(
+        self, mocker: Any, mock_run_command: Any
+    ) -> None:
         user1 = mocker.Mock()
         user1.id = 111
         user1.name = "user1"
@@ -176,8 +174,9 @@ class TestVolumes:
         assert volume1.parent.parent == volume2.parent.parent
 
     @pytest.mark.unit
-    def test_delete_volume_removes_specific_volume(self, mock_user, mock_run_command):
-        """Test that delete_volume removes a specific volume."""
+    def test_delete_volume_removes_specific_volume(
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
         volume_path1 = SystemVolumeManager.generate_free_volume(mock_user)
         volume_path2 = SystemVolumeManager.generate_free_volume(mock_user)
 
@@ -191,8 +190,9 @@ class TestVolumes:
         assert volume_path2.exists()
 
     @pytest.mark.unit
-    def test_delete_volume_with_files(self, mock_user, mock_run_command):
-        """Test that delete_volume removes files within the volume."""
+    def test_delete_volume_with_files(
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
         volume_path = SystemVolumeManager.generate_free_volume(mock_user)
 
         # Create files in the volume
@@ -212,8 +212,7 @@ class TestVolumes:
         assert not test_file2.exists()
 
     @pytest.mark.unit
-    def test_delete_volume_with_nonexistent_volume(self):
-        """Test that delete_volume handles nonexistent volumes gracefully."""
+    def test_delete_volume_with_nonexistent_volume(self) -> None:
         nonexistent_path = SystemVolumeManager.BASE_PATH / "999" / "nonexistent"
 
         # Should not raise an error
@@ -221,8 +220,8 @@ class TestVolumes:
 
     @pytest.mark.unit
     def test_delete_volume_does_not_affect_other_volumes(
-        self, mock_user, mocker, mock_run_command
-    ):
+        self, mock_user: Any, mocker: Any, mock_run_command: Any
+    ) -> None:
         """Test that delete_volume only removes the specified volume."""
         volume_path1 = SystemVolumeManager.generate_free_volume(mock_user)
         volume_path2 = SystemVolumeManager.generate_free_volume(mock_user)
