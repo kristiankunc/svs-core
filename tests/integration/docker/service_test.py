@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Any, Generator
 
 import pytest
 
@@ -19,34 +19,34 @@ from svs_core.users.user import User
 
 @pytest.fixture
 def test_template(mocker: MockerFixture) -> Generator[Template, None, None]:
-    mocker.patch("svs_core.docker.template.DockerImageManager.exists", return_value=True)
+    mocker.patch(
+        "svs_core.docker.template.DockerImageManager.exists", return_value=True
+    )
     mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-    
+
     template = Template.create(
-                name="test-nginx",
-                type=TemplateType.IMAGE,
-                image="nginx:alpine",
-                description="Test Nginx Image",
-                default_env=[
-                    EnvVariable(key="NGINX_PORT", value="80"),
-                    EnvVariable(key="NGINX_HOST", value="localhost"),
-                ],
-                default_ports=[ExposedPort(host_port=None, container_port=80)],
-                default_volumes=[
-                    Volume(
-                        host_path="/tmp/nginx", container_path="/usr/share/nginx/html"
-                    )
-                ],
-                start_cmd="nginx -g 'daemon off;'",
-                healthcheck=Healthcheck(
-                    test=["CMD", "curl", "-f", "http://localhost"],
-                ),
-                labels=[
-                    Label(key="app", value="nginx"),
-                    Label(key="version", value="1.0"),
-                ],
-                args=["--no-cache"],
-        )
+        name="test-nginx",
+        type=TemplateType.IMAGE,
+        image="nginx:alpine",
+        description="Test Nginx Image",
+        default_env=[
+            EnvVariable(key="NGINX_PORT", value="80"),
+            EnvVariable(key="NGINX_HOST", value="localhost"),
+        ],
+        default_ports=[ExposedPort(host_port=None, container_port=80)],
+        default_volumes=[
+            Volume(host_path="/tmp/nginx", container_path="/usr/share/nginx/html")
+        ],
+        start_cmd="nginx -g 'daemon off;'",
+        healthcheck=Healthcheck(
+            test=["CMD", "curl", "-f", "http://localhost"],
+        ),
+        labels=[
+            Label(key="app", value="nginx"),
+            Label(key="version", value="1.0"),
+        ],
+        args=["--no-cache"],
+    )
     yield template
 
 
@@ -54,7 +54,7 @@ def test_template(mocker: MockerFixture) -> Generator[Template, None, None]:
 def test_user(mocker: MockerFixture) -> Generator[User, None, None]:
     mocker.patch("svs_core.users.user.DockerNetworkManager.create_network")
     mocker.patch("svs_core.users.user.SystemUserManager.create_user")
-    
+
     user = User.create(name="testuser", password="password123")
     yield user
 
@@ -62,11 +62,16 @@ def test_user(mocker: MockerFixture) -> Generator[User, None, None]:
 class TestService:
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_service_create(self, mocker: MockerFixture, test_template, test_user):
+    def test_service_create(
+        self, mocker: MockerFixture, test_template: Any, test_user: Any
+    ) -> None:
         # Mock container creation
         mock_container = mocker.MagicMock()
         mock_container.id = "test_container_id"
-        mock_create_container = mocker.patch("svs_core.docker.service.DockerContainerManager.create_container", return_value=mock_container)
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
 
         # Create a service
         service = Service.create(
@@ -147,21 +152,29 @@ class TestService:
     def test_service_create_from_template(
         self,
         mocker: MockerFixture,
-        test_template,
-        test_user,
-    ):
+        test_template: Any,
+        test_user: Any,
+    ) -> None:
         # Mock container creation
         mock_container = mocker.MagicMock()
         mock_container.id = "test_container_from_template"
-        mock_create_container = mocker.patch("svs_core.docker.service.DockerContainerManager.create_container", return_value=mock_container)
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
 
         # Mock volume generation
         mock_volume_path = mocker.MagicMock()
         mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
-        mock_generate_volume = mocker.patch("svs_core.shared.volumes.SystemVolumeManager.generate_free_volume", return_value=mock_volume_path)
-        
+        mock_generate_volume = mocker.patch(
+            "svs_core.shared.volumes.SystemVolumeManager.generate_free_volume",
+            return_value=mock_volume_path,
+        )
+
         # Mock port finding
-        mocker.patch("svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000)
+        mocker.patch(
+            "svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000
+        )
 
         # Create service from template
         service = Service.create_from_template(
@@ -212,18 +225,26 @@ class TestService:
     def test_service_env_merge_overwrites_template_values(
         self,
         mocker: MockerFixture,
-        test_template,
-        test_user,
-    ):
+        test_template: Any,
+        test_user: Any,
+    ) -> None:
         mock_container = mocker.MagicMock()
         mock_container.id = "test_container"
-        mock_create_container = mocker.patch("svs_core.docker.service.DockerContainerManager.create_container", return_value=mock_container)
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
 
         mock_volume_path = mocker.MagicMock()
         mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
-        mock_generate_volume = mocker.patch("svs_core.shared.volumes.SystemVolumeManager.generate_free_volume", return_value=mock_volume_path)
-        
-        mocker.patch("svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000)
+        mock_generate_volume = mocker.patch(
+            "svs_core.shared.volumes.SystemVolumeManager.generate_free_volume",
+            return_value=mock_volume_path,
+        )
+
+        mocker.patch(
+            "svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000
+        )
 
         # Override an existing template env var (NGINX_PORT)
         service = Service.create_from_template(
@@ -251,18 +272,26 @@ class TestService:
     def test_service_port_merge_overwrites_template_ports(
         self,
         mocker: MockerFixture,
-        test_template,
-        test_user,
-    ):
+        test_template: Any,
+        test_user: Any,
+    ) -> None:
         mock_container = mocker.MagicMock()
         mock_container.id = "test_container"
-        mock_create_container = mocker.patch("svs_core.docker.service.DockerContainerManager.create_container", return_value=mock_container)
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
 
         mock_volume_path = mocker.MagicMock()
         mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
-        mock_generate_volume = mocker.patch("svs_core.shared.volumes.SystemVolumeManager.generate_free_volume", return_value=mock_volume_path)
-        
-        mocker.patch("svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000)
+        mock_generate_volume = mocker.patch(
+            "svs_core.shared.volumes.SystemVolumeManager.generate_free_volume",
+            return_value=mock_volume_path,
+        )
+
+        mocker.patch(
+            "svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000
+        )
 
         # Override existing template port (80)
         service = Service.create_from_template(
@@ -291,18 +320,26 @@ class TestService:
     def test_service_volume_merge_overwrites_template_volumes(
         self,
         mocker: MockerFixture,
-        test_template,
-        test_user,
-    ):
+        test_template: Any,
+        test_user: Any,
+    ) -> None:
         mock_container = mocker.MagicMock()
         mock_container.id = "test_container"
-        mock_create_container = mocker.patch("svs_core.docker.service.DockerContainerManager.create_container", return_value=mock_container)
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
 
         mock_volume_path = mocker.MagicMock()
         mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
-        mock_generate_volume = mocker.patch("svs_core.shared.volumes.SystemVolumeManager.generate_free_volume", return_value=mock_volume_path)
-        
-        mocker.patch("svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000)
+        mock_generate_volume = mocker.patch(
+            "svs_core.shared.volumes.SystemVolumeManager.generate_free_volume",
+            return_value=mock_volume_path,
+        )
+
+        mocker.patch(
+            "svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000
+        )
 
         # Override existing template volume
         service = Service.create_from_template(
@@ -332,18 +369,26 @@ class TestService:
     def test_service_label_merge_overwrites_template_labels(
         self,
         mocker: MockerFixture,
-        test_template,
-        test_user,
-    ):
+        test_template: Any,
+        test_user: Any,
+    ) -> None:
         mock_container = mocker.MagicMock()
         mock_container.id = "test_container"
-        mock_create_container = mocker.patch("svs_core.docker.service.DockerContainerManager.create_container", return_value=mock_container)
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
 
         mock_volume_path = mocker.MagicMock()
         mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
-        mock_generate_volume = mocker.patch("svs_core.shared.volumes.SystemVolumeManager.generate_free_volume", return_value=mock_volume_path)
-        
-        mocker.patch("svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000)
+        mock_generate_volume = mocker.patch(
+            "svs_core.shared.volumes.SystemVolumeManager.generate_free_volume",
+            return_value=mock_volume_path,
+        )
+
+        mocker.patch(
+            "svs_core.shared.ports.SystemPortManager.find_free_port", return_value=9000
+        )
 
         # Override existing template label
         service = Service.create_from_template(
@@ -377,8 +422,14 @@ class TestService:
         mock_container = mocker.MagicMock()
         mock_container.id = "lifecycle_container_id"
         mock_container.status = "created"
-        mock_create_container = mocker.patch("svs_core.docker.service.DockerContainerManager.create_container", return_value=mock_container)
-        mock_get_container = mocker.patch("svs_core.docker.service.DockerContainerManager.get_container", return_value=mock_container)
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mock_get_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
 
         # Create the service
         service = Service.create(
@@ -427,8 +478,14 @@ class TestService:
         mock_container = mocker.MagicMock()
         mock_container.id = "logs_container_id"
         mock_container.status = "running"
-        mock_create_container = mocker.patch("svs_core.docker.service.DockerContainerManager.create_container", return_value=mock_container)
-        mock_get_container = mocker.patch("svs_core.docker.service.DockerContainerManager.get_container", return_value=mock_container)
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mock_get_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
 
         # Mock logs output
         log_content = b"2025-01-01T10:00:00Z Starting service...\n2025-01-01T10:00:01Z Service ready\n"
@@ -467,8 +524,14 @@ class TestService:
         mock_container = mocker.MagicMock()
         mock_container.id = "logs_container_id"
         mock_container.status = "running"
-        mock_create_container = mocker.patch("svs_core.docker.service.DockerContainerManager.create_container", return_value=mock_container)
-        mock_get_container = mocker.patch("svs_core.docker.service.DockerContainerManager.get_container", return_value=mock_container)
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mock_get_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
 
         # Mock logs output
         log_content = b"Log line 1\nLog line 2\nLog line 3\n"
@@ -511,9 +574,7 @@ class TestService:
         )
 
         # Attempt to get logs should raise ValueError
-        with pytest.raises(
-            ValueError, match="Service does not have a container ID"
-        ):
+        with pytest.raises(ValueError, match="Service does not have a container ID"):
             service.get_logs()
 
     @pytest.mark.integration
@@ -527,10 +588,16 @@ class TestService:
         # Mock container creation
         mock_container = mocker.MagicMock()
         mock_container.id = "logs_container_id"
-        mock_create_container = mocker.patch("svs_core.docker.service.DockerContainerManager.create_container", return_value=mock_container)
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
 
         # Mock container not found
-        mock_get_container = mocker.patch("svs_core.docker.service.DockerContainerManager.get_container", return_value=None)
+        mock_get_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=None,
+        )
 
         # Create service
         service = Service.create(
@@ -556,8 +623,14 @@ class TestService:
         mock_container = mocker.MagicMock()
         mock_container.id = "logs_container_id"
         mock_container.status = "running"
-        mock_create_container = mocker.patch("svs_core.docker.service.DockerContainerManager.create_container", return_value=mock_container)
-        mock_get_container = mocker.patch("svs_core.docker.service.DockerContainerManager.get_container", return_value=mock_container)
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mock_get_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
 
         # Mock empty logs
         mock_container.logs.return_value = b""

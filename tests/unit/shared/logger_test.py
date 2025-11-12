@@ -21,14 +21,14 @@ class TestLogger:
             del os.environ["ENV"]
 
     @pytest.mark.unit
-    def test_get_logger_returns_same_instance(self):
+    def test_get_logger_returns_same_instance(self) -> None:
         logger1 = get_logger("test")
         logger2 = get_logger("test")
 
         assert logger1 is logger2
 
     @pytest.mark.unit
-    def test_get_logger_default_name(self):
+    def test_get_logger_default_name(self) -> None:
         default_logger = get_logger()
 
         assert isinstance(default_logger, logging.Logger)
