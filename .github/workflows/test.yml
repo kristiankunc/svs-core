@@ -73,9 +73,18 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-qemu-action@v3
 
-      - name: Build & Start Containers
+      - name: Load environment variables
         run: |
-          source .github/extra/.env.ci
+          cat .github/extra/.env.ci >> $GITHUB_ENV
+
+      - name: Build & Start Containers
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_HOST: localhost
+          PGPORT: 5432
+        run: |
           docker compose -f .github/extra/docker-compose.yml up -d --build
 
       - name: Install dependencies
@@ -84,11 +93,11 @@ jobs:
           python -m pip install -e ".[dev]"
 
       - name: Run tests
+        env:
+          DATABASE_URL: postgres://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.POSTGRES_HOST }}:${{ env.PGPORT }}/${{ env.POSTGRES_DB }}
+          ENVIRONMENT: ${{ env.ENVIRONMENT }}
+          DJANGO_SETTINGS_MODULE: ${{ env.DJANGO_SETTINGS_MODULE }}
         run: |
-          source .github/extra/.env.ci
-          echo $DATABASE_URL
-          echo $ENVIRONMENT
-          echo $POSTGRES_DB
           pytest --cov=. --cov-branch --cov-report=xml:coverage.xml
 
       - name: Upload coverage reports to Codecov
