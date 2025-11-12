@@ -44,6 +44,10 @@ class EnvManager:
             str | None: The value of the environment variable if set, otherwise None.
         """
 
+        # Check os.environ first for priority
+        if value.value in os.environ:
+            return os.environ[value.value]
+
         if not cls._env_loaded:
             cls._load_env()
 

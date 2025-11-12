@@ -45,20 +45,26 @@ def get_logger(name: Optional[str] = None, independent: bool = False) -> logging
 
     LOG_FILE = Path("/etc/svs/svs.log")
 
-    if not independent:
-        from svs_core.shared.env_manager import EnvManager
-
-        match EnvManager.get_runtime_environment():
-            case EnvManager.RuntimeEnvironment.DEVELOPMENT:
-                handler = logging.StreamHandler(sys.stdout)
-                handler.setLevel(logging.DEBUG)
-            case EnvManager.RuntimeEnvironment.PRODUCTION:
-                handler = logging.FileHandler(LOG_FILE.as_posix())
-                handler.setLevel(logging.DEBUG)
+    if not LOG_FILE.exists():
+        print("Log file does not exist, defaulting to stdout")
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.DEBUG)
 
     else:
-        handler = logging.FileHandler(LOG_FILE.as_posix())
-        handler.setLevel(logging.DEBUG)
+        if not independent:
+            from svs_core.shared.env_manager import EnvManager
+
+            match EnvManager.get_runtime_environment():
+                case EnvManager.RuntimeEnvironment.DEVELOPMENT:
+                    handler = logging.StreamHandler(sys.stdout)
+                    handler.setLevel(logging.DEBUG)
+                case EnvManager.RuntimeEnvironment.PRODUCTION:
+                    handler = logging.FileHandler(LOG_FILE.as_posix())
+                    handler.setLevel(logging.DEBUG)
+
+        else:
+            handler = logging.FileHandler(LOG_FILE.as_posix())
+            handler.setLevel(logging.DEBUG)
 
     handler.setFormatter(formatter)
     logger.addHandler(handler)
