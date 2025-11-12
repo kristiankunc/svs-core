@@ -22,6 +22,7 @@ class EnvManager:
 
         DEVELOPMENT = "development"
         PRODUCTION = "production"
+        TESTING = "testing"
 
     class EnvVariables(Enum):
         """Enumeration of environment variable keys."""
