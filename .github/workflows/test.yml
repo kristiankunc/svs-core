@@ -54,13 +54,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Load environment variables from .env.ci
-        uses: aarcangeli/load-dotenv@v1
-        with:
-          path: .github/extra
-          filenames: .env.ci
-          expand: true
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -80,7 +73,17 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-qemu-action@v3
 
+      - name: Load environment variables
+        run: |
+          cat .github/extra/.env.ci >> $GITHUB_ENV
+
       - name: Build & Start Containers
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_HOST: localhost
+          PGPORT: 5432
         run: |
           docker compose -f .github/extra/docker-compose.yml up -d --build
 
@@ -89,14 +92,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
 
-      - name: Run setup script
-        run: |
-          chmod +x ./install.sh
-          ./install.sh -y --user test_admin --password test_password
-
       - name: Run tests
+        env:
+          DATABASE_URL: postgres://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.POSTGRES_HOST }}:${{ env.PGPORT }}/${{ env.POSTGRES_DB }}
+          ENVIRONMENT: ${{ env.ENVIRONMENT }}
+          DJANGO_SETTINGS_MODULE: ${{ env.DJANGO_SETTINGS_MODULE }}
         run: |
-          sg svs-admins -c "pytest --cov=. --cov-branch --cov-report=xml:coverage.xml"
+          pytest --cov=. --cov-branch --cov-report=xml:coverage.xml
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5

@@ -17,106 +17,56 @@ class EnvManager:
 
     ENV_FILE_PATH = Path("/etc/svs/.env")
 
-    _env_loaded: bool = False
-    _env_vars: dict[str, str] = {}
+    class RuntimeEnvironment(Enum):
+        """Enumeration of runtime environments."""
 
-    class EnvVarKeys(Enum):
+        DEVELOPMENT = "development"
+        PRODUCTION = "production"
+
+    class EnvVariables(Enum):
         """Enumeration of environment variable keys."""
 
-        RUNTIME_ENVIRONMENT = "ENVIRONMENT"
+        ENVIRONMENT = "ENVIRONMENT"
         DATABASE_URL = "DATABASE_URL"
 
-    class RuntimeEnvironment(Enum):
-        """Enumeration of possible runtime environments."""
-
-        PRODUCTION = "production"
-        DEVELOPMENT = "development"
-        TESTING = "testing"
-
-    @classmethod
-    def _get(cls, value: EnvManager.EnvVarKeys) -> str | None:
-        """Get the value of an environment variable by its key.
+    @staticmethod
+    def _get(key: EnvVariables) -> str | None:
+        """Retrieves the value of the specified environment variable.
 
         Args:
-            value (EnvManager.EnvVarKeys): The key of the environment variable.
+            key (EnvVariables): The environment variable key.
 
         Returns:
-            str | None: The value of the environment variable if set, otherwise None.
+            str | None: The value of the environment variable, or None if not set.
         """
 
-        if not cls._env_loaded:
-            cls._load_env()
+        return os.getenv(key.value)
 
-        return cls._env_vars.get(value.value)
-
-    @classmethod
-    def get_runtime_environment(cls) -> EnvManager.RuntimeEnvironment:
-        """Get the current runtime environment from the .env file.
+    @staticmethod
+    def get_runtime_environment() -> EnvManager.RuntimeEnvironment:
+        """Determines the current runtime environment.
 
         Returns:
-            EnvManager.RuntimeEnvironment: The current runtime environment. Defaults to PRODUCTION if not set.
+            EnvManager.RuntimeEnvironment: The current runtime environment.
         """
+        env_value = EnvManager._get(EnvManager.EnvVariables.ENVIRONMENT)
+        if env_value and env_value.lower() == "development":
+            return EnvManager.RuntimeEnvironment.DEVELOPMENT
+        return EnvManager.RuntimeEnvironment.PRODUCTION
 
-        value = cls._get(cls.EnvVarKeys.RUNTIME_ENVIRONMENT)
-        return EnvManager.RuntimeEnvironment(
-            value or cls.RuntimeEnvironment.PRODUCTION.value
-        )
-
-    @classmethod
-    def get_database_url(cls) -> str | None:
-        """Get the DATABASE_URL from the .env file.
-
-        Returns:
-            str | None: The database URL if set, otherwise None.
-        """
-
-        return cls._get(cls.EnvVarKeys.DATABASE_URL)
-
-    @classmethod
-    def _open_env_file(cls, path: Path) -> dict[str, str]:
-        """Opens and reads the .env file at the specified path.
-
-        Args:
-            path (Path): The path to the .env file.
+    @staticmethod
+    def get_database_url() -> str:
+        """Retrieves the database URL from environment variables.
 
         Returns:
-            dict[str, str]: A dictionary of environment variables.
+            str: The database URL.
 
         Raises:
-            FileNotFoundError: If the .env file does not exist.
+            EnvironmentError: If the DATABASE_URL environment variable is not set.
         """
-
-        env_vars = {}
-
-        try:
-            res = run_command(
-                f"cat {path.as_posix()}", logger=get_logger(__name__, independent=True)
-            )
-        except subprocess.CalledProcessError:
-            raise FileNotFoundError(f"Environment file not found: {path.as_posix()}")
-
-        if res is None:
-            return env_vars
-
-        for line in res.stdout.splitlines():
-            if line.strip() and not line.startswith("#"):
-                key, value = line.strip().split("=", 1)
-                env_vars[key] = value
-
-        return env_vars
-
-    @classmethod
-    def _load_env(cls) -> None:
-        """Reads the .env file and caches environment variables."""
-
-        try:
-            loaded_vars = cls._open_env_file(cls.ENV_FILE_PATH)
-            # os.environ vars override .env file vars so we merge them with os.environ last
-            merged_vars = {**loaded_vars, **os.environ}
-            cls._env_vars = merged_vars
-            cls._env_loaded = True
-        except FileNotFoundError:
-            get_logger(__name__, independent=True).warning(
-                f".env file not found at {cls.ENV_FILE_PATH.as_posix()}. Using defaults."
-            )
-            cls._env_loaded = True
+        db_url = EnvManager._get(EnvManager.EnvVariables.DATABASE_URL)
+        if not db_url:
+            logger = get_logger(__name__)
+            logger.error("DATABASE_URL environment variable not set.")
+            raise EnvironmentError("DATABASE_URL environment variable not set.")
+        return db_url
