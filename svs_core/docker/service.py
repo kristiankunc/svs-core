@@ -375,6 +375,10 @@ class Service(ServiceModel):
                 f"Successfully built image '{build_image_name}' for service '{name}'"
             )
 
+        elif template.type == TemplateType.IMAGE:
+            if not DockerImageManager.exists(template.image):
+                DockerImageManager.pull(template.image)
+
         # Use template defaults if not provided
         if image is None:
             image = template.image

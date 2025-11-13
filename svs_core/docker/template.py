@@ -358,6 +358,7 @@ class Template(TemplateModel):
             )
 
         if self.type == TemplateType.IMAGE and self.image:
-            DockerImageManager.remove(self.image)
+            if DockerImageManager.exists(self.image):
+                DockerImageManager.remove(self.image)
 
         super().delete()
