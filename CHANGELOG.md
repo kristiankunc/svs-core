@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.2](https://github.com/kristiankunc/svs-core/compare/v0.6.1...v0.6.2) (2025-11-13)
+
+
+### Bug Fixes
+
+* Add override params for CLI service creation ([#97](https://github.com/kristiankunc/svs-core/issues/97)) ([05a95cf](https://github.com/kristiankunc/svs-core/commit/05a95cf56b13a027c1af77586a5a39f42e28aa86))
+* Silently pull/remove Docker images ([#99](https://github.com/kristiankunc/svs-core/issues/99)) ([a2bd4c8](https://github.com/kristiankunc/svs-core/commit/a2bd4c893d22634b3ea27e9c8f869d2259329daf))
+
 ## [0.6.1](https://github.com/kristiankunc/svs-core/compare/v0.6.0...v0.6.1) (2025-11-12)
 
 
