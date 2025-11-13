@@ -29,10 +29,21 @@ $ sudo svs template list
 We use [`svs service create`](../cli.md#svs-service-create)
 
 ```bash
-$ sudo svs service create <user_id> <template_id>
+$ sudo svs service create <name> <user_id> <template_id>
 ```
 
 The IDs are indexed from 1 so you can likely put that in, if in doubt use the list commands (`svs template//user//service list`)
+
+### Configuring
+
+When listing services, you will see a Volumes section for each one
+
+??? example "Example output"
+    `volumes=['Volume(/usr/share/nginx/html=/var/svs/volumes/1/owmjuhaohqovtzry)', 'Volume(/etc/nginx/conf.d=/var/svs/volumes/1/ljjfiphegqcxcune)']`
+
+    This means that on host, you can modify contents of `/var/svs/volumes/1/owmjuhaohqovtzry` to change `/usr/share/nginx/html` in the container
+
+If you want to modify the default page, you can modify the appropriate volumes by adding an nginx config & some static files to serve. Otherwise the default page will be served which is fine for testing purpouses.
 
 ### Starting and checking the service
 
