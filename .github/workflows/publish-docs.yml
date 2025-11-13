@@ -34,7 +34,7 @@ jobs:
 
       - name: Compile CLI docs
         run: |
-          sg svs-admins "python docs/compile-cli.py"
+          python docs/compile-cli.py
 
       - name: Tree the docs directory
         run: |
