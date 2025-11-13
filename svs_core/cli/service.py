@@ -1,6 +1,12 @@
 import typer
 
 from svs_core.cli.state import get_current_username, is_current_user_admin
+from svs_core.docker.json_properties import (
+    EnvVariable,
+    ExposedPort,
+    Label,
+    Volume,
+)
 from svs_core.docker.service import Service
 from svs_core.users.user import User
 
@@ -31,11 +37,134 @@ def create_service(
     name: str = typer.Argument(..., help="Name of the service to create"),
     template_id: int = typer.Argument(..., help="ID of the template to use"),
     user_id: int = typer.Argument(..., help="ID of the user creating the service"),
+    domain: str | None = typer.Option(
+        None, "--domain", "-d", help="Domain for the service"
+    ),
+    env: list[str] | None = typer.Option(
+        None,
+        "--env",
+        "-e",
+        help="Environment variables in KEY=VALUE format (can be used multiple times)",
+    ),
+    port: list[str] | None = typer.Option(
+        None,
+        "--port",
+        "-p",
+        help="Port mappings in container_port:host_port format (can be used multiple times)",
+    ),
+    volume: list[str] | None = typer.Option(
+        None,
+        "--volume",
+        "-v",
+        help="Volume mappings in container_path:host_path format (can be used multiple times)",
+    ),
+    label: list[str] | None = typer.Option(
+        None,
+        "--label",
+        "-l",
+        help="Labels in KEY=VALUE format (can be used multiple times)",
+    ),
+    command: str | None = typer.Option(
+        None, "--command", "-c", help="Command to run in the container"
+    ),
+    args: list[str] | None = typer.Option(
+        None,
+        "--args",
+        "-a",
+        help="Command arguments (can be used multiple times)",
+    ),
 ) -> None:
-    """Create a new service."""
+    """Create a new service.
+
+    Supports overriding template defaults with command-line options:
+    - Environment variables: --env KEY=VALUE
+    - Ports: --port container_port:host_port
+    - Volumes: --volume container_path:host_path
+    - Labels: --label KEY=VALUE
+    - Command: --command "command"
+    - Arguments: --args "arg1" --args "arg2"
+    """
 
     user = User.objects.get(id=user_id)
-    service = Service.create_from_template(name, template_id, user)
+
+    # Parse environment variables
+    override_env = None
+    if env:
+        override_env = []
+        for env_var in env:
+            if "=" not in env_var:
+                typer.echo(
+                    f"❌ Invalid environment variable format: {env_var}. Use KEY=VALUE",
+                    err=True,
+                )
+                raise typer.Exit(code=1)
+            key, value = env_var.split("=", 1)
+            override_env.append(EnvVariable(key=key, value=value))
+
+    # Parse ports
+    override_ports = None
+    if port:
+        override_ports = []
+        for port_mapping in port:
+            if ":" not in port_mapping:
+                typer.echo(
+                    f"❌ Invalid port format: {port_mapping}. Use container_port:host_port",
+                    err=True,
+                )
+                raise typer.Exit(code=1)
+            try:
+                container_port_str, host_port_str = port_mapping.split(":", 1)
+                container_port = int(container_port_str)
+                host_port = int(host_port_str)
+                override_ports.append(
+                    ExposedPort(container_port=container_port, host_port=host_port)
+                )
+            except ValueError:
+                typer.echo(
+                    f"❌ Invalid port numbers: {port_mapping}. Ports must be integers",
+                    err=True,
+                )
+                raise typer.Exit(code=1)
+
+    # Parse volumes
+    override_volumes = None
+    if volume:
+        override_volumes = []
+        for volume_mapping in volume:
+            if ":" not in volume_mapping:
+                typer.echo(
+                    f"❌ Invalid volume format: {volume_mapping}. Use container_path:host_path",
+                    err=True,
+                )
+                raise typer.Exit(code=1)
+            container_path, host_path = volume_mapping.split(":", 1)
+            override_volumes.append(
+                Volume(container_path=container_path, host_path=host_path)
+            )
+
+    # Parse labels
+    override_labels = None
+    if label:
+        override_labels = []
+        for lbl in label:
+            if "=" not in lbl:
+                typer.echo(f"❌ Invalid label format: {lbl}. Use KEY=VALUE", err=True)
+                raise typer.Exit(code=1)
+            key, value = lbl.split("=", 1)
+            override_labels.append(Label(key=key, value=value))
+
+    service = Service.create_from_template(
+        name,
+        template_id,
+        user,
+        domain=domain,
+        override_env=override_env,
+        override_ports=override_ports,
+        override_volumes=override_volumes,
+        override_command=command,
+        override_labels=override_labels,
+        override_args=args,
+    )
     typer.echo(
         f"✅ Service '{service.name}' created successfully with ID {service.id}."
     )
