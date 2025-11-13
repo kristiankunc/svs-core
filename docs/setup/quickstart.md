@@ -39,7 +39,7 @@ Install `pipx` to safely install the CLI globally without affecting system packa
 ### Install the CLI globally
 
 ```bash
-$ sudo PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install svs_core
+$ sudo PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install svs-core
 ```
 
 Following that, you need to force the PIPX_HOME and PIPX_BIN_DIR ENV variables for all users by appendng it to `etc/environment`
