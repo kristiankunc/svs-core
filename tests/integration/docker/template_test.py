@@ -427,6 +427,10 @@ class TestTemplate:
         mock_remove = mocker.patch("svs_core.docker.template.DockerImageManager.remove")
         """Test deleting a template that is not associated with any
         services."""
+        mock_image_exists = mocker.patch(
+            "svs_core.docker.template.DockerImageManager.exists", return_value=True
+        )
+
         template = Template.create(
             name="test-delete",
             type=TemplateType.IMAGE,
