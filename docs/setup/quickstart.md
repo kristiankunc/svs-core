@@ -72,5 +72,15 @@ This script will
 2. Create necessary directories with correct permissions
 3. Create an in-place svs user to simplify permission management
 4. Run database migrations
+5. Prompt you to create an initial user (Using a new system user is recommended)
+
+### Test
+
+Run
+```bash
+$ sudo svs user list
+```
+
+This should output your user.
 
 That's it. Head over to the [cli documentation](../cli.md) to get started with using the CLI.
