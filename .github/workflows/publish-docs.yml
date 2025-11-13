@@ -32,11 +32,6 @@ jobs:
           python -m pip install -e .
           python -m pip install .[docs]
 
-      - name: Run setup script
-        run: |
-          chmod +x ./install.sh
-          ./install.sh -y --user test_admin --password test_password
-
       - name: Compile CLI docs
         run: |
           sg svs-admins "python docs/compile-cli.py"
