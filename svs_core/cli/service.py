@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import typer
 
 from svs_core.cli.state import get_current_username, is_current_user_admin
@@ -206,6 +208,30 @@ def stop_service(
 
     service.stop()
     typer.echo(f"✅ Service '{service.name}' stopped successfully.")
+
+
+@app.command("build")
+def build_service(
+    service_id: int = typer.Argument(..., help="ID of the service to build"),
+    path: str = typer.Argument(
+        ..., help="Path to the source code to build the service from"
+    ),
+) -> None:
+    """Build a service's Docker image from source code."""
+
+    service = Service.objects.get(id=service_id)
+    if not service:
+        typer.echo(f"❌ Service with ID {service_id} not found.", err=True)
+        return
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        typer.echo("❌ You do not have permission to build this service.", err=True)
+        return
+
+    path_obj = Path(path)
+
+    service.build(path_obj)
+    typer.echo(f"✅ Service '{service.name}' Docker image built successfully.")
 
 
 @app.command("delete")
