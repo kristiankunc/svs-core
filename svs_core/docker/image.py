@@ -1,6 +1,10 @@
 import os
+import shutil
 import tempfile
 
+from pathlib import Path
+
+from docker.errors import BuildError
 from docker.models.images import Image
 
 from svs_core.docker.base import get_docker_client
@@ -14,12 +18,14 @@ class DockerImageManager:
     def build_from_dockerfile(
         image_name: str,
         dockerfile_content: str,
+        path_to_copy: Path | None = None,
     ) -> None:
         """Build a Docker image from an in-memory Dockerfile.
 
         Args:
             image_name (str): Name of the image.
             dockerfile_content (str): Dockerfile contents.
+            path_to_copy (Path | None): Optional path to copy into the build context.
         """
         client = get_docker_client()
 
@@ -30,13 +36,44 @@ class DockerImageManager:
             with open(dockerfile_path, "w", encoding="utf-8") as f:
                 f.write(dockerfile_content)
 
-            client.images.build(
-                path=tmpdir,
-                tag=image_name,
-                rm=True,
-                forcerm=True,
-                labels={"svs": "true"},
-            )
+            if path_to_copy:
+                if path_to_copy.is_dir():
+                    for item in path_to_copy.iterdir():
+                        target = Path(tmpdir) / item.name
+                        if item.is_dir():
+                            shutil.copytree(item, target)
+                        else:
+                            shutil.copy2(item, target)
+                else:
+                    shutil.copy2(path_to_copy, Path(tmpdir) / path_to_copy.name)
+
+            try:
+                client.images.build(
+                    path=tmpdir,
+                    tag=image_name,
+                    rm=True,
+                    forcerm=True,
+                    labels={"svs": "true"},
+                )
+            except BuildError as e:
+                build_log = "\n".join(
+                    line.decode("utf-8") if isinstance(line, bytes) else str(line)
+                    for line in e.build_log
+                )
+
+                if path_to_copy:
+                    log_path = Path(path_to_copy) / "docker_build_error.log"
+                else:
+                    log_path = Path.cwd() / "docker_build_error.log"
+
+                with open(log_path, "w", encoding="utf-8") as log_file:
+                    log_file.write(build_log)
+
+                get_logger(__name__).error(
+                    f"Failed to build image {image_name}. Error log written to {log_path}"
+                )
+
+                raise
 
     @staticmethod
     def exists(image_name: str) -> bool:

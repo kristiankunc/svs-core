@@ -355,27 +355,7 @@ class Service(ServiceModel):
         except Template.DoesNotExist:
             raise ValueError(f"Template with ID {template_id} does not exist")
 
-        # Handle BUILD type templates: build the image on-demand
-        if template.type == TemplateType.BUILD and template.dockerfile:
-            # Generate a unique image name based on service name and template
-            build_image_name = f"{template.name.lower()}-{name.lower()}:latest"
-
-            get_logger(__name__).info(
-                f"Building image '{build_image_name}' on-demand for service '{name}' from template '{template.name}'"
-            )
-
-            # Build the image from the template's dockerfile
-            DockerImageManager.build_from_dockerfile(
-                build_image_name, template.dockerfile
-            )
-
-            # Use the built image for this service
-            image = build_image_name
-            get_logger(__name__).debug(
-                f"Successfully built image '{build_image_name}' for service '{name}'"
-            )
-
-        elif template.type == TemplateType.IMAGE:
+        if template.type == TemplateType.IMAGE:
             if not DockerImageManager.exists(template.image):
                 DockerImageManager.pull(template.image)
 
@@ -460,22 +440,24 @@ class Service(ServiceModel):
         # Update service with all labels (system + model)
         service_instance.labels = all_labels
 
-        if not service_instance.image:
+        if not service_instance.image and template.type == TemplateType.IMAGE:
             raise ValueError("Service must have an image specified")
 
         get_logger(__name__).info(f"Creating service '{name}'")
 
-        container = DockerContainerManager.create_container(
-            name=name,
-            image=service_instance.image,
-            command=service_instance.command,
-            args=service_instance.args,
-            labels=all_labels,
-            ports=service_instance.exposed_ports,
-            volumes=service_instance.volumes,
-        )
+        if template.type == TemplateType.IMAGE:
+            container = DockerContainerManager.create_container(
+                name=name,
+                image=service_instance.image,
+                command=service_instance.command,
+                args=service_instance.args,
+                labels=all_labels,
+                ports=service_instance.exposed_ports,
+                volumes=service_instance.volumes,
+            )
 
-        service_instance.container_id = container.id
+            service_instance.container_id = container.id
+
         service_instance.save()
 
         return cast(Service, service_instance)
@@ -553,3 +535,46 @@ class Service(ServiceModel):
 
         logs = container.logs(tail=tail)
         return cast(str, logs.decode("utf-8"))
+
+    def build(self, source_path: Path) -> None:
+        """Build the service's Docker from a Dockerfile.
+
+        This method is used when the template type is DOCKERFILE. It builds the Docker image
+        using the Dockerfile found in the specified source path.
+
+        Args:
+            source_path (Path): The path to the directory containing the Dockerfile.
+
+        Raises:
+            ValueError: If the source path does not contain a Dockerfile.
+        """
+        if self.template.type != TemplateType.BUILD:
+            raise ValueError("Service template type is not BUILD; cannot build image.")
+
+        build_image_name = f"{self.template.name.lower()}-{self.name.lower()}:latest"
+
+        get_logger(__name__).info(
+            f"Building image '{build_image_name}' on-demand for service '{self.name}' in path '{source_path}'"
+        )
+
+        DockerImageManager.build_from_dockerfile(
+            build_image_name, self.template.dockerfile, path_to_copy=source_path
+        )
+
+        self.image = build_image_name
+        get_logger(__name__).debug(
+            f"Successfully built image '{build_image_name}' for service '{self.name}'"
+        )
+
+        container = DockerContainerManager.create_container(
+            name=self.name,
+            image=self.image,
+            command=self.command,
+            args=self.args,
+            labels=self.labels,
+            ports=self.exposed_ports,
+            volumes=self.volumes,
+        )
+
+        self.container_id = container.id
+        self.save()
