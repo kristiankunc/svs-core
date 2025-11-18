@@ -51,23 +51,30 @@
                 </div>
             </div>
             <!-- Environment Variables Override -->
-            {% if template.default_env %}
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Environment Variables</h5>
-                        <small class="text-muted">Template defaults shown</small>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-sm mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Key</th>
-                                    <th>Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Environment Variables</h5>
+                    <small class="text-muted">
+                        {% if template.default_env %}
+                            Template defaults shown
+                        {% else %}
+                            Add custom variables
+                        {% endif %}
+                    </small>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Key</th>
+                                <th>Value</th>
+                                <th class="col-narrow"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="env-table-body">
+                            {% if template.default_env %}
                                 {% for var in template.default_env %}
-                                    <tr>
+                                    <tr class="env-row">
                                         <td>
                                             <code>{{ var.key }}</code>
                                         </td>
@@ -79,34 +86,51 @@
                                                    value="{{ var.value }}"
                                                    placeholder="{{ var.value }}">
                                         </td>
+                                        <td>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger delete-env"
+                                                    title="Delete">×</button>
+                                        </td>
                                     </tr>
                                 {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="card-body pt-0 border-top">
-                        <small class="text-muted">Override default values or leave blank to use defaults</small>
-                    </div>
+                            {% endif %}
+                        </tbody>
+                    </table>
                 </div>
-            {% endif %}
+                <div class="card-body pt-0 border-top">
+                    <small class="text-muted">
+                        {% if template.default_env %}Override default values or leave blank to use defaults.{% endif %}
+                    Add custom variables below:</small>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary mt-2"
+                            id="add-env-btn">+ Add Environment Variable</button>
+                </div>
+            </div>
             <!-- Port Overrides -->
-            {% if template.default_ports %}
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Ports</h5>
-                        <small class="text-muted">Template defaults shown</small>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-sm mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Host Port</th>
-                                    <th>Container Port</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Ports</h5>
+                    <small class="text-muted">
+                        {% if template.default_ports %}
+                            Template defaults shown
+                        {% else %}
+                            Add custom ports
+                        {% endif %}
+                    </small>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Host Port</th>
+                                <th>Container Port</th>
+                                <th class="col-narrow"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="port-table-body">
+                            {% if template.default_ports %}
                                 {% for port in template.default_ports %}
-                                    <tr>
+                                    <tr class="port-row">
                                         <td>
                                             <input type="hidden"
                                                    name="port_container[]"
@@ -120,34 +144,51 @@
                                         <td>
                                             <code>{{ port.container_port }}</code>
                                         </td>
+                                        <td>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger delete-port"
+                                                    title="Delete">×</button>
+                                        </td>
                                     </tr>
                                 {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="card-body pt-0 border-top">
-                        <small class="text-muted">Leave host port blank for dynamic assignment</small>
-                    </div>
+                            {% endif %}
+                        </tbody>
+                    </table>
                 </div>
-            {% endif %}
+                <div class="card-body pt-0 border-top">
+                    <small class="text-muted">
+                        {% if template.default_ports %}Leave host port blank for dynamic assignment.{% endif %}
+                    Add custom ports below:</small>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary mt-2"
+                            id="add-port-btn">+ Add Port Mapping</button>
+                </div>
+            </div>
             <!-- Volume Overrides -->
-            {% if template.default_volumes %}
-                <div class="card mb-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Volumes</h5>
-                        <small class="text-muted">Template defaults shown</small>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-sm mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Host Path</th>
-                                    <th>Container Path</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Volumes</h5>
+                    <small class="text-muted">
+                        {% if template.default_volumes %}
+                            Template defaults shown
+                        {% else %}
+                            Add custom volumes
+                        {% endif %}
+                    </small>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Host Path</th>
+                                <th>Container Path</th>
+                                <th class="col-narrow"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="volume-table-body">
+                            {% if template.default_volumes %}
                                 {% for volume in template.default_volumes %}
-                                    <tr>
+                                    <tr class="volume-row">
                                         <td>
                                             <input type="hidden"
                                                    name="volume_container[]"
@@ -161,16 +202,26 @@
                                         <td>
                                             <code>{{ volume.container_path }}</code>
                                         </td>
+                                        <td>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-danger delete-volume"
+                                                    title="Delete">×</button>
+                                        </td>
                                     </tr>
                                 {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="card-body pt-0 border-top">
-                        <small class="text-muted">Leave host path blank for anonymous volumes</small>
-                    </div>
+                            {% endif %}
+                        </tbody>
+                    </table>
                 </div>
-            {% endif %}
+                <div class="card-body pt-0 border-top">
+                    <small class="text-muted">
+                        {% if template.default_volumes %}Leave host path blank for anonymous volumes.{% endif %}
+                    Add custom volumes below:</small>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary mt-2"
+                            id="add-volume-btn">+ Add Volume</button>
+                </div>
+            </div>
         </div>
         <!-- Summary Sidebar -->
         <div class="col-lg-4">
@@ -212,4 +263,81 @@
             </div>
         </div>
     </form>
+    <script>
+        // Environment Variables Management
+        document.getElementById('add-env-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const tbody = document.getElementById('env-table-body');
+            const row = document.createElement('tr');
+            row.className = 'env-row';
+            row.innerHTML = `
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="env_key[]" placeholder="Variable name">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="env_value[]" placeholder="Variable value">
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger delete-env" title="Delete">×</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+            attachDeleteHandler(row.querySelector('.delete-env'), row);
+        });
+
+        // Port Mappings Management
+        document.getElementById('add-port-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const tbody = document.getElementById('port-table-body');
+            const row = document.createElement('tr');
+            row.className = 'port-row';
+            row.innerHTML = `
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="port_host[]" placeholder="Host port (optional)">
+                </td>
+                <td>
+                    <input type="number" class="form-control form-control-sm" name="port_container[]" placeholder="Container port" required>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger delete-port" title="Delete">×</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+            attachDeleteHandler(row.querySelector('.delete-port'), row);
+        });
+
+        // Volumes Management
+        document.getElementById('add-volume-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const tbody = document.getElementById('volume-table-body');
+            const row = document.createElement('tr');
+            row.className = 'volume-row';
+            row.innerHTML = `
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="volume_host[]" placeholder="Host path (optional)">
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" name="volume_container[]" placeholder="Container path" required>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger delete-volume" title="Delete">×</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+            attachDeleteHandler(row.querySelector('.delete-volume'), row);
+        });
+
+        // Generic delete handler
+        function attachDeleteHandler(button, row) {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                row.remove();
+            });
+        }
+
+        // Attach delete handlers to existing rows
+        document.querySelectorAll('.delete-env, .delete-port, .delete-volume').forEach(btn => {
+            attachDeleteHandler(btn, btn.closest('tr'));
+        });
+    </script>
 {% endblock %}

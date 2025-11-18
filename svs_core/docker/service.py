@@ -454,9 +454,12 @@ class Service(ServiceModel):
                 labels=all_labels,
                 ports=service_instance.exposed_ports,
                 volumes=service_instance.volumes,
+                environment_variables=service_instance.env,
             )
 
             service_instance.container_id = container.id
+
+            DockerContainerManager.connect_to_network(container, user.name)
 
         service_instance.save()
 
@@ -577,4 +580,7 @@ class Service(ServiceModel):
         )
 
         self.container_id = container.id
+
+        DockerContainerManager.connect_to_network(container, self.user.name)
+
         self.save()
