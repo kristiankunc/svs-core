@@ -80,22 +80,25 @@ class TestSystemUser:
 
     @pytest.mark.unit
     def test_get_system_username_with_sudo(self, mocker: MockerFixture) -> None:
-        mocker.patch.dict("os.environ", {"SUDO_USER": "sudo_user"})
-        mock_getlogin = mocker.patch(
-            "svs_core.users.system.os.getlogin", side_effect=OSError
+        mock_pwd = mocker.MagicMock()
+        mock_pwd.pw_name = "sudo_user"
+        mock_getpwuid = mocker.patch(
+            "svs_core.users.system.pwd.getpwuid", return_value=mock_pwd
         )
 
         username = SystemUserManager.get_system_username()
-        mock_getlogin.assert_called_once()
+        mock_getpwuid.assert_called_once()
+        assert username == "sudo_user"
         assert username == "sudo_user"
 
     @pytest.mark.unit
     def test_get_system_username_without_sudo(self, mocker: MockerFixture) -> None:
-        mocker.patch.dict("os.environ", {})
-        mock_getlogin = mocker.patch(
-            "svs_core.users.system.os.getlogin", return_value="normal_user"
+        mock_pwd = mocker.MagicMock()
+        mock_pwd.pw_name = "normal_user"
+        mock_getpwuid = mocker.patch(
+            "svs_core.users.system.pwd.getpwuid", return_value=mock_pwd
         )
 
         username = SystemUserManager.get_system_username()
-        mock_getlogin.assert_called_once()
+        mock_getpwuid.assert_called_once()
         assert username == "normal_user"
