@@ -1,0 +1,8 @@
+services:
+  svs:
+    build:
+      context: ..
+      dockerfile: sandbox-env/Dockerfile.local
+    container_name: svs-core
+    privileged: true
+    restart: no

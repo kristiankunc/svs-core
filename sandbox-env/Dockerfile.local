@@ -14,7 +14,10 @@ RUN pyenv install 3.11.14 && pyenv global 3.11.14
 
 RUN python -m pip install --upgrade pip && python -m pip install pipx && pipx ensurepath
 
-RUN PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install svs-core
+COPY ./svs_core /tmp/svs_core/svs_core
+COPY ./pyproject.toml /tmp/svs_core/pyproject.toml
+
+RUN PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install /tmp/svs_core --force
 
 RUN printf '%s\n' 'PIPX_HOME="/opt/pipx"' 'PIPX_BIN_DIR="/usr/local/bin"' | tee -a /etc/environment
 

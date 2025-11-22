@@ -55,21 +55,28 @@ class SystemUserManager:
 
     @staticmethod
     def get_system_username() -> str:
-        """Returns the username of the user who initiated the session.
+        """Returns the username of the user executing the process.
 
-        Attempts to grab the user if ran by sudo.
+        When running with sudo -u, returns the target user (effective UID).
+
+        Returns:
+            str: The system username.
+
+        Raises:
+            RuntimeError: If the system username cannot be determined.
         """
-
         try:
-            return os.getlogin()
-        except OSError:
-            if "SUDO_USER" in os.environ:
-                return os.environ["SUDO_USER"]
+            try:
+                return pwd.getpwuid(os.geteuid()).pw_name
+            except Exception:
+                pass
 
             try:
-                return pwd.getpwuid(os.getuid()).pw_name
-            except Exception:
-                return getpass.getuser()
+                return os.getlogin()
+            except OSError:
+                pass
+
+            return getpass.getuser()
 
         except Exception as e:
             raise RuntimeError("Failed to get current user") from e

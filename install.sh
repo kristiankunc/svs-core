@@ -162,7 +162,7 @@ EOL"
     fi
 
     # start the compose stack as daemon and wait for db to be ready
-    sudo docker-compose -f $compose_path --env-file $stack_env_path up -d
+    sudo docker compose -f $compose_path --env-file $stack_env_path up -d
     echo "Waiting for PostgreSQL to be ready..."
     until sudo docker exec svs-db pg_isready -U $POSTGRES_USER; do
         sleep 2
@@ -170,14 +170,15 @@ EOL"
 
     env_path="/etc/svs/.env"
     if [ -f "$env_path" ]; then
-        echo "✅ $env_path already exists."
-    else
-        sudo touch "$env_path"
-        sudo chmod 640 "$env_path"
-        sudo chown svs:svs-admins "$env_path"
-        sudo bash -c "echo DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB > $env_path"
-        echo "✅ $env_path created with DATABASE_URL."
+        echo "✅ $env_path already exists, removing"
+        sudo rm "$env_path"
     fi
+
+    sudo touch "$env_path"
+    sudo chmod 640 "$env_path"
+    sudo chown svs:svs-admins "$env_path"
+    sudo bash -c "echo DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB > $env_path"
+    echo "✅ $env_path created with DATABASE_URL."
 }
 
 storage_setup() {
