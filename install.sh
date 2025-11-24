@@ -209,7 +209,7 @@ django_migrations() {
 
     DATABASE_URL=$(sudo cat /etc/svs/.env | grep DATABASE_URL | cut -d '=' -f2-)
 
-    if  DATABASE_URL="$DATABASE_URL" $python_path -m django migrate svs_core; then
+    if DATABASE_URL="$DATABASE_URL" $python_path -m django migrate svs_core; then
         echo "✅ Django migrations completed."
     else
         echo "❌ Failed to run Django migrations."
@@ -222,7 +222,10 @@ create_admin_user() {
 
     if [ -n "$admin_user" ] && [ -n "$admin_password" ]; then
         # User and password provided via command line
-        if $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup(username='$admin_user', password='$admin_password')"; then
+
+        DATABASE_URL=$(sudo cat /etc/svs/.env | grep DATABASE_URL | cut -d '=' -f2-)
+
+        if DATABASE_URL="$DATABASE_URL" $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup(username='$admin_user', password='$admin_password')"; then
             echo "✅ Admin user '$admin_user' created."
         else
             echo "❌ Failed to create admin user."
@@ -230,7 +233,7 @@ create_admin_user() {
         fi
     else
         # Interactive mode (original behavior)
-        if $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup()"; then
+        if DATABASE_URL="$DATABASE_URL" $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup()"; then
             echo "✅ Admin user created (or already exists)."
         else
             echo "❌ Failed to create admin user."
