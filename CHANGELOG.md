@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/kristiankunc/svs-core/compare/v0.7.0...v0.7.1) (2025-11-25)
+
+
+### Bug Fixes
+
+* Properly load ENV variables, add override options for ENV variables ([#108](https://github.com/kristiankunc/svs-core/issues/108)) ([9906cc4](https://github.com/kristiankunc/svs-core/commit/9906cc47c97aba3e9b4d376faa6bfa79dbdf90e7))
+
 ## [0.7.0](https://github.com/kristiankunc/svs-core/compare/v0.6.2...v0.7.0) (2025-11-25)
 
 
