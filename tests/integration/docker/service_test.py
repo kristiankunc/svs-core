@@ -72,6 +72,9 @@ class TestService:
             "svs_core.docker.service.DockerContainerManager.create_container",
             return_value=mock_container,
         )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
 
         # Create a service
         service = Service.create(
@@ -162,6 +165,9 @@ class TestService:
             "svs_core.docker.service.DockerContainerManager.create_container",
             return_value=mock_container,
         )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
 
         # Mock volume generation
         mock_volume_path = mocker.MagicMock()
@@ -234,6 +240,9 @@ class TestService:
             "svs_core.docker.service.DockerContainerManager.create_container",
             return_value=mock_container,
         )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
 
         mock_volume_path = mocker.MagicMock()
         mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
@@ -280,6 +289,9 @@ class TestService:
         mock_create_container = mocker.patch(
             "svs_core.docker.service.DockerContainerManager.create_container",
             return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
         )
 
         mock_volume_path = mocker.MagicMock()
@@ -329,6 +341,9 @@ class TestService:
             "svs_core.docker.service.DockerContainerManager.create_container",
             return_value=mock_container,
         )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
 
         mock_volume_path = mocker.MagicMock()
         mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
@@ -377,6 +392,9 @@ class TestService:
         mock_create_container = mocker.patch(
             "svs_core.docker.service.DockerContainerManager.create_container",
             return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
         )
 
         mock_volume_path = mocker.MagicMock()
@@ -429,6 +447,9 @@ class TestService:
         mock_get_container = mocker.patch(
             "svs_core.docker.service.DockerContainerManager.get_container",
             return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
         )
 
         # Create the service
@@ -486,6 +507,9 @@ class TestService:
             "svs_core.docker.service.DockerContainerManager.get_container",
             return_value=mock_container,
         )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
 
         # Mock logs output
         log_content = b"2025-01-01T10:00:00Z Starting service...\n2025-01-01T10:00:01Z Service ready\n"
@@ -532,6 +556,9 @@ class TestService:
             "svs_core.docker.service.DockerContainerManager.get_container",
             return_value=mock_container,
         )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
 
         # Mock logs output
         log_content = b"Log line 1\nLog line 2\nLog line 3\n"
@@ -564,6 +591,9 @@ class TestService:
         test_user: User,
     ) -> None:
         mocker.patch("svs_core.docker.service.DockerContainerManager.create_container")
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
         # Create service but manually clear container_id to simulate edge case
         service = Service.objects.create(
             name="no-container-id-service",
@@ -598,6 +628,9 @@ class TestService:
             "svs_core.docker.service.DockerContainerManager.get_container",
             return_value=None,
         )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
 
         # Create service
         service = Service.create(
@@ -630,6 +663,9 @@ class TestService:
         mock_get_container = mocker.patch(
             "svs_core.docker.service.DockerContainerManager.get_container",
             return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
         )
 
         # Mock empty logs
