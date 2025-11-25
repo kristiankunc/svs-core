@@ -1,37 +1,142 @@
 {% extends "base.html" %}
 {% block title %}{{ service.name }} - Logs - My Site{% endblock %}
 {% block content %}
-    <div class="row mb-4">
-        <div class="col">
-            <a href="{% url 'detail_service' service.id %}"
-               class="btn btn-outline-secondary mb-3">← Back to Service</a>
-            <h1>{{ service.name }}</h1>
-            <p class="text-muted">
-                <span class="badge bg-secondary">Logs</span>
-            </p>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Service Logs</h5>
-                </div>
-                <div class="card-body">
-                    {% if logs %}
-                        <pre class="bg-dark text-light p-3 rounded"
-                             style="max-height: 600px;
-                                    overflow-y: auto;
-                                    font-family: 'Courier New', monospace;
-                                    font-size: 0.9rem">{{ logs }}</pre>
-                    {% else %}
-                        <div class="alert alert-info" role="alert">No logs available for this service.</div>
-                    {% endif %}
-                </div>
-                <div class="card-footer">
-                    <p class="text-muted mb-0">Last updated: {% now "d. m. Y H:i:s" %}</p>
+    <div x-data="logsReload()">
+        <div class="row mb-4">
+            <div class="col">
+                <a href="{% url 'detail_service' service.id %}"
+                   class="btn btn-outline-secondary mb-3">← Back to Service</a>
+                <h1>{{ service.name }}</h1>
+                <p class="text-muted">
+                    <span class="badge bg-secondary">Logs</span>
+                </p>
+            </div>
+            <div class="col-auto">
+                <div class="btn-group" role="group">
+                    <button type="button"
+                            class="btn btn-sm"
+                            :class="isAutoReload ? 'btn-success' : 'btn-outline-success'"
+                            @click="toggleAutoReload">
+                        <span x-show="!isAutoReload">Enable Auto-Reload</span>
+                        <span x-show="isAutoReload">Auto-Reload: On</span>
+                    </button>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-primary"
+                            @click="refreshLogs">
+                        <span x-show="!isLoading">Refresh</span>
+                        <span x-show="isLoading">
+                            <span class="spinner-border spinner-border-sm me-1"
+                                  role="status"
+                                  aria-hidden="true"></span>
+                            Loading...
+                        </span>
+                    </button>
                 </div>
             </div>
         </div>
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Service Logs</h5>
+                        <small class="text-muted">
+                            Last updated: <span x-text="lastUpdated"></span>
+                        </small>
+                    </div>
+                    <div class="card-body">
+                        {% if logs %}
+                            <pre class="bg-dark text-light p-3 rounded"
+                                 style="max-height: 600px;
+                                        overflow-y: auto;
+                                        font-family: 'Courier New', monospace;
+                                        font-size: 0.9rem"
+                                 x-html="logs">{{ logs }}</pre>
+                        {% else %}
+                            <div class="alert alert-info" role="alert">No logs available for this service.</div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <p class="text-muted mb-0">
+                            <span x-show="isAutoReload">
+                                Auto-refreshing every <span x-text="refreshInterval / 1000"></span> seconds
+                            </span>
+                            <span x-show="!isAutoReload">Manual refresh only</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+        function logsReload() {
+            return {
+                logs: `{{ logs|escapejs }}`,
+                lastUpdated: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
+                isAutoReload: false,
+                isLoading: false,
+                refreshInterval: 3000,
+                autoRefreshTimer: null,
+                serviceId: {{ service.id }},
+                formatTimestamp(isoString) {
+                    const date = new Date(isoString);
+                    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                },
+                async refreshLogs() {
+                    this.isLoading = true;
+                    try {
+                        const response = await fetch(window.location.href, {
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            this.logs = data.logs;
+
+                            // Update last updated time from server
+                            console.log('Fetched timestamp:', data.timestamp);
+                            if (data.timestamp) {
+                                this.lastUpdated = this.formatTimestamp(data.timestamp);
+                            }
+                        } else {
+                            console.error('Failed to fetch logs:', data.error);
+                        }
+                    } catch (error) {
+                        console.error('Failed to refresh logs:', error);
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+                toggleAutoReload() {
+                    this.isAutoReload = !this.isAutoReload;
+
+                    if (this.isAutoReload) {
+                        // Start auto-refresh immediately, then every interval
+                        this.refreshLogs();
+                        this.autoRefreshTimer = setInterval(() => this.refreshLogs(), this.refreshInterval);
+                    } else {
+                        // Stop auto-refresh
+                        if (this.autoRefreshTimer) {
+                            clearInterval(this.autoRefreshTimer);
+                            this.autoRefreshTimer = null;
+                        }
+                    }
+                },
+                init() {
+                    // Cleanup interval on page unload
+                    window.addEventListener('beforeunload', () => {
+                        if (this.autoRefreshTimer) {
+                            clearInterval(this.autoRefreshTimer);
+                        }
+                    });
+                }
+            };
+        }
+        </script>
     </div>
 {% endblock %}
