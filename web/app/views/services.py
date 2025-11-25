@@ -1,4 +1,4 @@
-from django.http import HttpRequest
+from django.http import HttpRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path
 from django.utils.timezone import now
@@ -149,13 +149,33 @@ def delete(request: HttpRequest, service_id: int):
 
 
 def view_logs(request: HttpRequest, service_id: int):
-    """View service logs."""
+    """View service logs.
+
+    Returns JSON if Accept header contains 'application/json', otherwise
+    HTML.
+    """
     service = get_object_or_404(Service, id=service_id)
 
     if not is_owner_or_admin(request, service):
         return redirect("detail_service", service_id=service.id)
 
-    logs = service.get_logs()
+    try:
+        logs = service.get_logs()
+    except Exception as e:
+        logs = f"Error fetching logs: {str(e)}"
+
+    # Check if client wants JSON
+    accept_header = request.headers.get("Accept", "")
+    if "application/json" in accept_header:
+        return JsonResponse(
+            {
+                "success": True,
+                "logs": logs,
+                "timestamp": now().isoformat(),
+            }
+        )
+
+    # Return HTML
     return render(request, "services/logs.html", {"service": service, "logs": logs})
 
 

@@ -532,7 +532,7 @@ class Service(ServiceModel):
         if not container:
             raise ValueError(f"Container with ID {self.container_id} not found")
 
-        get_logger(__name__).info(
+        get_logger(__name__).debug(
             f"Retrieving logs for service '{self.name}' with container ID '{self.container_id}'"
         )
 
