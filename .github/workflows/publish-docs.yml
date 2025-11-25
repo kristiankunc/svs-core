@@ -34,7 +34,7 @@ jobs:
 
       - name: Compile CLI docs
         run: |
-          python docs/compile-cli.py
+          ENVIRONMENT=testing python docs/compile-cli.py
 
       - name: Tree the docs directory
         run: |
