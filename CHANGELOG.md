@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.0](https://github.com/kristiankunc/svs-core/compare/v0.6.2...v0.7.0) (2025-11-25)
+
+
+### Features
+
+* Add service building ([#100](https://github.com/kristiankunc/svs-core/issues/100)) ([2483706](https://github.com/kristiankunc/svs-core/commit/24837066c05233ce9b1d049e4369ebf79fddcb10))
+
+
+### Bug Fixes
+
+* Improve install script ([03f381e](https://github.com/kristiankunc/svs-core/commit/03f381eeef517e42cf56eea3715590b060c3f8b5))
+* Test install script ([#107](https://github.com/kristiankunc/svs-core/issues/107)) ([fb3ab9a](https://github.com/kristiankunc/svs-core/commit/fb3ab9a6869f752cd7d6aedea33a665bfede10da))
+
 ## [0.6.2](https://github.com/kristiankunc/svs-core/compare/v0.6.1...v0.6.2) (2025-11-13)
 
 
