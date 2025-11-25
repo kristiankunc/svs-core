@@ -91,7 +91,8 @@ def add_ssh_key(
 ) -> None:
     """Add an SSH key to a user's authorized_keys file."""
 
-    reject_if_not_admin()
+    if name != get_current_username():
+        reject_if_not_admin()
 
     user = User.objects.get(name=name)
     if not user:
@@ -109,7 +110,8 @@ def remove_ssh_key(
 ) -> None:
     """Remove an SSH key from a user's authorized_keys file."""
 
-    reject_if_not_admin()
+    if name != get_current_username():
+        reject_if_not_admin()
 
     user = User.objects.get(name=name)
     if not user:
