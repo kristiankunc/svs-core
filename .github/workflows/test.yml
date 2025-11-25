@@ -14,7 +14,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.head_ref != 'release-please-*'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -52,7 +52,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -110,7 +110,7 @@ jobs:
     if: github.event_name == 'pull_request' && github.head_ref != 'release-please-*'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Find previous comment
         id: find-comment
