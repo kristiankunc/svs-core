@@ -82,3 +82,41 @@ def list_users() -> None:
 
     typer.echo(f"👥 Total users: {len(users)}")
     typer.echo("\n".join(f"- {user}" for user in users))
+
+
+@app.command("add-ssh-key")
+def add_ssh_key(
+    name: str = typer.Argument(..., help="Username of the user"),
+    ssh_key: str = typer.Argument(..., help="SSH key to add to the user"),
+) -> None:
+    """Add an SSH key to a user's authorized_keys file."""
+
+    if name != get_current_username():
+        reject_if_not_admin()
+
+    user = User.objects.get(name=name)
+    if not user:
+        typer.echo("❌ User not found.", err=True)
+        return
+
+    user.add_ssh_key(ssh_key)
+    typer.echo(f"✅ SSH key added to user '{user.name}'.")
+
+
+@app.command("remove-ssh-key")
+def remove_ssh_key(
+    name: str = typer.Argument(..., help="Username of the user"),
+    ssh_key: str = typer.Argument(..., help="SSH key to remove from the user"),
+) -> None:
+    """Remove an SSH key from a user's authorized_keys file."""
+
+    if name != get_current_username():
+        reject_if_not_admin()
+
+    user = User.objects.get(name=name)
+    if not user:
+        typer.echo("❌ User not found.", err=True)
+        return
+
+    user.remove_ssh_key(ssh_key)
+    typer.echo(f"✅ SSH key removed from user '{user.name}'.")
