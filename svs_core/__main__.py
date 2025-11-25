@@ -15,7 +15,7 @@ from svs_core.shared.logger import get_logger
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "svs_core.db.settings"
 
-if not EnvManager.get_runtime_environment() != EnvManager.RuntimeEnvironment.TESTING:
+if EnvManager.get_runtime_environment() != EnvManager.RuntimeEnvironment.TESTING:
     EnvManager.load_env_file()
 
 django.setup()
