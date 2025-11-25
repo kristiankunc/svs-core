@@ -15,7 +15,9 @@ class TestSystemUser:
         SystemUserManager.create_user(username, password)
 
         assert mock_run_command.call_count == 2
-        mock_run_command.assert_any_call(f"sudo useradd -m {username}", check=True)
+        mock_run_command.assert_any_call(
+            f"sudo useradd -m -s /bin/bash {username}", check=True
+        )
         mock_run_command.assert_any_call(
             f"echo '{username}:{password}' | sudo chpasswd", check=True
         )
@@ -29,7 +31,9 @@ class TestSystemUser:
         SystemUserManager.create_user(username, password, admin=True)
 
         assert mock_run_command.call_count == 3
-        mock_run_command.assert_any_call(f"sudo useradd -m {username}", check=True)
+        mock_run_command.assert_any_call(
+            f"sudo useradd -m -s /bin/bash {username}", check=True
+        )
         mock_run_command.assert_any_call(
             f"echo '{username}:{password}' | sudo chpasswd", check=True
         )
