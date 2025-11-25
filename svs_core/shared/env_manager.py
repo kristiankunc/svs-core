@@ -34,6 +34,8 @@ class EnvManager:
     def load_env_file() -> None:
         """Loads environment variables from the .env file.
 
+        System and provided environment variables take precedence over .env file values.
+
         Raises:
             FileNotFoundError: If the .env file does not exist.
         """
@@ -50,7 +52,9 @@ class EnvManager:
         for line in content.splitlines():
             if line.strip() and not line.startswith("#"):
                 key, _, value = line.partition("=")
-                os.environ[key.strip()] = value.strip().replace('"', "")
+                key_stripped = key.strip()
+                if key_stripped not in os.environ:
+                    os.environ[key_stripped] = value.strip().replace('"', "")
 
     @staticmethod
     def _get(key: EnvVariables) -> str | None:
