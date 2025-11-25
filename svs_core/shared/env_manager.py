@@ -77,8 +77,12 @@ class EnvManager:
             EnvManager.RuntimeEnvironment: The current runtime environment.
         """
         env_value = EnvManager._get(EnvManager.EnvVariables.ENVIRONMENT)
-        if env_value and env_value.lower() == "development":
-            return EnvManager.RuntimeEnvironment.DEVELOPMENT
+        if env_value:
+            env_lower = env_value.lower()
+            if env_lower == EnvManager.RuntimeEnvironment.DEVELOPMENT.value:
+                return EnvManager.RuntimeEnvironment.DEVELOPMENT
+            if env_lower == EnvManager.RuntimeEnvironment.TESTING.value:
+                return EnvManager.RuntimeEnvironment.TESTING
         return EnvManager.RuntimeEnvironment.PRODUCTION
 
     @staticmethod
