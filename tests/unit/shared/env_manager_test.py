@@ -105,7 +105,7 @@ class TestEnvManager:
         mock_path.exists.return_value = True
         mocker.patch("svs_core.shared.env_manager.EnvManager.ENV_FILE_PATH", mock_path)
         mocker.patch("svs_core.shared.env_manager.read_file", return_value=env_content)
-        mock_environ = mocker.patch.dict(os.environ, {})
+        mocker.patch.dict(os.environ, {}, clear=True)
 
         EnvManager.load_env_file()
 
