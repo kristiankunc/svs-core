@@ -162,7 +162,7 @@ EOL"
     fi
 
     # start the compose stack as daemon and wait for db to be ready
-    sudo docker-compose -f $compose_path --env-file $stack_env_path up -d
+    sudo docker compose -f $compose_path --env-file $stack_env_path up -d
     echo "Waiting for PostgreSQL to be ready..."
     until sudo docker exec svs-db pg_isready -U $POSTGRES_USER; do
         sleep 2
@@ -170,14 +170,15 @@ EOL"
 
     env_path="/etc/svs/.env"
     if [ -f "$env_path" ]; then
-        echo "✅ $env_path already exists."
-    else
-        sudo touch "$env_path"
-        sudo chmod 640 "$env_path"
-        sudo chown svs:svs-admins "$env_path"
-        sudo bash -c "echo DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB > $env_path"
-        echo "✅ $env_path created with DATABASE_URL."
+        echo "✅ $env_path already exists, removing"
+        sudo rm "$env_path"
     fi
+
+    sudo touch "$env_path"
+    sudo chmod 640 "$env_path"
+    sudo chown svs:svs-admins "$env_path"
+    sudo bash -c "echo DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB > $env_path"
+    echo "✅ $env_path created with DATABASE_URL."
 }
 
 storage_setup() {
@@ -208,7 +209,7 @@ django_migrations() {
 
     DATABASE_URL=$(sudo cat /etc/svs/.env | grep DATABASE_URL | cut -d '=' -f2-)
 
-    if  DATABASE_URL="$DATABASE_URL" $python_path -m django migrate svs_core; then
+    if DATABASE_URL="$DATABASE_URL" $python_path -m django migrate svs_core; then
         echo "✅ Django migrations completed."
     else
         echo "❌ Failed to run Django migrations."
@@ -221,7 +222,10 @@ create_admin_user() {
 
     if [ -n "$admin_user" ] && [ -n "$admin_password" ]; then
         # User and password provided via command line
-        if $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup(username='$admin_user', password='$admin_password')"; then
+
+        DATABASE_URL=$(sudo cat /etc/svs/.env | grep DATABASE_URL | cut -d '=' -f2-)
+
+        if DATABASE_URL="$DATABASE_URL" $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup(username='$admin_user', password='$admin_password')"; then
             echo "✅ Admin user '$admin_user' created."
         else
             echo "❌ Failed to create admin user."
@@ -229,7 +233,7 @@ create_admin_user() {
         fi
     else
         # Interactive mode (original behavior)
-        if $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup()"; then
+        if DATABASE_URL="$DATABASE_URL" $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup()"; then
             echo "✅ Admin user created (or already exists)."
         else
             echo "❌ Failed to create admin user."

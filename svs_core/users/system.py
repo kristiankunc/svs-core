@@ -10,15 +10,18 @@ class SystemUserManager:
     """Class for managing system users."""
 
     @staticmethod
-    def create_user(username: str, password: str, admin: bool = False) -> None:
+    def create_user(
+        username: str, password: str, admin: bool = False, shell_path: str = "/bin/bash"
+    ) -> None:
         """Creates a system user with the given username and password.
 
         Args:
             username (str): The username for the new system user.
             password (str): The password for the new system user.
             admin (bool, optional): Whether to add the user to the admin group. Defaults to False.
+            shell_path (str, optional): The login shell for the new user. Defaults to "/bin/bash".
         """
-        run_command(f"sudo useradd -m {username}", check=True)
+        run_command(f"sudo useradd -m -s {shell_path} {username}", check=True)
         run_command(f"echo '{username}:{password}' | sudo chpasswd", check=True)
         # run_command(f"sudo usermod -aG svs-users {username}", check=True)
 
@@ -55,21 +58,86 @@ class SystemUserManager:
 
     @staticmethod
     def get_system_username() -> str:
-        """Returns the username of the user who initiated the session.
+        """Returns the username of whoever invoked the process.
 
-        Attempts to grab the user if ran by sudo.
+        If run via sudo, returns the *invoking* user, not root.
         """
+
+        # If inside sudo, trust sudo’s own variables
+        sudo_user = os.environ.get("SUDO_USER")
+        if sudo_user:
+            return sudo_user
+
+        # Otherwise, return the actual effective user
+        try:
+            return pwd.getpwuid(os.geteuid()).pw_name
+        except Exception:
+            pass
 
         try:
             return os.getlogin()
-        except OSError:
-            if "SUDO_USER" in os.environ:
-                return os.environ["SUDO_USER"]
+        except Exception:
+            pass
 
-            try:
-                return pwd.getpwuid(os.getuid()).pw_name
-            except Exception:
-                return getpass.getuser()
+        return getpass.getuser()
 
-        except Exception as e:
-            raise RuntimeError("Failed to get current user") from e
+    @staticmethod
+    def add_ssh_key_to_user(username: str, ssh_key: str) -> None:
+        """Adds an SSH public key to the specified user's authorized_keys.
+
+        Args:
+            username (str): The username of the system user.
+            ssh_key (str): The SSH public key to add.
+        """
+        user_info = pwd.getpwnam(username)
+        ssh_dir = os.path.join(user_info.pw_dir, ".ssh")
+        authorized_keys_file = os.path.join(ssh_dir, "authorized_keys")
+
+        run_command(f"sudo mkdir -p {ssh_dir}", check=True)
+        run_command(f"sudo chown {username}:{username} {ssh_dir}", check=True)
+        run_command(f"sudo chmod 700 {ssh_dir}", check=True)
+
+        with open("/tmp/temp_authorized_keys", "w") as temp_file:
+            temp_file.write(ssh_key + "\n")
+
+        run_command(
+            f"sudo bash -c 'cat /tmp/temp_authorized_keys >> {authorized_keys_file}'",
+            check=True,
+        )
+
+        run_command(
+            f"sudo chown {username}:{username} {authorized_keys_file}", check=True
+        )
+        run_command(f"sudo chmod 600 {authorized_keys_file}", check=True)
+        run_command("sudo rm /tmp/temp_authorized_keys", check=True)
+
+        get_logger(__name__).info(f"Added SSH key to {username}'s authorized_keys")
+
+    @staticmethod
+    def remove_ssh_key_from_user(username: str, ssh_key: str) -> None:
+        """Removes an SSH public key from the specified user's authorized_keys.
+
+        Args:
+            username (str): The username of the system user.
+            ssh_key (str): The SSH public key to remove.
+        """
+        user_info = pwd.getpwnam(username)
+        authorized_keys_file = os.path.join(user_info.pw_dir, ".ssh", "authorized_keys")
+
+        temp_file_path = "/tmp/temp_authorized_keys_remove"
+
+        with open("/tmp/temp_key_to_remove", "w") as temp_key_file:
+            temp_key_file.write(ssh_key)
+
+        run_command(
+            f"sudo grep -v -f /tmp/temp_key_to_remove {authorized_keys_file} > {temp_file_path}",
+            check=False,
+        )
+        run_command(f"sudo mv {temp_file_path} {authorized_keys_file}", check=True)
+        run_command(
+            f"sudo chown {username}:{username} {authorized_keys_file}", check=True
+        )
+        run_command(f"sudo chmod 600 {authorized_keys_file}", check=True)
+        run_command("sudo rm /tmp/temp_key_to_remove", check=True)
+
+        get_logger(__name__).info(f"Removed SSH key from {username}'s authorized_keys")

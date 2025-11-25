@@ -7,6 +7,11 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://pre-commit.com/)
 [![Release Please](https://img.shields.io/badge/release--please-automated-blue)](https://github.com/googleapis/release-please)
 
+CI:
+
+[![Publish docs](https://github.com/kristiankunc/svs-core/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/kristiankunc/svs-core/actions/workflows/publish-docs.yml)
+[![Publish Python Package](https://github.com/kristiankunc/svs-core/actions/workflows/publish.yml/badge.svg?event=release)](https://github.com/kristiankunc/svs-core/actions/workflows/publish.yml)
+[![Test](https://github.com/kristiankunc/svs-core/actions/workflows/test.yml/badge.svg)](https://github.com/kristiankunc/svs-core/actions/workflows/test.yml)
 ## Goals
 
 The goal of this project is to provide a simple and easy-to-use library for managing self-hosted services on a linux server. It is designed to be used by developers who want to automate the management of their self-hosted services, such as web servers, databases, and other applications.
@@ -30,7 +35,7 @@ Currently, the library is in early development and has the following features:
 
 - [x] User management
 - [x] Docker network management
-- [ ] Service management
+- [x] Service management
 - [x] Service templates
 - [ ] CI/CD integration
 - [ ] DB/System sync issues + recovery

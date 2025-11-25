@@ -165,5 +165,23 @@ class User(UserModel):
         """
         return SystemUserManager.is_user_in_group(self.name, "svs-admins")
 
+    def add_ssh_key(self, ssh_key: str) -> None:
+        """Adds an SSH key to the user's authorized_keys file.
+
+        Args:
+            ssh_key (str): The SSH key to add.
+        """
+
+        SystemUserManager.add_ssh_key_to_user(self.name, ssh_key)
+
+    def remove_ssh_key(self, ssh_key: str) -> None:
+        """Removes an SSH key from the user's authorized_keys file.
+
+        Args:
+            ssh_key (str): The SSH key to remove.
+        """
+
+        SystemUserManager.remove_ssh_key_from_user(self.name, ssh_key)
+
     def __str__(self) -> str:
         return f"User(id={self.id}, name={self.name}, is_admin={self.is_admin()})"

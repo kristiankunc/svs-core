@@ -263,3 +263,277 @@ class TestUserCommands:
 
         assert result.exit_code == 0
         assert "No users found." in result.output
+
+    # Add SSH key command tests
+    def test_add_ssh_key_without_admin_rights(self, mocker: MockerFixture) -> None:
+        mock_admin_check = mocker.patch(
+            "svs_core.cli.user.reject_if_not_admin", side_effect=SystemExit(1)
+        )
+
+        result = self.runner.invoke(
+            app,
+            [
+                "user",
+                "add-ssh-key",
+                "testuser",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        assert mock_admin_check.called
+        assert result.exit_code == 1
+
+    def test_add_ssh_key_user_not_found(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_get.return_value = None
+
+        result = self.runner.invoke(
+            app,
+            [
+                "user",
+                "add-ssh-key",
+                "non_existing_user",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "❌ User not found." in result.output
+
+    def test_add_ssh_key_success(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "testuser"
+        mock_user.add_ssh_key = mocker.MagicMock()
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            [
+                "user",
+                "add-ssh-key",
+                "testuser",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "✅ SSH key added to user 'testuser'." in result.output
+        mock_user.add_ssh_key.assert_called_once_with(
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz"
+        )
+
+    # Remove SSH key command tests
+    def test_remove_ssh_key_without_admin_rights(self, mocker: MockerFixture) -> None:
+        mock_admin_check = mocker.patch(
+            "svs_core.cli.user.reject_if_not_admin", side_effect=SystemExit(1)
+        )
+
+        result = self.runner.invoke(
+            app,
+            [
+                "user",
+                "remove-ssh-key",
+                "testuser",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        assert mock_admin_check.called
+        assert result.exit_code == 1
+
+    def test_remove_ssh_key_user_not_found(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_get.return_value = None
+
+        result = self.runner.invoke(
+            app,
+            [
+                "user",
+                "remove-ssh-key",
+                "non_existing_user",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "❌ User not found." in result.output
+
+    def test_remove_ssh_key_success(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "testuser"
+        mock_user.remove_ssh_key = mocker.MagicMock()
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            [
+                "user",
+                "remove-ssh-key",
+                "testuser",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "✅ SSH key removed from user 'testuser'." in result.output
+        mock_user.remove_ssh_key.assert_called_once_with(
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz"
+        )
+
+    def test_add_ssh_key_displays_user_name_from_db(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that add-ssh-key displays the user's name from DB, not the CLI
+        argument."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "actual_name_from_db"  # Different from CLI argument
+        mock_user.add_ssh_key = mocker.MagicMock()
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            [
+                "user",
+                "add-ssh-key",
+                "cli_argument_name",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "✅ SSH key added to user 'actual_name_from_db'." in result.output
+
+    def test_remove_ssh_key_displays_user_name_from_db(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that remove-ssh-key displays the user's name from DB, not the
+        CLI argument."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "actual_name_from_db"  # Different from CLI argument
+        mock_user.remove_ssh_key = mocker.MagicMock()
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            [
+                "user",
+                "remove-ssh-key",
+                "cli_argument_name",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "✅ SSH key removed from user 'actual_name_from_db'." in result.output
+
+    def test_add_ssh_key_calls_get_with_cli_argument(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that add-ssh-key passes the CLI argument to User.objects.get,
+        not the DB name."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "db_name"
+        mock_user.add_ssh_key = mocker.MagicMock()
+        mock_get.return_value = mock_user
+
+        self.runner.invoke(
+            app,
+            [
+                "user",
+                "add-ssh-key",
+                "cli_arg",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        mock_get.assert_called_once_with(name="cli_arg")
+
+    def test_remove_ssh_key_calls_get_with_cli_argument(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that remove-ssh-key passes the CLI argument to
+        User.objects.get, not the DB name."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "db_name"
+        mock_user.remove_ssh_key = mocker.MagicMock()
+        mock_get.return_value = mock_user
+
+        self.runner.invoke(
+            app,
+            [
+                "user",
+                "remove-ssh-key",
+                "cli_arg",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        mock_get.assert_called_once_with(name="cli_arg")
+
+    def test_add_ssh_key_error_handling_on_method_call(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that exceptions from add_ssh_key method are not caught by the
+        CLI."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "testuser"
+        mock_user.add_ssh_key = mocker.MagicMock(
+            side_effect=Exception("SSH key operation failed")
+        )
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            [
+                "user",
+                "add-ssh-key",
+                "testuser",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        # Exception should propagate and cause non-zero exit
+        assert result.exit_code != 0
+
+    def test_remove_ssh_key_error_handling_on_method_call(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that exceptions from remove_ssh_key method are not caught by
+        the CLI."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "testuser"
+        mock_user.remove_ssh_key = mocker.MagicMock(
+            side_effect=Exception("SSH key operation failed")
+        )
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            [
+                "user",
+                "remove-ssh-key",
+                "testuser",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
+            ],
+        )
+
+        # Exception should propagate and cause non-zero exit
+        assert result.exit_code != 0

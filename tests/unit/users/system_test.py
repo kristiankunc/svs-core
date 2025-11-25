@@ -15,7 +15,9 @@ class TestSystemUser:
         SystemUserManager.create_user(username, password)
 
         assert mock_run_command.call_count == 2
-        mock_run_command.assert_any_call(f"sudo useradd -m {username}", check=True)
+        mock_run_command.assert_any_call(
+            f"sudo useradd -m -s /bin/bash {username}", check=True
+        )
         mock_run_command.assert_any_call(
             f"echo '{username}:{password}' | sudo chpasswd", check=True
         )
@@ -29,7 +31,9 @@ class TestSystemUser:
         SystemUserManager.create_user(username, password, admin=True)
 
         assert mock_run_command.call_count == 3
-        mock_run_command.assert_any_call(f"sudo useradd -m {username}", check=True)
+        mock_run_command.assert_any_call(
+            f"sudo useradd -m -s /bin/bash {username}", check=True
+        )
         mock_run_command.assert_any_call(
             f"echo '{username}:{password}' | sudo chpasswd", check=True
         )
@@ -80,22 +84,128 @@ class TestSystemUser:
 
     @pytest.mark.unit
     def test_get_system_username_with_sudo(self, mocker: MockerFixture) -> None:
-        mocker.patch.dict("os.environ", {"SUDO_USER": "sudo_user"})
-        mock_getlogin = mocker.patch(
-            "svs_core.users.system.os.getlogin", side_effect=OSError
+        mock_pwd = mocker.MagicMock()
+        mock_pwd.pw_name = "sudo_user"
+        mock_getpwuid = mocker.patch(
+            "svs_core.users.system.pwd.getpwuid", return_value=mock_pwd
         )
 
         username = SystemUserManager.get_system_username()
-        mock_getlogin.assert_called_once()
+        mock_getpwuid.assert_called_once()
+        assert username == "sudo_user"
         assert username == "sudo_user"
 
     @pytest.mark.unit
     def test_get_system_username_without_sudo(self, mocker: MockerFixture) -> None:
-        mocker.patch.dict("os.environ", {})
-        mock_getlogin = mocker.patch(
-            "svs_core.users.system.os.getlogin", return_value="normal_user"
+        mock_pwd = mocker.MagicMock()
+        mock_pwd.pw_name = "normal_user"
+        mock_getpwuid = mocker.patch(
+            "svs_core.users.system.pwd.getpwuid", return_value=mock_pwd
         )
 
         username = SystemUserManager.get_system_username()
-        mock_getlogin.assert_called_once()
+        mock_getpwuid.assert_called_once()
         assert username == "normal_user"
+
+    @pytest.mark.unit
+    def test_add_ssh_key_to_user(self, mocker: MockerFixture) -> None:
+        mock_run_command = mocker.patch("svs_core.users.system.run_command")
+        mock_pwd_struct = mocker.MagicMock()
+        mock_pwd_struct.pw_dir = "/home/testuser"
+        mocker.patch("svs_core.users.system.pwd.getpwnam", return_value=mock_pwd_struct)
+        mocker.patch("builtins.open", mocker.mock_open())
+
+        username = "testuser"
+        ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz"
+
+        SystemUserManager.add_ssh_key_to_user(username, ssh_key)
+
+        assert mock_run_command.call_count == 7
+        mock_run_command.assert_any_call(
+            "sudo mkdir -p /home/testuser/.ssh", check=True
+        )
+        mock_run_command.assert_any_call(
+            "sudo chown testuser:testuser /home/testuser/.ssh", check=True
+        )
+        mock_run_command.assert_any_call(
+            "sudo chmod 700 /home/testuser/.ssh", check=True
+        )
+        mock_run_command.assert_any_call(
+            "sudo bash -c 'cat /tmp/temp_authorized_keys >> /home/testuser/.ssh/authorized_keys'",
+            check=True,
+        )
+        mock_run_command.assert_any_call(
+            "sudo chown testuser:testuser /home/testuser/.ssh/authorized_keys",
+            check=True,
+        )
+        mock_run_command.assert_any_call(
+            "sudo chmod 600 /home/testuser/.ssh/authorized_keys", check=True
+        )
+        mock_run_command.assert_any_call(
+            "sudo rm /tmp/temp_authorized_keys", check=True
+        )
+
+    @pytest.mark.unit
+    def test_add_ssh_key_to_user_writes_temp_file(self, mocker: MockerFixture) -> None:
+        mock_run_command = mocker.patch("svs_core.users.system.run_command")
+        mock_pwd_struct = mocker.MagicMock()
+        mock_pwd_struct.pw_dir = "/home/testuser"
+        mocker.patch("svs_core.users.system.pwd.getpwnam", return_value=mock_pwd_struct)
+        mock_open = mocker.patch("builtins.open", mocker.mock_open())
+
+        username = "testuser"
+        ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz"
+
+        SystemUserManager.add_ssh_key_to_user(username, ssh_key)
+
+        mock_open.assert_called_once_with("/tmp/temp_authorized_keys", "w")
+        mock_open().write.assert_called_once_with(ssh_key + "\n")
+
+    @pytest.mark.unit
+    def test_remove_ssh_key_from_user(self, mocker: MockerFixture) -> None:
+        mock_run_command = mocker.patch("svs_core.users.system.run_command")
+        mock_pwd_struct = mocker.MagicMock()
+        mock_pwd_struct.pw_dir = "/home/testuser"
+        mocker.patch("svs_core.users.system.pwd.getpwnam", return_value=mock_pwd_struct)
+        mocker.patch("builtins.open", mocker.mock_open())
+
+        username = "testuser"
+        ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz"
+
+        SystemUserManager.remove_ssh_key_from_user(username, ssh_key)
+
+        assert mock_run_command.call_count == 5
+        mock_run_command.assert_any_call(
+            "sudo grep -v -f /tmp/temp_key_to_remove /home/testuser/.ssh/authorized_keys > /tmp/temp_authorized_keys_remove",
+            check=False,
+        )
+        mock_run_command.assert_any_call(
+            "sudo mv /tmp/temp_authorized_keys_remove /home/testuser/.ssh/authorized_keys",
+            check=True,
+        )
+        mock_run_command.assert_any_call(
+            "sudo chown testuser:testuser /home/testuser/.ssh/authorized_keys",
+            check=True,
+        )
+        mock_run_command.assert_any_call(
+            "sudo chmod 600 /home/testuser/.ssh/authorized_keys", check=True
+        )
+        mock_run_command.assert_any_call("sudo rm /tmp/temp_key_to_remove", check=True)
+
+    @pytest.mark.unit
+    def test_remove_ssh_key_from_user_writes_temp_file(
+        self, mocker: MockerFixture
+    ) -> None:
+        mock_run_command = mocker.patch("svs_core.users.system.run_command")
+        mock_pwd_struct = mocker.MagicMock()
+        mock_pwd_struct.pw_dir = "/home/testuser"
+        mocker.patch("svs_core.users.system.pwd.getpwnam", return_value=mock_pwd_struct)
+        mock_open = mocker.patch("builtins.open", mocker.mock_open())
+
+        username = "testuser"
+        ssh_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz"
+
+        SystemUserManager.remove_ssh_key_from_user(username, ssh_key)
+
+        mock_open.assert_called_once_with("/tmp/temp_key_to_remove", "w")
+        mock_open().write.assert_called_once_with(ssh_key)
