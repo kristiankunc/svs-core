@@ -10,15 +10,18 @@ class SystemUserManager:
     """Class for managing system users."""
 
     @staticmethod
-    def create_user(username: str, password: str, admin: bool = False) -> None:
+    def create_user(
+        username: str, password: str, admin: bool = False, shell_path: str = "/bin/bash"
+    ) -> None:
         """Creates a system user with the given username and password.
 
         Args:
             username (str): The username for the new system user.
             password (str): The password for the new system user.
             admin (bool, optional): Whether to add the user to the admin group. Defaults to False.
+            shell_path (str, optional): The login shell for the new user. Defaults to "/bin/bash".
         """
-        run_command(f"sudo useradd -m {username}", check=True)
+        run_command(f"sudo useradd -m -s {shell_path} {username}", check=True)
         run_command(f"echo '{username}:{password}' | sudo chpasswd", check=True)
         # run_command(f"sudo usermod -aG svs-users {username}", check=True)
 
