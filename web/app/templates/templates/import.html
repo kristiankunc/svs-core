@@ -9,24 +9,29 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-lg-8">
+        <div class="col-lg-8" x-data="templateImportData()">
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">Fetch from Remote URL</h5>
                 </div>
                 <div class="card-body">
-                    <form id="fetch-form" class="mb-3">
+                    <form class="mb-3" @submit.prevent="fetchTemplate">
                         {% csrf_token %}
                         <div class="input-group mb-3">
                             <input type="url"
                                    class="form-control"
-                                   id="remote_url"
+                                   x-model="remoteUrl"
+                                   @keypress.enter="fetchTemplate"
                                    placeholder="https://example.com/template.json"
                                    required>
-                            <button class="btn btn-outline-primary" type="button" id="fetch-btn">
-                                <span id="fetch-btn-text">Fetch</span>
-                                <span id="fetch-spinner"
-                                      class="spinner-border spinner-border-sm d-none ms-2"
+                            <button class="btn btn-outline-primary"
+                                    type="button"
+                                    @click="fetchTemplate"
+                                    :disabled="isLoading">
+                                <span x-show="!isLoading">Fetch</span>
+                                <span x-show="isLoading">Fetching...</span>
+                                <span x-show="isLoading"
+                                      class="spinner-border spinner-border-sm ms-2"
                                       role="status"
                                       aria-hidden="true"></span>
                             </button>
@@ -48,6 +53,7 @@
                                       id="json_data"
                                       name="json_data"
                                       rows="15"
+                                      x-model="jsonContent"
                                       placeholder='Paste your template JSON here or use the "Fetch" button above to load from a remote URL'
                                       required></textarea>
                             <small class="text-muted d-block mt-2">
@@ -97,67 +103,57 @@
         </div>
     </div>
     <script>
-        document.getElementById('fetch-btn').addEventListener('click', async function() {
-            const url = document.getElementById('remote_url').value.trim();
+        function templateImportData() {
+            return {
+                remoteUrl: '',
+                jsonContent: '',
+                isLoading: false,
+                async fetchTemplate() {
+                    const url = this.remoteUrl.trim();
 
-            if (!url) {
-                alert('Please enter a valid URL');
-                return;
-            }
+                    if (!url) {
+                        alert('Please enter a valid URL');
+                        return;
+                    }
 
-            const btn = this;
-            const btnText = document.getElementById('fetch-btn-text');
-            const spinner = document.getElementById('fetch-spinner');
-            const jsonDataField = document.getElementById('json_data');
+                    this.isLoading = true;
 
-            // Show loading state
-            btn.disabled = true;
-            btnText.textContent = 'Fetching...';
-            spinner.classList.remove('d-none');
+                    try {
+                        const response = await fetch(url);
 
-            try {
-                const response = await fetch(url);
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                        const text = await response.text();
+
+                        // Try to parse as JSON to validate
+                        JSON.parse(text);
+
+                        // Populate the textarea with formatted JSON
+                        this.jsonContent = JSON.stringify(JSON.parse(text), null, 2);
+
+                        // Scroll to the editor
+                        setTimeout(() => {
+                            document.getElementById('json_data').scrollIntoView({ behavior: 'smooth' });
+                            document.getElementById('json_data').focus();
+                        }, 0);
+
+                    } catch (error) {
+                        let errorMsg = 'Failed to fetch template from URL.';
+                        if (error instanceof SyntaxError) {
+                            errorMsg = 'Invalid JSON content received from URL.';
+                        } else if (error instanceof TypeError) {
+                            errorMsg = 'Could not fetch from URL. Check CORS and URL validity.';
+                        } else {
+                            errorMsg = error.message;
+                        }
+                        alert(errorMsg);
+                    } finally {
+                        this.isLoading = false;
+                    }
                 }
-
-                const text = await response.text();
-
-                // Try to parse as JSON to validate
-                JSON.parse(text);
-
-                // Populate the textarea with formatted JSON
-                jsonDataField.value = JSON.stringify(JSON.parse(text), null, 2);
-
-                // Scroll to the editor
-                jsonDataField.scrollIntoView({ behavior: 'smooth' });
-                jsonDataField.focus();
-
-            } catch (error) {
-                let errorMsg = 'Failed to fetch template from URL.';
-                if (error instanceof SyntaxError) {
-                    errorMsg = 'Invalid JSON content received from URL.';
-                } else if (error instanceof TypeError) {
-                    errorMsg = 'Could not fetch from URL. Check CORS and URL validity.';
-                } else {
-                    errorMsg = error.message;
-                }
-                alert(errorMsg);
-            } finally {
-                // Reset button state
-                btn.disabled = false;
-                btnText.textContent = 'Fetch';
-                spinner.classList.add('d-none');
-            }
-        });
-
-        // Allow Enter key to trigger fetch
-        document.getElementById('remote_url').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                document.getElementById('fetch-btn').click();
-            }
-        });
+            };
+        }
     </script>
 {% endblock %}

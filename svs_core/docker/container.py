@@ -3,7 +3,7 @@ from typing import Optional
 from docker.models.containers import Container
 
 from svs_core.docker.base import get_docker_client
-from svs_core.docker.json_properties import ExposedPort, Label, Volume
+from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
 from svs_core.shared.logger import get_logger
 
 
@@ -19,6 +19,7 @@ class DockerContainerManager:
         labels: list[Label] = [],
         ports: list[ExposedPort] | None = None,
         volumes: list[Volume] | None = None,
+        environment_variables: list[EnvVariable] | None = None,
     ) -> Container:
         """Create a Docker container.
 
@@ -30,6 +31,7 @@ class DockerContainerManager:
             labels (list[Label]): List of labels to assign to the container.
             ports (list[ExposedPort] | None): List of ports to expose.
             volumes (list[Volume] | None): List of volumes to mount.
+            environment_variables (list[EnvVariable] | None): List of environment variables to set.
 
         Returns:
             Container: The created Docker container instance.
@@ -52,6 +54,11 @@ class DockerContainerManager:
             for port in ports:
                 docker_ports[f"{port.container_port}/tcp"] = port.host_port
 
+        docker_env_vars = {}
+        if environment_variables:
+            for env_var in environment_variables:
+                docker_env_vars[env_var.key] = env_var.value
+
         volume_mounts: list[str] = []
         if volumes:
             for volume in volumes:
@@ -73,12 +80,26 @@ class DockerContainerManager:
             "labels": {label.key: label.value for label in labels},
             "ports": docker_ports or {},
             "volumes": volume_mounts or [],
+            "environment": docker_env_vars or {},
         }
 
         if full_command is not None:
             create_kwargs["command"] = full_command
 
         return client.containers.create(**create_kwargs)
+
+    @staticmethod
+    def connect_to_network(container: Container, network_name: str) -> None:
+        """Connect a Docker container to a specified network.
+
+        Args:
+            container (Container): The Docker container instance.
+            network_name (str): The name of the network to connect to.
+        """
+        client = get_docker_client()
+
+        network = client.networks.get(network_name)
+        network.connect(container)
 
     @staticmethod
     def get_container(container_id: str) -> Optional[Container]:

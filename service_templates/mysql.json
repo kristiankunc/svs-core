@@ -1,0 +1,38 @@
+{
+	"$schema": "https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/service_templates/schema.json",
+	"args": [],
+	"default_env": [
+		{
+			"key": "MYSQL_ROOT_PASSWORD",
+			"value": ""
+		}
+	],
+	"default_ports": [
+		{
+			"container": 3306,
+			"host": null
+		}
+	],
+	"default_volumes": [
+		{
+			"container": "/var/lib/mysql",
+			"host": null
+		}
+	],
+	"description": "MySQL database",
+	"healthcheck": {
+		"interval": 30,
+		"retries": 5,
+		"start_period": 20,
+		"test": [
+			"CMD",
+			"mysqladmin",
+			"ping"
+		],
+		"timeout": 10
+	},
+	"image": "mysql:latest",
+	"name": "mysql-database",
+	"start_cmd": null,
+	"type": "image"
+}
