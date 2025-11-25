@@ -85,12 +85,15 @@ This script will
 
 ### Test
 
+**As the install script creates a new user, you need to switch to that user to test the installation.** using `su <your_admin_user>` or prefix your commands with `sudo -u <your_admin_user>`
+
 Run
 ```bash
 sudo svs user list
 ```
 
 This should output your user.
+
 
 That's it. Head over to the [cli documentation](../cli.md) to get started with using the CLI.
 
