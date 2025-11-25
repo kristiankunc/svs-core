@@ -77,3 +77,64 @@ class SystemUserManager:
             pass
 
         return getpass.getuser()
+
+    @staticmethod
+    def add_ssh_key_to_user(username: str, ssh_key: str) -> None:
+        """Adds an SSH public key to the specified user's authorized_keys.
+
+        Args:
+            username (str): The username of the system user.
+            ssh_key (str): The SSH public key to add.
+        """
+        user_info = pwd.getpwnam(username)
+        ssh_dir = os.path.join(user_info.pw_dir, ".ssh")
+        authorized_keys_file = os.path.join(ssh_dir, "authorized_keys")
+
+        run_command(f"sudo mkdir -p {ssh_dir}", check=True)
+        run_command(f"sudo chown {username}:{username} {ssh_dir}", check=True)
+        run_command(f"sudo chmod 700 {ssh_dir}", check=True)
+
+        with open("/tmp/temp_authorized_keys", "w") as temp_file:
+            temp_file.write(ssh_key + "\n")
+
+        run_command(
+            f"sudo bash -c 'cat /tmp/temp_authorized_keys >> {authorized_keys_file}'",
+            check=True,
+        )
+
+        run_command(
+            f"sudo chown {username}:{username} {authorized_keys_file}", check=True
+        )
+        run_command(f"sudo chmod 600 {authorized_keys_file}", check=True)
+        run_command("sudo rm /tmp/temp_authorized_keys", check=True)
+
+        get_logger(__name__).info(f"Added SSH key to {username}'s authorized_keys")
+
+    @staticmethod
+    def remove_ssh_key_from_user(username: str, ssh_key: str) -> None:
+        """Removes an SSH public key from the specified user's authorized_keys.
+
+        Args:
+            username (str): The username of the system user.
+            ssh_key (str): The SSH public key to remove.
+        """
+        user_info = pwd.getpwnam(username)
+        authorized_keys_file = os.path.join(user_info.pw_dir, ".ssh", "authorized_keys")
+
+        temp_file_path = "/tmp/temp_authorized_keys_remove"
+
+        with open("/tmp/temp_key_to_remove", "w") as temp_key_file:
+            temp_key_file.write(ssh_key)
+
+        run_command(
+            f"sudo grep -v -f /tmp/temp_key_to_remove {authorized_keys_file} > {temp_file_path}",
+            check=False,
+        )
+        run_command(f"sudo mv {temp_file_path} {authorized_keys_file}", check=True)
+        run_command(
+            f"sudo chown {username}:{username} {authorized_keys_file}", check=True
+        )
+        run_command(f"sudo chmod 600 {authorized_keys_file}", check=True)
+        run_command("sudo rm /tmp/temp_key_to_remove", check=True)
+
+        get_logger(__name__).info(f"Removed SSH key from {username}'s authorized_keys")
