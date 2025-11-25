@@ -20,7 +20,7 @@
                     aria-label="Close"></button>
         </div>
     {% endif %}
-    <form method="post" class="row">
+    <form method="post" class="row" x-data="serviceFormData()">
         {% csrf_token %}
         <!-- Basic Information -->
         <div class="col-lg-8">
@@ -36,7 +36,8 @@
                                id="name"
                                name="name"
                                placeholder="{{ template.name }}-service"
-                               value="{{ request.POST.name }}">
+                               value="{{ request.POST.name }}"
+                               x-model="formData.name">
                         <small class="form-text text-muted">Leave blank to use default name</small>
                     </div>
                     <div class="mb-3">
@@ -46,7 +47,8 @@
                                id="domain"
                                name="domain"
                                placeholder="example.com"
-                               value="{{ request.POST.domain }}">
+                               value="{{ request.POST.domain }}"
+                               x-model="formData.domain">
                     </div>
                 </div>
             </div>
@@ -88,7 +90,8 @@
                                         </td>
                                         <td>
                                             <button type="button"
-                                                    class="btn btn-sm btn-outline-danger delete-env"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    @click="deleteEnvRow($el.closest('tr'))"
                                                     title="Delete">×</button>
                                         </td>
                                     </tr>
@@ -103,7 +106,7 @@
                     Add custom variables below:</small>
                     <button type="button"
                             class="btn btn-sm btn-outline-primary mt-2"
-                            id="add-env-btn">+ Add Environment Variable</button>
+                            @click="addEnvRow()">+ Add Environment Variable</button>
                 </div>
             </div>
             <!-- Port Overrides -->
@@ -146,7 +149,8 @@
                                         </td>
                                         <td>
                                             <button type="button"
-                                                    class="btn btn-sm btn-outline-danger delete-port"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    @click="deletePortRow($el.closest('tr'))"
                                                     title="Delete">×</button>
                                         </td>
                                     </tr>
@@ -161,7 +165,7 @@
                     Add custom ports below:</small>
                     <button type="button"
                             class="btn btn-sm btn-outline-primary mt-2"
-                            id="add-port-btn">+ Add Port Mapping</button>
+                            @click="addPortRow()">+ Add Port Mapping</button>
                 </div>
             </div>
             <!-- Volume Overrides -->
@@ -204,7 +208,8 @@
                                         </td>
                                         <td>
                                             <button type="button"
-                                                    class="btn btn-sm btn-outline-danger delete-volume"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    @click="deleteVolumeRow($el.closest('tr'))"
                                                     title="Delete">×</button>
                                         </td>
                                     </tr>
@@ -219,7 +224,7 @@
                     Add custom volumes below:</small>
                     <button type="button"
                             class="btn btn-sm btn-outline-primary mt-2"
-                            id="add-volume-btn">+ Add Volume</button>
+                            @click="addVolumeRow()">+ Add Volume</button>
                 </div>
             </div>
         </div>
@@ -264,80 +269,73 @@
         </div>
     </form>
     <script>
-        // Environment Variables Management
-        document.getElementById('add-env-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            const tbody = document.getElementById('env-table-body');
-            const row = document.createElement('tr');
-            row.className = 'env-row';
-            row.innerHTML = `
-                <td>
-                    <input type="text" class="form-control form-control-sm" name="env_key[]" placeholder="Variable name">
-                </td>
-                <td>
-                    <input type="text" class="form-control form-control-sm" name="env_value[]" placeholder="Variable value">
-                </td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-outline-danger delete-env" title="Delete">×</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-            attachDeleteHandler(row.querySelector('.delete-env'), row);
-        });
-
-        // Port Mappings Management
-        document.getElementById('add-port-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            const tbody = document.getElementById('port-table-body');
-            const row = document.createElement('tr');
-            row.className = 'port-row';
-            row.innerHTML = `
-                <td>
-                    <input type="number" class="form-control form-control-sm" name="port_host[]" placeholder="Host port (optional)">
-                </td>
-                <td>
-                    <input type="number" class="form-control form-control-sm" name="port_container[]" placeholder="Container port" required>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-outline-danger delete-port" title="Delete">×</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-            attachDeleteHandler(row.querySelector('.delete-port'), row);
-        });
-
-        // Volumes Management
-        document.getElementById('add-volume-btn').addEventListener('click', function(e) {
-            e.preventDefault();
-            const tbody = document.getElementById('volume-table-body');
-            const row = document.createElement('tr');
-            row.className = 'volume-row';
-            row.innerHTML = `
-                <td>
-                    <input type="text" class="form-control form-control-sm" name="volume_host[]" placeholder="Host path (optional)">
-                </td>
-                <td>
-                    <input type="text" class="form-control form-control-sm" name="volume_container[]" placeholder="Container path" required>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-outline-danger delete-volume" title="Delete">×</button>
-                </td>
-            `;
-            tbody.appendChild(row);
-            attachDeleteHandler(row.querySelector('.delete-volume'), row);
-        });
-
-        // Generic delete handler
-        function attachDeleteHandler(button, row) {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                row.remove();
-            });
+        function serviceFormData() {
+            return {
+                formData: {
+                    name: '',
+                    domain: ''
+                },
+                addEnvRow() {
+                    const tbody = document.getElementById('env-table-body');
+                    const row = document.createElement('tr');
+                    row.className = 'env-row';
+                    row.innerHTML = `
+                        <td>
+                            <input type="text" class="form-control form-control-sm" name="env_key[]" placeholder="Variable name">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" name="env_value[]" placeholder="Variable value">
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger" @click="deleteEnvRow($el.closest('tr'))" title="Delete">X</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                },
+                addPortRow() {
+                    const tbody = document.getElementById('port-table-body');
+                    const row = document.createElement('tr');
+                    row.className = 'port-row';
+                    row.innerHTML = `
+                        <td>
+                            <input type="number" class="form-control form-control-sm" name="port_host[]" placeholder="Host port (optional)">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm" name="port_container[]" placeholder="Container port" required>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger" @click="deletePortRow($el.closest('tr'))" title="Delete">X</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                },
+                addVolumeRow() {
+                    const tbody = document.getElementById('volume-table-body');
+                    const row = document.createElement('tr');
+                    row.className = 'volume-row';
+                    row.innerHTML = `
+                        <td>
+                            <input type="text" class="form-control form-control-sm" name="volume_host[]" placeholder="Host path (optional)">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" name="volume_container[]" placeholder="Container path" required>
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger" @click="deleteVolumeRow($el.closest('tr'))" title="Delete">X</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                },
+                deleteEnvRow(row) {
+                    row.remove();
+                },
+                deletePortRow(row) {
+                    row.remove();
+                },
+                deleteVolumeRow(row) {
+                    row.remove();
+                }
+            };
         }
-
-        // Attach delete handlers to existing rows
-        document.querySelectorAll('.delete-env, .delete-port, .delete-volume').forEach(btn => {
-            attachDeleteHandler(btn, btn.closest('tr'));
-        });
     </script>
 {% endblock %}
