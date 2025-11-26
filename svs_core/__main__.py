@@ -4,6 +4,7 @@ import getpass
 import os
 import sys
 
+from importlib.metadata import version
 from typing import Optional
 
 import django
@@ -28,12 +29,6 @@ if not EnvManager.get_database_url():
 from svs_core.cli.service import app as service_app  # noqa: E402
 from svs_core.cli.template import app as template_app  # noqa: E402
 from svs_core.cli.user import app as user_app  # noqa: E402
-
-app = typer.Typer(help="SVS CLI", pretty_exceptions_enable=False)
-
-app.add_typer(user_app, name="user")
-app.add_typer(template_app, name="template")
-app.add_typer(service_app, name="service")
 
 
 def cli_first_user_setup(
@@ -60,6 +55,35 @@ def cli_first_user_setup(
         except Exception as e:
             print(f"{e}\nFailed to create user, try again")
             return cli_first_user_setup()
+
+
+def version_callback(value: bool) -> None:
+    """Prints the SVS version and exits."""
+    if value:
+        print(f"SVS version: {version('svs-core')}")
+        raise typer.Exit()
+
+
+app = typer.Typer(help="SVS CLI", pretty_exceptions_enable=False)
+
+
+@app.callback()
+def version_option(
+    version_flag: bool = typer.Option(
+        False,
+        "--version",
+        "-v",
+        help="Show version and exit.",
+        callback=version_callback,
+        is_eager=True,
+    ),
+) -> None:
+    """Global options for SVS CLI."""
+
+
+app.add_typer(user_app, name="user")
+app.add_typer(template_app, name="template")
+app.add_typer(service_app, name="service")
 
 
 def main() -> None:  # noqa: D103
