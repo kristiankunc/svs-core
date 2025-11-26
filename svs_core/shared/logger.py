@@ -5,6 +5,8 @@ import time
 from pathlib import Path
 from typing import Optional
 
+from svs_core.shared.env_manager import EnvManager
+
 _logger_instances: dict[str, logging.Logger] = {}
 
 
@@ -47,7 +49,11 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
         else logging.StreamHandler(sys.stdout)
     )
 
-    handler.setLevel(logging.DEBUG)
+    if EnvManager.get_runtime_environment() == EnvManager.RuntimeEnvironment.PRODUCTION:
+        handler.setLevel(logging.INFO)
+    else:
+        handler.setLevel(logging.DEBUG)
+
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
