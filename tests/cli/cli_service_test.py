@@ -76,9 +76,7 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert (
-            "✅ Service 'new_service' created successfully with ID 1." in result.output
-        )
+        assert "Service 'new_service' created successfully with ID 1." in result.output
 
     def test_start_service_admin(self, mocker: MockerFixture) -> None:
         mock_get = mocker.patch("svs_core.docker.service.Service.objects.get")
@@ -94,7 +92,7 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert "✅ Service 'test_service' started successfully." in result.output
+        assert "Service 'test_service' started successfully." in result.output
         mock_service.start.assert_called_once()
 
     def test_start_service_own(self, mocker: MockerFixture) -> None:
@@ -114,7 +112,7 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert "✅ Service 'test_service' started successfully." in result.output
+        assert "Service 'test_service' started successfully." in result.output
         mock_service.start.assert_called_once()
 
     def test_start_service_unauthorized(self, mocker: MockerFixture) -> None:
@@ -132,8 +130,8 @@ class TestServiceCommands:
             ["service", "start", "1"],
         )
 
-        assert result.exit_code == 0
-        assert "❌ You do not have permission to start this service." in result.output
+        assert result.exit_code == 1
+        assert "You do not have permission to start this service." in result.output
 
     def test_create_service_with_domain(self, mocker: MockerFixture) -> None:
         mock_user = mocker.MagicMock()
@@ -154,9 +152,7 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert (
-            "✅ Service 'web_service' created successfully with ID 1." in result.output
-        )
+        assert "Service 'web_service' created successfully with ID 1." in result.output
         mock_create.assert_called_once()
         # Verify domain was passed
         call_kwargs = mock_create.call_args[1]
@@ -191,9 +187,7 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert (
-            "✅ Service 'db_service' created successfully with ID 2." in result.output
-        )
+        assert "Service 'db_service' created successfully with ID 2." in result.output
         mock_create.assert_called_once()
         call_kwargs = mock_create.call_args[1]
         env_vars = call_kwargs["override_env"]
@@ -254,9 +248,7 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert (
-            "✅ Service 'web_service' created successfully with ID 3." in result.output
-        )
+        assert "Service 'web_service' created successfully with ID 3." in result.output
         mock_create.assert_called_once()
         call_kwargs = mock_create.call_args[1]
         ports = call_kwargs["override_ports"]
@@ -332,8 +324,7 @@ class TestServiceCommands:
 
         assert result.exit_code == 0
         assert (
-            "✅ Service 'storage_service' created successfully with ID 4."
-            in result.output
+            "Service 'storage_service' created successfully with ID 4." in result.output
         )
         mock_create.assert_called_once()
         call_kwargs = mock_create.call_args[1]
@@ -396,8 +387,7 @@ class TestServiceCommands:
 
         assert result.exit_code == 0
         assert (
-            "✅ Service 'labeled_service' created successfully with ID 5."
-            in result.output
+            "Service 'labeled_service' created successfully with ID 5." in result.output
         )
         mock_create.assert_called_once()
         call_kwargs = mock_create.call_args[1]
@@ -457,9 +447,7 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert (
-            "✅ Service 'cmd_service' created successfully with ID 6." in result.output
-        )
+        assert "Service 'cmd_service' created successfully with ID 6." in result.output
         mock_create.assert_called_once()
         call_kwargs = mock_create.call_args[1]
         assert call_kwargs["override_command"] == "/bin/bash -c 'echo hello'"
@@ -495,9 +483,7 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert (
-            "✅ Service 'args_service' created successfully with ID 7." in result.output
-        )
+        assert "Service 'args_service' created successfully with ID 7." in result.output
         mock_create.assert_called_once()
         call_kwargs = mock_create.call_args[1]
         args = call_kwargs["override_args"]
@@ -550,9 +536,7 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert (
-            "✅ Service 'full_service' created successfully with ID 8." in result.output
-        )
+        assert "Service 'full_service' created successfully with ID 8." in result.output
         mock_create.assert_called_once()
         call_kwargs = mock_create.call_args[1]
         assert call_kwargs["domain"] == "full.example.com"
@@ -577,5 +561,5 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert "✅ Service 'test_service' stopped successfully." in result.output
+        assert "Service 'test_service' stopped successfully." in result.output
         mock_service.stop.assert_called_once()
