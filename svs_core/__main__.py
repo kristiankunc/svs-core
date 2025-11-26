@@ -72,7 +72,6 @@ def global_options(
     version_flag: bool = typer.Option(
         False,
         "--version",
-        "-v",
         help="Show version and exit.",
         callback=version_callback,
         is_eager=True,
@@ -80,7 +79,7 @@ def global_options(
     verbose: bool = typer.Option(
         False,
         "--verbose",
-        "-V",
+        "-v",
         help="Enable verbose output.",
     ),
 ) -> None:
