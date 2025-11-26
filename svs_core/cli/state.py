@@ -7,11 +7,23 @@ current_user: ContextVar[dict[str, bool | str] | None] = ContextVar(
     "current_user", default=None
 )
 
+verbose_mode: ContextVar[bool] = ContextVar("verbose_mode", default=False)
+
 
 def set_current_user(username: str, is_admin: bool) -> None:
     """Set the current user and their admin status in the context variable."""
 
     current_user.set({"username": username, "is_admin": is_admin})
+
+
+def set_verbose_mode(value: bool) -> None:
+    """Set the verbose mode in the context variable."""
+    verbose_mode.set(value)
+
+
+def is_verbose() -> bool:
+    """Check if verbose mode is enabled."""
+    return verbose_mode.get()
 
 
 def reject_if_not_admin() -> None:

@@ -10,9 +10,9 @@ from typing import Optional
 import django
 import typer
 
-from svs_core.cli.state import set_current_user
+from svs_core.cli.state import is_verbose, set_current_user, set_verbose_mode
 from svs_core.shared.env_manager import EnvManager
-from svs_core.shared.logger import get_logger
+from svs_core.shared.logger import add_verbose_handler, get_logger
 
 os.environ["DJANGO_SETTINGS_MODULE"] = "svs_core.db.settings"
 
@@ -68,7 +68,7 @@ app = typer.Typer(help="SVS CLI", pretty_exceptions_enable=False)
 
 
 @app.callback()
-def version_option(
+def global_options(
     version_flag: bool = typer.Option(
         False,
         "--version",
@@ -77,8 +77,18 @@ def version_option(
         callback=version_callback,
         is_eager=True,
     ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-V",
+        help="Enable verbose output.",
+    ),
 ) -> None:
     """Global options for SVS CLI."""
+    set_verbose_mode(verbose)
+    if verbose:
+        add_verbose_handler()
+        get_logger(__name__).debug("Verbose mode enabled")
 
 
 app.add_typer(user_app, name="user")
