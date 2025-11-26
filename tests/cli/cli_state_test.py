@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 
 from pytest_mock import MockerFixture
@@ -56,23 +54,21 @@ class TestState:
 
     def test_reject_if_not_admin_with_non_admin(self, mocker: MockerFixture) -> None:
         set_current_user("regular_user", False)
-        mock_exit = mocker.patch("sys.exit")
-        mock_print = mocker.patch("builtins.print")
 
-        reject_if_not_admin()
+        import typer
 
-        mock_print.assert_called_once()
-        mock_exit.assert_called_once_with(1)
+        with pytest.raises(typer.Exit) as exc_info:
+            reject_if_not_admin()
+        assert exc_info.value.exit_code == 1
 
     def test_reject_if_not_admin_when_user_not_set(self, mocker: MockerFixture) -> None:
         current_user.set(None)
-        mock_exit = mocker.patch("sys.exit")
-        mock_print = mocker.patch("builtins.print")
 
-        reject_if_not_admin()
+        import typer
 
-        mock_print.assert_called_once()
-        mock_exit.assert_called_once_with(1)
+        with pytest.raises(typer.Exit) as exc_info:
+            reject_if_not_admin()
+        assert exc_info.value.exit_code == 1
 
     def test_set_verbose_mode_true(self) -> None:
         set_verbose_mode(True)
