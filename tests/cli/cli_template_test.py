@@ -25,7 +25,7 @@ class TestTemplateCommands:
         )
 
         assert result.exit_code == 0
-        assert "- Template(name='django')" in result.output
+        assert "Template(name='django')" in result.output
 
     def test_list_templates_empty(self, mocker: MockerFixture) -> None:
         mock_all = mocker.patch("svs_core.docker.template.Template.objects.all")
@@ -58,7 +58,7 @@ class TestTemplateCommands:
         )
 
         assert result.exit_code == 0
-        assert "✅ Template 'test' imported successfully." in result.output
+        assert "Template 'test' imported successfully." in result.output
 
     def test_import_template_file_not_found(self, mocker: MockerFixture) -> None:
         mocker.patch("os.path.isfile", return_value=False)
@@ -68,8 +68,8 @@ class TestTemplateCommands:
             ["template", "import", "/non/existent/file.json"],
         )
 
-        assert result.exit_code == 0
-        assert "❌ File '/non/existent/file.json' does not exist." in result.output
+        assert result.exit_code == 1
+        assert "File '/non/existent/file.json' does not exist." in result.output
 
     def test_delete_template_success(self, mocker: MockerFixture) -> None:
         mock_get = mocker.patch("svs_core.docker.template.Template.objects.get")
@@ -86,13 +86,15 @@ class TestTemplateCommands:
         mock_template.delete.assert_called_once()
 
     def test_delete_template_not_found(self, mocker: MockerFixture) -> None:
+        from django.core.exceptions import ObjectDoesNotExist
+
         mock_get = mocker.patch("svs_core.docker.template.Template.objects.get")
-        mock_get.return_value = None
+        mock_get.side_effect = ObjectDoesNotExist()
 
         result = self.runner.invoke(
             app,
             ["template", "delete", "999"],
         )
 
-        assert result.exit_code == 0
-        assert "❌ Template with ID '999' not found." in result.output
+        assert result.exit_code == 1
+        assert "not found" in result.output
