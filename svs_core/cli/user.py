@@ -1,5 +1,6 @@
 import typer
 
+from svs_core.cli.lib import get_or_exit
 from svs_core.cli.state import (
     get_current_username,
     is_current_user_admin,
@@ -28,7 +29,8 @@ def create(
         InvalidPasswordException,
         AlreadyExistsException,
     ) as e:
-        typer.echo(f"❌ {e}", err=True)
+        typer.echo(f"Error creating user: {e}", err=True)
+        raise typer.Exit(code=1)
 
 
 @app.command("get")
@@ -37,38 +39,9 @@ def get(
 ) -> None:
     """Get a user by name."""
 
-    user = User.objects.get(name=name)
-    if user:
-        typer.echo(f"👤 User: {user}")
-    else:
-        typer.echo("❌ User not found.", err=True)
+    user = get_or_exit(User, name=name)
 
-
-@app.command("check-password")
-def check_password(
-    name: str = typer.Argument(..., help="Username of the user"),
-    password: str = typer.Argument(
-        ..., help="Password to check against the stored hash"
-    ),
-) -> None:
-    """Check if a password matches the stored hash."""
-
-    if not is_current_user_admin() and not get_current_username() == name:
-        typer.echo(
-            "❌ You do not have permission to check other users' passwords.", err=True
-        )
-        return
-
-    user = User.objects.get(name=name)
-
-    if not user:
-        typer.echo("❌ User not found.", err=True)
-        return
-
-    if user.check_password(password):
-        typer.echo("✅ Password is correct.")
-    else:
-        typer.echo("❌ Incorrect password.", err=True)
+    typer.echo(user)
 
 
 @app.command("list")
@@ -76,12 +49,11 @@ def list_users() -> None:
     """List all users."""
 
     users = User.objects.all()
-    if not users:
+    if len(users) == 0:
         typer.echo("No users found.", err=True)
-        return
+        raise typer.Exit(code=0)
 
-    typer.echo(f"👥 Total users: {len(users)}")
-    typer.echo("\n".join(f"- {user}" for user in users))
+    typer.echo("\n".join(f"{u}" for u in users))
 
 
 @app.command("add-ssh-key")
@@ -94,10 +66,7 @@ def add_ssh_key(
     if name != get_current_username():
         reject_if_not_admin()
 
-    user = User.objects.get(name=name)
-    if not user:
-        typer.echo("❌ User not found.", err=True)
-        return
+    user = get_or_exit(User, name=name)
 
     user.add_ssh_key(ssh_key)
     typer.echo(f"✅ SSH key added to user '{user.name}'.")
@@ -113,10 +82,7 @@ def remove_ssh_key(
     if name != get_current_username():
         reject_if_not_admin()
 
-    user = User.objects.get(name=name)
-    if not user:
-        typer.echo("❌ User not found.", err=True)
-        return
+    user = get_or_exit(User, name=name)
 
     user.remove_ssh_key(ssh_key)
     typer.echo(f"✅ SSH key removed from user '{user.name}'.")

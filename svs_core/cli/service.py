@@ -2,6 +2,7 @@ from pathlib import Path
 
 import typer
 
+from svs_core.cli.lib import get_or_exit
 from svs_core.cli.state import get_current_username, is_current_user_admin
 from svs_core.docker.json_properties import (
     EnvVariable,
@@ -96,7 +97,7 @@ def create_service(
         for env_var in env:
             if "=" not in env_var:
                 typer.echo(
-                    f"❌ Invalid environment variable format: {env_var}. Use KEY=VALUE",
+                    f"Invalid environment variable format: {env_var}. Use KEY=VALUE",
                     err=True,
                 )
                 raise typer.Exit(code=1)
@@ -110,7 +111,7 @@ def create_service(
         for port_mapping in port:
             if ":" not in port_mapping:
                 typer.echo(
-                    f"❌ Invalid port format: {port_mapping}. Use container_port:host_port",
+                    f"Invalid port format: {port_mapping}. Use container_port:host_port",
                     err=True,
                 )
                 raise typer.Exit(code=1)
@@ -123,7 +124,7 @@ def create_service(
                 )
             except ValueError:
                 typer.echo(
-                    f"❌ Invalid port numbers: {port_mapping}. Ports must be integers",
+                    f"Invalid port numbers: {port_mapping}. Ports must be integers",
                     err=True,
                 )
                 raise typer.Exit(code=1)
@@ -135,7 +136,7 @@ def create_service(
         for volume_mapping in volume:
             if ":" not in volume_mapping:
                 typer.echo(
-                    f"❌ Invalid volume format: {volume_mapping}. Use container_path:host_path",
+                    f"Invalid volume format: {volume_mapping}. Use container_path:host_path",
                     err=True,
                 )
                 raise typer.Exit(code=1)
@@ -150,7 +151,7 @@ def create_service(
         override_labels = []
         for lbl in label:
             if "=" not in lbl:
-                typer.echo(f"❌ Invalid label format: {lbl}. Use KEY=VALUE", err=True)
+                typer.echo(f"Invalid label format: {lbl}. Use KEY=VALUE", err=True)
                 raise typer.Exit(code=1)
             key, value = lbl.split("=", 1)
             override_labels.append(Label(key=key, value=value))
@@ -167,9 +168,7 @@ def create_service(
         override_labels=override_labels,
         override_args=args,
     )
-    typer.echo(
-        f"✅ Service '{service.name}' created successfully with ID {service.id}."
-    )
+    typer.echo(f"Service '{service.name}' created successfully with ID {service.id}.")
 
 
 @app.command("start")
@@ -178,17 +177,14 @@ def start_service(
 ) -> None:
     """Start a service."""
 
-    service = Service.objects.get(id=service_id)
-    if not service:
-        typer.echo(f"❌ Service with ID {service_id} not found.", err=True)
-        return
+    service = get_or_exit(Service, id=service_id)
 
     if not is_current_user_admin() and service.user.name != get_current_username():
-        typer.echo("❌ You do not have permission to start this service.", err=True)
-        return
+        typer.echo("You do not have permission to start this service.", err=True)
+        raise typer.Exit(code=1)
 
     service.start()
-    typer.echo(f"✅ Service '{service.name}' started successfully.")
+    typer.echo(f"Service '{service.name}' started successfully.")
 
 
 @app.command("stop")
@@ -197,17 +193,14 @@ def stop_service(
 ) -> None:
     """Stop a service."""
 
-    service = Service.objects.get(id=service_id)
-    if not service:
-        typer.echo(f"❌ Service with ID {service_id} not found.", err=True)
-        return
+    service = get_or_exit(Service, id=service_id)
 
     if not is_current_user_admin() and service.user.name != get_current_username():
-        typer.echo("❌ You do not have permission to stop this service.", err=True)
+        typer.echo("You do not have permission to stop this service.", err=True)
         return
 
     service.stop()
-    typer.echo(f"✅ Service '{service.name}' stopped successfully.")
+    typer.echo(f"Service '{service.name}' stopped successfully.")
 
 
 @app.command("build")
@@ -219,19 +212,16 @@ def build_service(
 ) -> None:
     """Build a service's Docker image from source code."""
 
-    service = Service.objects.get(id=service_id)
-    if not service:
-        typer.echo(f"❌ Service with ID {service_id} not found.", err=True)
-        return
+    service = get_or_exit(Service, id=service_id)
 
     if not is_current_user_admin() and service.user.name != get_current_username():
-        typer.echo("❌ You do not have permission to build this service.", err=True)
+        typer.echo("You do not have permission to build this service.", err=True)
         return
 
     path_obj = Path(path)
 
     service.build(path_obj)
-    typer.echo(f"✅ Service '{service.name}' Docker image built successfully.")
+    typer.echo(f"Service '{service.name}' Docker image built successfully.")
 
 
 @app.command("delete")
@@ -240,14 +230,11 @@ def delete_service(
 ) -> None:
     """Delete a service."""
 
-    service = Service.objects.get(id=service_id)
-    if not service:
-        typer.echo(f"❌ Service with ID {service_id} not found.", err=True)
-        return
+    service = get_or_exit(Service, id=service_id)
 
     if not is_current_user_admin() and service.user.name != get_current_username():
-        typer.echo("❌ You do not have permission to delete this service.", err=True)
+        typer.echo("You do not have permission to delete this service.", err=True)
         return
 
     service.delete()
-    typer.echo(f"✅ Service '{service.name}' deleted successfully.")
+    typer.echo(f"Service '{service.name}' deleted successfully.")
