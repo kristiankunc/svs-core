@@ -8,7 +8,6 @@ from enum import Enum
 from pathlib import Path
 from types import MappingProxyType
 
-from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import read_file, run_command
 
 
@@ -39,6 +38,7 @@ class EnvManager:
         Raises:
             FileNotFoundError: If the .env file does not exist.
         """
+        from svs_core.shared.logger import get_logger
 
         if not EnvManager.ENV_FILE_PATH.exists():
             get_logger(__name__).warning(
@@ -95,6 +95,8 @@ class EnvManager:
         Raises:
             EnvironmentError: If the DATABASE_URL environment variable is not set.
         """
+        from svs_core.shared.logger import get_logger
+
         db_url = EnvManager._get(EnvManager.EnvVariables.DATABASE_URL)
         if not db_url:
             logger = get_logger(__name__)

@@ -8,8 +8,7 @@ import pytest
 
 from pytest_mock import MockerFixture
 
-from svs_core.shared.env_manager import EnvManager
-from svs_core.shared.logger import clear_loggers, get_logger
+from svs_core.shared.logger import add_verbose_handler, clear_loggers, get_logger
 
 
 class TestLogger:
@@ -35,17 +34,15 @@ class TestLogger:
         assert default_logger.name == "unknown"
 
     @pytest.mark.unit
-    def test_stream_handler_in_development(
+    def test_stream_handler_when_log_file_not_exists(
         self,
         capsys: pytest.CaptureFixture[str],
         mocker: MockerFixture,
-        monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        mocker.patch(
-            "svs_core.shared.env_manager.EnvManager.get_runtime_environment",
-            return_value=EnvManager.RuntimeEnvironment.DEVELOPMENT,
-        )
-        print("Current ENV:", EnvManager.get_runtime_environment())
+        # Mock Path to return False for exists() - simulating no log file
+        mock_path = mocker.patch("svs_core.shared.logger.Path")
+        mock_path.return_value.exists.return_value = False
+
         logger = get_logger("dev_test")
         logger.debug("hello dev")
 
@@ -55,26 +52,26 @@ class TestLogger:
         assert "hello dev" in captured.out
 
     @pytest.mark.unit
-    def test_file_handler_in_production(
-        self, tmp_path: Path, mocker: MockerFixture, monkeypatch: pytest.MonkeyPatch
+    def test_file_handler_when_log_file_exists(
+        self, tmp_path: Path, mocker: MockerFixture
     ) -> None:
-        log_file = tmp_path / "svs-core.log"
+        log_file = tmp_path / "svs.log"
         log_file.write_text("")
 
-        mocker.patch(
-            "svs_core.shared.env_manager.EnvManager.get_runtime_environment",
-            return_value=EnvManager.RuntimeEnvironment.PRODUCTION,
-        )
+        # Mock Path to return True for exists() and the temp log file path
+        mock_path_class = mocker.patch("svs_core.shared.logger.Path")
 
-        def mock_path(path_str):
-            if "svs.log" in path_str:
+        def path_side_effect(path_str):
+            if isinstance(path_str, str) and "svs.log" in path_str:
                 return log_file
             return Path(path_str)
 
-        mocker.patch(
-            "svs_core.shared.logger.Path",
-            side_effect=mock_path,
-        )
+        mock_path_class.side_effect = path_side_effect
+        # Make exists() return True for the log file
+        log_file_mock = mocker.MagicMock()
+        log_file_mock.exists.return_value = True
+        log_file_mock.as_posix.return_value = str(log_file)
+        mock_path_class.return_value = log_file_mock
 
         logger = get_logger("prod_test")
         logger.info("hello prod")
@@ -85,7 +82,7 @@ class TestLogger:
         ]
         assert (
             len(file_handlers) > 0
-        ), "FileHandler should be created in production mode"
+        ), "FileHandler should be created when log file exists"
 
         for handler in file_handlers:
             handler.flush()
@@ -93,3 +90,20 @@ class TestLogger:
         content = log_file.read_text()
         assert "[INFO] prod_test" in content
         assert "hello prod" in content
+
+    @pytest.mark.unit
+    def test_add_verbose_handler(
+        self, capsys: pytest.CaptureFixture[str], mocker: MockerFixture
+    ) -> None:
+        # Mock Path to use stdout handler
+        mock_path = mocker.patch("svs_core.shared.logger.Path")
+        mock_path.return_value.exists.return_value = False
+
+        logger = get_logger("verbose_test")
+        add_verbose_handler()
+
+        logger.debug("verbose message")
+
+        captured = capsys.readouterr()
+
+        assert "DEBUG: verbose_test verbose message" in captured.out

@@ -117,7 +117,7 @@ class TestEnvManager:
         mock_path = mocker.MagicMock()
         mock_path.exists.return_value = False
         mocker.patch("svs_core.shared.env_manager.EnvManager.ENV_FILE_PATH", mock_path)
-        mocker.patch("svs_core.shared.env_manager.get_logger")
+        mocker.patch("svs_core.shared.logger.get_logger")
 
         with pytest.raises(FileNotFoundError) as exc_info:
             EnvManager.load_env_file()
