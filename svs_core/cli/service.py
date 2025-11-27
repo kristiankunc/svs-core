@@ -20,8 +20,6 @@ app = typer.Typer(help="Manage services")
 def list_services() -> None:
     """List all services."""
 
-    services: list[Service] = []
-
     if not is_current_user_admin():
         services = Service.objects.filter(user__name=get_current_username())
     else:
@@ -39,7 +37,6 @@ def list_services() -> None:
 def create_service(
     name: str = typer.Argument(..., help="Name of the service to create"),
     template_id: int = typer.Argument(..., help="ID of the template to use"),
-    user_id: int = typer.Argument(..., help="ID of the user creating the service"),
     domain: str | None = typer.Option(
         None, "--domain", "-d", help="Domain for the service"
     ),
@@ -88,7 +85,7 @@ def create_service(
     - Arguments: --args "arg1" --args "arg2"
     """
 
-    user = User.objects.get(id=user_id)
+    user = get_or_exit(User, name=get_current_username())
 
     # Parse environment variables
     override_env = None
@@ -181,7 +178,7 @@ def start_service(
 
     if not is_current_user_admin() and service.user.name != get_current_username():
         typer.echo("You do not have permission to start this service.", err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(1)
 
     service.start()
     typer.echo(f"Service '{service.name}' started successfully.")
@@ -197,7 +194,7 @@ def stop_service(
 
     if not is_current_user_admin() and service.user.name != get_current_username():
         typer.echo("You do not have permission to stop this service.", err=True)
-        return
+        raise typer.Exit(1)
 
     service.stop()
     typer.echo(f"Service '{service.name}' stopped successfully.")
@@ -216,7 +213,7 @@ def build_service(
 
     if not is_current_user_admin() and service.user.name != get_current_username():
         typer.echo("You do not have permission to build this service.", err=True)
-        return
+        raise typer.Exit(1)
 
     path_obj = Path(path)
 
@@ -234,7 +231,7 @@ def delete_service(
 
     if not is_current_user_admin() and service.user.name != get_current_username():
         typer.echo("You do not have permission to delete this service.", err=True)
-        return
+        raise typer.Exit(1)
 
     service.delete()
     typer.echo(f"Service '{service.name}' deleted successfully.")

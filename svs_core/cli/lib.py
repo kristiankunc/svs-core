@@ -19,8 +19,8 @@ def get_or_exit(model: Type[T], **lookup: object) -> T:
         user = get_or_exit(UserModel, name="alice")
     """
     try:
-        return cast(T, model.objects.get(**lookup))
+        return model.objects.get(**lookup)
     except ObjectDoesNotExist:
         where = ", ".join(f"{k}={v!r}" for k, v in lookup.items())
         typer.echo(f"{model.__name__} with {where} not found.", err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(1)
