@@ -44,11 +44,7 @@ plugins:
           load_external_modules: true
           inventories:
             - https://docs.python.org/3/objects.inv
-          setup_commands:
-            - import sys, os
-            - sys.path.append(os.path.abspath(".")) # project root
-            - os.environ.setdefault("DJANGO_SETTINGS_MODULE", "svs_core.settings")
-            - django.setup()
+            - https://django.readthedocs.io/en/stable/objects.inv
           options:
             docstring_style: google
             show_root_toc_entry: false
@@ -79,3 +75,7 @@ markdown_extensions:
       pygments_lang_class: true
   - toc:
       permalink: true
+
+extra:
+  env:
+    DJANGO_SETTINGS_MODULE: svs_core.db.settings
