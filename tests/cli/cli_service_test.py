@@ -72,7 +72,7 @@ class TestServiceCommands:
 
         result = self.runner.invoke(
             app,
-            ["service", "create", "new_service", "1", "1"],
+            ["service", "create", "new_service", "1"],
         )
 
         assert result.exit_code == 0
@@ -148,7 +148,7 @@ class TestServiceCommands:
 
         result = self.runner.invoke(
             app,
-            ["service", "create", "web_service", "1", "1", "--domain", "example.com"],
+            ["service", "create", "web_service", "1", "--domain", "example.com"],
         )
 
         assert result.exit_code == 0
@@ -177,7 +177,6 @@ class TestServiceCommands:
                 "service",
                 "create",
                 "db_service",
-                "1",
                 "1",
                 "--env",
                 "DB_HOST=localhost",
@@ -209,7 +208,6 @@ class TestServiceCommands:
                 "create",
                 "bad_service",
                 "1",
-                "1",
                 "--env",
                 "INVALID_NO_EQUALS",
             ],
@@ -238,7 +236,6 @@ class TestServiceCommands:
                 "service",
                 "create",
                 "web_service",
-                "1",
                 "1",
                 "--port",
                 "80:8080",
@@ -270,7 +267,6 @@ class TestServiceCommands:
                 "create",
                 "bad_service",
                 "1",
-                "1",
                 "--port",
                 "INVALID_NO_COLON",
             ],
@@ -287,7 +283,7 @@ class TestServiceCommands:
 
         result = self.runner.invoke(
             app,
-            ["service", "create", "bad_service", "1", "1", "--port", "abc:def"],
+            ["service", "create", "bad_service", "1", "--port", "abc:def"],
         )
 
         assert result.exit_code == 1
@@ -313,7 +309,6 @@ class TestServiceCommands:
                 "service",
                 "create",
                 "storage_service",
-                "1",
                 "1",
                 "--volume",
                 "/app/data:/data",
@@ -347,7 +342,6 @@ class TestServiceCommands:
                 "create",
                 "bad_service",
                 "1",
-                "1",
                 "--volume",
                 "INVALID_NO_COLON",
             ],
@@ -376,7 +370,6 @@ class TestServiceCommands:
                 "service",
                 "create",
                 "labeled_service",
-                "1",
                 "1",
                 "--label",
                 "environment=production",
@@ -410,7 +403,6 @@ class TestServiceCommands:
                 "create",
                 "bad_service",
                 "1",
-                "1",
                 "--label",
                 "INVALID_NO_EQUALS",
             ],
@@ -439,7 +431,6 @@ class TestServiceCommands:
                 "service",
                 "create",
                 "cmd_service",
-                "1",
                 "1",
                 "--command",
                 "/bin/bash -c 'echo hello'",
@@ -471,7 +462,6 @@ class TestServiceCommands:
                 "service",
                 "create",
                 "args_service",
-                "1",
                 "1",
                 "--args",
                 "arg1",
@@ -512,7 +502,6 @@ class TestServiceCommands:
                 "service",
                 "create",
                 "full_service",
-                "1",
                 "1",
                 "--domain",
                 "full.example.com",
