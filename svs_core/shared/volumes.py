@@ -72,7 +72,7 @@ class SystemVolumeManager:
         """Deletes a specific volume.
 
         Args:
-            volume (Volume): The volume to be deleted.
+            volume_path (Path): The path to the volume to be deleted.
         """
         if volume_path.exists() and volume_path.is_dir():
             remove_directory(volume_path.as_posix())

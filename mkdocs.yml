@@ -47,6 +47,7 @@ plugins:
             - https://django.readthedocs.io/en/stable/objects.inv
           options:
             docstring_style: google
+            show_root_heading: true
             show_root_toc_entry: false
             show_signature_annotations: true
             show_source: true

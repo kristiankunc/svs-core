@@ -98,7 +98,6 @@ class DockerImageManager:
 
         Args:
             image_name (str): Name of the image.
-            tag (str): Image tag.
 
         Raises:
             Exception: If the image cannot be removed.
@@ -120,7 +119,6 @@ class DockerImageManager:
 
         Args:
             image_name (str): Name of the image.
-            tag (str): Image tag.
         """
         client = get_docker_client()
 
