@@ -21,8 +21,12 @@ class SystemUserManager:
             admin (bool, optional): Whether to add the user to the admin group. Defaults to False.
             shell_path (str, optional): The login shell for the new user. Defaults to "/bin/bash".
         """
-        run_command(f"sudo useradd -m -s {shell_path} {username}", check=True)
+        run_command(
+            f"sudo adduser --shell {shell_path} --disabled-password --gecos '' {username}",
+            check=True,
+        )
         run_command(f"echo '{username}:{password}' | sudo chpasswd", check=True)
+
         # run_command(f"sudo usermod -aG svs-users {username}", check=True)
 
         if admin:

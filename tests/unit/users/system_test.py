@@ -16,7 +16,8 @@ class TestSystemUser:
 
         assert mock_run_command.call_count == 2
         mock_run_command.assert_any_call(
-            f"sudo useradd -m -s /bin/bash {username}", check=True
+            f"sudo adduser --shell /bin/bash --disabled-password --gecos '' {username}",
+            check=True,
         )
         mock_run_command.assert_any_call(
             f"echo '{username}:{password}' | sudo chpasswd", check=True
@@ -32,7 +33,8 @@ class TestSystemUser:
 
         assert mock_run_command.call_count == 3
         mock_run_command.assert_any_call(
-            f"sudo useradd -m -s /bin/bash {username}", check=True
+            f"sudo adduser --shell /bin/bash --disabled-password --gecos '' {username}",
+            check=True,
         )
         mock_run_command.assert_any_call(
             f"echo '{username}:{password}' | sudo chpasswd", check=True
