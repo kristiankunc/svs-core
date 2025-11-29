@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/kristiankunc/svs-core/compare/v0.8.0...v0.8.1) (2025-11-29)
+
+
+### Bug Fixes
+
+* update service create command for 0.8 ([f3d4f29](https://github.com/kristiankunc/svs-core/commit/f3d4f2972a3d494c5bf01f72ccfbbe878bfd5ece))
+
 ## [0.8.0](https://github.com/kristiankunc/svs-core/compare/v0.7.1...v0.8.0) (2025-11-29)
 
 
