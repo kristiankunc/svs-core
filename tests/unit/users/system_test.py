@@ -88,12 +88,16 @@ class TestSystemUser:
     ) -> None:
         mock_pwd = mocker.MagicMock()
         mock_pwd.pw_name = "effective_user"
+        mock_geteuid = mocker.patch(
+            "svs_core.users.system.os.geteuid", return_value=1000
+        )
         mock_getpwuid = mocker.patch(
             "svs_core.users.system.pwd.getpwuid", return_value=mock_pwd
         )
 
         username = SystemUserManager.get_system_username()
-        mock_getpwuid.assert_called_once()
+        mock_geteuid.assert_called_once()
+        mock_getpwuid.assert_called_once_with(1000)
         assert username == "effective_user"
 
     @pytest.mark.unit
