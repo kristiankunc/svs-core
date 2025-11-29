@@ -58,17 +58,12 @@ class SystemUserManager:
 
     @staticmethod
     def get_system_username() -> str:
-        """Returns the username of whoever invoked the process.
+        """Returns the username of whoever is running the process.
 
-        If run via sudo, returns the *invoking* user, not root.
+        Returns the effective user, which is correct even when using
+        sudo -u username to run as a different user.
         """
-
-        # If inside sudo, trust sudo’s own variables
-        sudo_user = os.environ.get("SUDO_USER")
-        if sudo_user:
-            return sudo_user
-
-        # Otherwise, return the actual effective user
+        # Return the actual effective user
         try:
             return pwd.getpwuid(os.geteuid()).pw_name
         except Exception:
