@@ -141,28 +141,12 @@ class TestUserCommands:
         assert "No users found." in result.output
 
     # Add SSH key command tests
-    def test_add_ssh_key_without_admin_rights(self, mocker: MockerFixture) -> None:
-        mock_admin_check = mocker.patch(
-            "svs_core.cli.user.reject_if_not_admin", side_effect=SystemExit(1)
-        )
-
-        result = self.runner.invoke(
-            app,
-            [
-                "user",
-                "add-ssh-key",
-                "testuser",
-                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
-            ],
-        )
-
-        assert mock_admin_check.called
-        assert result.exit_code == 1
-
     def test_add_ssh_key_user_not_found(self, mocker: MockerFixture) -> None:
         from django.core.exceptions import ObjectDoesNotExist
 
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mocker.patch(
+            "svs_core.cli.user.get_current_username", return_value="non_existing_user"
+        )
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_get.side_effect = ObjectDoesNotExist()
 
@@ -171,7 +155,6 @@ class TestUserCommands:
             [
                 "user",
                 "add-ssh-key",
-                "non_existing_user",
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
             ],
         )
@@ -180,7 +163,7 @@ class TestUserCommands:
         assert "not found" in result.output
 
     def test_add_ssh_key_success(self, mocker: MockerFixture) -> None:
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mocker.patch("svs_core.cli.user.get_current_username", return_value="testuser")
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_user = mocker.MagicMock()
         mock_user.name = "testuser"
@@ -192,7 +175,6 @@ class TestUserCommands:
             [
                 "user",
                 "add-ssh-key",
-                "testuser",
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
             ],
         )
@@ -204,28 +186,12 @@ class TestUserCommands:
         )
 
     # Remove SSH key command tests
-    def test_remove_ssh_key_without_admin_rights(self, mocker: MockerFixture) -> None:
-        mock_admin_check = mocker.patch(
-            "svs_core.cli.user.reject_if_not_admin", side_effect=SystemExit(1)
-        )
-
-        result = self.runner.invoke(
-            app,
-            [
-                "user",
-                "remove-ssh-key",
-                "testuser",
-                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
-            ],
-        )
-
-        assert mock_admin_check.called
-        assert result.exit_code == 1
-
     def test_remove_ssh_key_user_not_found(self, mocker: MockerFixture) -> None:
         from django.core.exceptions import ObjectDoesNotExist
 
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mocker.patch(
+            "svs_core.cli.user.get_current_username", return_value="non_existing_user"
+        )
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_get.side_effect = ObjectDoesNotExist()
 
@@ -234,7 +200,6 @@ class TestUserCommands:
             [
                 "user",
                 "remove-ssh-key",
-                "non_existing_user",
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
             ],
         )
@@ -243,7 +208,7 @@ class TestUserCommands:
         assert "not found" in result.output
 
     def test_remove_ssh_key_success(self, mocker: MockerFixture) -> None:
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mocker.patch("svs_core.cli.user.get_current_username", return_value="testuser")
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_user = mocker.MagicMock()
         mock_user.name = "testuser"
@@ -255,7 +220,6 @@ class TestUserCommands:
             [
                 "user",
                 "remove-ssh-key",
-                "testuser",
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
             ],
         )
@@ -269,12 +233,14 @@ class TestUserCommands:
     def test_add_ssh_key_displays_user_name_from_db(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that add-ssh-key displays the user's name from DB, not the CLI
-        argument."""
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        """Test that add-ssh-key displays the user's name from DB."""
+        mocker.patch(
+            "svs_core.cli.user.get_current_username",
+            return_value="current_user_from_context",
+        )
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_user = mocker.MagicMock()
-        mock_user.name = "actual_name_from_db"  # Different from CLI argument
+        mock_user.name = "actual_name_from_db"  # Name from DB
         mock_user.add_ssh_key = mocker.MagicMock()
         mock_get.return_value = mock_user
 
@@ -283,7 +249,6 @@ class TestUserCommands:
             [
                 "user",
                 "add-ssh-key",
-                "cli_argument_name",
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
             ],
         )
@@ -294,12 +259,14 @@ class TestUserCommands:
     def test_remove_ssh_key_displays_user_name_from_db(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that remove-ssh-key displays the user's name from DB, not the
-        CLI argument."""
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        """Test that remove-ssh-key displays the user's name from DB."""
+        mocker.patch(
+            "svs_core.cli.user.get_current_username",
+            return_value="current_user_from_context",
+        )
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_user = mocker.MagicMock()
-        mock_user.name = "actual_name_from_db"  # Different from CLI argument
+        mock_user.name = "actual_name_from_db"  # Name from DB
         mock_user.remove_ssh_key = mocker.MagicMock()
         mock_get.return_value = mock_user
 
@@ -308,7 +275,6 @@ class TestUserCommands:
             [
                 "user",
                 "remove-ssh-key",
-                "cli_argument_name",
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
             ],
         )
@@ -316,15 +282,17 @@ class TestUserCommands:
         assert result.exit_code == 0
         assert "SSH key removed from user 'actual_name_from_db'." in result.output
 
-    def test_add_ssh_key_calls_get_with_cli_argument(
+    def test_add_ssh_key_calls_get_with_current_username(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that add-ssh-key passes the CLI argument to User.objects.get,
-        not the DB name."""
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        """Test that add-ssh-key passes the current username from context to
+        User.objects.get."""
+        mocker.patch(
+            "svs_core.cli.user.get_current_username", return_value="current_user"
+        )
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_user = mocker.MagicMock()
-        mock_user.name = "db_name"
+        mock_user.name = "current_user"
         mock_user.add_ssh_key = mocker.MagicMock()
         mock_get.return_value = mock_user
 
@@ -333,22 +301,23 @@ class TestUserCommands:
             [
                 "user",
                 "add-ssh-key",
-                "cli_arg",
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
             ],
         )
 
-        mock_get.assert_called_once_with(name="cli_arg")
+        mock_get.assert_called_once_with(name="current_user")
 
-    def test_remove_ssh_key_calls_get_with_cli_argument(
+    def test_remove_ssh_key_calls_get_with_current_username(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that remove-ssh-key passes the CLI argument to
-        User.objects.get, not the DB name."""
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        """Test that remove-ssh-key passes the current username from context to
+        User.objects.get."""
+        mocker.patch(
+            "svs_core.cli.user.get_current_username", return_value="current_user"
+        )
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_user = mocker.MagicMock()
-        mock_user.name = "db_name"
+        mock_user.name = "current_user"
         mock_user.remove_ssh_key = mocker.MagicMock()
         mock_get.return_value = mock_user
 
@@ -357,19 +326,18 @@ class TestUserCommands:
             [
                 "user",
                 "remove-ssh-key",
-                "cli_arg",
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
             ],
         )
 
-        mock_get.assert_called_once_with(name="cli_arg")
+        mock_get.assert_called_once_with(name="current_user")
 
     def test_add_ssh_key_error_handling_on_method_call(
         self, mocker: MockerFixture
     ) -> None:
         """Test that exceptions from add_ssh_key method are not caught by the
         CLI."""
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mocker.patch("svs_core.cli.user.get_current_username", return_value="testuser")
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_user = mocker.MagicMock()
         mock_user.name = "testuser"
@@ -383,7 +351,6 @@ class TestUserCommands:
             [
                 "user",
                 "add-ssh-key",
-                "testuser",
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
             ],
         )
@@ -396,7 +363,7 @@ class TestUserCommands:
     ) -> None:
         """Test that exceptions from remove_ssh_key method are not caught by
         the CLI."""
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mocker.patch("svs_core.cli.user.get_current_username", return_value="testuser")
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_user = mocker.MagicMock()
         mock_user.name = "testuser"
@@ -410,7 +377,6 @@ class TestUserCommands:
             [
                 "user",
                 "remove-ssh-key",
-                "testuser",
                 "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJVGeX1Zlsp0gRox2uPlaF+/M1Peqtj8kNOMdSLJswfz",
             ],
         )
