@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
-import getpass
 import os
 import sys
 
 from importlib.metadata import version
-from typing import Optional
+from typing import Optional, cast
 
 import django
 import typer
 
-from svs_core.cli.state import is_verbose, set_current_user, set_verbose_mode
+from svs_core.cli.lib import get_or_exit
+from svs_core.cli.state import is_current_user_admin, set_current_user, set_verbose_mode
 from svs_core.shared.env_manager import EnvManager
 from svs_core.shared.logger import add_verbose_handler, get_logger
 
@@ -82,12 +82,26 @@ def global_options(
         "-v",
         help="Enable verbose output.",
     ),
+    user_override: str | None = typer.Option(
+        None, "--user", "-u", help="Override acting user by username (admin only)"
+    ),
 ) -> None:
     """Global options for SVS CLI."""
     set_verbose_mode(verbose)
     if verbose:
         add_verbose_handler()
         get_logger(__name__).debug("Verbose mode enabled")
+
+    if user_override:
+        if not is_current_user_admin():
+            typer.echo("User overriding is admin only")
+            raise typer.Exit(1)
+
+        from svs_core.users.user import User  # noqa: E402
+
+        user_to_override = get_or_exit(User, name=user_override)
+
+        set_current_user(user_to_override.name, True)
 
 
 app.add_typer(user_app, name="user")
@@ -111,11 +125,11 @@ def main() -> None:  # noqa: D103
 
         sys.exit(1)
 
-    is_admin = user.is_admin() if user else False
+    is_admin = cast(User, user).is_admin() if user else False
     if user:
         set_current_user(user.name, is_admin)
 
-    user_type = "admin" if (user and user.is_admin()) else "standard user"
+    user_type = "admin" if (user and cast(User, user).is_admin()) else "standard user"
     user_display = user.name if user else username
     logger.debug(f"{user_display} ({user_type}) ran: {' '.join(sys.argv)}")
 

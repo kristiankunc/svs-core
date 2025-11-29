@@ -40,6 +40,7 @@ class TestTemplateCommands:
         assert "No templates found." in result.output
 
     def test_import_template_success(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.template.reject_if_not_admin")
         mocker.patch("os.path.isfile", return_value=True)
         mock_open = mocker.patch(
             "builtins.open", mocker.mock_open(read_data='{"name": "test"}')
@@ -61,6 +62,7 @@ class TestTemplateCommands:
         assert "Template 'test' imported successfully." in result.output
 
     def test_import_template_file_not_found(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.template.reject_if_not_admin")
         mocker.patch("os.path.isfile", return_value=False)
 
         result = self.runner.invoke(
@@ -72,6 +74,7 @@ class TestTemplateCommands:
         assert "File '/non/existent/file.json' does not exist." in result.output
 
     def test_delete_template_success(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.template.reject_if_not_admin")
         mock_get = mocker.patch("svs_core.docker.template.Template.objects.get")
         mock_template = mocker.MagicMock()
         mock_get.return_value = mock_template
@@ -88,6 +91,7 @@ class TestTemplateCommands:
     def test_delete_template_not_found(self, mocker: MockerFixture) -> None:
         from django.core.exceptions import ObjectDoesNotExist
 
+        mocker.patch("svs_core.cli.template.reject_if_not_admin")
         mock_get = mocker.patch("svs_core.docker.template.Template.objects.get")
         mock_get.side_effect = ObjectDoesNotExist()
 
