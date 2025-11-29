@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.8.0](https://github.com/kristiankunc/svs-core/compare/v0.7.1...v0.8.0) (2025-11-29)
+
+
+### Features
+
+* Add cli version ([#115](https://github.com/kristiankunc/svs-core/issues/115)) ([bd14d74](https://github.com/kristiankunc/svs-core/commit/bd14d7425e68a9d0bb711ffb687c2c13bea288a2))
+* Add mysql template ([#113](https://github.com/kristiankunc/svs-core/issues/113)) ([1cd0d48](https://github.com/kristiankunc/svs-core/commit/1cd0d48b78da890edb68bb63f77a09c361c97c7c))
+* Add SSH key management ([#111](https://github.com/kristiankunc/svs-core/issues/111)) ([ff20953](https://github.com/kristiankunc/svs-core/commit/ff2095388325eb8dfc5ff62a23b11e27cc443b60))
+* Add verbose cli option ([#116](https://github.com/kristiankunc/svs-core/issues/116)) ([0c2c617](https://github.com/kristiankunc/svs-core/commit/0c2c617b9829b427c5ef4d0da71b417eab7e4b58))
+* Remove user args from commands, allow admin override ([#120](https://github.com/kristiankunc/svs-core/issues/120)) ([d1f83d7](https://github.com/kristiankunc/svs-core/commit/d1f83d7b97283d16d3219695f1f0c5eb68a986f1))
+
+
+### Bug Fixes
+
+* Add full internal docs ([2db2398](https://github.com/kristiankunc/svs-core/commit/2db2398f4feb9df06a0554123184e9ad3312fac4))
+* create default user with bash shell ([#110](https://github.com/kristiankunc/svs-core/issues/110)) ([aab42b6](https://github.com/kristiankunc/svs-core/commit/aab42b675df56ee70ac22a94bbe57c7d0f43c6b5))
+* Fix system username detection to use effective user instead of SUDO_USER ([#122](https://github.com/kristiankunc/svs-core/issues/122)) ([e96cff9](https://github.com/kristiankunc/svs-core/commit/e96cff99f54f978d574e7c5f81d62e1d85a744b7))
+* Remove emojis from CLI ([#117](https://github.com/kristiankunc/svs-core/issues/117)) ([07b21e4](https://github.com/kristiankunc/svs-core/commit/07b21e4aa336889fa80a1e0b68e94d5a90551b64))
+* Stop loading .env file in dev ([d3afa1f](https://github.com/kristiankunc/svs-core/commit/d3afa1fe01e70dfa34b0d7d90aa3a37dfea8c14f))
+* Use -v for verbose instead of version ([19b6711](https://github.com/kristiankunc/svs-core/commit/19b6711bc3b40c555552492d247460d5f6479fa2))
+* Use adduser for system user creation ([b6bd7c4](https://github.com/kristiankunc/svs-core/commit/b6bd7c49198926c7addd8175dadbdada2b9a0a77))
+
 ## [0.7.1](https://github.com/kristiankunc/svs-core/compare/v0.7.0...v0.7.1) (2025-11-25)
 
 
