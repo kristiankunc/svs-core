@@ -83,29 +83,51 @@ class TestSystemUser:
         assert result is False
 
     @pytest.mark.unit
-    def test_get_system_username_with_sudo(self, mocker: MockerFixture) -> None:
+    def test_get_system_username_returns_effective_user(
+        self, mocker: MockerFixture
+    ) -> None:
         mock_pwd = mocker.MagicMock()
-        mock_pwd.pw_name = "sudo_user"
+        mock_pwd.pw_name = "effective_user"
         mock_getpwuid = mocker.patch(
             "svs_core.users.system.pwd.getpwuid", return_value=mock_pwd
         )
 
         username = SystemUserManager.get_system_username()
         mock_getpwuid.assert_called_once()
-        assert username == "sudo_user"
-        assert username == "sudo_user"
+        assert username == "effective_user"
 
     @pytest.mark.unit
-    def test_get_system_username_without_sudo(self, mocker: MockerFixture) -> None:
-        mock_pwd = mocker.MagicMock()
-        mock_pwd.pw_name = "normal_user"
-        mock_getpwuid = mocker.patch(
-            "svs_core.users.system.pwd.getpwuid", return_value=mock_pwd
+    def test_get_system_username_fallback_to_getlogin(
+        self, mocker: MockerFixture
+    ) -> None:
+        mocker.patch(
+            "svs_core.users.system.pwd.getpwuid", side_effect=Exception("No pwd")
+        )
+        mock_getlogin = mocker.patch(
+            "svs_core.users.system.os.getlogin", return_value="login_user"
         )
 
         username = SystemUserManager.get_system_username()
-        mock_getpwuid.assert_called_once()
-        assert username == "normal_user"
+        mock_getlogin.assert_called_once()
+        assert username == "login_user"
+
+    @pytest.mark.unit
+    def test_get_system_username_fallback_to_getpass(
+        self, mocker: MockerFixture
+    ) -> None:
+        mocker.patch(
+            "svs_core.users.system.pwd.getpwuid", side_effect=Exception("No pwd")
+        )
+        mocker.patch(
+            "svs_core.users.system.os.getlogin", side_effect=Exception("No login")
+        )
+        mock_getuser = mocker.patch(
+            "svs_core.users.system.getpass.getuser", return_value="getpass_user"
+        )
+
+        username = SystemUserManager.get_system_username()
+        mock_getuser.assert_called_once()
+        assert username == "getpass_user"
 
     @pytest.mark.unit
     def test_add_ssh_key_to_user(self, mocker: MockerFixture) -> None:
