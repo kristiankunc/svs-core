@@ -29,7 +29,7 @@ sudo svs template list
 We use [`svs service create`](../cli.md#svs-service-create)
 
 ```bash
-sudo svs service create <name> <user_id> <template_id>
+sudo svs service create <name> <template_id>
 ```
 
 The IDs are indexed from 1 so you can likely put that in, if in doubt use the list commands (`svs template//user//service list`)
