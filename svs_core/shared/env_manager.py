@@ -40,6 +40,15 @@ class EnvManager:
         """
         from svs_core.shared.logger import get_logger
 
+        if (
+            EnvManager.get_runtime_environment()
+            == EnvManager.RuntimeEnvironment.DEVELOPMENT
+        ):
+            get_logger(__name__).debug(
+                "Skipping .env loading in development environment."
+            )
+            return
+
         if not EnvManager.ENV_FILE_PATH.exists():
             get_logger(__name__).warning(
                 f".env file not found at {EnvManager.ENV_FILE_PATH}"
