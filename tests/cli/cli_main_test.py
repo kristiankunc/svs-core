@@ -44,7 +44,7 @@ class TestMainCLI:
         mocker.patch("svs_core.__main__.add_verbose_handler")
         mocker.patch("svs_core.__main__.get_logger")
 
-        global_options(version_flag=False, verbose=True)
+        global_options(version_flag=False, verbose=True, user_override=None)
 
         assert is_verbose() is True
 
@@ -55,7 +55,7 @@ class TestMainCLI:
         False."""
         from svs_core.cli.state import is_verbose
 
-        global_options(version_flag=False, verbose=False)
+        global_options(version_flag=False, verbose=False, user_override=None)
 
         assert is_verbose() is False
 
@@ -66,7 +66,7 @@ class TestMainCLI:
         mock_add_verbose = mocker.patch("svs_core.__main__.add_verbose_handler")
         mock_logger = mocker.patch("svs_core.__main__.get_logger")
 
-        global_options(version_flag=False, verbose=True)
+        global_options(version_flag=False, verbose=True, user_override=None)
 
         mock_add_verbose.assert_called_once()
 
@@ -77,7 +77,7 @@ class TestMainCLI:
         False."""
         mock_add_verbose = mocker.patch("svs_core.__main__.add_verbose_handler")
 
-        global_options(version_flag=False, verbose=False)
+        global_options(version_flag=False, verbose=False, user_override=None)
 
         mock_add_verbose.assert_not_called()
 
@@ -91,7 +91,7 @@ class TestMainCLI:
             "svs_core.__main__.get_logger", return_value=mock_logger_instance
         )
 
-        global_options(version_flag=False, verbose=True)
+        global_options(version_flag=False, verbose=True, user_override=None)
 
         mock_get_logger.assert_called()
         mock_logger_instance.debug.assert_called_once()
@@ -105,7 +105,7 @@ class TestMainCLI:
             "svs_core.__main__.get_logger", return_value=mock_logger_instance
         )
 
-        global_options(version_flag=False, verbose=False)
+        global_options(version_flag=False, verbose=False, user_override=None)
 
         mock_logger_instance.debug.assert_not_called()
 
@@ -117,7 +117,7 @@ class TestMainCLI:
         mock_add_verbose = mocker.patch("svs_core.__main__.add_verbose_handler")
         mocker.patch("svs_core.__main__.get_logger")
 
-        global_options(version_flag=False, verbose=True)
+        global_options(version_flag=False, verbose=True, user_override=None)
 
         assert is_verbose() is True
         mock_add_verbose.assert_called_once()

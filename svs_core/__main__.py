@@ -82,7 +82,7 @@ def global_options(
         "-v",
         help="Enable verbose output.",
     ),
-    user_override: str = typer.Option(
+    user_override: str | None = typer.Option(
         None, "--user", "-u", help="Override acting user by username (admin only)"
     ),
 ) -> None:
