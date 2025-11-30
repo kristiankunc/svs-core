@@ -30,6 +30,28 @@
 				"null"
 			]
 		},
+		"default_contents": {
+			"description": "Array of default file contents to create in the container.",
+			"items": {
+				"additionalProperties": false,
+				"properties": {
+					"content": {
+						"description": "The content of the file",
+						"type": "string"
+					},
+					"location": {
+						"description": "The file path inside the container",
+						"type": "string"
+					}
+				},
+				"required": [
+					"location",
+					"content"
+				],
+				"type": "object"
+			},
+			"type": "array"
+		},
 		"default_env": {
 			"items": {
 				"additionalProperties": {
