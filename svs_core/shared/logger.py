@@ -41,12 +41,12 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
 
     formatter = UTCFormatter("%(asctime)s: [%(levelname)s] %(name)s %(message)s")
 
-    # Try to use file handler if log file exists, otherwise use stdout
+    # Try to use file handler if log file exists, otherwise use null
     LOG_FILE = Path("/etc/svs/svs.log")
     handler: logging.Handler = (
         logging.FileHandler(LOG_FILE.as_posix())
         if LOG_FILE.exists()
-        else logging.StreamHandler(sys.stdout)
+        else logging.NullHandler()
     )
 
     if EnvManager.get_runtime_environment() == EnvManager.RuntimeEnvironment.PRODUCTION:
