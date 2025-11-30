@@ -5,6 +5,7 @@ from typing import Any, List, cast
 from svs_core.db.models import TemplateModel, TemplateType
 from svs_core.docker.image import DockerImageManager
 from svs_core.docker.json_properties import (
+    DefaultContent,
     EnvVariable,
     ExposedPort,
     Healthcheck,
@@ -46,6 +47,7 @@ class Template(TemplateModel):
         default_env: list[EnvVariable] | None = None,
         default_ports: list[ExposedPort] | None = None,
         default_volumes: list[Volume] | None = None,
+        default_contents: list[DefaultContent] | None = None,
         start_cmd: str | None = None,
         healthcheck: Healthcheck | None = None,
         labels: list[Label] | None = None,
@@ -62,6 +64,7 @@ class Template(TemplateModel):
             default_env (list[EnvVariable] | None, optional): Default environment variables. Defaults to None.
             default_ports (list[ExposedPort] | None, optional): Default exposed ports. Defaults to None.
             default_volumes (list[Volume] | None, optional): Default volume bindings. Defaults to None.
+            default_contents (list[DefaultContent] | None, optional): Default file contents to create in the container. Defaults to None.
             start_cmd (str | None, optional): The default start command. Defaults to None.
             healthcheck (Healthcheck | None, optional): The healthcheck configuration. Defaults to None.
             labels (list[Label] | None, optional): Default Docker labels. Defaults to None.
@@ -139,6 +142,18 @@ class Template(TemplateModel):
                 if not volume.container_path:
                     raise ValueError("Volume container path cannot be empty")
 
+        # Validate default_contents
+        if default_contents is not None:
+            for content in default_contents:
+                if not isinstance(content.location, str):
+                    raise ValueError(
+                        f"Default content location must be a string: {content}"
+                    )
+                if not isinstance(content.content, str):
+                    raise ValueError(f"Default content must be a string: {content}")
+                if not content.location:
+                    raise ValueError("Default content location cannot be empty")
+
         # Validate start_cmd
         if start_cmd is not None and not isinstance(start_cmd, str):
             raise ValueError(f"Start command must be a string: {start_cmd}")
@@ -170,7 +185,7 @@ class Template(TemplateModel):
         get_logger(__name__).debug(
             f"Creating template with name={name}, type={type}, image={image}, dockerfile={dockerfile}, "
             f"description={description}, default_env={default_env}, default_ports={default_ports}, "
-            f"default_volumes={default_volumes}, start_cmd={start_cmd}, healthcheck={healthcheck}, "
+            f"default_volumes={default_volumes}, default_contents={default_contents}, start_cmd={start_cmd}, healthcheck={healthcheck}, "
             f"labels={labels}, args={args}"
         )
 
@@ -183,6 +198,7 @@ class Template(TemplateModel):
             default_env=default_env,
             default_ports=default_ports,
             default_volumes=default_volumes,
+            default_contents=default_contents,
             start_cmd=start_cmd,
             healthcheck=healthcheck,
             labels=labels,
@@ -323,6 +339,43 @@ class Template(TemplateModel):
             raise ValueError(f"labels must be a list, got {type(labels_data).__name__}")
         labels_list = labels_data
 
+        # Process default_contents: strict parsing according to schema
+        # Schema format: [{"location": "/path/to/file", "content": "file content"}] with both required
+        default_contents_data = data.get("default_contents", [])
+        default_contents_list = []
+        for content_data in default_contents_data:
+            if not isinstance(content_data, dict):
+                raise ValueError(
+                    f"Invalid default content specification: {content_data}. Must be a dictionary."
+                )
+
+            if "location" not in content_data:
+                raise ValueError(
+                    f"Invalid default content specification: {content_data}. Must contain 'location' field."
+                )
+
+            if "content" not in content_data:
+                raise ValueError(
+                    f"Invalid default content specification: {content_data}. Must contain 'content' field."
+                )
+
+            location = content_data["location"]
+            content = content_data["content"]
+
+            if not isinstance(location, str):
+                raise ValueError(
+                    f"Default content location must be a string, got {type(location).__name__}"
+                )
+
+            if not isinstance(content, str):
+                raise ValueError(
+                    f"Default content must be a string, got {type(content).__name__}"
+                )
+
+            default_contents_list.append(
+                DefaultContent(location=location, content=content)
+            )
+
         # Delegate to create method for further validation
         template: "Template" = cls.create(
             name=data.get("name", ""),
@@ -333,6 +386,7 @@ class Template(TemplateModel):
             default_env=EnvVariable.from_dict_array(default_env_list),
             default_ports=default_ports_list,
             default_volumes=default_volumes_list,
+            default_contents=default_contents_list,
             start_cmd=data.get("start_cmd"),
             healthcheck=Healthcheck.from_dict(data.get("healthcheck")),
             labels=Label.from_dict_array(labels_list),
