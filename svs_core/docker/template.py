@@ -25,15 +25,22 @@ class Template(TemplateModel):
         dockerfile_head = self.dockerfile.splitlines()[:5] if self.dockerfile else []
 
         return (
-            f"Template(id={self.id}, name={self.name}, type={self.type}, image={self.image}, "
-            f"dockerfile_head={dockerfile_head}, description={self.description}, "
-            f"default_env={[var.__str__() for var in self.default_env]}, "
-            f"default_ports={[port.__str__() for port in self.default_ports]}, "
-            f"default_volumes={[vol.__str__() for vol in self.default_volumes]}, "
-            f"start_cmd={self.start_cmd}, "
-            f"healthcheck={self.healthcheck}, "
-            f"labels={[label.__str__() for label in self.labels]}, "
-            f"args={self.args})"
+            f"Template(\n"
+            f"  id={self.id},\n"
+            f"  name={self.name},\n"
+            f"  type={self.type},\n"
+            f"  image={self.image},\n"
+            f"  dockerfile_head={dockerfile_head},\n"
+            f"  description={self.description},\n"
+            f"  default_env={[var.__str__() for var in self.default_env]},\n"
+            f"  default_ports={[port.__str__() for port in self.default_ports]},\n"
+            f"  default_volumes={[vol.__str__() for vol in self.default_volumes]},\n"
+            f"  default_contents={[content.__str__() for content in self.default_contents]},\n"
+            f"  start_cmd={self.start_cmd},\n"
+            f"  healthcheck={self.healthcheck},\n"
+            f"  labels={[label.__str__() for label in self.labels]},\n"
+            f"  args={self.args}\n"
+            f")"
         )
 
     @classmethod
