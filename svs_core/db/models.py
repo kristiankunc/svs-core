@@ -3,6 +3,7 @@ from enum import Enum
 from django.db import models
 
 from svs_core.docker.json_properties import (
+    DefaultContent,
     EnvVariable,
     ExposedPort,
     Healthcheck,
@@ -171,6 +172,7 @@ class ServiceModel(BaseModel):
     _labels = models.JSONField(null=True, blank=True, default=list)
     _healthcheck = models.JSONField(null=True, blank=True, default=dict)
     _networks = models.JSONField(null=True, blank=True, default=list)
+    _default_contents = models.JSONField(null=True, blank=True, default=list)
 
     template = models.ForeignKey(
         TemplateModel, on_delete=models.CASCADE, related_name="services"
@@ -210,6 +212,14 @@ class ServiceModel(BaseModel):
     @labels.setter
     def labels(self, labels: list[Label]) -> None:  # noqa: D102
         self._labels = Label.to_dict_array(labels)
+
+    @property
+    def default_contents(self) -> list[DefaultContent]:  # noqa: D102
+        return DefaultContent.from_dict_array(self._default_contents or [])
+
+    @default_contents.setter
+    def default_contents(self, contents: list[DefaultContent]) -> None:  # noqa: D102
+        self._default_contents = DefaultContent.to_dict_array(contents)
 
     @property
     def healthcheck(self) -> Healthcheck | None:  # noqa: D102
