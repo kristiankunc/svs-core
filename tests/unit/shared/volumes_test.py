@@ -235,3 +235,138 @@ class TestVolumes:
         # Check that only the first volume is deleted
         assert not volume_path1.exists()
         assert volume_path2.exists()
+
+    @pytest.mark.unit
+    def test_find_host_path_with_matching_volume(self) -> None:
+        """Test finding host path when container path matches a volume
+        mount."""
+        from svs_core.docker.json_properties import Volume
+
+        # Example from docstring:
+        # container path: /usr/share/nginx/html/index.html
+        # should map to host path: /var/svs/volumes/.../index.html
+        host_path = "/var/svs/volumes/user123/volume1"
+        volumes = [
+            Volume(host_path=host_path, container_path="/usr/share/nginx/html"),
+            Volume(host_path=None, container_path="/etc/nginx/conf.d"),
+        ]
+
+        container_path = Path("/usr/share/nginx/html/index.html")
+        result = SystemVolumeManager.find_host_path(container_path, volumes)
+
+        assert result is not None
+        assert result == Path(host_path) / "index.html"
+
+    @pytest.mark.unit
+    def test_find_host_path_with_nested_container_path(self) -> None:
+        """Test finding host path with deeply nested container paths."""
+        from svs_core.docker.json_properties import Volume
+
+        host_path = "/var/svs/volumes/user123/volume1"
+        volumes = [
+            Volume(host_path=host_path, container_path="/usr/share/nginx/html"),
+        ]
+
+        container_path = Path("/usr/share/nginx/html/subdir/deep/file.txt")
+        result = SystemVolumeManager.find_host_path(container_path, volumes)
+
+        assert result is not None
+        assert result == Path(host_path) / "subdir" / "deep" / "file.txt"
+
+    @pytest.mark.unit
+    def test_find_host_path_with_no_matching_volume(self) -> None:
+        """Test finding host path when no volume matches the container path."""
+        from svs_core.docker.json_properties import Volume
+
+        volumes = [
+            Volume(
+                host_path="/var/svs/volumes/user123/volume1",
+                container_path="/usr/share/nginx/html",
+            ),
+            Volume(host_path=None, container_path="/etc/nginx/conf.d"),
+        ]
+
+        container_path = Path("/opt/app/data/file.txt")
+        result = SystemVolumeManager.find_host_path(container_path, volumes)
+
+        assert result is None
+
+    @pytest.mark.unit
+    def test_find_host_path_with_null_host_path(self) -> None:
+        """Test finding host path when volume has null host path
+        (anonymous)."""
+        from svs_core.docker.json_properties import Volume
+
+        volumes = [
+            Volume(host_path=None, container_path="/etc/nginx/conf.d"),
+        ]
+
+        container_path = Path("/etc/nginx/conf.d/default.conf")
+        result = SystemVolumeManager.find_host_path(container_path, volumes)
+
+        # Should return None because host path is None
+        assert result is None
+
+    @pytest.mark.unit
+    def test_find_host_path_with_multiple_volumes(self) -> None:
+        """Test finding host path when multiple volumes are available."""
+        from svs_core.docker.json_properties import Volume
+
+        volumes = [
+            Volume(
+                host_path="/var/svs/volumes/user123/vol1",
+                container_path="/usr/share/nginx/html",
+            ),
+            Volume(
+                host_path="/var/svs/volumes/user123/vol2",
+                container_path="/var/www/data",
+            ),
+            Volume(host_path=None, container_path="/etc/config"),
+        ]
+
+        # Test matching first volume
+        result1 = SystemVolumeManager.find_host_path(
+            Path("/usr/share/nginx/html/index.html"), volumes
+        )
+        assert result1 == Path("/var/svs/volumes/user123/vol1") / "index.html"
+
+        # Test matching second volume
+        result2 = SystemVolumeManager.find_host_path(
+            Path("/var/www/data/file.dat"), volumes
+        )
+        assert result2 == Path("/var/svs/volumes/user123/vol2") / "file.dat"
+
+        # Test no match
+        result3 = SystemVolumeManager.find_host_path(
+            Path("/opt/other/file.txt"), volumes
+        )
+        assert result3 is None
+
+    @pytest.mark.unit
+    def test_find_host_path_with_exact_volume_root(self) -> None:
+        """Test finding host path when container path is exactly the volume
+        root."""
+        from svs_core.docker.json_properties import Volume
+
+        host_path = "/var/svs/volumes/user123/volume1"
+        volumes = [
+            Volume(host_path=host_path, container_path="/usr/share/nginx/html"),
+        ]
+
+        # Container path is exactly the volume mount point
+        container_path = Path("/usr/share/nginx/html")
+        result = SystemVolumeManager.find_host_path(container_path, volumes)
+
+        assert result is not None
+        assert result == Path(host_path)
+
+    @pytest.mark.unit
+    def test_find_host_path_with_empty_volumes_list(self) -> None:
+        """Test finding host path when volumes list is empty."""
+        from svs_core.docker.json_properties import Volume
+
+        volumes: list[Volume] = []
+        container_path = Path("/usr/share/nginx/html/index.html")
+        result = SystemVolumeManager.find_host_path(container_path, volumes)
+
+        assert result is None

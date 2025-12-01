@@ -76,3 +76,30 @@ class SystemVolumeManager:
         """
         if volume_path.exists() and volume_path.is_dir():
             remove_directory(volume_path.as_posix())
+
+    @staticmethod
+    def find_host_path(container_path: Path, volumes: list[Volume]) -> Path | None:
+        """Finds the host path corresponding to a given container path.
+
+        Args:
+            container_path (Path): The container path to search for.
+            volumes (list[Volume]): The list of volume mappings.
+
+        Returns:
+            Path | None: The corresponding host path if found, otherwise None.
+        """
+
+        for volume in volumes:
+            vol_container_path = Path(volume.container_path).resolve()
+            try:
+                if container_path.resolve().is_relative_to(vol_container_path):
+                    if volume.host_path is not None:
+                        host_base_path = Path(volume.host_path).resolve()
+                        relative_subpath = container_path.resolve().relative_to(
+                            vol_container_path
+                        )
+                        return host_base_path / relative_subpath
+            except ValueError:
+                continue
+
+        return None
