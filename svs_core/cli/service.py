@@ -2,6 +2,8 @@ from pathlib import Path
 
 import typer
 
+from rich.progress import Progress, SpinnerColumn, TextColumn
+
 from svs_core.cli.lib import get_or_exit
 from svs_core.cli.state import get_current_username, is_current_user_admin
 from svs_core.docker.json_properties import (
@@ -216,6 +218,12 @@ def build_service(
         raise typer.Exit(1)
 
     path_obj = Path(path)
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+    ) as progress:
+        progress.add_task(description="Building service...", total=None)
 
     service.build(path_obj)
     typer.echo(f"Service '{service.name}' Docker image built successfully.")
