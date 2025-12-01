@@ -145,6 +145,16 @@ class TestDefaultContent:
         assert "short" in str_repr
         assert "..." not in str_repr
 
+    def test_write_to_host(self, tmp_path):
+        """Test that write_to_host creates a file with the correct content."""
+        content = DefaultContent("/etc/config.conf", "key=value")
+        host_file = tmp_path / "config.conf"
+
+        content.write_to_host(str(host_file))
+
+        assert host_file.exists()
+        assert host_file.read_text(encoding="utf-8") == "key=value"
+
 
 @pytest.mark.unit
 class TestHealthcheck:

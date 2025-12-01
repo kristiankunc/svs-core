@@ -225,6 +225,15 @@ class DefaultContent(KeyValue[str, str]):
     def content(self, text: str) -> None:  # noqa: D102
         self.value = text
 
+    def write_to_host(self, host_path: str) -> None:
+        """Writes the default content to a specified path on the host.
+
+        Args:
+            host_path (str): The path on the host where the content should be written.
+        """
+        with open(host_path, "w", encoding="utf-8") as file:
+            file.write(self.content)
+
     def __str__(self) -> str:
         """Return a string representation.
 
