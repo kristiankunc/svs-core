@@ -40,16 +40,23 @@ class TestLogger:
         mocker: MockerFixture,
     ) -> None:
         # Mock Path to return False for exists() - simulating no log file
+        mock_path_instance = mocker.MagicMock()
+        mock_path_instance.exists.return_value = False
+        mock_path_instance.as_posix.return_value = "/etc/svs/svs.log"
+
         mock_path = mocker.patch("svs_core.shared.logger.Path")
-        mock_path.return_value.exists.return_value = False
+        mock_path.return_value = mock_path_instance
 
         logger = get_logger("dev_test")
         logger.debug("hello dev")
 
-        captured = capsys.readouterr()
-
-        assert "[DEBUG] dev_test" in captured.out
-        assert "hello dev" in captured.out
+        # When log file doesn't exist, NullHandler is used, so no output
+        null_handlers = [
+            h for h in logger.handlers if isinstance(h, logging.NullHandler)
+        ]
+        assert (
+            len(null_handlers) > 0
+        ), "NullHandler should be created when log file doesn't exist"
 
     @pytest.mark.unit
     def test_file_handler_when_log_file_exists(

@@ -6,6 +6,7 @@ from pytest_mock import MockerFixture
 
 from svs_core.db.models import ServiceStatus, TemplateType
 from svs_core.docker.json_properties import (
+    DefaultContent,
     EnvVariable,
     ExposedPort,
     Healthcheck,
@@ -685,3 +686,88 @@ class TestService:
         # Verify empty string returned
         assert logs == ""
         mock_container.logs.assert_called_once_with(tail=100)
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_create_writes_default_contents_to_volume(
+        self,
+        mocker: MockerFixture,
+        test_user: User,
+        tmp_path: Any,
+    ) -> None:
+        """Test that creating a service writes default contents to volumes."""
+        # Mock Docker operations
+        mocker.patch(
+            "svs_core.docker.template.DockerImageManager.exists", return_value=True
+        )
+        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
+
+        # Create a template with default contents
+        test_template = Template.create(
+            name="nginx-with-config",
+            type=TemplateType.IMAGE,
+            image="nginx:alpine",
+            description="Nginx with default config",
+            default_volumes=[
+                Volume(host_path=None, container_path="/etc/nginx/conf.d")
+            ],
+            default_contents=[
+                DefaultContent(
+                    location="/etc/nginx/conf.d/default.conf",
+                    content="server { listen 80; }",
+                )
+            ],
+            start_cmd="nginx -g 'daemon off;'",
+        )
+
+        # Mock container creation
+        mock_container = mocker.MagicMock()
+        mock_container.id = "default_content_container"
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Mock volume path finding
+        mock_volume_path = tmp_path / "volumes" / "user_123" / "vol1"
+        mock_volume_path.mkdir(parents=True, exist_ok=True)
+        config_file_path = (
+            mock_volume_path / "etc" / "nginx" / "conf.d" / "default.conf"
+        )
+
+        mock_find_host_path = mocker.patch(
+            "svs_core.docker.service.SystemVolumeManager.find_host_path",
+            return_value=config_file_path,
+        )
+
+        # Mock write_to_host to avoid actual file writing
+        mock_write_to_host = mocker.patch(
+            "svs_core.docker.json_properties.DefaultContent.write_to_host"
+        )
+
+        # Create service with volumes
+        service = Service.create(
+            name="default-content-service",
+            template_id=test_template.id,
+            user=test_user,
+            image="nginx:alpine",
+            volumes=[
+                Volume(
+                    host_path=str(mock_volume_path),
+                    container_path="/etc/nginx/conf.d",
+                )
+            ],
+        )
+
+        # Verify find_host_path was called with the correct parameters
+        mock_find_host_path.assert_called()
+
+        # Verify write_to_host was called with the config file path
+        mock_write_to_host.assert_called()
+
+        # Verify the service was created
+        assert service.id is not None
+        assert service.name == "default-content-service"

@@ -1,6 +1,7 @@
 import pytest
 
 from svs_core.docker.json_properties import (
+    DefaultContent,
     EnvVariable,
     ExposedPort,
     Healthcheck,
@@ -103,6 +104,56 @@ class TestVolume:
         vol.host_path = "/new/path"
         vol.container_path = "/new/container"
         assert vol.host_path == "/new/path" and vol.container_path == "/new/container"
+
+
+@pytest.mark.unit
+class TestDefaultContent:
+    """Tests for the DefaultContent class."""
+
+    def test_init(self):
+        content = DefaultContent("/etc/config.conf", "key=value")
+        assert content.location == "/etc/config.conf" and content.content == "key=value"
+
+    def test_to_dict(self):
+        content = DefaultContent("/etc/config.conf", "key=value")
+        assert content.to_dict() == {
+            "key": "/etc/config.conf",
+            "value": "key=value",
+        }
+
+    def test_from_dict(self):
+        data = {"key": "/etc/config.conf", "value": "key=value"}
+        content = DefaultContent.from_dict(data)
+        assert content.location == "/etc/config.conf" and content.content == "key=value"
+
+    def test_setters(self):
+        content = DefaultContent("/old/path", "old content")
+        content.location = "/new/path"
+        content.content = "new content"
+        assert content.location == "/new/path" and content.content == "new content"
+
+    def test_str_long_content(self):
+        long_content = "x" * 100
+        content = DefaultContent("/etc/file", long_content)
+        str_repr = str(content)
+        assert "..." in str_repr
+        assert "/etc/file" in str_repr
+
+    def test_str_short_content(self):
+        content = DefaultContent("/etc/file", "short")
+        str_repr = str(content)
+        assert "short" in str_repr
+        assert "..." not in str_repr
+
+    def test_write_to_host(self, tmp_path):
+        """Test that write_to_host creates a file with the correct content."""
+        content = DefaultContent("/etc/config.conf", "key=value")
+        host_file = tmp_path / "config.conf"
+
+        content.write_to_host(str(host_file))
+
+        assert host_file.exists()
+        assert host_file.read_text(encoding="utf-8") == "key=value"
 
 
 @pytest.mark.unit

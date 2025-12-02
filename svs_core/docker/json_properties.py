@@ -190,6 +190,65 @@ class Volume(KeyValue[str | None, str]):
         return f"Volume({self.container_path}={self.host_path})"
 
 
+class DefaultContent(KeyValue[str, str]):
+    """Represents a default content file for a Docker template.
+
+    Binds: location=content
+
+    Note: Uses key=location and value=content for storage.
+    Represents a file to be created in the container with specified content.
+    Serialization uses the format {"key": location, "value": content}.
+    """
+
+    def __init__(self, location: str, content: str):
+        """Initializes a DefaultContent instance.
+
+        Args:
+            location (str): The file path inside the container.
+            content (str): The content of the file.
+        """
+        super().__init__(key=location, value=content)
+
+    @property
+    def location(self) -> str:  # noqa: D102
+        return self.key
+
+    @location.setter
+    def location(self, path: str) -> None:  # noqa: D102
+        self.key = path
+
+    @property
+    def content(self) -> str:  # noqa: D102
+        return self.value
+
+    @content.setter
+    def content(self, text: str) -> None:  # noqa: D102
+        self.value = text
+
+    def write_to_host(self, host_path: str) -> None:
+        """Writes the default content to a specified path on the host.
+
+        Args:
+            host_path (str): The path on the host where the content should be written.
+        """
+        with open(host_path, "w", encoding="utf-8") as file:
+            file.write(self.content)
+
+    def __str__(self) -> str:
+        """Return a string representation.
+
+        Showing location=content format.
+
+        Returns:
+            str: A string representation of the default content.
+        """
+        # Truncate content for display if too long
+        content_preview = (
+            self.content[:50] + "..." if len(self.content) > 50 else self.content
+        )
+        return f"DefaultContent({self.location}={content_preview})"
+
+
 class Healthcheck:  # noqa: D101
     """Represents a healthcheck configuration for a Docker container."""
 

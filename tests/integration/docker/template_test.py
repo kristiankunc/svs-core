@@ -7,6 +7,7 @@ from pytest_mock import MockerFixture
 
 from svs_core.db.models import TemplateType
 from svs_core.docker.json_properties import (
+    DefaultContent,
     EnvVariable,
     ExposedPort,
     Healthcheck,
@@ -74,6 +75,49 @@ class TestTemplate:
 
         assert len(template.args) == 1
         assert template.args[0] == "ARG1=value1"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_create_template_with_default_contents(self, mocker: MockerFixture) -> None:
+        mocker.patch(
+            "svs_core.docker.template.DockerImageManager.exists", return_value=False
+        )
+        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
+
+        # Create a template with default contents
+        template = Template.create(
+            name="test-contents",
+            type=TemplateType.IMAGE,
+            image="nginx:latest",
+            description="Test template with default contents",
+            default_contents=[
+                DefaultContent(
+                    location="/etc/nginx/conf.d/default.conf",
+                    content="server { listen 80; }",
+                ),
+                DefaultContent(
+                    location="/usr/share/nginx/html/index.html",
+                    content="<html><body>Hello</body></html>",
+                ),
+            ],
+        )
+
+        # Verify basic properties
+        assert template.id is not None
+        assert template.name == "test-contents"
+
+        # Verify default_contents
+        assert len(template.default_contents) == 2
+
+        # Verify first content
+        assert template.default_contents[0].location == "/etc/nginx/conf.d/default.conf"
+        assert template.default_contents[0].content == "server { listen 80; }"
+
+        # Verify second content
+        assert (
+            template.default_contents[1].location == "/usr/share/nginx/html/index.html"
+        )
+        assert template.default_contents[1].content == "<html><body>Hello</body></html>"
 
     @pytest.mark.integration
     @pytest.mark.django_db
@@ -235,6 +279,16 @@ class TestTemplate:
             ],
             "default_ports": [{"container": 8000, "host": None}],
             "default_volumes": [{"container": "/app/data", "host": None}],
+            "default_contents": [
+                {
+                    "location": "/app/manage.py",
+                    "content": "#!/usr/bin/env python\nimport os\nimport sys",
+                },
+                {
+                    "location": "/app/requirements.txt",
+                    "content": "Django==5.0\npsycopg2-binary==2.9",
+                },
+            ],
             "healthcheck": {
                 "test": ["CMD", "curl", "-f", "http://localhost:8000/"],
                 "interval": 30,
@@ -272,6 +326,16 @@ class TestTemplate:
         assert template.default_volumes[0].container_path == "/app/data"
         assert template.default_volumes[0].host_path is None
 
+        # Verify default_contents
+        assert len(template.default_contents) == 2
+        content_dict = {
+            content.location: content.content for content in template.default_contents
+        }
+        assert "/app/manage.py" in content_dict
+        assert "/app/requirements.txt" in content_dict
+        assert "import os" in content_dict["/app/manage.py"]
+        assert "Django==5.0" in content_dict["/app/requirements.txt"]
+
         # Verify healthcheck
         assert template.healthcheck is not None
         assert template.healthcheck.test == [
@@ -302,7 +366,9 @@ class TestTemplate:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_template_string_representation(self, mocker: MockerFixture) -> None:
+    def test_import_from_json_new_schema_format_old(
+        self, mocker: MockerFixture
+    ) -> None:
         mocker.patch(
             "svs_core.docker.template.DockerImageManager.exists", return_value=True
         )
@@ -372,6 +438,18 @@ class TestTemplate:
         assert "/usr/share/nginx/html" in container_paths
         assert "/etc/nginx/conf.d" in container_paths
 
+        # Verify default_contents
+        assert len(template.default_contents) == 2
+        content_locations = {
+            content.location: content.content for content in template.default_contents
+        }
+        assert "/usr/share/nginx/html/index.html" in content_locations
+        assert "/etc/nginx/conf.d/default.conf" in content_locations
+        assert (
+            "Welcome to NGINX!" in content_locations["/usr/share/nginx/html/index.html"]
+        )
+        assert "listen 80" in content_locations["/etc/nginx/conf.d/default.conf"]
+
         # Verify healthcheck
         assert template.healthcheck is not None
         assert template.healthcheck.test == [
@@ -415,6 +493,17 @@ class TestTemplate:
                 type=TemplateType.IMAGE,
                 image="alpine",
                 healthcheck=Healthcheck(test=[]),
+            )
+
+        # Test invalid default_contents - empty location
+        with pytest.raises(
+            ValueError, match="Default content location cannot be empty"
+        ):
+            Template.create(
+                name="test-invalid-content",
+                type=TemplateType.IMAGE,
+                image="alpine",
+                default_contents=[DefaultContent(location="", content="test")],
             )
 
     @pytest.mark.integration

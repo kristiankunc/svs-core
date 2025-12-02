@@ -355,6 +355,10 @@ class Service(ServiceModel):
         except Template.DoesNotExist:
             raise ValueError(f"Template with ID {template_id} does not exist")
 
+        # Validate image for IMAGE templates
+        if template.type == TemplateType.IMAGE and not image:
+            raise ValueError("Service must have an image specified")
+
         if template.type == TemplateType.IMAGE:
             if not DockerImageManager.exists(template.image):
                 DockerImageManager.pull(template.image)
@@ -440,10 +444,17 @@ class Service(ServiceModel):
         # Update service with all labels (system + model)
         service_instance.labels = all_labels
 
-        if not service_instance.image and template.type == TemplateType.IMAGE:
-            raise ValueError("Service must have an image specified")
-
         get_logger(__name__).info(f"Creating service '{name}'")
+
+        for default_content in service_instance.template.default_contents:
+            true_host_path = SystemVolumeManager.find_host_path(
+                Path(default_content.location), service_instance.volumes
+            )
+            if true_host_path and not true_host_path.exists():
+                get_logger(__name__).debug(
+                    f"Adding default content to volume at '{true_host_path}'"
+                )
+                default_content.write_to_host(true_host_path)
 
         if template.type == TemplateType.IMAGE:
             container = DockerContainerManager.create_container(
