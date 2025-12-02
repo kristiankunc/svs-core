@@ -3,6 +3,8 @@ import os
 
 import typer
 
+from rich.progress import Progress, SpinnerColumn, TextColumn
+
 from svs_core.cli.lib import get_or_exit
 from svs_core.cli.state import reject_if_not_admin
 from svs_core.docker.template import Template
@@ -25,7 +27,14 @@ def import_template(
     with open(file_path, "r") as file:
         data = json.load(file)
 
-    template = Template.import_from_json(data)
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+    ) as progress:
+        progress.add_task(description="Importing template...", total=None)
+
+        template = Template.import_from_json(data)
+
     typer.echo(f"Template '{template.name}' imported successfully.")
 
 
