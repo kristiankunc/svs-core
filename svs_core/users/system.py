@@ -140,3 +140,27 @@ class SystemUserManager:
         run_command("sudo rm /tmp/temp_key_to_remove", check=True)
 
         get_logger(__name__).info(f"Removed SSH key from {username}'s authorized_keys")
+
+    @staticmethod
+    def get_uid(username: str) -> int:
+        """Returns the UID of the specified system user.
+
+        Args:
+            username (str): The username of the system user.
+
+        Returns:
+            int: The UID of the user.
+        """
+        return pwd.getpwnam(username).pw_uid
+
+    @staticmethod
+    def get_gid(username: str) -> int:
+        """Returns the GID of the specified system user.
+
+        Args:
+            username (str): The username of the system user.
+
+        Returns:
+            int: The GID of the user.
+        """
+        return pwd.getpwnam(username).pw_gid

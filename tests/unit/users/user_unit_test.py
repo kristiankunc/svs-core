@@ -1,5 +1,7 @@
 import pytest
 
+from pytest_mock import MockerFixture
+
 from svs_core.users.user import User
 
 
@@ -48,3 +50,43 @@ class TestUser:
 
         with pytest.raises(InvalidPasswordException):
             raise InvalidPasswordException(upass)
+
+    @pytest.mark.unit
+    @pytest.mark.django_db
+    def test_user_uid_property(self, mocker: MockerFixture) -> None:
+        """Test that User.uid property calls SystemUserManager.get_uid()."""
+        # Create a user instance without saving to DB
+        user = User(id=1, name="testuser", password="hashed_password")
+
+        # Mock the SystemUserManager.get_uid method
+        mock_get_uid = mocker.patch(
+            "svs_core.users.user.SystemUserManager.get_uid",
+            return_value=1000,
+        )
+
+        # Access the uid property
+        uid = user.uid
+
+        # Verify the method was called with the correct username
+        mock_get_uid.assert_called_once_with("testuser")
+        assert uid == 1000
+
+    @pytest.mark.unit
+    @pytest.mark.django_db
+    def test_user_gid_property(self, mocker: MockerFixture) -> None:
+        """Test that User.gid property calls SystemUserManager.get_gid()."""
+        # Create a user instance without saving to DB
+        user = User(id=1, name="testuser", password="hashed_password")
+
+        # Mock the SystemUserManager.get_gid method
+        mock_get_gid = mocker.patch(
+            "svs_core.users.user.SystemUserManager.get_gid",
+            return_value=1000,
+        )
+
+        # Access the gid property
+        gid = user.gid
+
+        # Verify the method was called with the correct username
+        mock_get_gid.assert_called_once_with("testuser")
+        assert gid == 1000

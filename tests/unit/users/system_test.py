@@ -237,3 +237,25 @@ class TestSystemUser:
 
         mock_open.assert_called_once_with("/tmp/temp_key_to_remove", "w")
         mock_open().write.assert_called_once_with(ssh_key)
+
+    @pytest.mark.unit
+    def test_get_uid(self, mocker: MockerFixture) -> None:
+        mock_pwd_struct = mocker.MagicMock()
+        mock_pwd_struct.pw_uid = 1000
+        mocker.patch("svs_core.users.system.pwd.getpwnam", return_value=mock_pwd_struct)
+
+        username = "testuser"
+        uid = SystemUserManager.get_uid(username)
+
+        assert uid == 1000
+
+    @pytest.mark.unit
+    def test_get_gid(self, mocker: MockerFixture) -> None:
+        mock_pwd_struct = mocker.MagicMock()
+        mock_pwd_struct.pw_gid = 1000
+        mocker.patch("svs_core.users.system.pwd.getpwnam", return_value=mock_pwd_struct)
+
+        username = "testuser"
+        gid = SystemUserManager.get_gid(username)
+
+        assert gid == 1000
