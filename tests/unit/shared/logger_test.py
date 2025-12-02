@@ -50,13 +50,16 @@ class TestLogger:
         logger = get_logger("dev_test")
         logger.debug("hello dev")
 
-        # When log file doesn't exist, NullHandler is used, so no output
-        null_handlers = [
-            h for h in logger.handlers if isinstance(h, logging.NullHandler)
+        # When log file doesn't exist, StreamHandler is used
+        stream_handlers = [
+            h for h in logger.handlers if isinstance(h, logging.StreamHandler)
         ]
         assert (
-            len(null_handlers) > 0
-        ), "NullHandler should be created when log file doesn't exist"
+            len(stream_handlers) > 0
+        ), "StreamHandler should be created when log file doesn't exist"
+
+        captured = capsys.readouterr()
+        assert "[DEBUG] dev_test hello dev" in captured.out
 
     @pytest.mark.unit
     def test_file_handler_when_log_file_exists(
