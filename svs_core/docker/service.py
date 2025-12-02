@@ -460,6 +460,7 @@ class Service(ServiceModel):
             container = DockerContainerManager.create_container(
                 name=name,
                 image=service_instance.image,
+                user=user,
                 command=service_instance.command,
                 args=service_instance.args,
                 labels=all_labels,
@@ -583,6 +584,7 @@ class Service(ServiceModel):
         container = DockerContainerManager.create_container(
             name=self.name,
             image=self.image,
+            user=self.user,
             command=self.command,
             args=self.args,
             labels=self.labels,
