@@ -183,5 +183,23 @@ class User(UserModel):
 
         SystemUserManager.remove_ssh_key_from_user(self.name, ssh_key)
 
+    @property
+    def uid(self) -> int:
+        """Returns the system user ID (UID) for this user.
+
+        Returns:
+            int: The system UID.
+        """
+        return SystemUserManager.get_uid(self.name)
+
+    @property
+    def gid(self) -> int:
+        """Returns the system group ID (GID) for this user.
+
+        Returns:
+            int: The system GID.
+        """
+        return SystemUserManager.get_gid(self.name)
+
     def __str__(self) -> str:
         return f"User(id={self.id}, name={self.name}, is_admin={self.is_admin()})"

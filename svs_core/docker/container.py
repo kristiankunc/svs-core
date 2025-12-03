@@ -5,6 +5,7 @@ from docker.models.containers import Container
 from svs_core.docker.base import get_docker_client
 from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
 from svs_core.shared.logger import get_logger
+from svs_core.users.user import User
 
 
 class DockerContainerManager:
@@ -14,6 +15,7 @@ class DockerContainerManager:
     def create_container(
         name: str,
         image: str,
+        user: User,
         command: str | None = None,
         args: list[str] | None = None,
         labels: list[Label] = [],
@@ -26,12 +28,14 @@ class DockerContainerManager:
         Args:
             name (str): The name of the container.
             image (str): The Docker image to use.
+            user (User): The user who owns the container.
             command (str | None): The command to run in the container.
             args (list[str] | None): The arguments for the command.
             labels (list[Label]): List of labels to assign to the container.
             ports (list[ExposedPort] | None): List of ports to expose.
             volumes (list[Volume] | None): List of volumes to mount.
             environment_variables (list[EnvVariable] | None): List of environment variables to set.
+
 
         Returns:
             Container: The created Docker container instance.
@@ -85,6 +89,8 @@ class DockerContainerManager:
 
         if full_command is not None:
             create_kwargs["command"] = full_command
+
+        create_kwargs["user"] = f"{user.uid}:{user.gid}"
 
         return client.containers.create(**create_kwargs)
 
