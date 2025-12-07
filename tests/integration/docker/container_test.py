@@ -1,6 +1,7 @@
 import uuid
 
 import pytest
+
 from pytest_mock import MockerFixture
 
 from svs_core.docker.container import DockerContainerManager
@@ -19,11 +20,11 @@ class TestDockerContainerManager:
             DockerImageManager.pull(self.TEST_IMAGE)
 
     @pytest.fixture(autouse=True)
-    def mock_system_user(self, mocker: MockerFixture):
+    def mock_system_user(self, mocker: MockerFixture) -> None:
         """Mock SystemUserManager to avoid requiring actual system users."""
         mocker.patch(
             "svs_core.docker.container.SystemUserManager.get_system_uid_gid",
-            return_value=(1000, 1000)
+            return_value=(1000, 1000),
         )
 
     @pytest.fixture(autouse=True)
@@ -81,7 +82,10 @@ class TestDockerContainerManager:
         ]
 
         container = DockerContainerManager.create_container(
-            name=self.TEST_CONTAINER_NAME, image=self.TEST_IMAGE, owner=self.TEST_OWNER, labels=labels
+            name=self.TEST_CONTAINER_NAME,
+            image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
+            labels=labels,
         )
 
         assert container is not None

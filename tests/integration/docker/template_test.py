@@ -443,9 +443,7 @@ class TestTemplate:
             content.location: content.content for content in template.default_contents
         }
         assert "/config/www/index.html" in content_locations
-        assert (
-            "Welcome to NGINX!" in content_locations["/config/www/index.html"]
-        )
+        assert "Welcome to NGINX!" in content_locations["/config/www/index.html"]
 
         # Verify healthcheck
         assert template.healthcheck is not None
@@ -555,7 +553,10 @@ class TestTemplate:
         assert template.type == TemplateType.BUILD
         assert template.dockerfile is not None
         assert "FROM python:3.11-slim" in template.dockerfile
-        assert template.description == "Django application container built on-demand from source"
+        assert (
+            template.description
+            == "Django application container built on-demand from source"
+        )
         assert template.start_cmd == "python manage.py runserver 0.0.0.0:8000"
 
         # Verify environment variables

@@ -149,7 +149,7 @@ class TestDefaultContent:
         """Test that write_to_host creates a file with the correct content."""
         # Mock run_command to avoid requiring actual system user
         mock_run = mocker.patch("svs_core.docker.json_properties.run_command")
-        
+
         content = DefaultContent("/etc/config.conf", "key=value")
         host_file = tmp_path / "config.conf"
 
