@@ -4,11 +4,7 @@
 	"default_contents": [
 		{
 			"content": "<html>\n<head><title>Welcome to NGINX!</title></head>\n<body>\n<h1>Success! NGINX is running.</h1>\n</body>\n</html>\n",
-			"location": "/usr/share/nginx/html/index.html"
-		},
-		{
-			"content": "server {\n    listen 80;\n    server_name _;\n\n    root /usr/share/nginx/html;\n\n    location / {\n        try_files $uri $uri/ =404;\n    }\n}",
-			"location": "/etc/nginx/conf.d/default.conf"
+			"location": "/config/www/index.html"
 		}
 	],
 	"default_env": [],
@@ -20,11 +16,7 @@
 	],
 	"default_volumes": [
 		{
-			"container": "/usr/share/nginx/html",
-			"host": null
-		},
-		{
-			"container": "/etc/nginx/conf.d",
+			"container": "/config",
 			"host": null
 		}
 	],
@@ -41,7 +33,7 @@
 		],
 		"timeout": 10
 	},
-	"image": "nginx:latest",
+	"image": "lscr.io/linuxserver/nginx:latest",
 	"name": "nginx-webserver",
 	"start_cmd": null,
 	"type": "image"

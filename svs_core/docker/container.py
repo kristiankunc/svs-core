@@ -5,6 +5,7 @@ from docker.models.containers import Container
 from svs_core.docker.base import get_docker_client
 from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
 from svs_core.shared.logger import get_logger
+from svs_core.users.system import SystemUserManager
 
 
 class DockerContainerManager:
@@ -14,6 +15,7 @@ class DockerContainerManager:
     def create_container(
         name: str,
         image: str,
+        owner: str,
         command: str | None = None,
         args: list[str] | None = None,
         labels: list[Label] = [],
@@ -26,6 +28,7 @@ class DockerContainerManager:
         Args:
             name (str): The name of the container.
             image (str): The Docker image to use.
+            owner (str): The system user who will own the container.
             command (str | None): The command to run in the container.
             args (list[str] | None): The arguments for the command.
             labels (list[Label]): List of labels to assign to the container.
@@ -63,7 +66,9 @@ class DockerContainerManager:
         if volumes:
             for volume in volumes:
                 if volume.host_path and volume.container_path:
-                    volume_mounts.append(f"{volume.host_path}:{volume.container_path}")
+                    volume_mounts.append(
+                        f"{volume.host_path}:{volume.container_path}:rw"
+                    )
                 else:
                     raise ValueError(
                         "Both host_path and container_path must be provided for Volume."
@@ -73,15 +78,28 @@ class DockerContainerManager:
             f"Creating container with config: name={name}, image={image}, command={full_command}, labels={labels}, ports={docker_ports}, volumes={volume_mounts}"
         )
 
-        create_kwargs = {
-            "image": image,
-            "name": name,
-            "detach": True,
-            "labels": {label.key: label.value for label in labels},
-            "ports": docker_ports or {},
-            "volumes": volume_mounts or [],
-            "environment": docker_env_vars or {},
-        }
+        create_kwargs: dict[str, object] = {}
+
+        if "lscr.io/linuxserver/" in image or "linuxserver/" in image:
+            # For LinuxServer.io images - https://docs.linuxserver.io/general/understanding-puid-and-pgid/
+            docker_env_vars["PUID"] = str(
+                SystemUserManager.get_system_uid_gid(owner)[0]
+            )
+        else:
+            user_data = SystemUserManager.get_system_uid_gid(owner)
+            create_kwargs["user"] = f"{user_data[0]}:{user_data[1]}"
+
+        create_kwargs.update(
+            {
+                "image": image,
+                "name": name,
+                "detach": True,
+                "labels": {label.key: label.value for label in labels},
+                "ports": docker_ports or {},
+                "volumes": volume_mounts or [],
+                "environment": docker_env_vars or {},
+            }
+        )
 
         if full_command is not None:
             create_kwargs["command"] = full_command

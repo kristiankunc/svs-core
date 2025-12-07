@@ -1,6 +1,9 @@
 import getpass
+import grp
 import os
 import pwd
+
+from pdb import run
 
 from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import run_command
@@ -140,3 +143,14 @@ class SystemUserManager:
         run_command("sudo rm /tmp/temp_key_to_remove", check=True)
 
         get_logger(__name__).info(f"Removed SSH key from {username}'s authorized_keys")
+
+    @staticmethod
+    def get_system_uid_gid(username: str) -> tuple[int, int]:
+        """Returns the UID and GID of the user running the process.
+
+        Returns:
+            tuple[int, int]: A tuple containing the UID and GID.
+        """
+        uid = run_command(f"sudo id -u {username}", check=True)
+        gid = run_command(f"sudo id -g {username}", check=True)
+        return int(uid.stdout.strip()), int(gid.stdout.strip())

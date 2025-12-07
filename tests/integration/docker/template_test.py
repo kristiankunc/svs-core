@@ -423,7 +423,7 @@ class TestTemplate:
         assert template.id is not None
         assert template.name == "nginx-webserver"
         assert template.type == TemplateType.IMAGE
-        assert template.image == "nginx:latest"
+        assert template.image == "lscr.io/linuxserver/nginx:latest"
         assert template.description == "A minimal NGINX web server with default config"
         assert template.start_cmd is None
 
@@ -433,22 +433,23 @@ class TestTemplate:
         assert template.default_ports[0].host_port is None
 
         # Verify volumes
-        assert len(template.default_volumes) == 2
+        assert len(template.default_volumes) == 1
         container_paths = [vol.container_path for vol in template.default_volumes]
-        assert "/usr/share/nginx/html" in container_paths
-        assert "/etc/nginx/conf.d" in container_paths
+        assert "/config" in container_paths
 
         # Verify default_contents
-        assert len(template.default_contents) == 2
+        assert len(template.default_contents) == 1
         content_locations = {
             content.location: content.content for content in template.default_contents
         }
-        assert "/usr/share/nginx/html/index.html" in content_locations
-        assert "/etc/nginx/conf.d/default.conf" in content_locations
-        assert (
-            "Welcome to NGINX!" in content_locations["/usr/share/nginx/html/index.html"]
-        )
-        assert "listen 80" in content_locations["/etc/nginx/conf.d/default.conf"]
+        assert "/config/www/index.html" in content_locations
+        assert "Welcome to NGINX!" in content_locations["/config/www/index.html"]
+
+        # Verify environment variables (nginx has no env vars)
+        assert len(template.default_env) == 0
+
+        # Verify args (nginx has no args)
+        assert template.args == []
 
         # Verify healthcheck
         assert template.healthcheck is not None
@@ -461,7 +462,143 @@ class TestTemplate:
         assert template.healthcheck.retries == 3
 
         # Verify DockerImageManager.pull was called correctly
-        mock_pull.assert_called_with("nginx:latest")
+        mock_pull.assert_called_with("lscr.io/linuxserver/nginx:latest")
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_import_from_mysql_json_file(self, mocker: MockerFixture) -> None:
+        mocker.patch(
+            "svs_core.docker.template.DockerImageManager.exists", return_value=False
+        )
+        mock_pull = mocker.patch("svs_core.docker.template.DockerImageManager.pull")
+        # Path to the mysql.json template file
+        template_path = os.path.join(
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            ),
+            "service_templates",
+            "mysql.json",
+        )
+
+        # Read the JSON template file
+        with open(template_path, "r") as f:
+            mysql_template = json.load(f)
+
+        # Import the template from JSON
+        template = Template.import_from_json(mysql_template)
+
+        # Verify basic properties
+        assert template.id is not None
+        assert template.name == "mysql-database"
+        assert template.type == TemplateType.IMAGE
+        assert template.image == "mysql:latest"
+        assert template.description == "MySQL database"
+        assert template.start_cmd is None
+
+        # Verify environment variables - should have 4 unique keys but 5 total entries
+        # (MYSQL_PASSWORD appears twice)
+        assert len(template.default_env) == 5
+        env_vars = [ev.key for ev in template.default_env]
+        assert "MYSQL_ROOT_PASSWORD" in env_vars
+        assert "MYSQL_DATABASE" in env_vars
+        assert "MYSQL_USER" in env_vars
+        # Verify MYSQL_PASSWORD appears twice
+        assert env_vars.count("MYSQL_PASSWORD") == 2
+
+        # Verify ports
+        assert len(template.default_ports) == 1
+        assert template.default_ports[0].container_port == 3306
+        assert template.default_ports[0].host_port is None
+
+        # Verify volumes
+        assert len(template.default_volumes) == 1
+        assert template.default_volumes[0].container_path == "/var/lib/mysql"
+        assert template.default_volumes[0].host_path is None
+
+        # Verify healthcheck
+        assert template.healthcheck is not None
+        assert template.healthcheck.test == [
+            "CMD",
+            "mysqladmin",
+            "ping",
+        ]
+        assert template.healthcheck.interval == 30
+        assert template.healthcheck.timeout == 10
+        assert template.healthcheck.retries == 5
+        assert template.healthcheck.start_period == 20
+
+        # Verify args (mysql has no args)
+        assert template.args == []
+
+        # Verify DockerImageManager.pull was called correctly
+        mock_pull.assert_called_with("mysql:latest")
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_import_from_django_json_file(self, mocker: MockerFixture) -> None:
+        mocker.patch(
+            "svs_core.docker.template.DockerImageManager.exists", return_value=False
+        )
+        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
+        # Path to the django.json template file
+        template_path = os.path.join(
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            ),
+            "service_templates",
+            "django.json",
+        )
+
+        # Read the JSON template file
+        with open(template_path, "r") as f:
+            django_template = json.load(f)
+
+        # Import the template from JSON
+        template = Template.import_from_json(django_template)
+
+        # Verify basic properties
+        assert template.id is not None
+        assert template.name == "django-app"
+        assert template.type == TemplateType.BUILD
+        assert template.dockerfile is not None
+        assert "FROM python:3.11-slim" in template.dockerfile
+        assert (
+            template.description
+            == "Django application container built on-demand from source"
+        )
+        assert template.start_cmd == "python manage.py runserver 0.0.0.0:8000"
+
+        # Verify environment variables
+        assert len(template.default_env) == 2
+        env_vars = {ev.key: ev.value for ev in template.default_env}
+        assert env_vars["DEBUG"] == "True"
+        assert env_vars["DJANGO_SETTINGS_MODULE"] == "project.settings"
+
+        # Verify ports
+        assert len(template.default_ports) == 1
+        assert template.default_ports[0].container_port == 8000
+        assert template.default_ports[0].host_port is None
+
+        # Verify volumes
+        assert len(template.default_volumes) == 1
+        assert template.default_volumes[0].container_path == "/app/data"
+        assert template.default_volumes[0].host_path is None
+
+        # Verify healthcheck
+        assert template.healthcheck is not None
+        assert template.healthcheck.test == [
+            "CMD",
+            "curl",
+            "-f",
+            "http://localhost:8000/",
+        ]
+        assert template.healthcheck.interval == 30
+        assert template.healthcheck.timeout == 10
+        assert template.healthcheck.retries == 3
+        assert template.healthcheck.start_period == 5
+
+        # Verify args (django has no args)
+        assert template.args == []
 
     @pytest.mark.integration
     @pytest.mark.django_db
