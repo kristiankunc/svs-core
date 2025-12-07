@@ -237,3 +237,70 @@ class TestSystemUser:
 
         mock_open.assert_called_once_with("/tmp/temp_key_to_remove", "w")
         mock_open().write.assert_called_once_with(ssh_key)
+
+    @pytest.mark.unit
+    def test_get_system_uid_gid_returns_correct_values(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that get_system_uid_gid returns correct UID and GID for a
+        user."""
+        mock_uid_result = mocker.MagicMock()
+        mock_uid_result.stdout = "1000\n"
+        mock_gid_result = mocker.MagicMock()
+        mock_gid_result.stdout = "1000\n"
+
+        mock_run_command = mocker.patch("svs_core.users.system.run_command")
+        mock_run_command.side_effect = [mock_uid_result, mock_gid_result]
+
+        username = "testuser"
+        uid, gid = SystemUserManager.get_system_uid_gid(username)
+
+        assert uid == 1000
+        assert gid == 1000
+        assert isinstance(uid, int)
+        assert isinstance(gid, int)
+
+        assert mock_run_command.call_count == 2
+        mock_run_command.assert_any_call(f"sudo id -u {username}", check=True)
+        mock_run_command.assert_any_call(f"sudo id -g {username}", check=True)
+
+    @pytest.mark.unit
+    def test_get_system_uid_gid_returns_tuple(self, mocker: MockerFixture) -> None:
+        """Test that get_system_uid_gid returns a tuple of two integers."""
+        mock_uid_result = mocker.MagicMock()
+        mock_uid_result.stdout = "1001\n"
+        mock_gid_result = mocker.MagicMock()
+        mock_gid_result.stdout = "1001\n"
+
+        mock_run_command = mocker.patch("svs_core.users.system.run_command")
+        mock_run_command.side_effect = [mock_uid_result, mock_gid_result]
+
+        username = "testuser"
+        result = SystemUserManager.get_system_uid_gid(username)
+
+        assert isinstance(result, tuple)
+        assert len(result) == 2
+        assert isinstance(result[0], int)
+        assert isinstance(result[1], int)
+
+    @pytest.mark.unit
+    def test_get_system_uid_gid_with_different_uid_gid(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that get_system_uid_gid works when UID and GID are
+        different."""
+        mock_uid_result = mocker.MagicMock()
+        mock_uid_result.stdout = "1234\n"
+        mock_gid_result = mocker.MagicMock()
+        mock_gid_result.stdout = "5678\n"
+
+        mock_run_command = mocker.patch("svs_core.users.system.run_command")
+        mock_run_command.side_effect = [mock_uid_result, mock_gid_result]
+
+        username = "differentuser"
+        uid, gid = SystemUserManager.get_system_uid_gid(username)
+
+        assert uid == 1234
+        assert gid == 5678
+        mock_run_command.assert_any_call(f"sudo id -u {username}", check=True)
+        mock_run_command.assert_any_call(f"sudo id -g {username}", check=True)
