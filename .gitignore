@@ -1,6 +1,7 @@
 .vscode/settings.json
 tests/_playground.py
 docs/cli.md
+fancy-docs/*.pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
