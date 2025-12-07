@@ -9,7 +9,6 @@
 
 CI:
 
-[![Publish docs](https://github.com/kristiankunc/svs-core/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/kristiankunc/svs-core/actions/workflows/publish-docs.yml)
 [![Publish Python Package](https://github.com/kristiankunc/svs-core/actions/workflows/publish.yml/badge.svg?event=release)](https://github.com/kristiankunc/svs-core/actions/workflows/publish.yml)
 [![Test](https://github.com/kristiankunc/svs-core/actions/workflows/test.yml/badge.svg)](https://github.com/kristiankunc/svs-core/actions/workflows/test.yml)
 ## Goals
