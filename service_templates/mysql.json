@@ -5,6 +5,22 @@
 		{
 			"key": "MYSQL_ROOT_PASSWORD",
 			"value": ""
+		},
+		{
+			"key": "MYSQL_DATABASE",
+			"value": ""
+		},
+		{
+			"key": "MYSQL_USER",
+			"value": ""
+		},
+		{
+			"key": "MYSQL_PASSWORD",
+			"value": ""
+		},
+		{
+			"key": "MYSQL_PASSWORD",
+			"value": ""
 		}
 	],
 	"default_ports": [
