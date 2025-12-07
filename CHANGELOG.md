@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.0](https://github.com/kristiankunc/svs-core/compare/v0.8.1...v0.9.0) (2025-12-07)
+
+
+### Features
+
+* Add default volume contents ([#126](https://github.com/kristiankunc/svs-core/issues/126)) ([920d176](https://github.com/kristiankunc/svs-core/commit/920d176d8357f665a6930bfaed86ead267363033))
+
+
+### Bug Fixes
+
+* Add spinning loaders to long commands ([#127](https://github.com/kristiankunc/svs-core/issues/127)) ([148f330](https://github.com/kristiankunc/svs-core/commit/148f330a99b812efa249bbc2e3384d870a3c020b))
+* Fix volume permission errors ([#134](https://github.com/kristiankunc/svs-core/issues/134)) ([2479751](https://github.com/kristiankunc/svs-core/commit/247975196b849c8d69275c5ceb33ef0e9c5ac82e))
+* Use null handler if logfile not found ([4abfaa5](https://github.com/kristiankunc/svs-core/commit/4abfaa5bf97fc82c1e6299f16684a697b35bf554))
+
 ## [0.8.1](https://github.com/kristiankunc/svs-core/compare/v0.8.0...v0.8.1) (2025-11-29)
 
 
