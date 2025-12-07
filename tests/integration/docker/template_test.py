@@ -445,6 +445,12 @@ class TestTemplate:
         assert "/config/www/index.html" in content_locations
         assert "Welcome to NGINX!" in content_locations["/config/www/index.html"]
 
+        # Verify environment variables (nginx has no env vars)
+        assert len(template.default_env) == 0
+
+        # Verify args (nginx has no args)
+        assert template.args == []
+
         # Verify healthcheck
         assert template.healthcheck is not None
         assert template.healthcheck.test == [
@@ -521,6 +527,9 @@ class TestTemplate:
         assert template.healthcheck.retries == 5
         assert template.healthcheck.start_period == 20
 
+        # Verify args (mysql has no args)
+        assert template.args == []
+
         # Verify DockerImageManager.pull was called correctly
         mock_pull.assert_called_with("mysql:latest")
 
@@ -587,6 +596,9 @@ class TestTemplate:
         assert template.healthcheck.timeout == 10
         assert template.healthcheck.retries == 3
         assert template.healthcheck.start_period == 5
+
+        # Verify args (django has no args)
+        assert template.args == []
 
     @pytest.mark.integration
     @pytest.mark.django_db
