@@ -71,7 +71,7 @@ def run_command(
     command: str,
     env: Optional[Mapping[str, str]] = None,
     check: bool = True,
-    use_svs_user: bool = True,
+    user: str = "svs",
     logger: Optional[logging.Logger] = None,
 ) -> subprocess.CompletedProcess[str]:
     """Executes a shell command with optional environment variables.
@@ -82,7 +82,7 @@ def run_command(
         command (str): The shell command to execute.
         env (Optional[Mapping[str, str]]): Environment variables to use.
         check (bool): If True, raises CalledProcessError on non-zero exit.
-        use_svs_user (bool): If True, runs the command as the 'svs' system user.
+        user (str): The user to run the command as.
         logger (Optional[logging.Logger]): custom log handler.
 
     Returns:
@@ -92,9 +92,7 @@ def run_command(
     exec_env = dict(env) if env else {}
     exec_env.update({"DJANGO_SETTINGS_MODULE": "svs_core.db.settings"})
 
-    base = ""
-    if use_svs_user:
-        base = "sudo -u svs " if not command.strip().startswith("sudo") else ""
+    base = f"sudo -u {user} " if not command.strip().startswith("sudo") else ""
 
     command = f"{base}{command}"
 

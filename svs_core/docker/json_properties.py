@@ -1,4 +1,8 @@
+import os
+
 from typing import Generic, Self, TypeVar
+
+from svs_core.shared.shell import create_directory, run_command
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -225,14 +229,16 @@ class DefaultContent(KeyValue[str, str]):
     def content(self, text: str) -> None:  # noqa: D102
         self.value = text
 
-    def write_to_host(self, host_path: str) -> None:
+    def write_to_host(self, host_path: str, username: str) -> None:
         """Writes the default content to a specified path on the host.
 
         Args:
             host_path (str): The path on the host where the content should be written.
+            username (str): The username to use for file ownership and permissions.
         """
-        with open(host_path, "w", encoding="utf-8") as file:
-            file.write(self.content)
+
+        create_directory(os.path.dirname(host_path))
+        run_command(f"echo '{self.content}' > {host_path}", check=True, user=username)
 
     def __str__(self) -> str:
         """Return a string representation.

@@ -454,12 +454,13 @@ class Service(ServiceModel):
                 get_logger(__name__).debug(
                     f"Adding default content to volume at '{true_host_path}'"
                 )
-                default_content.write_to_host(true_host_path)
+                default_content.write_to_host(true_host_path, user.name)
 
         if template.type == TemplateType.IMAGE:
             container = DockerContainerManager.create_container(
                 name=name,
                 image=service_instance.image,
+                owner=user.name,
                 command=service_instance.command,
                 args=service_instance.args,
                 labels=all_labels,
@@ -583,6 +584,7 @@ class Service(ServiceModel):
         container = DockerContainerManager.create_container(
             name=self.name,
             image=self.image,
+            owner=self.user.name,
             command=self.command,
             args=self.args,
             labels=self.labels,
