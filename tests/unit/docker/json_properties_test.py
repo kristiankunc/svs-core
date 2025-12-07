@@ -145,15 +145,21 @@ class TestDefaultContent:
         assert "short" in str_repr
         assert "..." not in str_repr
 
-    def test_write_to_host(self, tmp_path):
+    def test_write_to_host(self, tmp_path, mocker):
         """Test that write_to_host creates a file with the correct content."""
+        # Mock run_command to avoid requiring actual system user
+        mock_run = mocker.patch("svs_core.docker.json_properties.run_command")
+        
         content = DefaultContent("/etc/config.conf", "key=value")
         host_file = tmp_path / "config.conf"
 
-        content.write_to_host(str(host_file))
+        content.write_to_host(str(host_file), username="testuser")
 
-        assert host_file.exists()
-        assert host_file.read_text(encoding="utf-8") == "key=value"
+        # Verify run_command was called with correct parameters
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args
+        assert "key=value" in call_args[0][0]
+        assert str(host_file) in call_args[0][0]
 
 
 @pytest.mark.unit

@@ -1,6 +1,7 @@
 import uuid
 
 import pytest
+from pytest_mock import MockerFixture
 
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.image import DockerImageManager
@@ -10,11 +11,20 @@ from svs_core.docker.json_properties import ExposedPort, Label, Volume
 class TestDockerContainerManager:
     TEST_IMAGE = "alpine:latest"
     TEST_CONTAINER_NAME = f"svs-test-container-{str(uuid.uuid4())[:8]}"
+    TEST_OWNER = "testuser"
 
     @pytest.fixture(scope="session", autouse=True)
     def pull_test_image(self):
         if not DockerImageManager.exists(self.TEST_IMAGE):
             DockerImageManager.pull(self.TEST_IMAGE)
+
+    @pytest.fixture(autouse=True)
+    def mock_system_user(self, mocker: MockerFixture):
+        """Mock SystemUserManager to avoid requiring actual system users."""
+        mocker.patch(
+            "svs_core.docker.container.SystemUserManager.get_system_uid_gid",
+            return_value=(1000, 1000)
+        )
 
     @pytest.fixture(autouse=True)
     def cleanup_test_containers(self):
@@ -35,6 +45,7 @@ class TestDockerContainerManager:
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
         )
 
         assert container is not None
@@ -50,6 +61,7 @@ class TestDockerContainerManager:
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
             command="echo",
             args=["Hello, Docker!"],
         )
@@ -69,7 +81,7 @@ class TestDockerContainerManager:
         ]
 
         container = DockerContainerManager.create_container(
-            name=self.TEST_CONTAINER_NAME, image=self.TEST_IMAGE, labels=labels
+            name=self.TEST_CONTAINER_NAME, image=self.TEST_IMAGE, owner=self.TEST_OWNER, labels=labels
         )
 
         assert container is not None
@@ -88,6 +100,7 @@ class TestDockerContainerManager:
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
             command="tail",
             args=["-f", "/dev/null"],
             ports=exposed_ports,
@@ -117,6 +130,7 @@ class TestDockerContainerManager:
             container = DockerContainerManager.create_container(
                 name=self.TEST_CONTAINER_NAME,
                 image=self.TEST_IMAGE,
+                owner=self.TEST_OWNER,
                 command="tail",
                 args=["-f", "/dev/null"],
                 volumes=volumes,
@@ -133,6 +147,7 @@ class TestDockerContainerManager:
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
         )
 
         fetched_container = DockerContainerManager.get_container(
@@ -153,6 +168,7 @@ class TestDockerContainerManager:
         DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
         )
 
         containers = DockerContainerManager.get_all()
@@ -166,6 +182,7 @@ class TestDockerContainerManager:
         DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
         )
 
         container = DockerContainerManager.get_container(self.TEST_CONTAINER_NAME)
@@ -186,6 +203,7 @@ class TestDockerContainerManager:
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
             command="tail",
             args=["-f", "/dev/null"],  # Keep container running
         )
