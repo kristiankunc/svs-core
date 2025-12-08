@@ -115,7 +115,7 @@ jobs:
           python -m pip install -e .
           python -m pip install .[docs]
 
-          cargo install --locked --path .
+          cargo install typst-cli
 
       - name: Compile CLI docs
         run: |
