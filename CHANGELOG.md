@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.1](https://github.com/kristiankunc/svs-core/compare/v0.9.0...v0.9.1) (2025-12-08)
+
+
+### Bug Fixes
+
+* Add comprehensive logging throughout Docker operations, user management, and templates ([#144](https://github.com/kristiankunc/svs-core/issues/144)) ([6627e53](https://github.com/kristiankunc/svs-core/commit/6627e534f44d92e6732f991532f84762111ec7e8))
+* Ensure unique docker container names ([#145](https://github.com/kristiankunc/svs-core/issues/145)) ([ff4f3e5](https://github.com/kristiankunc/svs-core/commit/ff4f3e57be9228d1d012fd4b57bf1b11aebf01b2))
+
 ## [0.9.0](https://github.com/kristiankunc/svs-core/compare/v0.8.1...v0.9.0) (2025-12-07)
 
 
