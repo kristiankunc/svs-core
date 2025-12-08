@@ -104,7 +104,15 @@ class DockerContainerManager:
         if full_command is not None:
             create_kwargs["command"] = full_command
 
-        return client.containers.create(**create_kwargs)
+        try:
+            container = client.containers.create(**create_kwargs)
+            get_logger(__name__).info(
+                f"Successfully created container '{name}' with image '{image}'"
+            )
+            return container
+        except Exception as e:
+            get_logger(__name__).error(f"Failed to create container '{name}': {str(e)}")
+            raise
 
     @staticmethod
     def connect_to_network(container: Container, network_name: str) -> None:
@@ -114,10 +122,23 @@ class DockerContainerManager:
             container (Container): The Docker container instance.
             network_name (str): The name of the network to connect to.
         """
+        get_logger(__name__).debug(
+            f"Connecting container '{container.name}' to network '{network_name}'"
+        )
+
         client = get_docker_client()
 
-        network = client.networks.get(network_name)
-        network.connect(container)
+        try:
+            network = client.networks.get(network_name)
+            network.connect(container)
+            get_logger(__name__).info(
+                f"Connected container '{container.name}' to network '{network_name}'"
+            )
+        except Exception as e:
+            get_logger(__name__).error(
+                f"Failed to connect container '{container.name}' to network '{network_name}': {str(e)}"
+            )
+            raise
 
     @staticmethod
     def get_container(container_id: str) -> Optional[Container]:
@@ -129,11 +150,19 @@ class DockerContainerManager:
         Returns:
             Optional[Container]: The Docker container instance if found, otherwise None.
         """
+        get_logger(__name__).debug(f"Retrieving container with ID: {container_id}")
+
         client = get_docker_client()
         try:
             container = client.containers.get(container_id)
+            get_logger(__name__).debug(
+                f"Container '{container_id}' found with status: {container.status}"
+            )
             return container
-        except Exception:
+        except Exception as e:
+            get_logger(__name__).debug(
+                f"Container '{container_id}' not found: {str(e)}"
+            )
             return None
 
     @staticmethod
@@ -156,14 +185,20 @@ class DockerContainerManager:
         Raises:
             Exception: If the container cannot be removed.
         """
-        client = get_docker_client()
-
         get_logger(__name__).debug(f"Removing container with ID: {container_id}")
+
+        client = get_docker_client()
 
         try:
             container = client.containers.get(container_id)
             container.remove(force=True)
+            get_logger(__name__).info(
+                f"Successfully removed container '{container_id}'"
+            )
         except Exception as e:
+            get_logger(__name__).error(
+                f"Failed to remove container '{container_id}': {str(e)}"
+            )
             raise Exception(
                 f"Failed to remove container {container_id}. Error: {str(e)}"
             ) from e
@@ -175,4 +210,17 @@ class DockerContainerManager:
         Args:
             container (Container): The Docker container instance to start.
         """
-        container.start()
+        get_logger(__name__).debug(
+            f"Starting container '{container.name}' (ID: {container.id})"
+        )
+
+        try:
+            container.start()
+            get_logger(__name__).info(
+                f"Successfully started container '{container.name}'"
+            )
+        except Exception as e:
+            get_logger(__name__).error(
+                f"Failed to start container '{container.name}': {str(e)}"
+            )
+            raise

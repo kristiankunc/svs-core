@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from svs_core.docker.json_properties import Volume
+from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import create_directory, remove_directory, run_command
 
 if TYPE_CHECKING:
@@ -63,9 +64,17 @@ class SystemVolumeManager:
         Args:
             user_id (int): The user ID whose volumes are to be deleted.
         """
+        get_logger(__name__).info(f"Deleting all volumes for user ID: {user_id}")
+
         user_path = SystemVolumeManager.BASE_PATH / str(user_id)
         if user_path.exists() and user_path.is_dir():
+            get_logger(__name__).debug(f"Removing volume directory: {user_path}")
             remove_directory(user_path.as_posix())
+            get_logger(__name__).info(
+                f"Successfully deleted volumes for user ID: {user_id}"
+            )
+        else:
+            get_logger(__name__).debug(f"No volumes found for user ID: {user_id}")
 
     @staticmethod
     def delete_volume(volume_path: Path) -> None:
@@ -74,8 +83,13 @@ class SystemVolumeManager:
         Args:
             volume_path (Path): The path to the volume to be deleted.
         """
+        get_logger(__name__).debug(f"Deleting volume: {volume_path}")
+
         if volume_path.exists() and volume_path.is_dir():
             remove_directory(volume_path.as_posix())
+            get_logger(__name__).debug(f"Successfully deleted volume: {volume_path}")
+        else:
+            get_logger(__name__).debug(f"Volume not found: {volume_path}")
 
     @staticmethod
     def find_host_path(container_path: Path, volumes: list[Volume]) -> Path | None:

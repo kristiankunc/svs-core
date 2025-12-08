@@ -29,9 +29,14 @@ class DockerNetworkManager:
         Returns:
             Network | None: The Docker network object if found, otherwise None.
         """
+        get_logger(__name__).debug(f"Retrieving network '{name}'")
+
         try:
-            return get_docker_client().networks.get(name)
+            network = get_docker_client().networks.get(name)
+            get_logger(__name__).debug(f"Network '{name}' found")
+            return network
         except NotFound:
+            get_logger(__name__).debug(f"Network '{name}' not found")
             return None
 
     @staticmethod
@@ -47,11 +52,16 @@ class DockerNetworkManager:
         Raises:
             docker.errors.APIError: If the network creation fails.
         """
-        get_logger(__name__).debug(
-            f"Creating network with name: {name} and labels: {labels}"
-        )
+        get_logger(__name__).info(f"Creating Docker network '{name}'")
+        get_logger(__name__).debug(f"Network labels: {labels}")
 
-        return get_docker_client().networks.create(name=name, labels=labels)
+        try:
+            network = get_docker_client().networks.create(name=name, labels=labels)
+            get_logger(__name__).info(f"Successfully created network '{name}'")
+            return network
+        except Exception as e:
+            get_logger(__name__).error(f"Failed to create network '{name}': {str(e)}")
+            raise
 
     @staticmethod
     def delete_network(name: str) -> None:
@@ -63,10 +73,14 @@ class DockerNetworkManager:
         Raises:
             docker.errors.APIError: If the network deletion fails.
         """
-        get_logger(__name__).debug(f"Deleting network with name: {name}")
+        get_logger(__name__).info(f"Deleting Docker network '{name}'")
 
         try:
             network = get_docker_client().networks.get(name)
             network.remove()
+            get_logger(__name__).info(f"Successfully deleted network '{name}'")
         except NotFound:
-            pass
+            get_logger(__name__).debug(f"Network '{name}' not found, nothing to delete")
+        except Exception as e:
+            get_logger(__name__).error(f"Failed to delete network '{name}': {str(e)}")
+            raise
