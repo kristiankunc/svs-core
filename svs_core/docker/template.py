@@ -189,9 +189,8 @@ class Template(TemplateModel):
                 if not arg:
                     raise ValueError("Arguments cannot be empty strings")
 
-        logger = get_logger(__name__)
-        logger.info(f"Creating template '{name}' of type '{type}'")
-        logger.debug(
+        get_logger(__name__).info(f"Creating template '{name}' of type '{type}'")
+        get_logger(__name__).debug(
             f"Template details: image={image}, dockerfile={'set' if dockerfile else 'None'}, "
             f"description={description}, default_env={default_env}, default_ports={default_ports}, "
             f"default_volumes={default_volumes}, default_contents={default_contents}, start_cmd={start_cmd}, healthcheck={healthcheck}, "
@@ -216,17 +215,17 @@ class Template(TemplateModel):
 
         if type == TemplateType.IMAGE and image is not None:
             if not DockerImageManager.exists(image):
-                logger.debug(
+                get_logger(__name__).debug(
                     f"Image '{image}' not found locally, pulling from registry"
                 )
                 DockerImageManager.pull(image)
 
         elif type == TemplateType.BUILD and dockerfile is not None:
-            logger.debug(
+            get_logger(__name__).debug(
                 f"Template '{name}' created as BUILD type. Image will be built on-demand when services are created."
             )
 
-        logger.info(f"Successfully created template '{name}'")
+        get_logger(__name__).info(f"Successfully created template '{name}'")
         return cast(Template, template)
 
     @classmethod
@@ -244,8 +243,9 @@ class Template(TemplateModel):
         Raises:
             ValueError: If the data is invalid or missing required fields.
         """
-        logger = get_logger(__name__)
-        logger.info(f"Importing template from JSON: {data.get('name', 'unnamed')}")
+        get_logger(__name__).info(
+            f"Importing template from JSON: {data.get('name', 'unnamed')}"
+        )
 
         # Validate input
         if not isinstance(data, dict):
@@ -409,10 +409,12 @@ class Template(TemplateModel):
                 labels=Label.from_dict_array(labels_list),
                 args=data.get("args"),
             )
-            logger.info(f"Successfully imported template '{template.name}' from JSON")
+            get_logger(__name__).info(
+                f"Successfully imported template '{template.name}' from JSON"
+            )
             return template
         except Exception as e:
-            logger.error(f"Failed to import template from JSON: {str(e)}")
+            get_logger(__name__).error(f"Failed to import template from JSON: {str(e)}")
             raise
 
     def delete(self) -> None:
@@ -421,15 +423,14 @@ class Template(TemplateModel):
         Raises:
             Exception: If the template is associated with existing services.
         """
-        logger = get_logger(__name__)
-        logger.info(f"Deleting template '{self.name}'")
+        get_logger(__name__).info(f"Deleting template '{self.name}'")
 
         from svs_core.docker.service import Service
 
         services = Service.objects.filter(template=self)
 
         if len(services) > 0:
-            logger.warning(
+            get_logger(__name__).warning(
                 f"Cannot delete template '{self.name}' - has {len(services)} associated services"
             )
             raise Exception(
@@ -439,13 +440,15 @@ class Template(TemplateModel):
         try:
             if self.type == TemplateType.IMAGE and self.image:
                 if DockerImageManager.exists(self.image):
-                    logger.debug(
+                    get_logger(__name__).debug(
                         f"Removing associated image '{self.image}' for template '{self.name}'"
                     )
                     DockerImageManager.remove(self.image)
 
             super().delete()
-            logger.info(f"Successfully deleted template '{self.name}'")
+            get_logger(__name__).info(f"Successfully deleted template '{self.name}'")
         except Exception as e:
-            logger.error(f"Failed to delete template '{self.name}': {str(e)}")
+            get_logger(__name__).error(
+                f"Failed to delete template '{self.name}': {str(e)}"
+            )
             raise

@@ -27,9 +27,12 @@ class DockerImageManager:
             dockerfile_content (str): Dockerfile contents.
             path_to_copy (Path | None): Optional path to copy into the build context.
         """
-        logger = get_logger(__name__)
-        logger.info(f"Building Docker image '{image_name}' from Dockerfile")
-        logger.debug(f"Build context path: {path_to_copy if path_to_copy else 'None'}")
+        get_logger(__name__).info(
+            f"Building Docker image '{image_name}' from Dockerfile"
+        )
+        get_logger(__name__).debug(
+            f"Build context path: {path_to_copy if path_to_copy else 'None'}"
+        )
 
         client = get_docker_client()
 
@@ -57,7 +60,9 @@ class DockerImageManager:
                     forcerm=True,
                     labels={"svs": "true"},
                 )
-                logger.info(f"Successfully built Docker image '{image_name}'")
+                get_logger(__name__).info(
+                    f"Successfully built Docker image '{image_name}'"
+                )
             except BuildError as e:
                 build_log = "\n".join(
                     line.decode("utf-8") if isinstance(line, bytes) else str(line)
@@ -88,16 +93,15 @@ class DockerImageManager:
         Returns:
             bool: True if the image exists, False otherwise.
         """
-        logger = get_logger(__name__)
-        logger.debug(f"Checking if image '{image_name}' exists locally")
+        get_logger(__name__).debug(f"Checking if image '{image_name}' exists locally")
 
         client = get_docker_client()
         try:
             client.images.get(image_name)
-            logger.debug(f"Image '{image_name}' found locally")
+            get_logger(__name__).debug(f"Image '{image_name}' found locally")
             return True
         except Exception:
-            logger.debug(f"Image '{image_name}' not found locally")
+            get_logger(__name__).debug(f"Image '{image_name}' not found locally")
             return False
 
     @staticmethod
@@ -110,16 +114,17 @@ class DockerImageManager:
         Raises:
             Exception: If the image cannot be removed.
         """
-        logger = get_logger(__name__)
-        logger.debug(f"Removing image '{image_name}'")
+        get_logger(__name__).debug(f"Removing image '{image_name}'")
 
         client = get_docker_client()
 
         try:
             client.images.remove(image_name, force=True)
-            logger.info(f"Successfully removed image '{image_name}'")
+            get_logger(__name__).info(f"Successfully removed image '{image_name}'")
         except Exception as e:
-            logger.error(f"Failed to remove image '{image_name}': {str(e)}")
+            get_logger(__name__).error(
+                f"Failed to remove image '{image_name}': {str(e)}"
+            )
             raise Exception(
                 f"Failed to remove image {image_name}. Error: {str(e)}"
             ) from e
@@ -131,16 +136,15 @@ class DockerImageManager:
         Args:
             image_name (str): Name of the image.
         """
-        logger = get_logger(__name__)
-        logger.info(f"Pulling Docker image '{image_name}' from registry")
+        get_logger(__name__).info(f"Pulling Docker image '{image_name}' from registry")
 
         client = get_docker_client()
 
         try:
             client.images.pull(f"{image_name}")
-            logger.info(f"Successfully pulled image '{image_name}'")
+            get_logger(__name__).info(f"Successfully pulled image '{image_name}'")
         except Exception as e:
-            logger.error(f"Failed to pull image '{image_name}': {str(e)}")
+            get_logger(__name__).error(f"Failed to pull image '{image_name}': {str(e)}")
             raise Exception(
                 f"Failed to pull image {image_name}. Error: {str(e)}"
             ) from e

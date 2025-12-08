@@ -24,8 +24,7 @@ class SystemUserManager:
             admin (bool, optional): Whether to add the user to the admin group. Defaults to False.
             shell_path (str, optional): The login shell for the new user. Defaults to "/bin/bash".
         """
-        logger = get_logger(__name__)
-        logger.info(f"Creating system user '{username}' (admin: {admin})")
+        get_logger(__name__).info(f"Creating system user '{username}' (admin: {admin})")
 
         try:
             run_command(
@@ -39,11 +38,13 @@ class SystemUserManager:
             if admin:
                 run_command(f"sudo usermod -aG svs-admins {username}", check=True)
 
-            logger.info(
+            get_logger(__name__).info(
                 f"Successfully created {'admin' if admin else 'standard'} system user: {username}"
             )
         except Exception as e:
-            logger.error(f"Failed to create system user '{username}': {str(e)}")
+            get_logger(__name__).error(
+                f"Failed to create system user '{username}': {str(e)}"
+            )
             raise
 
     @staticmethod
@@ -53,14 +54,15 @@ class SystemUserManager:
         Args:
             username (str): The username of the system user to delete.
         """
-        logger = get_logger(__name__)
-        logger.info(f"Deleting system user '{username}'")
+        get_logger(__name__).info(f"Deleting system user '{username}'")
 
         try:
             run_command(f"sudo userdel -r {username}", check=True)
-            logger.info(f"Successfully deleted system user: {username}")
+            get_logger(__name__).info(f"Successfully deleted system user: {username}")
         except Exception as e:
-            logger.error(f"Failed to delete system user '{username}': {str(e)}")
+            get_logger(__name__).error(
+                f"Failed to delete system user '{username}': {str(e)}"
+            )
             raise
 
     @staticmethod

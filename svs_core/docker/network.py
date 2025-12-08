@@ -29,15 +29,14 @@ class DockerNetworkManager:
         Returns:
             Network | None: The Docker network object if found, otherwise None.
         """
-        logger = get_logger(__name__)
-        logger.debug(f"Retrieving network '{name}'")
+        get_logger(__name__).debug(f"Retrieving network '{name}'")
 
         try:
             network = get_docker_client().networks.get(name)
-            logger.debug(f"Network '{name}' found")
+            get_logger(__name__).debug(f"Network '{name}' found")
             return network
         except NotFound:
-            logger.debug(f"Network '{name}' not found")
+            get_logger(__name__).debug(f"Network '{name}' not found")
             return None
 
     @staticmethod
@@ -53,16 +52,15 @@ class DockerNetworkManager:
         Raises:
             docker.errors.APIError: If the network creation fails.
         """
-        logger = get_logger(__name__)
-        logger.info(f"Creating Docker network '{name}'")
-        logger.debug(f"Network labels: {labels}")
+        get_logger(__name__).info(f"Creating Docker network '{name}'")
+        get_logger(__name__).debug(f"Network labels: {labels}")
 
         try:
             network = get_docker_client().networks.create(name=name, labels=labels)
-            logger.info(f"Successfully created network '{name}'")
+            get_logger(__name__).info(f"Successfully created network '{name}'")
             return network
         except Exception as e:
-            logger.error(f"Failed to create network '{name}': {str(e)}")
+            get_logger(__name__).error(f"Failed to create network '{name}': {str(e)}")
             raise
 
     @staticmethod
@@ -75,15 +73,14 @@ class DockerNetworkManager:
         Raises:
             docker.errors.APIError: If the network deletion fails.
         """
-        logger = get_logger(__name__)
-        logger.info(f"Deleting Docker network '{name}'")
+        get_logger(__name__).info(f"Deleting Docker network '{name}'")
 
         try:
             network = get_docker_client().networks.get(name)
             network.remove()
-            logger.info(f"Successfully deleted network '{name}'")
+            get_logger(__name__).info(f"Successfully deleted network '{name}'")
         except NotFound:
-            logger.debug(f"Network '{name}' not found, nothing to delete")
+            get_logger(__name__).debug(f"Network '{name}' not found, nothing to delete")
         except Exception as e:
-            logger.error(f"Failed to delete network '{name}': {str(e)}")
+            get_logger(__name__).error(f"Failed to delete network '{name}': {str(e)}")
             raise
