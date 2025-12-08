@@ -56,17 +56,11 @@ jobs:
       - name: Build site
         run: mkdocs build --site-dir site
 
-      - name: Upload preview artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
         with:
-          path: site
-
-  deploy-preview:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages-preview
-    steps:
-      - name: Deploy preview
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./site
