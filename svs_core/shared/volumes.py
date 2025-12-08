@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from svs_core.docker.json_properties import Volume
+from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import create_directory, remove_directory, run_command
 
 if TYPE_CHECKING:
@@ -63,8 +64,6 @@ class SystemVolumeManager:
         Args:
             user_id (int): The user ID whose volumes are to be deleted.
         """
-        from svs_core.shared.logger import get_logger
-
         logger = get_logger(__name__)
         logger.info(f"Deleting all volumes for user ID: {user_id}")
 
@@ -83,8 +82,6 @@ class SystemVolumeManager:
         Args:
             volume_path (Path): The path to the volume to be deleted.
         """
-        from svs_core.shared.logger import get_logger
-
         logger = get_logger(__name__)
         logger.debug(f"Deleting volume: {volume_path}")
 
