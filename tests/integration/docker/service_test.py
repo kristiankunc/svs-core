@@ -111,7 +111,6 @@ class TestService:
 
         # Verify Docker container creation was called with correct parameters
         mock_create_container.assert_called_once()
-        print("ASS")
         print(mock_create_container.call_args.kwargs["ports"][0].container_port)
         call_args = mock_create_container.call_args[1]
         assert call_args["name"] == f"svs-{service.id}"
