@@ -50,7 +50,7 @@ There are two types of users in SVS:
 
 A template is a predefined configuration for a specific service. It includes details such as the Docker image to use, environment variables, volume mounts, and network settings. Users can deploy services based on these templates, simplifying the deployment process.
 
-Think of it like an extended variant of a [Docker compose file](https://docs.docker.com/compose/intro/features-uses/). As oppose to Docker compose, SVS templates are stored in JSON and include additional metadata used by SVS.
+Think of it like an extended variant of a [Docker compose file](https://docs.docker.com/compose/intro/features-uses/). As opposed to Docker compose, SVS templates are stored in JSON and include additional metadata used by SVS.
 
 There are two types of templates:
 
