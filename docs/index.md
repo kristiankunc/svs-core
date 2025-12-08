@@ -39,7 +39,7 @@ Multiple users are supported, each user has its own isolated environment for dep
 
 Each user has:
 
-- A correspinding system user on the host machine.
+- A corresponding system user on the host machine.
 - A private Docker network all their services are attached to.
 
 There are two types of users in SVS:
