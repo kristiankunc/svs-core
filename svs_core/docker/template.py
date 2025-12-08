@@ -216,7 +216,9 @@ class Template(TemplateModel):
 
         if type == TemplateType.IMAGE and image is not None:
             if not DockerImageManager.exists(image):
-                logger.debug(f"Image '{image}' not found locally, pulling from registry")
+                logger.debug(
+                    f"Image '{image}' not found locally, pulling from registry"
+                )
                 DockerImageManager.pull(image)
 
         elif type == TemplateType.BUILD and dockerfile is not None:
@@ -244,7 +246,7 @@ class Template(TemplateModel):
         """
         logger = get_logger(__name__)
         logger.info(f"Importing template from JSON: {data.get('name', 'unnamed')}")
-        
+
         # Validate input
         if not isinstance(data, dict):
             raise ValueError(
@@ -427,7 +429,9 @@ class Template(TemplateModel):
         services = Service.objects.filter(template=self)
 
         if len(services) > 0:
-            logger.warning(f"Cannot delete template '{self.name}' - has {len(services)} associated services")
+            logger.warning(
+                f"Cannot delete template '{self.name}' - has {len(services)} associated services"
+            )
             raise Exception(
                 f"Cannot delete template {self.name} as it is associated with existing services."
             )
@@ -435,7 +439,9 @@ class Template(TemplateModel):
         try:
             if self.type == TemplateType.IMAGE and self.image:
                 if DockerImageManager.exists(self.image):
-                    logger.debug(f"Removing associated image '{self.image}' for template '{self.name}'")
+                    logger.debug(
+                        f"Removing associated image '{self.image}' for template '{self.name}'"
+                    )
                     DockerImageManager.remove(self.image)
 
             super().delete()

@@ -30,7 +30,7 @@ class DockerImageManager:
         logger = get_logger(__name__)
         logger.info(f"Building Docker image '{image_name}' from Dockerfile")
         logger.debug(f"Build context path: {path_to_copy if path_to_copy else 'None'}")
-        
+
         client = get_docker_client()
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -90,7 +90,7 @@ class DockerImageManager:
         """
         logger = get_logger(__name__)
         logger.debug(f"Checking if image '{image_name}' exists locally")
-        
+
         client = get_docker_client()
         try:
             client.images.get(image_name)

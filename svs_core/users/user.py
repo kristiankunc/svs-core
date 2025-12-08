@@ -147,9 +147,11 @@ class User(UserModel):
         """
         logger = get_logger(__name__)
         logger.info(f"Deleting user '{self.name}'")
-        
+
         if len(self.services.all()) > 0:
-            logger.warning(f"Cannot delete user '{self.name}' - has {len(self.services.all())} associated services")
+            logger.warning(
+                f"Cannot delete user '{self.name}' - has {len(self.services.all())} associated services"
+            )
             raise InvalidOperationException(
                 f"Cannot delete user '{self.name}' because they have associated services."
             )
@@ -180,7 +182,7 @@ class User(UserModel):
         """
         logger = get_logger(__name__)
         logger.info(f"Adding SSH key to user '{self.name}'")
-        
+
         try:
             SystemUserManager.add_ssh_key_to_user(self.name, ssh_key)
             logger.debug(f"Successfully added SSH key for user '{self.name}'")
@@ -196,7 +198,7 @@ class User(UserModel):
         """
         logger = get_logger(__name__)
         logger.info(f"Removing SSH key from user '{self.name}'")
-        
+
         try:
             SystemUserManager.remove_ssh_key_from_user(self.name, ssh_key)
             logger.debug(f"Successfully removed SSH key for user '{self.name}'")

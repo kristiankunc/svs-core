@@ -31,7 +31,7 @@ class DockerNetworkManager:
         """
         logger = get_logger(__name__)
         logger.debug(f"Retrieving network '{name}'")
-        
+
         try:
             network = get_docker_client().networks.get(name)
             logger.debug(f"Network '{name}' found")

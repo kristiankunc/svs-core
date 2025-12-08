@@ -122,16 +122,22 @@ class DockerContainerManager:
             network_name (str): The name of the network to connect to.
         """
         logger = get_logger(__name__)
-        logger.debug(f"Connecting container '{container.name}' to network '{network_name}'")
-        
+        logger.debug(
+            f"Connecting container '{container.name}' to network '{network_name}'"
+        )
+
         client = get_docker_client()
 
         try:
             network = client.networks.get(network_name)
             network.connect(container)
-            logger.info(f"Connected container '{container.name}' to network '{network_name}'")
+            logger.info(
+                f"Connected container '{container.name}' to network '{network_name}'"
+            )
         except Exception as e:
-            logger.error(f"Failed to connect container '{container.name}' to network '{network_name}': {str(e)}")
+            logger.error(
+                f"Failed to connect container '{container.name}' to network '{network_name}': {str(e)}"
+            )
             raise
 
     @staticmethod
@@ -146,11 +152,13 @@ class DockerContainerManager:
         """
         logger = get_logger(__name__)
         logger.debug(f"Retrieving container with ID: {container_id}")
-        
+
         client = get_docker_client()
         try:
             container = client.containers.get(container_id)
-            logger.debug(f"Container '{container_id}' found with status: {container.status}")
+            logger.debug(
+                f"Container '{container_id}' found with status: {container.status}"
+            )
             return container
         except Exception as e:
             logger.debug(f"Container '{container_id}' not found: {str(e)}")
@@ -200,7 +208,7 @@ class DockerContainerManager:
         """
         logger = get_logger(__name__)
         logger.debug(f"Starting container '{container.name}' (ID: {container.id})")
-        
+
         try:
             container.start()
             logger.info(f"Successfully started container '{container.name}'")

@@ -26,7 +26,7 @@ class SystemUserManager:
         """
         logger = get_logger(__name__)
         logger.info(f"Creating system user '{username}' (admin: {admin})")
-        
+
         try:
             run_command(
                 f"sudo adduser --shell {shell_path} --disabled-password --gecos '' {username}",
@@ -55,7 +55,7 @@ class SystemUserManager:
         """
         logger = get_logger(__name__)
         logger.info(f"Deleting system user '{username}'")
-        
+
         try:
             run_command(f"sudo userdel -r {username}", check=True)
             logger.info(f"Successfully deleted system user: {username}")
