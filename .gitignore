@@ -179,3 +179,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+# Added by cargo
+
+/target

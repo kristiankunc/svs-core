@@ -28,16 +28,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Cache
-        uses: actions/cache@v4
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo
-          restore-keys: |
-            ${{ runner.os }}-cargo
+          add-rust-environment-hash-key: false
 
       - name: Install dependencies
         run: |
@@ -62,18 +56,17 @@ jobs:
       - name: Build site
         run: mkdocs build --site-dir site
 
-      - name: Upload artifact
+      - name: Upload preview artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
 
-  deploy:
+  deploy-preview:
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: github-pages-preview
     steps:
-      - name: Deploy to preview
+      - name: Deploy preview
         id: deployment
         uses: actions/deploy-pages@v4
