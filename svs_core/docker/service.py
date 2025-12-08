@@ -458,7 +458,7 @@ class Service(ServiceModel):
 
         if template.type == TemplateType.IMAGE:
             container = DockerContainerManager.create_container(
-                name=name,
+                name=f"svs-{service_instance.id}",
                 image=service_instance.image,
                 owner=user.name,
                 command=service_instance.command,
@@ -582,7 +582,7 @@ class Service(ServiceModel):
         )
 
         container = DockerContainerManager.create_container(
-            name=self.name,
+            name=f"svs-{self.id}",
             image=self.image,
             owner=self.user.name,
             command=self.command,
