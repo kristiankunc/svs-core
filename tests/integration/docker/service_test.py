@@ -114,7 +114,7 @@ class TestService:
         print("ASS")
         print(mock_create_container.call_args.kwargs["ports"][0].container_port)
         call_args = mock_create_container.call_args[1]
-        assert call_args["name"] == "test-service"
+        assert call_args["name"] == f"svs-{service.id}"
         assert call_args["image"] == "nginx:latest"
         assert call_args["command"] == "nginx -g 'daemon off;'"
         assert call_args["args"] == ["--no-cache"]
