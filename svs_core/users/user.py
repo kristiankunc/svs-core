@@ -145,17 +145,24 @@ class User(UserModel):
         This includes deleting the system user and Docker network
         associated with the user.
         """
+        logger = get_logger(__name__)
+        logger.info(f"Deleting user '{self.name}'")
+        
         if len(self.services.all()) > 0:
+            logger.warning(f"Cannot delete user '{self.name}' - has {len(self.services.all())} associated services")
             raise InvalidOperationException(
                 f"Cannot delete user '{self.name}' because they have associated services."
             )
 
-        SystemVolumeManager.delete_user_volumes(self.id)
-        DockerNetworkManager.delete_network(self.name)
-        SystemUserManager.delete_user(self.name)
-        super().delete()
-
-        get_logger(__name__).info(f"Deleted user: {self.name}")
+        try:
+            SystemVolumeManager.delete_user_volumes(self.id)
+            DockerNetworkManager.delete_network(self.name)
+            SystemUserManager.delete_user(self.name)
+            super().delete()
+            logger.info(f"Successfully deleted user '{self.name}'")
+        except Exception as e:
+            logger.error(f"Failed to delete user '{self.name}': {str(e)}")
+            raise
 
     def is_admin(self) -> bool:
         """Checks if the user has administrative privileges.
@@ -171,8 +178,15 @@ class User(UserModel):
         Args:
             ssh_key (str): The SSH key to add.
         """
-
-        SystemUserManager.add_ssh_key_to_user(self.name, ssh_key)
+        logger = get_logger(__name__)
+        logger.info(f"Adding SSH key to user '{self.name}'")
+        
+        try:
+            SystemUserManager.add_ssh_key_to_user(self.name, ssh_key)
+            logger.debug(f"Successfully added SSH key for user '{self.name}'")
+        except Exception as e:
+            logger.error(f"Failed to add SSH key for user '{self.name}': {str(e)}")
+            raise
 
     def remove_ssh_key(self, ssh_key: str) -> None:
         """Removes an SSH key from the user's authorized_keys file.
@@ -180,8 +194,15 @@ class User(UserModel):
         Args:
             ssh_key (str): The SSH key to remove.
         """
-
-        SystemUserManager.remove_ssh_key_from_user(self.name, ssh_key)
+        logger = get_logger(__name__)
+        logger.info(f"Removing SSH key from user '{self.name}'")
+        
+        try:
+            SystemUserManager.remove_ssh_key_from_user(self.name, ssh_key)
+            logger.debug(f"Successfully removed SSH key for user '{self.name}'")
+        except Exception as e:
+            logger.error(f"Failed to remove SSH key for user '{self.name}': {str(e)}")
+            raise
 
     def __str__(self) -> str:
         return f"User(id={self.id}, name={self.name}, is_admin={self.is_admin()})"

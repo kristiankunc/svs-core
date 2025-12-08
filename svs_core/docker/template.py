@@ -189,8 +189,10 @@ class Template(TemplateModel):
                 if not arg:
                     raise ValueError("Arguments cannot be empty strings")
 
-        get_logger(__name__).debug(
-            f"Creating template with name={name}, type={type}, image={image}, dockerfile={dockerfile}, "
+        logger = get_logger(__name__)
+        logger.info(f"Creating template '{name}' of type '{type}'")
+        logger.debug(
+            f"Template details: image={image}, dockerfile={'set' if dockerfile else 'None'}, "
             f"description={description}, default_env={default_env}, default_ports={default_ports}, "
             f"default_volumes={default_volumes}, default_contents={default_contents}, start_cmd={start_cmd}, healthcheck={healthcheck}, "
             f"labels={labels}, args={args}"
@@ -214,13 +216,15 @@ class Template(TemplateModel):
 
         if type == TemplateType.IMAGE and image is not None:
             if not DockerImageManager.exists(image):
+                logger.debug(f"Image '{image}' not found locally, pulling from registry")
                 DockerImageManager.pull(image)
 
         elif type == TemplateType.BUILD and dockerfile is not None:
-            get_logger(__name__).debug(
-                f"Template {name} created as BUILD type. Image will be built on-demand when services are created."
+            logger.debug(
+                f"Template '{name}' created as BUILD type. Image will be built on-demand when services are created."
             )
 
+        logger.info(f"Successfully created template '{name}'")
         return cast(Template, template)
 
     @classmethod
@@ -238,6 +242,9 @@ class Template(TemplateModel):
         Raises:
             ValueError: If the data is invalid or missing required fields.
         """
+        logger = get_logger(__name__)
+        logger.info(f"Importing template from JSON: {data.get('name', 'unnamed')}")
+        
         # Validate input
         if not isinstance(data, dict):
             raise ValueError(
@@ -384,23 +391,27 @@ class Template(TemplateModel):
             )
 
         # Delegate to create method for further validation
-        template: "Template" = cls.create(
-            name=data.get("name", ""),
-            type=template_type,
-            image=data.get("image"),
-            dockerfile=data.get("dockerfile"),
-            description=data.get("description"),
-            default_env=EnvVariable.from_dict_array(default_env_list),
-            default_ports=default_ports_list,
-            default_volumes=default_volumes_list,
-            default_contents=default_contents_list,
-            start_cmd=data.get("start_cmd"),
-            healthcheck=Healthcheck.from_dict(data.get("healthcheck")),
-            labels=Label.from_dict_array(labels_list),
-            args=data.get("args"),
-        )
-
-        return template
+        try:
+            template: "Template" = cls.create(
+                name=data.get("name", ""),
+                type=template_type,
+                image=data.get("image"),
+                dockerfile=data.get("dockerfile"),
+                description=data.get("description"),
+                default_env=EnvVariable.from_dict_array(default_env_list),
+                default_ports=default_ports_list,
+                default_volumes=default_volumes_list,
+                default_contents=default_contents_list,
+                start_cmd=data.get("start_cmd"),
+                healthcheck=Healthcheck.from_dict(data.get("healthcheck")),
+                labels=Label.from_dict_array(labels_list),
+                args=data.get("args"),
+            )
+            logger.info(f"Successfully imported template '{template.name}' from JSON")
+            return template
+        except Exception as e:
+            logger.error(f"Failed to import template from JSON: {str(e)}")
+            raise
 
     def delete(self) -> None:
         """Deletes the template and associated Docker image if applicable.
@@ -408,18 +419,27 @@ class Template(TemplateModel):
         Raises:
             Exception: If the template is associated with existing services.
         """
+        logger = get_logger(__name__)
+        logger.info(f"Deleting template '{self.name}'")
 
         from svs_core.docker.service import Service
 
         services = Service.objects.filter(template=self)
 
         if len(services) > 0:
+            logger.warning(f"Cannot delete template '{self.name}' - has {len(services)} associated services")
             raise Exception(
                 f"Cannot delete template {self.name} as it is associated with existing services."
             )
 
-        if self.type == TemplateType.IMAGE and self.image:
-            if DockerImageManager.exists(self.image):
-                DockerImageManager.remove(self.image)
+        try:
+            if self.type == TemplateType.IMAGE and self.image:
+                if DockerImageManager.exists(self.image):
+                    logger.debug(f"Removing associated image '{self.image}' for template '{self.name}'")
+                    DockerImageManager.remove(self.image)
 
-        super().delete()
+            super().delete()
+            logger.info(f"Successfully deleted template '{self.name}'")
+        except Exception as e:
+            logger.error(f"Failed to delete template '{self.name}': {str(e)}")
+            raise

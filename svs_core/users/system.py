@@ -24,20 +24,27 @@ class SystemUserManager:
             admin (bool, optional): Whether to add the user to the admin group. Defaults to False.
             shell_path (str, optional): The login shell for the new user. Defaults to "/bin/bash".
         """
-        run_command(
-            f"sudo adduser --shell {shell_path} --disabled-password --gecos '' {username}",
-            check=True,
-        )
-        run_command(f"echo '{username}:{password}' | sudo chpasswd", check=True)
+        logger = get_logger(__name__)
+        logger.info(f"Creating system user '{username}' (admin: {admin})")
+        
+        try:
+            run_command(
+                f"sudo adduser --shell {shell_path} --disabled-password --gecos '' {username}",
+                check=True,
+            )
+            run_command(f"echo '{username}:{password}' | sudo chpasswd", check=True)
 
-        # run_command(f"sudo usermod -aG svs-users {username}", check=True)
+            # run_command(f"sudo usermod -aG svs-users {username}", check=True)
 
-        if admin:
-            run_command(f"sudo usermod -aG svs-admins {username}", check=True)
+            if admin:
+                run_command(f"sudo usermod -aG svs-admins {username}", check=True)
 
-        get_logger(__name__).info(
-            f"Created {'admin' if admin else 'standard'} system user: {username}"
-        )
+            logger.info(
+                f"Successfully created {'admin' if admin else 'standard'} system user: {username}"
+            )
+        except Exception as e:
+            logger.error(f"Failed to create system user '{username}': {str(e)}")
+            raise
 
     @staticmethod
     def delete_user(username: str) -> None:
@@ -46,8 +53,15 @@ class SystemUserManager:
         Args:
             username (str): The username of the system user to delete.
         """
-        run_command(f"sudo userdel -r {username}", check=True)
-        get_logger(__name__).info(f"Deleted system user: {username}")
+        logger = get_logger(__name__)
+        logger.info(f"Deleting system user '{username}'")
+        
+        try:
+            run_command(f"sudo userdel -r {username}", check=True)
+            logger.info(f"Successfully deleted system user: {username}")
+        except Exception as e:
+            logger.error(f"Failed to delete system user '{username}': {str(e)}")
+            raise
 
     @staticmethod
     def is_user_in_group(username: str, groupname: str) -> bool:
