@@ -1,0 +1,10 @@
+[package]
+name = "svs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+typst-cli = "0.14.1"
+
+[dev-dependencies]
+typst-live = "0.8.0"
