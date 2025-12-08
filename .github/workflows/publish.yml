@@ -106,6 +106,8 @@ jobs:
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
+        with:
+          add-rust-environment-hash-key: false
 
       - name: Install dependencies
         run: |
