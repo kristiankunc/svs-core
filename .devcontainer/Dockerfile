@@ -10,5 +10,4 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 WORKDIR /home/vscode
 RUN /home/vscode/.cargo/bin/cargo init
-RUN /home/vscode/.cargo/bin/cargo install typst-cli
-RUN /home/vscode/.cargo/bin/cargo install typst-live
+RUN /home/vscode/.cargo/bin/cargo install --path .

@@ -104,16 +104,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo
-          restore-keys: |
-            ${{ runner.os }}-cargo
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
 
       - name: Install dependencies
         run: |
@@ -121,7 +113,7 @@ jobs:
           python -m pip install -e .
           python -m pip install .[docs]
 
-          cargo install typst-cli
+          cargo install --locked --path .
 
       - name: Compile CLI docs
         run: |
