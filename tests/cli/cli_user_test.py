@@ -114,9 +114,13 @@ class TestUserCommands:
     def test_list_users_with_multiple_users(self, mocker: MockerFixture) -> None:
         mock_all = mocker.patch("svs_core.users.user.User.objects.all")
         mock_user1 = mocker.MagicMock()
-        mock_user1.__str__.return_value = "User(name='user1')"
+        mock_user1.id = 1
+        mock_user1.name = "user1"
+        mock_user1.is_admin.return_value = True
         mock_user2 = mocker.MagicMock()
-        mock_user2.__str__.return_value = "User(name='user2')"
+        mock_user2.id = 2
+        mock_user2.name = "user2"
+        mock_user2.is_admin.return_value = False
         mock_all.return_value = [mock_user1, mock_user2]
 
         result = self.runner.invoke(
@@ -125,8 +129,9 @@ class TestUserCommands:
         )
 
         assert result.exit_code == 0
-        assert "User(name='user1')" in result.output
-        assert "User(name='user2')" in result.output
+        # Table output should contain user names
+        assert "user1" in result.output
+        assert "user2" in result.output
 
     def test_list_users_empty(self, mocker: MockerFixture) -> None:
         mock_all = mocker.patch("svs_core.users.user.User.objects.all")
@@ -139,6 +144,23 @@ class TestUserCommands:
 
         assert result.exit_code == 0
         assert "No users found." in result.output
+
+    def test_list_users_inline(self, mocker: MockerFixture) -> None:
+        mock_all = mocker.patch("svs_core.users.user.User.objects.all")
+        mock_user1 = mocker.MagicMock()
+        mock_user1.__str__.return_value = "User(name='user1')"
+        mock_user2 = mocker.MagicMock()
+        mock_user2.__str__.return_value = "User(name='user2')"
+        mock_all.return_value = [mock_user1, mock_user2]
+
+        result = self.runner.invoke(
+            app,
+            ["user", "list", "--inline"],
+        )
+
+        assert result.exit_code == 0
+        assert "User(name='user1')" in result.output
+        assert "User(name='user2')" in result.output
 
     # Add SSH key command tests
     def test_add_ssh_key_user_not_found(self, mocker: MockerFixture) -> None:

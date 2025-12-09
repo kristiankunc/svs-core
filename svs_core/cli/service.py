@@ -6,6 +6,7 @@ import typer
 
 from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.table import Table
 
 from svs_core.cli.lib import get_or_exit
 from svs_core.cli.state import get_current_username, is_current_user_admin
@@ -22,7 +23,11 @@ app = typer.Typer(help="Manage services")
 
 
 @app.command("list")
-def list_services() -> None:
+def list_services(
+    inline: bool = typer.Option(
+        False, "-i", "--inline", help="Display services in inline format"
+    )
+) -> None:
     """List all services."""
 
     if not is_current_user_admin():
@@ -34,8 +39,35 @@ def list_services() -> None:
         print("No services found.")
         return
 
+    if inline:
+        print("\n".join(f"{s}" for s in services))
+        raise typer.Exit(code=0)
+
+    table = Table("ID", "Name", "Owner", "Status", "Template")
     for service in services:
-        print(f"- {service}")
+        table.add_row(
+            str(service.id),
+            service.name,
+            f"{service.user.name} ({service.user.id})",
+            service.status,
+            f"{service.template.name} ({service.template.id})",
+        )
+    print(table)
+
+
+@app.command("get")
+def get_service(
+    service_id: int = typer.Argument(..., help="ID of the service to retrieve")
+) -> None:
+    """Get a service by ID."""
+
+    service = get_or_exit(Service, id=service_id)
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        print("You do not have permission to view this service.", file=sys.stderr)
+        raise typer.Exit(1)
+
+    print(service)
 
 
 @app.command("create")
