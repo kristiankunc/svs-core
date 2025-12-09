@@ -1,0 +1,27 @@
+{
+	"$schema": "https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/service_templates/schema.json",
+	"args": [],
+	"default_env": [],
+	"default_ports": [
+		{
+			"container": 8080,
+			"host": null
+		}
+	],
+	"default_volumes": [],
+	"description": "Adminer database management tool",
+	"healthcheck": {
+		"interval": 30,
+		"retries": 5,
+		"start_period": 20,
+		"test": [
+			"CMD-SHELL",
+			"curl -f http://localhost:8080/ || exit 1"
+		],
+		"timeout": 10
+	},
+	"image": "adminer:latest",
+	"name": "adminer",
+	"start_cmd": null,
+	"type": "image"
+}
