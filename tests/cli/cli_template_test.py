@@ -85,7 +85,7 @@ class TestTemplateCommands:
         )
 
         assert result.exit_code == 0
-        assert "✅ Template with ID '1' deleted successfully." in result.output
+        assert "Template with ID '1' deleted successfully." in result.output
         mock_template.delete.assert_called_once()
 
     def test_delete_template_not_found(self, mocker: MockerFixture) -> None:

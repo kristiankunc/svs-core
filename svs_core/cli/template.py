@@ -6,6 +6,7 @@ import typer
 
 from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.table import Table
 
 from svs_core.cli.lib import get_or_exit
 from svs_core.cli.state import reject_if_not_admin
@@ -41,7 +42,11 @@ def import_template(
 
 
 @app.command("list")
-def list_templates() -> None:
+def list_templates(
+    inline: bool = typer.Option(
+        False, "-i", "--inline", help="Display templates in inline format"
+    )
+) -> None:
     """List all available templates."""
 
     templates = Template.objects.all()
@@ -50,7 +55,20 @@ def list_templates() -> None:
         print("No templates found.")
         raise typer.Exit(code=0)
 
-    print("\n".join(f"{t}" for t in templates))
+    if inline:
+        print("\n".join(f"{t}" for t in templates))
+        raise typer.Exit(code=0)
+
+    table = Table("ID", "Name", "Type", "Description")
+    for template in templates:
+        table.add_row(
+            str(template.id),
+            template.name,
+            template.type,
+            template.description or "-",
+        )
+
+    print(table)
 
 
 @app.command("get")
@@ -75,4 +93,4 @@ def delete_template(
     template = get_or_exit(Template, id=template_id)
 
     template.delete()
-    print(f"✅ Template with ID '{template_id}' deleted successfully.")
+    print(f"Template with ID '{template_id}' deleted successfully.")
