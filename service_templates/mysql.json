@@ -17,10 +17,6 @@
 		{
 			"key": "MYSQL_PASSWORD",
 			"value": ""
-		},
-		{
-			"key": "MYSQL_PASSWORD",
-			"value": ""
 		}
 	],
 	"default_ports": [
