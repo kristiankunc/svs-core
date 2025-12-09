@@ -1,8 +1,10 @@
 import json
 import os
+import sys
 
 import typer
 
+from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from svs_core.cli.lib import get_or_exit
@@ -21,7 +23,7 @@ def import_template(
     reject_if_not_admin()
 
     if not os.path.isfile(file_path):
-        typer.echo(f"File '{file_path}' does not exist.", err=True)
+        print(f"File '{file_path}' does not exist.", file=sys.stderr)
         raise typer.Exit(code=1)
 
     with open(file_path, "r") as file:
@@ -35,7 +37,7 @@ def import_template(
 
         template = Template.import_from_json(data)
 
-    typer.echo(f"Template '{template.name}' imported successfully.")
+    print(f"Template '{template.name}' imported successfully.")
 
 
 @app.command("list")
@@ -45,10 +47,10 @@ def list_templates() -> None:
     templates = Template.objects.all()
 
     if len(templates) == 0:
-        typer.echo("No templates found.")
+        print("No templates found.")
         raise typer.Exit(code=0)
 
-    typer.echo("\n".join(f"{t}" for t in templates))
+    print("\n".join(f"{t}" for t in templates))
 
 
 @app.command("get")
@@ -59,7 +61,7 @@ def get_template(
 
     template = get_or_exit(Template, id=template_id)
 
-    typer.echo(template)
+    print(template)
 
 
 @app.command("delete")
@@ -73,4 +75,4 @@ def delete_template(
     template = get_or_exit(Template, id=template_id)
 
     template.delete()
-    typer.echo(f"✅ Template with ID '{template_id}' deleted successfully.")
+    print(f"✅ Template with ID '{template_id}' deleted successfully.")

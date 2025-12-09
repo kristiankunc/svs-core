@@ -1,7 +1,11 @@
+import sys
+
 from contextvars import ContextVar
 from typing import cast
 
 import typer
+
+from rich import print
 
 current_user: ContextVar[dict[str, bool | str] | None] = ContextVar(
     "current_user", default=None
@@ -31,7 +35,7 @@ def reject_if_not_admin() -> None:
 
     user = current_user.get()
     if user is None or not user.get("is_admin", False):
-        typer.echo("Admin privileges required.", err=True)
+        print("Admin privileges required.", file=sys.stderr)
         raise typer.Exit(code=1)
 
 

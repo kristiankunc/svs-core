@@ -1,4 +1,8 @@
+import sys
+
 import typer
+
+from rich import print
 
 from svs_core.cli.lib import get_or_exit
 from svs_core.cli.state import (
@@ -23,13 +27,13 @@ def create(
 
     try:
         user = User.create(name, password)
-        typer.echo(f"User '{user.name}' created successfully.")
+        print(f"User '{user.name}' created successfully.")
     except (
         InvalidUsernameException,
         InvalidPasswordException,
         AlreadyExistsException,
     ) as e:
-        typer.echo(f"Error creating user: {e}", err=True)
+        print(f"Error creating user: {e}", file=sys.stderr)
         raise typer.Exit(code=1)
 
 
@@ -41,7 +45,7 @@ def get(
 
     user = get_or_exit(User, name=name)
 
-    typer.echo(user)
+    print(user)
 
 
 @app.command("list")
@@ -50,10 +54,10 @@ def list_users() -> None:
 
     users = User.objects.all()
     if len(users) == 0:
-        typer.echo("No users found.", err=True)
+        print("No users found.", file=sys.stderr)
         raise typer.Exit(code=0)
 
-    typer.echo("\n".join(f"{u}" for u in users))
+    print("\n".join(f"{u}" for u in users))
 
 
 @app.command("add-ssh-key")
@@ -65,7 +69,7 @@ def add_ssh_key(
     user = get_or_exit(User, name=get_current_username())
 
     user.add_ssh_key(ssh_key)
-    typer.echo(f"✅ SSH key added to user '{user.name}'.")
+    print(f"✅ SSH key added to user '{user.name}'.")
 
 
 @app.command("remove-ssh-key")
@@ -77,4 +81,4 @@ def remove_ssh_key(
     user = get_or_exit(User, name=get_current_username())
 
     user.remove_ssh_key(ssh_key)
-    typer.echo(f"✅ SSH key removed from user '{user.name}'.")
+    print(f"✅ SSH key removed from user '{user.name}'.")
