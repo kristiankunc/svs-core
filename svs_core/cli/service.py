@@ -1,7 +1,10 @@
+import sys
+
 from pathlib import Path
 
 import typer
 
+from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from svs_core.cli.lib import get_or_exit
@@ -28,11 +31,11 @@ def list_services() -> None:
         services = Service.objects.all()
 
     if len(services) == 0:
-        typer.echo("No services found.")
+        print("No services found.")
         return
 
     for service in services:
-        typer.echo(f"- {service}")
+        print(f"- {service}")
 
 
 @app.command("create")
@@ -95,9 +98,9 @@ def create_service(
         override_env = []
         for env_var in env:
             if "=" not in env_var:
-                typer.echo(
+                print(
                     f"Invalid environment variable format: {env_var}. Use KEY=VALUE",
-                    err=True,
+                    file=sys.stderr,
                 )
                 raise typer.Exit(code=1)
             key, value = env_var.split("=", 1)
@@ -109,9 +112,9 @@ def create_service(
         override_ports = []
         for port_mapping in port:
             if ":" not in port_mapping:
-                typer.echo(
+                print(
                     f"Invalid port format: {port_mapping}. Use container_port:host_port",
-                    err=True,
+                    file=sys.stderr,
                 )
                 raise typer.Exit(code=1)
             try:
@@ -122,9 +125,9 @@ def create_service(
                     ExposedPort(container_port=container_port, host_port=host_port)
                 )
             except ValueError:
-                typer.echo(
+                print(
                     f"Invalid port numbers: {port_mapping}. Ports must be integers",
-                    err=True,
+                    file=sys.stderr,
                 )
                 raise typer.Exit(code=1)
 
@@ -134,9 +137,9 @@ def create_service(
         override_volumes = []
         for volume_mapping in volume:
             if ":" not in volume_mapping:
-                typer.echo(
+                print(
                     f"Invalid volume format: {volume_mapping}. Use container_path:host_path",
-                    err=True,
+                    file=sys.stderr,
                 )
                 raise typer.Exit(code=1)
             container_path, host_path = volume_mapping.split(":", 1)
@@ -150,7 +153,7 @@ def create_service(
         override_labels = []
         for lbl in label:
             if "=" not in lbl:
-                typer.echo(f"Invalid label format: {lbl}. Use KEY=VALUE", err=True)
+                print(f"Invalid label format: {lbl}. Use KEY=VALUE", file=sys.stderr)
                 raise typer.Exit(code=1)
             key, value = lbl.split("=", 1)
             override_labels.append(Label(key=key, value=value))
@@ -167,7 +170,7 @@ def create_service(
         override_labels=override_labels,
         override_args=args,
     )
-    typer.echo(f"Service '{service.name}' created successfully with ID {service.id}.")
+    print(f"Service '{service.name}' created successfully with ID {service.id}.")
 
 
 @app.command("start")
@@ -179,11 +182,11 @@ def start_service(
     service = get_or_exit(Service, id=service_id)
 
     if not is_current_user_admin() and service.user.name != get_current_username():
-        typer.echo("You do not have permission to start this service.", err=True)
+        print("You do not have permission to start this service.", file=sys.stderr)
         raise typer.Exit(1)
 
     service.start()
-    typer.echo(f"Service '{service.name}' started successfully.")
+    print(f"Service '{service.name}' started successfully.")
 
 
 @app.command("stop")
@@ -195,11 +198,11 @@ def stop_service(
     service = get_or_exit(Service, id=service_id)
 
     if not is_current_user_admin() and service.user.name != get_current_username():
-        typer.echo("You do not have permission to stop this service.", err=True)
+        print("You do not have permission to stop this service.", file=sys.stderr)
         raise typer.Exit(1)
 
     service.stop()
-    typer.echo(f"Service '{service.name}' stopped successfully.")
+    print(f"Service '{service.name}' stopped successfully.")
 
 
 @app.command("build")
@@ -214,7 +217,7 @@ def build_service(
     service = get_or_exit(Service, id=service_id)
 
     if not is_current_user_admin() and service.user.name != get_current_username():
-        typer.echo("You do not have permission to build this service.", err=True)
+        print("You do not have permission to build this service.", file=sys.stderr)
         raise typer.Exit(1)
 
     path_obj = Path(path)
@@ -226,7 +229,7 @@ def build_service(
         progress.add_task(description="Building service...", total=None)
 
     service.build(path_obj)
-    typer.echo(f"Service '{service.name}' Docker image built successfully.")
+    print(f"Service '{service.name}' Docker image built successfully.")
 
 
 @app.command("delete")
@@ -238,8 +241,8 @@ def delete_service(
     service = get_or_exit(Service, id=service_id)
 
     if not is_current_user_admin() and service.user.name != get_current_username():
-        typer.echo("You do not have permission to delete this service.", err=True)
+        print("You do not have permission to delete this service.", file=sys.stderr)
         raise typer.Exit(1)
 
     service.delete()
-    typer.echo(f"Service '{service.name}' deleted successfully.")
+    print(f"Service '{service.name}' deleted successfully.")

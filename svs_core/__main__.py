@@ -9,6 +9,8 @@ from typing import Optional, cast
 import django
 import typer
 
+from rich import print
+
 from svs_core.cli.lib import get_or_exit
 from svs_core.cli.state import is_current_user_admin, set_current_user, set_verbose_mode
 from svs_core.shared.env_manager import EnvManager
@@ -94,7 +96,7 @@ def global_options(
 
     if user_override:
         if not is_current_user_admin():
-            typer.echo("User overriding is admin only")
+            print("User overriding is admin only", file=sys.stderr)
             raise typer.Exit(1)
 
         from svs_core.users.user import User  # noqa: E402
