@@ -17,7 +17,13 @@ class TestServiceCommands:
         mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=True)
         mock_all = mocker.patch("svs_core.docker.service.Service.objects.all")
         mock_service = mocker.MagicMock()
-        mock_service.__str__.return_value = "Service(name='test_service')"
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "admin"
+        mock_service.user.id = 1
+        mock_service.status = "running"
+        mock_service.template.name = "test_template"
+        mock_service.template.id = 1
         mock_all.return_value = [mock_service]
 
         result = self.runner.invoke(
@@ -26,14 +32,22 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert "- Service(name='test_service')" in result.output
+        # Table output should contain service name and status
+        assert "test_service" in result.output
+        assert "running" in result.output
 
     def test_list_services_non_admin(self, mocker: MockerFixture) -> None:
         mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
         mocker.patch("svs_core.cli.service.get_current_username", return_value="user1")
         mock_filter = mocker.patch("svs_core.docker.service.Service.objects.filter")
         mock_service = mocker.MagicMock()
-        mock_service.__str__.return_value = "Service(name='user1_service')"
+        mock_service.id = 2
+        mock_service.name = "user1_service"
+        mock_service.user.name = "user1"
+        mock_service.user.id = 2
+        mock_service.status = "stopped"
+        mock_service.template.name = "web_template"
+        mock_service.template.id = 2
         mock_filter.return_value = [mock_service]
 
         result = self.runner.invoke(
@@ -42,7 +56,9 @@ class TestServiceCommands:
         )
 
         assert result.exit_code == 0
-        assert "- Service(name='user1_service')" in result.output
+        # Table output should contain service name and status
+        assert "user1_service" in result.output
+        assert "stopped" in result.output
 
     def test_list_services_empty(self, mocker: MockerFixture) -> None:
         mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=True)
@@ -56,6 +72,37 @@ class TestServiceCommands:
 
         assert result.exit_code == 0
         assert "No services found." in result.output
+
+    def test_list_services_inline_admin(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=True)
+        mock_all = mocker.patch("svs_core.docker.service.Service.objects.all")
+        mock_service = mocker.MagicMock()
+        mock_service.__str__.return_value = "Service(name='test_service')"
+        mock_all.return_value = [mock_service]
+
+        result = self.runner.invoke(
+            app,
+            ["service", "list", "--inline"],
+        )
+
+        assert result.exit_code == 0
+        assert "Service(name='test_service')" in result.output
+
+    def test_list_services_inline_non_admin(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch("svs_core.cli.service.get_current_username", return_value="user1")
+        mock_filter = mocker.patch("svs_core.docker.service.Service.objects.filter")
+        mock_service = mocker.MagicMock()
+        mock_service.__str__.return_value = "Service(name='user1_service')"
+        mock_filter.return_value = [mock_service]
+
+        result = self.runner.invoke(
+            app,
+            ["service", "list", "--inline"],
+        )
+
+        assert result.exit_code == 0
+        assert "Service(name='user1_service')" in result.output
 
     def test_create_service(self, mocker: MockerFixture) -> None:
         mock_user = mocker.MagicMock()
