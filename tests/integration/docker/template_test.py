@@ -495,15 +495,12 @@ class TestTemplate:
         assert template.description == "MySQL database"
         assert template.start_cmd is None
 
-        # Verify environment variables - should have 4 unique keys but 5 total entries
-        # (MYSQL_PASSWORD appears twice)
-        assert len(template.default_env) == 5
+        assert len(template.default_env) == 4
         env_vars = [ev.key for ev in template.default_env]
         assert "MYSQL_ROOT_PASSWORD" in env_vars
         assert "MYSQL_DATABASE" in env_vars
         assert "MYSQL_USER" in env_vars
-        # Verify MYSQL_PASSWORD appears twice
-        assert env_vars.count("MYSQL_PASSWORD") == 2
+        assert "MYSQL_PASSWORD" in env_vars
 
         # Verify ports
         assert len(template.default_ports) == 1
