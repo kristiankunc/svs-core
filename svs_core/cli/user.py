@@ -54,7 +54,7 @@ def list_users() -> None:
 
     users = User.objects.all()
     if len(users) == 0:
-        print("No users found.", file=sys.stderr)
+        print("No users found.")
         raise typer.Exit(code=0)
 
     print("\n".join(f"{u}" for u in users))
