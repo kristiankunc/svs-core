@@ -19,7 +19,7 @@ class DockerContainerManager:
         domain: str | None = None,
         command: str | None = None,
         args: list[str] | None = None,
-        labels: list[Label] = [],
+        labels: list[Label] | None = None,
         ports: list[ExposedPort] | None = None,
         volumes: list[Volume] | None = None,
         environment_variables: list[EnvVariable] | None = None,
@@ -74,6 +74,9 @@ class DockerContainerManager:
                     raise ValueError(
                         "Both host_path and container_path must be provided for Volume."
                     )
+
+        if labels is None:
+            labels = []
 
         if domain and 80 in (port.host_port for port in (ports or [])):
             labels.append(Label(key="caddy", value=domain))
