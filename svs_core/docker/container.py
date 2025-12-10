@@ -19,7 +19,7 @@ class DockerContainerManager:
         domain: str | None = None,
         command: str | None = None,
         args: list[str] | None = None,
-        labels: list[Label] = [],
+        labels: list[Label] | None = None,
         ports: list[ExposedPort] | None = None,
         volumes: list[Volume] | None = None,
         environment_variables: list[EnvVariable] | None = None,
@@ -75,6 +75,9 @@ class DockerContainerManager:
                         "Both host_path and container_path must be provided for Volume."
                     )
 
+        if labels is None:
+            labels = []
+
         if domain and 80 in (port.host_port for port in (ports or [])):
             labels.append(Label(key="caddy", value=domain))
             labels.append(Label(key="caddy.reverse_proxy", value='"{{upstreams 80}}"'))
@@ -115,7 +118,7 @@ class DockerContainerManager:
                 f"Successfully created container '{name}' with image '{image}'"
             )
 
-            if domain:
+            if domain and 80 in (port.host_port for port in (ports or [])):
                 DockerContainerManager.connect_to_network(container, "caddy_network")
 
             return container

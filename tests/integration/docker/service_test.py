@@ -770,3 +770,195 @@ class TestService:
         # Verify the service was created
         assert service.id is not None
         assert service.name == "default-content-service"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_domain_stored_in_database(
+        self, test_template: Template, test_user: User, mocker: MockerFixture
+    ) -> None:
+        """Test that domain is properly stored in the database."""
+        mock_container = mocker.MagicMock()
+        mock_container.id = "test_container_domain"
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Create a service with domain
+        service = Service.create(
+            name="domain-test-service",
+            template_id=test_template.id,
+            user=test_user,
+            domain="db-test.example.com",
+            image="nginx:alpine",
+        )
+
+        # Verify domain is stored
+        assert service.domain == "db-test.example.com"
+
+        # Fetch from database and verify persistence
+        fetched_service = Service.objects.get(id=service.id)
+        assert fetched_service.domain == "db-test.example.com"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_without_domain_stored_as_none(
+        self, test_template: Template, test_user: User, mocker: MockerFixture
+    ) -> None:
+        """Test that services without domain have None stored in database."""
+        mock_container = mocker.MagicMock()
+        mock_container.id = "test_container_no_domain"
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Create a service without domain
+        service = Service.create(
+            name="no-domain-service",
+            template_id=test_template.id,
+            user=test_user,
+            image="nginx:alpine",
+        )
+
+        # Verify domain is None
+        assert service.domain is None
+
+        # Fetch from database and verify
+        fetched_service = Service.objects.get(id=service.id)
+        assert fetched_service.domain is None
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_domain_in_string_representation(
+        self, test_template: Template, test_user: User, mocker: MockerFixture
+    ) -> None:
+        """Test that domain appears in the string representation of Service."""
+        mock_container = mocker.MagicMock()
+        mock_container.id = "test_container_str"
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Create a service with domain
+        service = Service.create(
+            name="str-test-service",
+            template_id=test_template.id,
+            user=test_user,
+            domain="str-test.example.com",
+            image="nginx:alpine",
+        )
+
+        # Verify domain appears in string representation
+        service_str = str(service)
+        assert "domain=str-test.example.com" in service_str
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_domain_passed_to_container_creation(
+        self, test_template: Template, test_user: User, mocker: MockerFixture
+    ) -> None:
+        """Test that domain is passed to
+        DockerContainerManager.create_container."""
+        mock_container = mocker.MagicMock()
+        mock_container.id = "test_container_passed"
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Create a service with domain
+        Service.create(
+            name="pass-test-service",
+            template_id=test_template.id,
+            user=test_user,
+            domain="pass-test.example.com",
+            image="nginx:alpine",
+            exposed_ports=[ExposedPort(host_port=80, container_port=80)],
+        )
+
+        # Verify domain was passed to create_container
+        mock_create_container.assert_called_once()
+        call_kwargs = mock_create_container.call_args[1]
+        assert call_kwargs["domain"] == "pass-test.example.com"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_domain_creates_caddy_label(
+        self, test_template: Template, test_user: User, mocker: MockerFixture
+    ) -> None:
+        """Test that service with domain gets caddy label added."""
+        mock_container = mocker.MagicMock()
+        mock_container.id = "test_container_caddy_label"
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Create a service with domain
+        service = Service.create(
+            name="caddy-label-service",
+            template_id=test_template.id,
+            user=test_user,
+            domain="caddy-label.example.com",
+            image="nginx:alpine",
+            exposed_ports=[ExposedPort(host_port=80, container_port=80)],
+        )
+
+        # Verify caddy label was added to the labels
+        caddy_labels = [label for label in service.labels if label.key == "caddy"]
+        assert len(caddy_labels) == 1
+        assert caddy_labels[0].value == "caddy-label.example.com"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_create_from_template_with_domain(
+        self, test_template: Template, test_user: User, mocker: MockerFixture
+    ) -> None:
+        """Test that create_from_template properly handles domain parameter."""
+        mock_container = mocker.MagicMock()
+        mock_container.id = "test_container_from_template"
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Mock port finding
+        mocker.patch(
+            "svs_core.shared.ports.SystemPortManager.find_free_port", return_value=8080
+        )
+
+        # Create service from template with domain
+        service = Service.create_from_template(
+            name="template-domain-service",
+            template_id=test_template.id,
+            user=test_user,
+            domain="template-domain.example.com",
+        )
+
+        # Verify domain was set
+        assert service.domain == "template-domain.example.com"
+
+        # Verify domain was passed to create_container
+        mock_create_container.assert_called_once()
+        call_kwargs = mock_create_container.call_args[1]
+        assert call_kwargs["domain"] == "template-domain.example.com"
