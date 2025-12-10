@@ -424,20 +424,6 @@ class Service(ServiceModel):
         if service_instance.domain:
             system_labels.append(Label(key="caddy", value=service_instance.domain))
 
-            if service_instance.exposed_ports:
-                http_ports = [
-                    port
-                    for port in service_instance.exposed_ports
-                    if port.container_port in (80, 443)
-                ]
-
-                if http_ports:
-                    upstreams = ", ".join(
-                        f"{{upstreams {port.container_port}}}" for port in http_ports
-                    )
-                    if upstreams:
-                        system_labels.append(Label(key="upstreams", value=upstreams))
-
         model_labels = list(service_instance.labels)
         all_labels = system_labels + model_labels
 
@@ -461,6 +447,7 @@ class Service(ServiceModel):
                 name=f"svs-{service_instance.id}",
                 image=service_instance.image,
                 owner=user.name,
+                domain=service_instance.domain,
                 command=service_instance.command,
                 args=service_instance.args,
                 labels=all_labels,
@@ -585,6 +572,7 @@ class Service(ServiceModel):
             name=f"svs-{self.id}",
             image=self.image,
             owner=self.user.name,
+            domain=self.domain,
             command=self.command,
             args=self.args,
             labels=self.labels,

@@ -16,6 +16,7 @@ class DockerContainerManager:
         name: str,
         image: str,
         owner: str,
+        domain: str | None = None,
         command: str | None = None,
         args: list[str] | None = None,
         labels: list[Label] = [],
@@ -74,6 +75,10 @@ class DockerContainerManager:
                         "Both host_path and container_path must be provided for Volume."
                     )
 
+        if domain and 80 in (port.host_port for port in (ports or [])):
+            labels.append(Label(key="caddy", value=domain))
+            labels.append(Label(key="caddy.reverse_proxy", value='"{{upstreams 80}}"'))
+
         get_logger(__name__).debug(
             f"Creating container with config: name={name}, image={image}, command={full_command}, labels={labels}, ports={docker_ports}, volumes={volume_mounts}"
         )
@@ -109,6 +114,10 @@ class DockerContainerManager:
             get_logger(__name__).info(
                 f"Successfully created container '{name}' with image '{image}'"
             )
+
+            if domain:
+                DockerContainerManager.connect_to_network(container, "caddy_network")
+
             return container
         except Exception as e:
             get_logger(__name__).error(f"Failed to create container '{name}': {str(e)}")
