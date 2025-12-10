@@ -218,9 +218,7 @@ class TestDockerContainerManager:
         assert container.status == "running"
 
     @pytest.mark.integration
-    def test_create_container_with_caddy_labels(
-        self, mocker: MockerFixture
-    ) -> None:
+    def test_create_container_with_caddy_labels(self, mocker: MockerFixture) -> None:
         """Test that Caddy labels are properly set when passed to container
         creation."""
         exposed_ports = [
@@ -248,9 +246,7 @@ class TestDockerContainerManager:
         assert container_labels.get("caddy.reverse_proxy") == "{{upstreams 80}}"
 
     @pytest.mark.integration
-    def test_create_container_without_caddy_labels(
-        self, mocker: MockerFixture
-    ) -> None:
+    def test_create_container_without_caddy_labels(self, mocker: MockerFixture) -> None:
         """Test that containers can be created without Caddy labels."""
         exposed_ports = [
             ExposedPort(host_port=8080, container_port=8080),
@@ -298,9 +294,7 @@ class TestDockerContainerManager:
         assert container_labels.get("version") == "1.0"
 
     @pytest.mark.integration
-    def test_create_container_with_multiple_ports(
-        self, mocker: MockerFixture
-    ) -> None:
+    def test_create_container_with_multiple_ports(self, mocker: MockerFixture) -> None:
         """Test container creation with multiple ports."""
         exposed_ports = [
             ExposedPort(host_port=80, container_port=80),
