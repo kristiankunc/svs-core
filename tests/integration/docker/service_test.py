@@ -868,7 +868,8 @@ class TestService:
     def test_service_domain_passed_to_container_creation(
         self, test_template: Template, test_user: User, mocker: MockerFixture
     ) -> None:
-        """Test that domain is passed to DockerContainerManager.create_container."""
+        """Test that domain is passed to
+        DockerContainerManager.create_container."""
         mock_container = mocker.MagicMock()
         mock_container.id = "test_container_passed"
         mock_create_container = mocker.patch(

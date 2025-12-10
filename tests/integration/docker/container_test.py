@@ -221,7 +221,8 @@ class TestDockerContainerManager:
     def test_create_container_with_domain_and_port_80(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that Caddy labels are added when domain is specified with port 80."""
+        """Test that Caddy labels are added when domain is specified with port
+        80."""
         mock_connect = mocker.patch(
             "svs_core.docker.container.DockerContainerManager.connect_to_network"
         )
@@ -252,7 +253,8 @@ class TestDockerContainerManager:
     def test_create_container_with_domain_without_port_80(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that Caddy labels are NOT added when domain is specified without port 80."""
+        """Test that Caddy labels are NOT added when domain is specified
+        without port 80."""
         mock_connect = mocker.patch(
             "svs_core.docker.container.DockerContainerManager.connect_to_network"
         )
@@ -312,7 +314,8 @@ class TestDockerContainerManager:
     def test_create_container_with_domain_multiple_ports_including_80(
         self, mocker: MockerFixture
     ) -> None:
-        """Test Caddy labels when domain is specified with multiple ports including 80."""
+        """Test Caddy labels when domain is specified with multiple ports
+        including 80."""
         mock_connect = mocker.patch(
             "svs_core.docker.container.DockerContainerManager.connect_to_network"
         )
