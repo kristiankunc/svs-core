@@ -995,3 +995,121 @@ class TestService:
         
         # Verify network connections were made
         assert mock_connect_network.call_count == 2
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_without_domain_no_caddy_labels(
+        self, test_template: Template, test_user: User, mocker: MockerFixture
+    ) -> None:
+        """Test that service without domain does NOT get caddy labels or network
+        connection."""
+        mock_container = mocker.MagicMock()
+        mock_container.id = "test_container_no_caddy"
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mock_connect_network = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Create a service without domain
+        Service.create(
+            name="no-caddy-service",
+            template_id=test_template.id,
+            user=test_user,
+            image="nginx:alpine",
+            exposed_ports=[ExposedPort(host_port=80, container_port=80)],
+        )
+
+        # Verify caddy labels were NOT passed to create_container
+        mock_create_container.assert_called_once()
+        call_kwargs = mock_create_container.call_args[1]
+        labels = call_kwargs["labels"]
+        
+        # Check that no caddy labels exist
+        caddy_labels = [l for l in labels if l.key.startswith("caddy")]
+        assert len(caddy_labels) == 0
+        
+        # Verify only user network connection was made (not caddy network)
+        assert mock_connect_network.call_count == 1
+        calls = mock_connect_network.call_args_list
+        assert calls[0][0][1] == test_user.name
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_reverse_proxy_label_format(
+        self, test_template: Template, test_user: User, mocker: MockerFixture
+    ) -> None:
+        """Test that reverse proxy label has correct format without quotes."""
+        mock_container = mocker.MagicMock()
+        mock_container.id = "test_container_reverse_proxy"
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Create a service with domain
+        Service.create(
+            name="reverse-proxy-service",
+            template_id=test_template.id,
+            user=test_user,
+            domain="reverse-proxy.example.com",
+            image="nginx:alpine",
+            exposed_ports=[ExposedPort(host_port=80, container_port=80)],
+        )
+
+        # Verify reverse_proxy label format
+        mock_create_container.assert_called_once()
+        call_kwargs = mock_create_container.call_args[1]
+        labels = call_kwargs["labels"]
+        
+        reverse_proxy_label = next(
+            (l for l in labels if l.key == "caddy.reverse_proxy"), None
+        )
+        
+        # Label should exist and have correct format (without quotes)
+        assert reverse_proxy_label is not None
+        assert reverse_proxy_label.value == "{{upstreams 80}}"
+        # Verify it doesn't have surrounding quotes
+        assert not reverse_proxy_label.value.startswith('"')
+        assert not reverse_proxy_label.value.endswith('"')
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_caddy_network_connection_only_with_domain(
+        self, test_template: Template, test_user: User, mocker: MockerFixture
+    ) -> None:
+        """Test that caddy network is only connected when domain is present."""
+        mock_container = mocker.MagicMock()
+        mock_container.id = "test_container_caddy_network"
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mock_connect_network = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Create service with domain
+        Service.create(
+            name="caddy-network-service",
+            template_id=test_template.id,
+            user=test_user,
+            domain="caddy-network.example.com",
+            image="nginx:alpine",
+            exposed_ports=[ExposedPort(host_port=80, container_port=80)],
+        )
+
+        # Verify caddy network connection was made
+        assert mock_connect_network.call_count == 2
+        calls = mock_connect_network.call_args_list
+        network_names = [call[0][1] for call in calls]
+        
+        # Should connect to both user network and caddy network
+        assert test_user.name in network_names
+        assert "caddy" in network_names
+
