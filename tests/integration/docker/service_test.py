@@ -865,18 +865,18 @@ class TestService:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_service_domain_passed_to_container_creation(
+    def test_service_domain_creates_labels_and_network_connection(
         self, test_template: Template, test_user: User, mocker: MockerFixture
     ) -> None:
-        """Test that domain is passed to
-        DockerContainerManager.create_container."""
+        """Test that domain is properly handled by creating labels and connecting
+        to caddy network."""
         mock_container = mocker.MagicMock()
         mock_container.id = "test_container_passed"
         mock_create_container = mocker.patch(
             "svs_core.docker.service.DockerContainerManager.create_container",
             return_value=mock_container,
         )
-        mocker.patch(
+        mock_connect_network = mocker.patch(
             "svs_core.docker.service.DockerContainerManager.connect_to_network"
         )
 
@@ -890,10 +890,29 @@ class TestService:
             exposed_ports=[ExposedPort(host_port=80, container_port=80)],
         )
 
-        # Verify domain was passed to create_container
+        # Verify caddy labels were passed to create_container
         mock_create_container.assert_called_once()
         call_kwargs = mock_create_container.call_args[1]
-        assert call_kwargs["domain"] == "pass-test.example.com"
+        labels = call_kwargs["labels"]
+        
+        # Check for caddy labels
+        caddy_label = next((l for l in labels if l.key == "caddy"), None)
+        reverse_proxy_label = next(
+            (l for l in labels if l.key == "caddy.reverse_proxy"), None
+        )
+        
+        assert caddy_label is not None
+        assert caddy_label.value == "pass-test.example.com"
+        assert reverse_proxy_label is not None
+        assert reverse_proxy_label.value == "{{upstreams 80}}"
+        
+        # Verify network connections were made (user network + caddy network)
+        assert mock_connect_network.call_count == 2
+        calls = mock_connect_network.call_args_list
+        # First call should be to user network
+        assert calls[0][0][1] == test_user.name
+        # Second call should be to caddy network
+        assert calls[1][0][1] == "caddy"
 
     @pytest.mark.integration
     @pytest.mark.django_db
@@ -938,7 +957,7 @@ class TestService:
             "svs_core.docker.service.DockerContainerManager.create_container",
             return_value=mock_container,
         )
-        mocker.patch(
+        mock_connect_network = mocker.patch(
             "svs_core.docker.service.DockerContainerManager.connect_to_network"
         )
 
@@ -955,10 +974,24 @@ class TestService:
             domain="template-domain.example.com",
         )
 
-        # Verify domain was set
+        # Verify domain was set on the service
         assert service.domain == "template-domain.example.com"
 
-        # Verify domain was passed to create_container
+        # Verify caddy labels were passed to create_container
         mock_create_container.assert_called_once()
         call_kwargs = mock_create_container.call_args[1]
-        assert call_kwargs["domain"] == "template-domain.example.com"
+        labels = call_kwargs["labels"]
+        
+        # Check for caddy labels
+        caddy_label = next((l for l in labels if l.key == "caddy"), None)
+        reverse_proxy_label = next(
+            (l for l in labels if l.key == "caddy.reverse_proxy"), None
+        )
+        
+        assert caddy_label is not None
+        assert caddy_label.value == "template-domain.example.com"
+        assert reverse_proxy_label is not None
+        assert reverse_proxy_label.value == "{{upstreams 80}}"
+        
+        # Verify network connections were made
+        assert mock_connect_network.call_count == 2

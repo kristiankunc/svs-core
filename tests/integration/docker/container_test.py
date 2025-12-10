@@ -218,47 +218,40 @@ class TestDockerContainerManager:
         assert container.status == "running"
 
     @pytest.mark.integration
-    def test_create_container_with_domain_and_port_80(
+    def test_create_container_with_caddy_labels(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that Caddy labels are added when domain is specified with port
-        80."""
-        mock_connect = mocker.patch(
-            "svs_core.docker.container.DockerContainerManager.connect_to_network"
-        )
-
+        """Test that Caddy labels are properly set when passed to container
+        creation."""
         exposed_ports = [
             ExposedPort(host_port=80, container_port=80),
+        ]
+
+        labels = [
+            Label(key="caddy", value="test.example.com"),
+            Label(key="caddy.reverse_proxy", value="{{upstreams 80}}"),
         ]
 
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
             owner=self.TEST_OWNER,
-            domain="test.example.com",
+            labels=labels,
             ports=exposed_ports,
         )
 
         assert container is not None
 
-        # Verify Caddy labels were added
+        # Verify Caddy labels were set correctly
         container_labels = container.labels
         assert container_labels.get("caddy") == "test.example.com"
-        assert container_labels.get("caddy.reverse_proxy") == '"{{upstreams 80}}"'
-
-        # Verify network connection was called
-        mock_connect.assert_called_once_with(container, "caddy_network")
+        assert container_labels.get("caddy.reverse_proxy") == "{{upstreams 80}}"
 
     @pytest.mark.integration
-    def test_create_container_with_domain_without_port_80(
+    def test_create_container_without_caddy_labels(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that Caddy labels and network connection are NOT made when
-        domain is specified without port 80."""
-        mock_connect = mocker.patch(
-            "svs_core.docker.container.DockerContainerManager.connect_to_network"
-        )
-
+        """Test that containers can be created without Caddy labels."""
         exposed_ports = [
             ExposedPort(host_port=8080, container_port=8080),
         ]
@@ -267,79 +260,70 @@ class TestDockerContainerManager:
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
             owner=self.TEST_OWNER,
-            domain="test.example.com",
             ports=exposed_ports,
         )
 
         assert container is not None
 
-        # Verify Caddy labels were NOT added (only service labels should exist)
+        # Verify Caddy labels were NOT added (only system labels should exist)
         container_labels = container.labels
         assert "caddy" not in container_labels
         assert "caddy.reverse_proxy" not in container_labels
 
-        # Verify network connection was NOT called (because port 80 is not exposed)
-        mock_connect.assert_not_called()
-
     @pytest.mark.integration
-    def test_create_container_without_domain(self, mocker: MockerFixture) -> None:
-        """Test that Caddy labels are NOT added when no domain is specified."""
-        mock_connect = mocker.patch(
-            "svs_core.docker.container.DockerContainerManager.connect_to_network"
-        )
-
+    def test_create_container_with_custom_labels(self, mocker: MockerFixture) -> None:
+        """Test that custom labels can be added to containers."""
         exposed_ports = [
             ExposedPort(host_port=80, container_port=80),
+        ]
+
+        labels = [
+            Label(key="app", value="nginx"),
+            Label(key="version", value="1.0"),
         ]
 
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
             owner=self.TEST_OWNER,
-            domain=None,
+            labels=labels,
             ports=exposed_ports,
         )
 
         assert container is not None
 
-        # Verify Caddy labels were NOT added
+        # Verify custom labels were added
         container_labels = container.labels
-        assert "caddy" not in container_labels
-        assert "caddy.reverse_proxy" not in container_labels
-
-        # Verify network connection was NOT called
-        mock_connect.assert_not_called()
+        assert container_labels.get("app") == "nginx"
+        assert container_labels.get("version") == "1.0"
 
     @pytest.mark.integration
-    def test_create_container_with_domain_multiple_ports_including_80(
+    def test_create_container_with_multiple_ports(
         self, mocker: MockerFixture
     ) -> None:
-        """Test Caddy labels when domain is specified with multiple ports
-        including 80."""
-        mock_connect = mocker.patch(
-            "svs_core.docker.container.DockerContainerManager.connect_to_network"
-        )
-
+        """Test container creation with multiple ports."""
         exposed_ports = [
             ExposedPort(host_port=80, container_port=80),
             ExposedPort(host_port=443, container_port=443),
             ExposedPort(host_port=8080, container_port=8080),
         ]
 
+        labels = [
+            Label(key="caddy", value="multi-port.example.com"),
+            Label(key="caddy.reverse_proxy", value="{{upstreams 80}}"),
+        ]
+
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=self.TEST_IMAGE,
             owner=self.TEST_OWNER,
-            domain="multi-port.example.com",
+            labels=labels,
             ports=exposed_ports,
         )
 
         assert container is not None
 
-        # Verify Caddy labels were added (because port 80 is present)
+        # Verify Caddy labels were set correctly
         container_labels = container.labels
         assert container_labels.get("caddy") == "multi-port.example.com"
-        assert container_labels.get("caddy.reverse_proxy") == '"{{upstreams 80}}"'
-
-        # Verify network connection was called
-        mock_connect.assert_called_once_with(container, "caddy_network")
+        assert container_labels.get("caddy.reverse_proxy") == "{{upstreams 80}}"
