@@ -3,8 +3,6 @@ import grp
 import os
 import pwd
 
-from pdb import run
-
 from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import run_command
 
