@@ -99,11 +99,11 @@ class SystemUserManager:
             pass
 
         try:
-            return getpass.getuser()
+            return os.getlogin()
         except Exception:
             pass
 
-        return os.getlogin()
+        return getpass.getuser()
 
     @staticmethod
     def add_ssh_key_to_user(username: str, ssh_key: str) -> None:
