@@ -11,6 +11,14 @@ CI:
 
 [![Publish Python Package](https://github.com/kristiankunc/svs-core/actions/workflows/publish.yml/badge.svg?event=release)](https://github.com/kristiankunc/svs-core/actions/workflows/publish.yml)
 [![Test](https://github.com/kristiankunc/svs-core/actions/workflows/test.yml/badge.svg)](https://github.com/kristiankunc/svs-core/actions/workflows/test.yml)
+
+## Docs
+
+**For full docs, visit [svs.kristn.co.uk](https://svs.kristn.co.uk/)**
+
+This readme contains a quick summary and development setup info.
+
+
 ## Goals
 
 The goal of this project is to provide a simple and easy-to-use library for managing self-hosted services on a linux server. It is designed to be used by developers who want to automate the management of their self-hosted services, such as web servers, databases, and other applications.
@@ -26,8 +34,6 @@ Every service will run a Docker container and all of users' services will be on 
 1. exposing them to other users on the same server
 1. having to use compose stacks and custom networks to allow cross-service communication.
 
-Direct SSH access to the containers will be provided but handled by additional authentication as to avoid having to create system accounts for each user.
-
 ## Features
 
 Currently, the library is in early development and has the following features:
@@ -38,7 +44,7 @@ Currently, the library is in early development and has the following features:
 - [x] Service templates
 - [ ] CI/CD integration
 - [ ] DB/System sync issues + recovery
-- [ ] Remote SSH access
+- [x] Remote SSH access
 
 ## Running locally
 
@@ -48,9 +54,9 @@ The easiest way to achieve a reproducible environment is to use the included dev
 
 The local devcontainer config creates the following compose stack:
 
-1. A `debian` container for the development environment.
+1. A `python` devcontainer for the development environment.
 1. A `postgres` database container for storing service data.
-1. A `caddy` container to act as a HTTP proxy
+1. A `caddy` container to act as a HTTP proxy (needed only if testing domains locally)
 
 This guide assumes you have chosen to use the devcontainer setup.
 
