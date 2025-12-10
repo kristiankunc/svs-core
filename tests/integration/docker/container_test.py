@@ -253,8 +253,8 @@ class TestDockerContainerManager:
     def test_create_container_with_domain_without_port_80(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that Caddy labels are NOT added when domain is specified
-        without port 80."""
+        """Test that Caddy labels and network connection are NOT made when
+        domain is specified without port 80."""
         mock_connect = mocker.patch(
             "svs_core.docker.container.DockerContainerManager.connect_to_network"
         )
@@ -278,8 +278,8 @@ class TestDockerContainerManager:
         assert "caddy" not in container_labels
         assert "caddy.reverse_proxy" not in container_labels
 
-        # Verify network connection was still called (because domain is set)
-        mock_connect.assert_called_once_with(container, "caddy_network")
+        # Verify network connection was NOT called (because port 80 is not exposed)
+        mock_connect.assert_not_called()
 
     @pytest.mark.integration
     def test_create_container_without_domain(self, mocker: MockerFixture) -> None:

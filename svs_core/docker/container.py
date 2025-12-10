@@ -118,7 +118,7 @@ class DockerContainerManager:
                 f"Successfully created container '{name}' with image '{image}'"
             )
 
-            if domain:
+            if domain and 80 in (port.host_port for port in (ports or [])):
                 DockerContainerManager.connect_to_network(container, "caddy_network")
 
             return container
