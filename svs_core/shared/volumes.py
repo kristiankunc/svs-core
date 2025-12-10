@@ -46,7 +46,6 @@ class SystemVolumeManager:
                 # Set owner to the user and group to svs-admins
                 run_command(
                     f"chown {user.name}:svs-admins {volume_path.as_posix()}",
-                    user=user.name,
                 )
                 # Set permissions to allow owner and group full access (770)
                 run_command(f"chmod 770 {volume_path.as_posix()}", user=user.name)
