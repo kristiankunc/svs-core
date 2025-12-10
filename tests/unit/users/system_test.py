@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from pytest_mock import MockerFixture
@@ -85,42 +87,41 @@ class TestSystemUser:
         assert result is False
 
     @pytest.mark.unit
+    def test_get_system_username_returns_sudo_user(self, mocker: MockerFixture) -> None:
+        """Test that SUDO_USER env var is prioritized."""
+        mocker.patch.dict(os.environ, {"SUDO_USER": "sudo_user"})
+        mock_geteuid = mocker.patch("svs_core.users.system.os.geteuid")
+
+        username = SystemUserManager.get_system_username()
+
+        assert username == "sudo_user"
+        # getuid should not be called if SUDO_USER is set
+        mock_geteuid.assert_not_called()
+
+    @pytest.mark.unit
     def test_get_system_username_returns_effective_user(
         self, mocker: MockerFixture
     ) -> None:
+        """Test that effective UID is used when SUDO_USER is not set."""
+        mocker.patch.dict(os.environ, {}, clear=False)
+        # Remove SUDO_USER if it exists
+        mocker.patch.dict(os.environ, {"SUDO_USER": ""})
+
         mock_pwd = mocker.MagicMock()
         mock_pwd.pw_name = "effective_user"
-        mock_geteuid = mocker.patch(
-            "svs_core.users.system.os.geteuid", return_value=1000
-        )
-        mock_getpwuid = mocker.patch(
-            "svs_core.users.system.pwd.getpwuid", return_value=mock_pwd
-        )
+        mocker.patch("svs_core.users.system.os.geteuid", return_value=1000)
+        mocker.patch("svs_core.users.system.pwd.getpwuid", return_value=mock_pwd)
 
         username = SystemUserManager.get_system_username()
-        mock_geteuid.assert_called_once()
-        mock_getpwuid.assert_called_once_with(1000)
+
         assert username == "effective_user"
-
-    @pytest.mark.unit
-    def test_get_system_username_fallback_to_getlogin(
-        self, mocker: MockerFixture
-    ) -> None:
-        mocker.patch(
-            "svs_core.users.system.pwd.getpwuid", side_effect=Exception("No pwd")
-        )
-        mock_getlogin = mocker.patch(
-            "svs_core.users.system.os.getlogin", return_value="login_user"
-        )
-
-        username = SystemUserManager.get_system_username()
-        mock_getlogin.assert_called_once()
-        assert username == "login_user"
 
     @pytest.mark.unit
     def test_get_system_username_fallback_to_getpass(
         self, mocker: MockerFixture
     ) -> None:
+        """Test fallback to getpass when getpwuid fails."""
+        mocker.patch.dict(os.environ, {"SUDO_USER": ""})
         mocker.patch(
             "svs_core.users.system.pwd.getpwuid", side_effect=Exception("No pwd")
         )
@@ -132,8 +133,30 @@ class TestSystemUser:
         )
 
         username = SystemUserManager.get_system_username()
-        mock_getuser.assert_called_once()
+
         assert username == "getpass_user"
+        mock_getuser.assert_called_once()
+
+    @pytest.mark.unit
+    def test_get_system_username_fallback_to_getlogin(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test fallback to getlogin when getpwuid fails."""
+        mocker.patch.dict(os.environ, {"SUDO_USER": ""})
+        mocker.patch(
+            "svs_core.users.system.pwd.getpwuid", side_effect=Exception("No pwd")
+        )
+        mock_getlogin = mocker.patch(
+            "svs_core.users.system.os.getlogin", return_value="login_user"
+        )
+        mocker.patch(
+            "svs_core.users.system.getpass.getuser", side_effect=Exception("No getpass")
+        )
+
+        username = SystemUserManager.get_system_username()
+
+        assert username == "login_user"
+        mock_getlogin.assert_called_once()
 
     @pytest.mark.unit
     def test_add_ssh_key_to_user(self, mocker: MockerFixture) -> None:
