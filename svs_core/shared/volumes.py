@@ -43,12 +43,16 @@ class SystemVolumeManager:
             volume_path = base_resolved / str(user.id) / volume_id
             if not volume_path.exists():
                 create_directory(volume_path.as_posix())
-                # Set owner to the user and group to svs-admins
+                # Set owner to the user and group to svs-admins (requires root)
                 run_command(
-                    f"chown {user.name}:svs-admins {volume_path.as_posix()}",
+                    f"sudo chown {user.name}:svs-admins {volume_path.as_posix()}",
+                    check=True,
                 )
                 # Set permissions to allow owner and group full access (770)
-                run_command(f"chmod 770 {volume_path.as_posix()}", user=user.name)
+                run_command(
+                    f"sudo chmod 770 {volume_path.as_posix()}",
+                    check=True,
+                )
 
                 return volume_path
 
