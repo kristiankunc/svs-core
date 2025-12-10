@@ -133,6 +133,7 @@ volumes:
 
 networks:
   caddy:
+    name: caddy
     driver: bridge
 EOF
 '
