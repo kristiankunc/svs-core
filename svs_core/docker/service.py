@@ -423,20 +423,9 @@ class Service(ServiceModel):
 
         if service_instance.domain:
             system_labels.append(Label(key="caddy", value=service_instance.domain))
-
-            if service_instance.exposed_ports:
-                http_ports = [
-                    port
-                    for port in service_instance.exposed_ports
-                    if port.container_port in (80, 443)
-                ]
-
-                if http_ports:
-                    upstreams = ", ".join(
-                        f"{{upstreams {port.container_port}}}" for port in http_ports
-                    )
-                    if upstreams:
-                        system_labels.append(Label(key="upstreams", value=upstreams))
+            system_labels.append(
+                Label(key="caddy.reverse_proxy", value="{{upstreams 80}}")
+            )
 
         model_labels = list(service_instance.labels)
         all_labels = system_labels + model_labels
@@ -472,6 +461,9 @@ class Service(ServiceModel):
             service_instance.container_id = container.id
 
             DockerContainerManager.connect_to_network(container, user.name)
+
+            if "caddy" in [label.key for label in all_labels]:
+                DockerContainerManager.connect_to_network(container, "caddy")
 
         service_instance.save()
 

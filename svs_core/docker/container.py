@@ -18,7 +18,7 @@ class DockerContainerManager:
         owner: str,
         command: str | None = None,
         args: list[str] | None = None,
-        labels: list[Label] = [],
+        labels: list[Label] | None = None,
         ports: list[ExposedPort] | None = None,
         volumes: list[Volume] | None = None,
         environment_variables: list[EnvVariable] | None = None,
@@ -74,6 +74,9 @@ class DockerContainerManager:
                         "Both host_path and container_path must be provided for Volume."
                     )
 
+        if labels is None:
+            labels = []
+
         get_logger(__name__).debug(
             f"Creating container with config: name={name}, image={image}, command={full_command}, labels={labels}, ports={docker_ports}, volumes={volume_mounts}"
         )
@@ -109,7 +112,9 @@ class DockerContainerManager:
             get_logger(__name__).info(
                 f"Successfully created container '{name}' with image '{image}'"
             )
+
             return container
+
         except Exception as e:
             get_logger(__name__).error(f"Failed to create container '{name}': {str(e)}")
             raise

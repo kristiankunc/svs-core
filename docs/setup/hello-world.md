@@ -36,18 +36,19 @@ The IDs are indexed from 1 so you can likely put that in, if in doubt use the li
 
 ### Configuring
 
-When listing services, you will see a Volumes section for each one
+When reading info about the service using [`svs service get <id>`](../cli.md#svs-service-get), you will see a section about Volumes
 
 ??? example "Example output"
-    `volumes=['Volume(/usr/share/nginx/html=/var/svs/volumes/1/owmjuhaohqovtzry)', 'Volume(/etc/nginx/conf.d=/var/svs/volumes/1/ljjfiphegqcxcune)']`
+    `volumes=['Volume(/config=/var/svs/volumes/1/hbhuclgfnfnqwrru)']`
 
-    This means that on host, you can modify contents of
+    This means that on host, you can modify the contents of `/var/svs/volumes/1/hbhuclgfnfnqwrru` which will be mirrored inside the container at `/config`.
 
-    - `/var/svs/volumes/1/owmjuhaohqovtzry` to change `/usr/share/nginx/html` in the container
-    - `/var/svs/volumes/1/ljjfiphegqcxcune` to change `/etc/nginx/conf.d` in the container
+    What exactly this affects is specific to each service, but in this case, anything in the container `/config/www` will be served by nginx.
+
+    You can read more info about volumes [here](../index.md#data-storage)
 
 
-If you want to modify the default page, you can modify the appropriate volumes by adding an nginx config & some static files to serve. Otherwise the default page will be served which is fine for testing purpouses.
+To add a custom `index.html` page, create a file `/var/svs/volumes/<user_id>/<volume_id>/www/index.html` with your content. A Default one is already preconfigured to verify the service is working.
 
 ### Starting and checking the service
 
