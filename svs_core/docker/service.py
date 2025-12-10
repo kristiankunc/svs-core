@@ -385,10 +385,6 @@ class Service(ServiceModel):
         if labels is None:
             labels = list(template.labels)
 
-        if domain and 80 in (port.host_port for port in (exposed_ports or [])):
-            labels.append(Label(key="caddy", value=domain))
-            labels.append(Label(key="caddy.reverse_proxy", value='"{{upstreams 80}}"'))
-
         if args is None:
             args = list(template.args) if template.args else []
 
@@ -427,6 +423,9 @@ class Service(ServiceModel):
 
         if service_instance.domain:
             system_labels.append(Label(key="caddy", value=service_instance.domain))
+            system_labels.append(
+                Label(key="caddy.reverse_proxy", value='"{{upstreams 80}}"')
+            )
 
         model_labels = list(service_instance.labels)
         all_labels = system_labels + model_labels
