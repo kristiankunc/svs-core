@@ -424,7 +424,7 @@ class Service(ServiceModel):
         if service_instance.domain:
             system_labels.append(Label(key="caddy", value=service_instance.domain))
             system_labels.append(
-                Label(key="caddy.reverse_proxy", value='"{{upstreams 80}}"')
+                Label(key="caddy.reverse_proxy", value="{{upstreams 80}}")
             )
 
         model_labels = list(service_instance.labels)
