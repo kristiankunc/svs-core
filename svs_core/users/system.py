@@ -83,16 +83,10 @@ class SystemUserManager:
     def get_system_username() -> str:
         """Returns the username of whoever is running the process.
 
-        Handles sudo, su, and direct execution correctly.
-        For sudo: uses SUDO_USER env var (set by sudo)
-        For su: uses effective UID via pwd
-        For direct execution: uses getpass.getuser()
+        Returns the effective user, which is correct even when using
+        sudo -u username to run as a different user.
         """
-        # For sudo execution, SUDO_USER contains the original user
-        if "SUDO_USER" in os.environ and os.environ["SUDO_USER"]:
-            return os.environ["SUDO_USER"]
-
-        # Return the actual effective user (UID)
+        # Return the actual effective user
         try:
             return pwd.getpwuid(os.geteuid()).pw_name
         except Exception:
