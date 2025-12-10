@@ -385,6 +385,10 @@ class Service(ServiceModel):
         if labels is None:
             labels = list(template.labels)
 
+        if domain and 80 in (port.host_port for port in (exposed_ports or [])):
+            labels.append(Label(key="caddy", value=domain))
+            labels.append(Label(key="caddy.reverse_proxy", value='"{{upstreams 80}}"'))
+
         if args is None:
             args = list(template.args) if template.args else []
 
@@ -447,7 +451,6 @@ class Service(ServiceModel):
                 name=f"svs-{service_instance.id}",
                 image=service_instance.image,
                 owner=user.name,
-                domain=service_instance.domain,
                 command=service_instance.command,
                 args=service_instance.args,
                 labels=all_labels,
@@ -459,6 +462,9 @@ class Service(ServiceModel):
             service_instance.container_id = container.id
 
             DockerContainerManager.connect_to_network(container, user.name)
+
+            if "caddy" in [label.key for label in all_labels]:
+                DockerContainerManager.connect_to_network(container, "caddy")
 
         service_instance.save()
 
@@ -572,7 +578,6 @@ class Service(ServiceModel):
             name=f"svs-{self.id}",
             image=self.image,
             owner=self.user.name,
-            domain=self.domain,
             command=self.command,
             args=self.args,
             labels=self.labels,
