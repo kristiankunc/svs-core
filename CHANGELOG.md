@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.0](https://github.com/kristiankunc/svs-core/compare/v0.9.1...v0.10.0) (2025-12-11)
+
+
+### Features
+
+* Add reverse proxy configuration ([#157](https://github.com/kristiankunc/svs-core/issues/157)) ([4c45355](https://github.com/kristiankunc/svs-core/commit/4c453552bcc8a04c18ba542edcd34b6b1a5583f5))
+
+
+### Bug Fixes
+
+* Add adminer template ([#151](https://github.com/kristiankunc/svs-core/issues/151)) ([7fd3b7d](https://github.com/kristiankunc/svs-core/commit/7fd3b7d047f7f3f02d6b02b5fab149feb977593b))
+* Add tables to CLI output ([#155](https://github.com/kristiankunc/svs-core/issues/155)) ([49fe7f3](https://github.com/kristiankunc/svs-core/commit/49fe7f35963f6759a4c9ddc2abf7805c037d6ccf))
+* Fix system username getter if svs ran via sudo/su ([#159](https://github.com/kristiankunc/svs-core/issues/159)) ([3746d3a](https://github.com/kristiankunc/svs-core/commit/3746d3af39445ca815028de68c369496bef264fe))
+* Force set caddy network name in install script ([#161](https://github.com/kristiankunc/svs-core/issues/161)) ([d7e0b92](https://github.com/kristiankunc/svs-core/commit/d7e0b9238d0c56b11ce53d347a8495c8c452d049))
+
 ## [0.9.1](https://github.com/kristiankunc/svs-core/compare/v0.9.0...v0.9.1) (2025-12-08)
 
 
