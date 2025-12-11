@@ -37,6 +37,8 @@ plugins:
   - search:
       lang: en
       separator: '[\s\-]+'
+  - macros:
+      module_name: macros
   - awesome-nav
   - mkdocstrings:
       handlers:
