@@ -83,7 +83,7 @@ Fanouškům
 
 #pagebreak()
 
-#outline()
+#outline(title: "Obsah")
 
 #pagebreak()
 
