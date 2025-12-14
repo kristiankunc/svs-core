@@ -1,10 +1,22 @@
 #set page(
   paper: "a4",
   margin: (x: 1.8cm, y: 1.5cm),
+  number-align: center,
+  numbering: "1.",
 )
+
+#set page(footer: context {
+  let abspage = locate(here()).page()
+
+  if abspage > 4 {
+    align(center)[#counter(page).display("1")]
+  }
+})
+
 #set text(
   font: "New Computer Modern",
   size: 12pt,
+  lang: "cs",
 )
 #set heading(numbering: "1.")
 
@@ -15,11 +27,12 @@
 )
 
 
+
 #let title-page() = {
   align(center)[
     #text(size: 18pt, weight: "bold")[STŘEDOŠKOLSKÁ ODBORNÁ ČINNOST]
     #v(10pt)
-    #text(size: 14pt)[Obor: Informatika]
+    #text(size: 14pt)[Obor č. 18: Informatika]
 
     #v(0.5fr)
 
@@ -46,7 +59,7 @@
 
 #heading(numbering: none, outlined: false)[Prohlášení]
 
-Prohlašuji, že jsem svou práci SOČ vypracoval/a samostatně a použil/a jsem pouze prameny a literaturu uvedené v seznamu bibliografických záznamů.
+Prohlašuji, že jsem svou práci SOČ vypracoval samostatně a použil jsem pouze prameny a literaturu uvedené v seznamu bibliografických záznamů.
 
 Beru na vědomí, že nejpozději odevzdáním slovesné vědecké práce do veřejné soutěže Středoškolská odborná činnost, stejně jako odevzdáním jejích příloh a dalších připojených děl, např. audiovizuálních, fotografických, výtvarných, architektonických apod. (dále jen „soutěžní dílo“), dochází ke zveřejnění díla podle § 4 odst. 1 zákona č. 121/2000 Sb., autorského zákona, ve znění pozdějších předpisů (dále jen „autorský zákon“). Totéž platí pro pozdější odevzdání doplněného, změněného, upraveného nebo opraveného díla.
 
@@ -63,13 +76,17 @@ Beru na vědomí, že vyhlašovatel soutěže je podle § 61 odst. 1 autorského
 
 
 
-Dále prohlašuji, že při tvorbě této práce jsem použil/a nástroj generativního modelu AI [NÁZEV APLIKACE; WEBOVÁ ADRESA APLIKACE] za účelem [DŮVOD]. Po použití tohoto nástroje jsem provedl/a kontrolu obsahu a přebírám za něj plnou zodpovědnost.
+Dále prohlašuji, že při tvorbě této práce jsem použil nástroj generativního modelu AI Github Copilot; https://github.com/copilot za účelem [???]. Po použití tohoto nástroje jsem provedl/a kontrolu obsahu a přebírám za něj plnou zodpovědnost.
 
 #v(5em)
 #grid(
   columns: (1fr, 1fr),
-  align: (left, center, right),
-  [V Praze \_\_. \_\_. 2026: #box(line(length: 3cm, stroke: (dash: "dotted")))],
+  align: (left, center),
+  [V Praze dne: #box(line(length: 2cm, stroke: 0.8pt)) 2026],
+  [
+    #box(line(length: 5cm, stroke: 0.8pt)) \
+    Kristián Kunc
+  ],
 )
 
 #pagebreak()
@@ -93,5 +110,12 @@ Fanouškům
 == Další
 #lorem(50)
 
+#pagebreak()
+
 = Dvojka
 #lorem(100)
+@Madje_Typst
+#lorem(30)
+
+
+#bibliography("main.bib", style: "iso690-numeric-brackets-cs.csl")
