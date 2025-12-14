@@ -24,7 +24,7 @@
 		}
 	],
 	"description": "Django application container built on-demand from source",
-	"dockerfile": "FROM python:3.11-slim\n\nWORKDIR /app\n\n# Install system dependencies\nRUN apt-get update && apt-get install -y \\\n    gcc \\\n    postgresql-client \\\n    && rm -rf /var/lib/apt/lists/*\n\n# Copy requirements and install Python dependencies\nCOPY requirements.txt .\nRUN pip install --no-cache-dir -r requirements.txt\n\n# Copy application code\nCOPY . .\n\n# Collect static files (optional)\nRUN python manage.py collectstatic --noinput || true\n\n# Expose port\nEXPOSE 8000\n\n# Health check\nHEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \\\n    CMD curl -f http://localhost:8000/ || exit 1\n\n# Run Django development server\nCMD [\"python\", \"manage.py\", \"runserver\", \"0.0.0.0:8000\"]",
+	"dockerfile": "FROM python:3.13-slim AS builder\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1 \n\nWORKDIR /app\n\nCOPY requirements.txt .\n\nRUN pip install --upgrade pip\nRUN pip install --user -r requirements.txt\nRUN pip install --user gunicorn\n\nRUN python manage.py collectstatic --noinput || true\n\nFROM python:3.13-slim\n\nCOPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/\nCOPY --from=builder /usr/local/bin/ /usr/local/bin/\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1 \n\nEXPOSE 8000\n\nCMD [\"gunicorn\", \"--bind\", \"0.0.0.0:8000\", \"--workers\", \"3\", \"my_docker_django_app.wsgi:application\"]",
 	"healthcheck": {
 		"interval": 30,
 		"retries": 3,
