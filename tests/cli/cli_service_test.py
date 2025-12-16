@@ -599,3 +599,84 @@ class TestServiceCommands:
         assert result.exit_code == 0
         assert "Service 'test_service' stopped successfully." in result.output
         mock_service.stop.assert_called_once()
+
+    def test_logs_admin(self, mocker: MockerFixture) -> None:
+        mock_get = mocker.patch("svs_core.docker.service.Service.objects.get")
+        mock_service = mocker.MagicMock()
+        mock_service.name = "test_service"
+        mock_service.user.name = "other_user"
+        mock_service.get_logs.return_value = "Log line 1\nLog line 2\nLog line 3"
+        mock_get.return_value = mock_service
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=True)
+
+        result = self.runner.invoke(
+            app,
+            ["service", "logs", "1"],
+        )
+
+        assert result.exit_code == 0
+        assert "Log line 1" in result.output
+        assert "Log line 2" in result.output
+        assert "Log line 3" in result.output
+        mock_service.get_logs.assert_called_once()
+
+    def test_logs_own_service(self, mocker: MockerFixture) -> None:
+        mock_get = mocker.patch("svs_core.docker.service.Service.objects.get")
+        mock_service = mocker.MagicMock()
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+        mock_service.get_logs.return_value = "Container logs here"
+        mock_get.return_value = mock_service
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "logs", "1"],
+        )
+
+        assert result.exit_code == 0
+        assert "Container logs here" in result.output
+        mock_service.get_logs.assert_called_once()
+
+    def test_logs_unauthorized(self, mocker: MockerFixture) -> None:
+        mock_get = mocker.patch("svs_core.docker.service.Service.objects.get")
+        mock_service = mocker.MagicMock()
+        mock_service.user.name = "other_user"
+        mock_get.return_value = mock_service
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "logs", "1"],
+        )
+
+        assert result.exit_code == 1
+        assert (
+            "You do not have permission to view this service's logs." in result.output
+        )
+
+    def test_logs_empty(self, mocker: MockerFixture) -> None:
+        mock_get = mocker.patch("svs_core.docker.service.Service.objects.get")
+        mock_service = mocker.MagicMock()
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+        mock_service.get_logs.return_value = ""
+        mock_get.return_value = mock_service
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "logs", "1"],
+        )
+
+        assert result.exit_code == 0
+        mock_service.get_logs.assert_called_once()
