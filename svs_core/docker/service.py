@@ -558,14 +558,17 @@ class Service(ServiceModel):
         if self.template.type != TemplateType.BUILD:
             raise ValueError("Service template type is not BUILD; cannot build image.")
 
-        build_image_name = f"{self.template.name.lower()}-{self.name.lower()}:latest"
+        build_image_name = f"{self.template.name.lower()}-{self.id}:latest"
 
         get_logger(__name__).info(
-            f"Building image '{build_image_name}' on-demand for service '{self.name}' in path '{source_path}'"
+            f"Building image '{build_image_name}' on-demand for service '{self.name}' in path '{source_path}', with ENV vars: {[env.__str__() for env in self.env]}"
         )
 
         DockerImageManager.build_from_dockerfile(
-            build_image_name, self.template.dockerfile, path_to_copy=source_path
+            build_image_name,
+            self.template.dockerfile,
+            path_to_copy=source_path,
+            build_args={env.key: env.value for env in self.env},
         )
 
         self.image = build_image_name

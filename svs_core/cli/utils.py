@@ -41,7 +41,6 @@ def format_dockerfile(
         rprint(f"Error reading Dockerfile: {e}", file=sys.stderr)
         raise typer.Exit(code=1)
 
-    # Replace newlines with \n and escape double quotes
     formatted_content = (
         dockerfile_content.replace("\\", "\\\\")
         .replace("\n", "\\n")

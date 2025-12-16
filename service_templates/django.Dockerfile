@@ -20,6 +20,11 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV HOME=/tmp
 
+ARG APP_NAME=
+ENV APP_NAME=${APP_NAME}
+
+RUN if [ -z "$APP_NAME" ]; then echo "APP_NAME argument is required" >&2; exit 1; fi
+
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
@@ -35,4 +40,4 @@ EXPOSE 8000
 
 USER appuser
 
-CMD ["/usr/local/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "${APP_NAME}.wsgi:application"]
+CMD ["sh", "-c", "/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_NAME}.wsgi"]

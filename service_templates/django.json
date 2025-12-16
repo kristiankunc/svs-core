@@ -28,7 +28,7 @@
 		}
 	],
 	"description": "Django application container built on-demand from source",
-	"dockerfile": "FROM python:3.13-slim AS builder\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1\n\nWORKDIR /app\n\nCOPY requirements.txt .\n\nRUN apt-get update && apt-get install -y --no-install-recommends \\\n    build-essential \\\n    && rm -rf /var/lib/apt/lists/*\n\nRUN pip install --upgrade pip \\\n    && pip install -r requirements.txt gunicorn\n\nFROM python:3.13-slim\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1\nENV HOME=/tmp\n\nRUN groupadd -r appuser && useradd -r -g appuser appuser\n\nCOPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/\nCOPY --from=builder /usr/local/bin/ /usr/local/bin/\n\nWORKDIR /app\nCOPY . .\n\nRUN mkdir -p /app && chmod -R 777 /app \\\n    && python manage.py collectstatic --noinput || true\n\nEXPOSE 8000\n\nUSER appuser\n\nCMD [\"/usr/local/bin/gunicorn\", \"--bind\", \"0.0.0.0:8000\", \"--workers\", \"3\", \"${APP_NAME}.wsgi:application\"]\n",
+	"dockerfile": "FROM python:3.13-slim AS builder\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1\n\nWORKDIR /app\n\nCOPY requirements.txt .\n\nRUN apt-get update && apt-get install -y --no-install-recommends \\\n    build-essential \\\n    && rm -rf /var/lib/apt/lists/*\n\nRUN pip install --upgrade pip \\\n    && pip install -r requirements.txt gunicorn\n\nFROM python:3.13-slim\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1\nENV HOME=/tmp\n\nARG APP_NAME=\nENV APP_NAME=${APP_NAME}\n\nRUN if [ -z \"$APP_NAME\" ]; then echo \"APP_NAME argument is required\" >&2; exit 1; fi\n\nRUN groupadd -r appuser && useradd -r -g appuser appuser\n\nCOPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/\nCOPY --from=builder /usr/local/bin/ /usr/local/bin/\n\nWORKDIR /app\nCOPY . .\n\nRUN mkdir -p /app && chmod -R 777 /app \\\n    && python manage.py collectstatic --noinput || true\n\nEXPOSE 8000\n\nUSER appuser\n\nCMD [\"sh\", \"-c\", \"/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_NAME}.wsgi\"]\n",
 	"healthcheck": {
 		"interval": 30,
 		"retries": 3,
@@ -42,6 +42,5 @@
 		"timeout": 10
 	},
 	"name": "django-app",
-	"start_cmd": "python manage.py runserver 0.0.0.0:8000",
 	"type": "build"
 }
