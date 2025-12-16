@@ -528,7 +528,7 @@ class TestService:
 
         # Verify container.logs() was called
         mock_get_container.assert_called_with("logs_container_id")
-        mock_container.logs.assert_called_once_with(tail=100)
+        mock_container.logs.assert_called_once_with(tail=1000)
 
         # Verify logs content
         assert isinstance(logs, str)
@@ -684,7 +684,7 @@ class TestService:
 
         # Verify empty string returned
         assert logs == ""
-        mock_container.logs.assert_called_once_with(tail=100)
+        mock_container.logs.assert_called_once_with(tail=1000)
 
     @pytest.mark.integration
     @pytest.mark.django_db
