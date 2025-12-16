@@ -7,20 +7,32 @@ WORKDIR /app
 
 COPY requirements.txt .
 
-RUN pip install --upgrade pip
-RUN pip install --user -r requirements.txt
-RUN pip install --user gunicorn
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN python manage.py collectstatic --noinput || true
+RUN pip install --upgrade pip \
+    && pip install -r requirements.txt gunicorn
 
 FROM python:3.13-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV HOME=/tmp
+
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+WORKDIR /app
+COPY . .
+
+RUN mkdir -p /app && chmod -R 777 /app \
+    && python manage.py collectstatic --noinput || true
 
 EXPOSE 8000
+
+USER appuser
 
 CMD ["/usr/local/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "${APP_NAME}.wsgi:application"]
