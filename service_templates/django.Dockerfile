@@ -23,4 +23,4 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "my_docker_django_app.wsgi:application"]
+CMD ["/usr/local/bin/gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "${APP_NAME}.wsgi:application"]

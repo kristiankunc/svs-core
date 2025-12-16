@@ -7,8 +7,12 @@
 			"value": "True"
 		},
 		{
-			"key": "DJANGO_SETTINGS_MODULE",
-			"value": "project.settings"
+			"key": "SECRET_KEY",
+			"value": ""
+		},
+		{
+			"key": "APP_NAME",
+			"value": ""
 		}
 	],
 	"default_ports": [
@@ -24,7 +28,7 @@
 		}
 	],
 	"description": "Django application container built on-demand from source",
-	"dockerfile": "FROM python:3.13-slim AS builder\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1 \n\nWORKDIR /app\n\nCOPY requirements.txt .\n\nRUN pip install --upgrade pip\nRUN pip install --user -r requirements.txt\nRUN pip install --user gunicorn\n\nRUN python manage.py collectstatic --noinput || true\n\nFROM python:3.13-slim\n\nCOPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/\nCOPY --from=builder /usr/local/bin/ /usr/local/bin/\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1 \n\nEXPOSE 8000\n\nCMD [\"gunicorn\", \"--bind\", \"0.0.0.0:8000\", \"--workers\", \"3\", \"my_docker_django_app.wsgi:application\"]",
+	"dockerfile": "FROM python:3.13-slim AS builder\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1\n\nWORKDIR /app\n\nCOPY requirements.txt .\n\nRUN pip install --upgrade pip\nRUN pip install --user -r requirements.txt\nRUN pip install --user gunicorn\n\nRUN python manage.py collectstatic --noinput || true\n\nFROM python:3.13-slim\n\nCOPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/\nCOPY --from=builder /usr/local/bin/ /usr/local/bin/\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1\n\nEXPOSE 8000\n\nCMD [\"/usr/local/bin/gunicorn\", \"--bind\", \"0.0.0.0:8000\", \"--workers\", \"3\", \"${APP_NAME}.wsgi:application\"]\n",
 	"healthcheck": {
 		"interval": 30,
 		"retries": 3,
