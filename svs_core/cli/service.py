@@ -278,3 +278,21 @@ def delete_service(
 
     service.delete()
     print(f"Service '{service.name}' deleted successfully.")
+
+
+@app.command("logs")
+def view_service_logs(
+    service_id: int = typer.Argument(..., help="ID of the service to view logs for")
+) -> None:
+    """View logs for a service."""
+
+    service = get_or_exit(Service, id=service_id)
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        print(
+            "You do not have permission to view this service's logs.", file=sys.stderr
+        )
+        raise typer.Exit(1)
+
+    logs = service.get_logs()
+    print(logs)

@@ -520,7 +520,7 @@ class Service(ServiceModel):
 
         super().delete()
 
-    def get_logs(self, tail: int = 100) -> str:
+    def get_logs(self, tail: int = 1000) -> str:
         """Retrieve the logs of the service's Docker container.
 
         Args:
