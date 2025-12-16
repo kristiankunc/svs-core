@@ -558,18 +558,20 @@ class TestTemplate:
         assert template.name == "django-app"
         assert template.type == TemplateType.BUILD
         assert template.dockerfile is not None
-        assert "FROM python:3.11-slim" in template.dockerfile
+        assert "FROM python:3.13-slim" in template.dockerfile
         assert (
             template.description
             == "Django application container built on-demand from source"
         )
-        assert template.start_cmd == "python manage.py runserver 0.0.0.0:8000"
+        # Note: start_cmd was removed in the new Django template
+        assert template.start_cmd is None
 
-        # Verify environment variables
-        assert len(template.default_env) == 2
+        # Verify environment variables - updated to match new template
+        assert len(template.default_env) == 3
         env_vars = {ev.key: ev.value for ev in template.default_env}
-        assert env_vars["DEBUG"] == "True"
-        assert env_vars["DJANGO_SETTINGS_MODULE"] == "project.settings"
+        assert env_vars["DEBUG"] == "False"  # Changed from "True" to "False"
+        assert "SECRET_KEY" in env_vars
+        assert "APP_NAME" in env_vars
 
         # Verify ports
         assert len(template.default_ports) == 1
@@ -596,6 +598,11 @@ class TestTemplate:
 
         # Verify args (django has no args)
         assert template.args == []
+
+        # Verify Dockerfile contains APP_NAME build arg
+        assert "ARG APP_NAME=" in template.dockerfile
+        assert "ENV APP_NAME=${APP_NAME}" in template.dockerfile
+        assert "${APP_NAME}.wsgi" in template.dockerfile
 
     @pytest.mark.integration
     @pytest.mark.django_db

@@ -19,6 +19,7 @@ class DockerImageManager:
         image_name: str,
         dockerfile_content: str,
         path_to_copy: Path | None = None,
+        build_args: dict[str, str] | None = None,
     ) -> None:
         """Build a Docker image from an in-memory Dockerfile.
 
@@ -59,6 +60,7 @@ class DockerImageManager:
                     rm=True,
                     forcerm=True,
                     labels={"svs": "true"},
+                    buildargs=build_args,
                 )
                 get_logger(__name__).info(
                     f"Successfully built Docker image '{image_name}'"

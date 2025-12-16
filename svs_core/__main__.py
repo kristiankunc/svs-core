@@ -31,6 +31,7 @@ if not EnvManager.get_database_url():
 from svs_core.cli.service import app as service_app  # noqa: E402
 from svs_core.cli.template import app as template_app  # noqa: E402
 from svs_core.cli.user import app as user_app  # noqa: E402
+from svs_core.cli.utils import app as utils_app  # noqa: E402
 
 
 def cli_first_user_setup(
@@ -109,6 +110,7 @@ def global_options(
 app.add_typer(user_app, name="user")
 app.add_typer(template_app, name="template")
 app.add_typer(service_app, name="service")
+app.add_typer(utils_app, name="utils")
 
 
 def main() -> None:  # noqa: D103
