@@ -1120,7 +1120,8 @@ class TestService:
     def test_service_build_with_build_args(
         self, mocker: MockerFixture, test_user: User
     ) -> None:
-        """Test that build args are passed correctly when building service images."""
+        """Test that build args are passed correctly when building service
+        images."""
         # Create a BUILD template with build args
         build_template = Template.create(
             name="test-build-args",
@@ -1329,7 +1330,8 @@ CMD ["sh", "-c", "/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_
     def test_django_template_default_env_values(
         self, mocker: MockerFixture, test_user: User
     ) -> None:
-        """Test that Django template has correct default environment variables."""
+        """Test that Django template has correct default environment
+        variables."""
         # Load the actual Django template from file
         import json
         import os
