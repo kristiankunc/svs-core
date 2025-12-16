@@ -67,3 +67,66 @@ RUN echo 'hello from test' > /message
         assert DockerImageManager.exists(image_name)
 
         DockerImageManager.remove(image_name)
+
+    @pytest.mark.integration
+    def test_build_image_with_build_args(self) -> None:
+        """Test building an image with build arguments."""
+        image_name = "svs-core-test-build-args:test"
+        dockerfile = """FROM busybox:latest
+ARG TEST_ARG
+ARG ANOTHER_ARG=default
+RUN echo "TEST_ARG=${TEST_ARG}" > /test_arg.txt
+RUN echo "ANOTHER_ARG=${ANOTHER_ARG}" > /another_arg.txt
+"""
+        build_args = {"TEST_ARG": "test_value", "ANOTHER_ARG": "custom_value"}
+
+        # Build image with build args
+        DockerImageManager.build_from_dockerfile(
+            image_name, dockerfile, build_args=build_args
+        )
+
+        client = get_docker_client()
+        images = client.images.list(name=image_name)
+        assert any(
+            image_name in (img.tags or []) for img in images
+        ), "Built image with build args not found"
+
+        # Verify build args were applied by running a container
+        container = client.containers.run(
+            image_name, command="cat /test_arg.txt", remove=True, detach=False
+        )
+        output = container.decode("utf-8").strip()
+        assert "TEST_ARG=test_value" in output
+
+        # Cleanup
+        client.images.remove(image=image_name, force=True)
+
+    @pytest.mark.integration
+    def test_build_image_with_empty_build_args(self) -> None:
+        """Test building an image with empty build_args (None)."""
+        image_name = "svs-core-test-no-build-args:test"
+        dockerfile = """FROM busybox:latest
+ARG OPTIONAL_ARG=default_value
+RUN echo "OPTIONAL_ARG=${OPTIONAL_ARG}" > /optional.txt
+"""
+
+        # Build image without build args (should use defaults)
+        DockerImageManager.build_from_dockerfile(
+            image_name, dockerfile, build_args=None
+        )
+
+        client = get_docker_client()
+        images = client.images.list(name=image_name)
+        assert any(
+            image_name in (img.tags or []) for img in images
+        ), "Built image without build args not found"
+
+        # Verify default value was used
+        container = client.containers.run(
+            image_name, command="cat /optional.txt", remove=True, detach=False
+        )
+        output = container.decode("utf-8").strip()
+        assert "OPTIONAL_ARG=default_value" in output
+
+        # Cleanup
+        client.images.remove(image=image_name, force=True)

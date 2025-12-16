@@ -1,3 +1,5 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any, Generator
 
 import pytest
@@ -1112,3 +1114,330 @@ class TestService:
         # Should connect to both user network and caddy network
         assert test_user.name in network_names
         assert "caddy" in network_names
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_build_with_build_args(
+        self, mocker: MockerFixture, test_user: User
+    ) -> None:
+        """Test that build args are passed correctly when building service images."""
+        # Create a BUILD template with build args
+        build_template = Template.create(
+            name="test-build-args",
+            type=TemplateType.BUILD,
+            dockerfile="""FROM busybox:latest
+ARG APP_NAME
+ARG APP_VERSION=1.0
+RUN echo "APP_NAME=${APP_NAME}" > /app_info.txt
+RUN echo "APP_VERSION=${APP_VERSION}" >> /app_info.txt
+""",
+            description="Test template with build args",
+            default_env=[
+                EnvVariable(key="APP_NAME", value="myapp"),
+                EnvVariable(key="APP_VERSION", value="2.0"),
+            ],
+        )
+
+        # Mock container operations
+        mock_container = mocker.MagicMock()
+        mock_container.id = "build_args_container"
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Mock the actual image building
+        mock_build = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
+        )
+
+        # Create a temporary directory to simulate source path
+        with TemporaryDirectory() as tmpdir:
+            source_path = Path(tmpdir)
+
+            # Create service with custom env vars
+            service = Service.create(
+                name="build-args-service",
+                template_id=build_template.id,
+                user=test_user,
+                env=[
+                    EnvVariable(key="APP_NAME", value="custom_app"),
+                    EnvVariable(key="APP_VERSION", value="3.0"),
+                ],
+            )
+
+            # Build the image
+            service.build(source_path)
+
+            # Verify build_from_dockerfile was called with correct build_args
+            mock_build.assert_called_once()
+            call_args = mock_build.call_args
+
+            # Check that build_args parameter was passed
+            assert "build_args" in call_args.kwargs
+            build_args = call_args.kwargs["build_args"]
+
+            # Verify build args contain the env variables
+            assert build_args["APP_NAME"] == "custom_app"
+            assert build_args["APP_VERSION"] == "3.0"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_django_template_build_args(
+        self, mocker: MockerFixture, test_user: User
+    ) -> None:
+        """Test Django template with APP_NAME build arg."""
+        # Load the actual Django template
+        django_template = Template.import_from_json(
+            {
+                "name": "django-app",
+                "type": "build",
+                "description": "Django application container built on-demand from source",
+                "dockerfile": """FROM python:3.13-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN apt-get update && apt-get install -y --no-install-recommends \\
+    build-essential \\
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --upgrade pip \\
+    && pip install -r requirements.txt gunicorn
+
+FROM python:3.13-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV HOME=/tmp
+
+ARG APP_NAME=
+ENV APP_NAME=${APP_NAME}
+
+RUN if [ -z "$APP_NAME" ]; then echo "APP_NAME argument is required" >&2; exit 1; fi
+
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
+
+WORKDIR /app
+COPY . .
+
+RUN mkdir -p /app && chmod -R 777 /app \\
+    && python manage.py collectstatic --noinput || true
+
+EXPOSE 8000
+
+USER appuser
+
+CMD ["sh", "-c", "/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_NAME}.wsgi"]
+""",
+                "default_env": [
+                    {"key": "DEBUG", "value": "False"},
+                    {"key": "SECRET_KEY", "value": ""},
+                    {"key": "APP_NAME", "value": ""},
+                ],
+                "default_ports": [{"container": 8000, "host": None}],
+                "default_volumes": [{"container": "/app/data", "host": None}],
+                "healthcheck": {
+                    "test": ["CMD", "curl", "-f", "http://localhost:8000/"],
+                    "interval": 30,
+                    "timeout": 10,
+                    "retries": 3,
+                    "start_period": 5,
+                },
+            }
+        )
+
+        # Mock container operations
+        mock_container = mocker.MagicMock()
+        mock_container.id = "django_build_container"
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Mock volume generation
+        mock_volume_path = mocker.MagicMock()
+        mock_volume_path.as_posix.return_value = "/tmp/generated-volume"
+        mocker.patch(
+            "svs_core.shared.volumes.SystemVolumeManager.generate_free_volume",
+            return_value=mock_volume_path,
+        )
+
+        # Mock port finding
+        mocker.patch(
+            "svs_core.shared.ports.SystemPortManager.find_free_port", return_value=8000
+        )
+
+        # Mock the actual image building
+        mock_build = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
+        )
+
+        # Create a temporary directory to simulate Django project
+        with TemporaryDirectory() as tmpdir:
+            source_path = Path(tmpdir)
+
+            # Create dummy requirements.txt
+            (source_path / "requirements.txt").write_text("Django==5.0\n")
+
+            # Create service with Django-specific env vars
+            service = Service.create(
+                name="django-service",
+                template_id=django_template.id,
+                user=test_user,
+                env=[
+                    EnvVariable(key="DEBUG", value="False"),
+                    EnvVariable(key="SECRET_KEY", value="super-secret-key-123"),
+                    EnvVariable(key="APP_NAME", value="myproject"),
+                ],
+            )
+
+            # Build the image
+            service.build(source_path)
+
+            # Verify build_from_dockerfile was called with APP_NAME build arg
+            mock_build.assert_called_once()
+            call_args = mock_build.call_args
+
+            # Check build_args were passed
+            assert "build_args" in call_args.kwargs
+            build_args = call_args.kwargs["build_args"]
+
+            # Verify APP_NAME is in build args
+            assert "APP_NAME" in build_args
+            assert build_args["APP_NAME"] == "myproject"
+
+            # Verify other env vars are also passed as build args
+            assert build_args["DEBUG"] == "False"
+            assert build_args["SECRET_KEY"] == "super-secret-key-123"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_django_template_default_env_values(
+        self, mocker: MockerFixture, test_user: User
+    ) -> None:
+        """Test that Django template has correct default environment variables."""
+        # Load the actual Django template from file
+        import json
+        import os
+
+        template_path = os.path.join(
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            ),
+            "service_templates",
+            "django.json",
+        )
+
+        with open(template_path, "r") as f:
+            django_json = json.load(f)
+
+        template = Template.import_from_json(django_json)
+
+        # Verify default environment variables
+        env_dict = {env.key: env.value for env in template.default_env}
+
+        # Check DEBUG is False by default (not True)
+        assert "DEBUG" in env_dict
+        assert env_dict["DEBUG"] == "False"
+
+        # Check SECRET_KEY exists (even if empty)
+        assert "SECRET_KEY" in env_dict
+
+        # Check APP_NAME exists (even if empty)
+        assert "APP_NAME" in env_dict
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_django_template_dockerfile_has_app_name_arg(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that Django template Dockerfile includes APP_NAME ARG."""
+        import json
+        import os
+
+        template_path = os.path.join(
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            ),
+            "service_templates",
+            "django.json",
+        )
+
+        with open(template_path, "r") as f:
+            django_json = json.load(f)
+
+        template = Template.import_from_json(django_json)
+
+        # Verify Dockerfile contains APP_NAME ARG
+        assert template.dockerfile is not None
+        assert "ARG APP_NAME=" in template.dockerfile
+        assert "ENV APP_NAME=${APP_NAME}" in template.dockerfile
+
+        # Verify the gunicorn CMD uses APP_NAME
+        assert "${APP_NAME}.wsgi" in template.dockerfile
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_build_template_without_build_args(
+        self, mocker: MockerFixture, test_user: User
+    ) -> None:
+        """Test that templates without build args still work correctly."""
+        # Create a simple BUILD template without any ARG instructions
+        simple_template = Template.create(
+            name="simple-build",
+            type=TemplateType.BUILD,
+            dockerfile="""FROM busybox:latest
+RUN echo "Simple build" > /message.txt
+CMD cat /message.txt
+""",
+            description="Simple template without build args",
+        )
+
+        # Mock container operations
+        mock_container = mocker.MagicMock()
+        mock_container.id = "simple_build_container"
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Mock the actual image building
+        mock_build = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
+        )
+
+        # Create service without env vars
+        service = Service.create(
+            name="simple-service",
+            template_id=simple_template.id,
+            user=test_user,
+        )
+
+        # Build the image
+        with TemporaryDirectory() as tmpdir:
+            source_path = Path(tmpdir)
+            service.build(source_path)
+
+            # Verify build was called
+            mock_build.assert_called_once()
+            call_args = mock_build.call_args
+
+            # Build args should still be passed (empty dict)
+            assert "build_args" in call_args.kwargs
