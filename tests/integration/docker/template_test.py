@@ -1,6 +1,3 @@
-import json
-import os
-
 import pytest
 
 from pytest_mock import MockerFixture
@@ -403,18 +400,32 @@ class TestTemplate:
             "svs_core.docker.template.DockerImageManager.exists", return_value=False
         )
         mock_pull = mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-        # Path to the nginx.json template file
-        template_path = os.path.join(
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-            ),
-            "service_templates",
-            "nginx.json",
-        )
 
-        # Read the JSON template file
-        with open(template_path, "r") as f:
-            nginx_template = json.load(f)
+        # Dummy nginx template JSON data (not from file)
+        nginx_template = {
+            "name": "nginx-webserver",
+            "type": "image",
+            "image": "lscr.io/linuxserver/nginx:latest",
+            "description": "A minimal NGINX web server with default config",
+            "start_cmd": None,
+            "default_env": [],
+            "default_ports": [{"container": 80, "host": None}],
+            "default_volumes": [{"container": "/config", "host": None}],
+            "default_contents": [
+                {
+                    "location": "/config/www/index.html",
+                    "content": "<html>\n<head><title>Welcome to NGINX!</title></head>\n<body>\n<h1>Success! NGINX is running.</h1>\n</body>\n</html>\n",
+                }
+            ],
+            "healthcheck": {
+                "test": ["CMD", "curl", "-f", "http://localhost/"],
+                "interval": 30,
+                "timeout": 10,
+                "retries": 3,
+                "start_period": 5,
+            },
+            "args": [],
+        }
 
         # Import the template from JSON
         template = Template.import_from_json(nginx_template)
@@ -471,18 +482,31 @@ class TestTemplate:
             "svs_core.docker.template.DockerImageManager.exists", return_value=False
         )
         mock_pull = mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-        # Path to the mysql.json template file
-        template_path = os.path.join(
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-            ),
-            "service_templates",
-            "mysql.json",
-        )
 
-        # Read the JSON template file
-        with open(template_path, "r") as f:
-            mysql_template = json.load(f)
+        # Dummy mysql template JSON data (not from file)
+        mysql_template = {
+            "name": "mysql-database",
+            "type": "image",
+            "image": "mysql:latest",
+            "description": "MySQL database",
+            "start_cmd": None,
+            "default_env": [
+                {"key": "MYSQL_ROOT_PASSWORD", "value": ""},
+                {"key": "MYSQL_DATABASE", "value": ""},
+                {"key": "MYSQL_USER", "value": ""},
+                {"key": "MYSQL_PASSWORD", "value": ""},
+            ],
+            "default_ports": [{"container": 3306, "host": None}],
+            "default_volumes": [{"container": "/var/lib/mysql", "host": None}],
+            "healthcheck": {
+                "test": ["CMD", "mysqladmin", "ping"],
+                "interval": 30,
+                "timeout": 10,
+                "retries": 5,
+                "start_period": 20,
+            },
+            "args": [],
+        }
 
         # Import the template from JSON
         template = Template.import_from_json(mysql_template)
@@ -537,18 +561,30 @@ class TestTemplate:
             "svs_core.docker.template.DockerImageManager.exists", return_value=False
         )
         mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-        # Path to the django.json template file
-        template_path = os.path.join(
-            os.path.dirname(
-                os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-            ),
-            "service_templates",
-            "django.json",
-        )
 
-        # Read the JSON template file
-        with open(template_path, "r") as f:
-            django_template = json.load(f)
+        # Dummy django template JSON data (not from file)
+        django_template = {
+            "name": "django-app",
+            "type": "build",
+            "description": "Django application container built on-demand from source",
+            "dockerfile": 'FROM python:3.13-slim\nWORKDIR /app\nARG APP_NAME=\nENV APP_NAME=${APP_NAME}\nCMD ["sh", "-c", "/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_NAME}.wsgi"]',
+            "default_env": [
+                {"key": "DEBUG", "value": "False"},
+                {"key": "SECRET_KEY", "value": ""},
+                {"key": "APP_NAME", "value": ""},
+            ],
+            "default_ports": [{"container": 8000, "host": None}],
+            "default_volumes": [{"container": "/app/data", "host": None}],
+            "healthcheck": {
+                "test": ["CMD", "curl", "-f", "http://localhost:8000/"],
+                "interval": 30,
+                "timeout": 10,
+                "retries": 3,
+                "start_period": 5,
+            },
+            "start_cmd": None,
+            "args": [],
+        }
 
         # Import the template from JSON
         template = Template.import_from_json(django_template)
