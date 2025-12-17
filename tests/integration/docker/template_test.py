@@ -400,7 +400,7 @@ class TestTemplate:
             "svs_core.docker.template.DockerImageManager.exists", return_value=False
         )
         mock_pull = mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-        
+
         # Dummy nginx template JSON data (not from file)
         nginx_template = {
             "name": "nginx-webserver",
@@ -482,7 +482,7 @@ class TestTemplate:
             "svs_core.docker.template.DockerImageManager.exists", return_value=False
         )
         mock_pull = mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-        
+
         # Dummy mysql template JSON data (not from file)
         mysql_template = {
             "name": "mysql-database",
@@ -561,13 +561,13 @@ class TestTemplate:
             "svs_core.docker.template.DockerImageManager.exists", return_value=False
         )
         mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-        
+
         # Dummy django template JSON data (not from file)
         django_template = {
             "name": "django-app",
             "type": "build",
             "description": "Django application container built on-demand from source",
-            "dockerfile": "FROM python:3.13-slim\nWORKDIR /app\nARG APP_NAME=\nENV APP_NAME=${APP_NAME}\nCMD [\"sh\", \"-c\", \"/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_NAME}.wsgi\"]",
+            "dockerfile": 'FROM python:3.13-slim\nWORKDIR /app\nARG APP_NAME=\nENV APP_NAME=${APP_NAME}\nCMD ["sh", "-c", "/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_NAME}.wsgi"]',
             "default_env": [
                 {"key": "DEBUG", "value": "False"},
                 {"key": "SECRET_KEY", "value": ""},
