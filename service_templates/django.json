@@ -13,6 +13,10 @@
 		{
 			"key": "APP_NAME",
 			"value": ""
+		},
+		{
+			"key": "ALLOWED_HOSTS",
+			"value": ""
 		}
 	],
 	"default_ports": [
