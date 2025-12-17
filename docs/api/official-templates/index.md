@@ -1,6 +1,6 @@
 # Official templates
 
-SVS provides a set of official [templates](/#template) that can be used to create common services.
+SVS provides a set of official [templates](../../index.md#template) that can be used to create common services.
 
 ## Available templates
 
