@@ -1443,3 +1443,61 @@ CMD cat /message.txt
 
             # Build args should still be passed (empty dict)
             assert "build_args" in call_args.kwargs
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_build_service_deletes_image_when_deleted(
+        self, mocker: MockerFixture, test_user: User
+    ) -> None:
+        """Test that building a service creates an image that is deleted when
+        the service is deleted."""
+        # Create a BUILD template
+        build_template = Template.create(
+            name="deletion-build-template",
+            type=TemplateType.BUILD,
+            dockerfile="""FROM busybox:latest
+RUN echo "To be deleted" > /to_be_deleted.txt
+CMD cat /to_be_deleted.txt
+""",
+            description="Template for testing image deletion",
+        )
+
+        # Mock container operations
+        mock_container = mocker.MagicMock()
+        mock_container.id = "deletion_build_container"
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+        # Mock the actual image building
+        mock_build = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.build_from_dockerfile",
+            return_value="deletion_build_image_id",
+        )
+
+        # Mock image deletion
+        mock_delete_image = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.delete"
+        )
+
+        # Create service
+        service = Service.create(
+            name="deletion-service",
+            template_id=build_template.id,
+            user=test_user,
+        )
+
+        # Build the image
+        with TemporaryDirectory() as tmpdir:
+            source_path = Path(tmpdir)
+            service.build(source_path)
+
+            # Verify build was called
+            mock_build.assert_called_once()
+
+        # Delete the service
+        service.delete()

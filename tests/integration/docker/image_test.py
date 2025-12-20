@@ -130,3 +130,49 @@ RUN echo "OPTIONAL_ARG=${OPTIONAL_ARG}" > /optional.txt
 
         # Cleanup
         client.images.remove(image=image_name, force=True)
+
+    @pytest.mark.integration
+    def test_remove_nonexistent_image_raises(self) -> None:
+        random_tag = str(uuid.uuid4())
+        image_name = f"svs-core-nonexistent-remove:{random_tag}"
+        with pytest.raises(Exception):
+            DockerImageManager.remove(image_name)
+
+    @pytest.mark.integration
+    def test_remove_image_with_containers_succeeds_with_force(self) -> None:
+        """Test that remove succeeds even with running containers
+        (force=True)."""
+        tag = str(uuid.uuid4())[:8]
+        image_name = f"svs-core-test-remove-in-use:{tag}"
+        dockerfile = """FROM busybox:latest\nRUN echo in use > /in_use.txt\n"""
+
+        DockerImageManager.build_from_dockerfile(image_name, dockerfile)
+
+        client = get_docker_client()
+        container = client.containers.run(image_name, command="sleep 60", detach=True)
+
+        try:
+            DockerImageManager.remove(image_name)
+            assert not DockerImageManager.exists(image_name)
+        finally:
+            try:
+                container.remove(force=True)
+            except Exception:
+                pass
+
+    @pytest.mark.integration
+    def test_remove_image_successfully(self) -> None:
+        """Test successful removal of an image."""
+        tag = str(uuid.uuid4())[:8]
+        image_name = f"svs-core-test-remove-success:{tag}"
+        dockerfile = """FROM busybox:latest
+RUN echo 'test image' > /test.txt
+"""
+
+        DockerImageManager.build_from_dockerfile(image_name, dockerfile)
+
+        assert DockerImageManager.exists(image_name)
+
+        DockerImageManager.remove(image_name)
+
+        assert not DockerImageManager.exists(image_name)

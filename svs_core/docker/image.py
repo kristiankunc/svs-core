@@ -160,3 +160,12 @@ class DockerImageManager:
         """
         client = get_docker_client()
         return client.images.list()  # type: ignore
+
+    @staticmethod
+    def delete(image_name: str) -> None:
+        """Delete a Docker image by name.
+
+        Args:
+            image_name (str): Name of the image to delete.
+        """
+        DockerImageManager.remove(image_name)

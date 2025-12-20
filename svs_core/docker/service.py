@@ -511,6 +511,13 @@ class Service(ServiceModel):
                 )
                 container.remove(force=True)
 
+        if self.template.type == TemplateType.BUILD:
+            if self.image and DockerImageManager.exists(self.image):
+                get_logger(__name__).info(
+                    f"Deleting built image '{self.image}' for service '{self.name}'"
+                )
+                DockerImageManager.delete(self.image)
+
         volumes = self.volumes
         for volume in volumes:
             if volume.host_path:
