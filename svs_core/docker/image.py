@@ -196,9 +196,7 @@ class DockerImageManager:
             image.tag(new_name)
             logger.info(f"Tagged image '{old_name}' as '{new_name}'")
         except Exception as e:
-            logger.error(
-                f"Failed to tag image '{old_name}' as '{new_name}': {str(e)}"
-            )
+            logger.error(f"Failed to tag image '{old_name}' as '{new_name}': {str(e)}")
             raise Exception(
                 f"Failed to rename image '{old_name}' to '{new_name}': tagging failed. Error: {str(e)}"
             ) from e
