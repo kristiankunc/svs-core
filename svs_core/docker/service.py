@@ -624,11 +624,11 @@ class Service(ServiceModel):
 
             # Capture the running state before making changes
             was_running = self.status == ServiceStatus.RUNNING
-            
+
             # Stop the container if it's running
             if was_running:
                 self.stop()
-            
+
             # Verify the container is actually stopped after stop() completes
             # This helps prevent race conditions
             container = DockerContainerManager.get_container(self.container_id)
@@ -637,13 +637,13 @@ class Service(ServiceModel):
                     f"Container {self.container_id} still running after stop() - forcing stop"
                 )
                 self.stop()
-            
+
             # Remove the old container so we can create a new one with the updated image
             get_logger(__name__).debug(
                 f"Removing old container '{self.container_id}' before recreating with new image"
             )
             DockerContainerManager.remove(self.container_id)
-            
+
             # Remove the old production image before renaming (cleanup)
             try:
                 get_logger(__name__).debug(
@@ -655,13 +655,13 @@ class Service(ServiceModel):
                 get_logger(__name__).warning(
                     f"Could not remove old production image '{production_image_name}': {str(e)}"
                 )
-            
+
             # Rename the newly built image to the production name
             DockerImageManager.rename(build_image_name, production_image_name)
-            
+
             # Update the image reference
             self.image = production_image_name
-            
+
             # Create a new container with the updated image
             new_container = DockerContainerManager.create_container(
                 name=f"svs-{self.id}",
@@ -673,11 +673,11 @@ class Service(ServiceModel):
                 ports=self.exposed_ports,
                 volumes=self.volumes,
             )
-            
+
             self.container_id = new_container.id
-            
+
             DockerContainerManager.connect_to_network(new_container, self.user.name)
-            
+
             # Start the new container if it was running before
             if was_running:
                 self.start()

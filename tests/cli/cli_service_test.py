@@ -688,9 +688,7 @@ class TestServiceCommands:
         mock_service.name = "test_build_service"
         mock_service.user.name = "current_user"
 
-        mocker.patch(
-            "svs_core.cli.service.get_or_exit", return_value=mock_service
-        )
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
         mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
         mocker.patch(
             "svs_core.cli.service.get_current_username", return_value="current_user"
@@ -712,9 +710,7 @@ class TestServiceCommands:
         mock_service.name = "test_service"
         mock_service.user.name = "other_user"
 
-        mocker.patch(
-            "svs_core.cli.service.get_or_exit", return_value=mock_service
-        )
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
         mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
         mocker.patch(
             "svs_core.cli.service.get_current_username", return_value="current_user"
@@ -736,9 +732,7 @@ class TestServiceCommands:
         mock_service.name = "other_user_service"
         mock_service.user.name = "other_user"
 
-        mocker.patch(
-            "svs_core.cli.service.get_or_exit", return_value=mock_service
-        )
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
         mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=True)
 
         result = self.runner.invoke(

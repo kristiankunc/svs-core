@@ -1726,18 +1726,14 @@ CMD cat /version.txt
             "svs_core.docker.service.DockerContainerManager.get_container",
             return_value=mock_container,
         )
-        mocker.patch(
-            "svs_core.docker.service.DockerContainerManager.remove"
-        )
+        mocker.patch("svs_core.docker.service.DockerContainerManager.remove")
 
         # Mock image building and renaming
         mock_build = mocker.patch(
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
         )
         mocker.patch("svs_core.docker.service.DockerImageManager.rename")
-        mocker.patch(
-            "svs_core.docker.service.DockerImageManager.remove"
-        )
+        mocker.patch("svs_core.docker.service.DockerImageManager.remove")
 
         # Create service with initial env vars
         service = Service.create(
