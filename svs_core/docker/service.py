@@ -569,7 +569,7 @@ class Service(ServiceModel):
         if not source_path.exists():
             raise FileNotFoundError(f"Source path does not exist: {source_path}")
         if not source_path.is_dir():
-            raise NotADirectoryError(f"Source path is not a directory: {source_path}")
+            raise ValueError(f"Source path is not a directory: {source_path}")
 
         if self.template.type != TemplateType.BUILD:
             raise ValueError("Service template type is not BUILD; cannot build image.")
@@ -629,14 +629,27 @@ class Service(ServiceModel):
             if was_running:
                 self.stop()
 
-            # Verify the container is actually stopped after stop() completes
-            # This helps prevent race conditions
-            container = DockerContainerManager.get_container(self.container_id)
-            if container and container.status == "running":
-                get_logger(__name__).warning(
-                    f"Container {self.container_id} still running after stop() - forcing stop"
-                )
-                self.stop()
+                # Verify the container is actually stopped after stop() completes
+                # This helps prevent race conditions where the container state changes
+                max_retries = 3
+                for attempt in range(max_retries):
+                    container = DockerContainerManager.get_container(self.container_id)
+                    if not container or container.status != "running":
+                        break
+
+                    if attempt < max_retries - 1:
+                        get_logger(__name__).warning(
+                            f"Container {self.container_id} still running after stop() - retry {attempt + 1}/{max_retries}"
+                        )
+                        time.sleep(1)  # Wait a bit before checking again
+                        self.stop()
+                    else:
+                        get_logger(__name__).error(
+                            f"Container {self.container_id} failed to stop after {max_retries} attempts"
+                        )
+                        raise RuntimeError(
+                            f"Failed to stop container {self.container_id} after {max_retries} attempts"
+                        )
 
             # Remove the old container so we can create a new one with the updated image
             get_logger(__name__).debug(
