@@ -30,6 +30,10 @@ class Service(ServiceModel):
 
     objects = ServiceModel.objects
 
+    # Constants for rebuild stop retry logic
+    MAX_STOP_RETRIES = 3
+    STOP_RETRY_DELAY_SECONDS = 1
+
     class Meta:  # noqa: D106
         proxy = True
 
@@ -576,7 +580,6 @@ class Service(ServiceModel):
 
         production_image_name = f"svs-{self.id}:latest"
         build_image_name = f"{self.template.name.lower()}-{self.id}:{int(time.time())}"
-        old_image_name = self.image
 
         get_logger(__name__).info(
             f"Building image '{build_image_name}' on-demand for service '{self.name}' in path '{source_path}', with ENV vars: {[env.__str__() for env in self.env]}"
@@ -593,7 +596,7 @@ class Service(ServiceModel):
             f"Successfully built image '{build_image_name}' for service '{self.name}'"
         )
 
-        if not old_image_name:
+        if not self.image:
             DockerImageManager.rename(build_image_name, production_image_name)
 
             self.image = production_image_name
@@ -631,24 +634,25 @@ class Service(ServiceModel):
 
                 # Verify the container is actually stopped after stop() completes
                 # This helps prevent race conditions where the container state changes
-                max_retries = 3
-                for attempt in range(max_retries):
+                for attempt in range(self.MAX_STOP_RETRIES):
                     container = DockerContainerManager.get_container(self.container_id)
                     if not container or container.status != "running":
                         break
 
-                    if attempt < max_retries - 1:
+                    if attempt < self.MAX_STOP_RETRIES - 1:
                         get_logger(__name__).warning(
-                            f"Container {self.container_id} still running after stop() - retry {attempt + 1}/{max_retries}"
+                            f"Container {self.container_id} still running after stop() - retry {attempt + 1}/{self.MAX_STOP_RETRIES}"
                         )
-                        time.sleep(1)  # Wait a bit before checking again
+                        time.sleep(
+                            self.STOP_RETRY_DELAY_SECONDS
+                        )  # Wait before checking again
                         self.stop()
                     else:
                         get_logger(__name__).error(
-                            f"Container {self.container_id} failed to stop after {max_retries} attempts"
+                            f"Container {self.container_id} failed to stop after {self.MAX_STOP_RETRIES} attempts"
                         )
                         raise RuntimeError(
-                            f"Failed to stop container {self.container_id} after {max_retries} attempts"
+                            f"Failed to stop container {self.container_id} after {self.MAX_STOP_RETRIES} attempts"
                         )
 
             # Remove the old container so we can create a new one with the updated image
@@ -664,6 +668,8 @@ class Service(ServiceModel):
                 )
                 DockerImageManager.remove(production_image_name)
             except Exception as e:
+                # Catch broad Exception as DockerImageManager.remove() itself raises Exception
+                # for various docker-related errors (image not found, in use, etc.)
                 # If the image doesn't exist or can't be removed, just log a warning
                 get_logger(__name__).warning(
                     f"Could not remove old production image '{production_image_name}': {str(e)}"
