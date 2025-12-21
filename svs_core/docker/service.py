@@ -612,7 +612,7 @@ class Service(ServiceModel):
                 raise ValueError(f"Container with ID {self.container_id} not found")
 
             get_logger(__name__).debug(
-                f"Updating container '{self.container_id}' to use new image '{self.image}'"
+                f"Rebuilding image for service '{self.name}' (container '{self.container_id}') to '{production_image_name}'"
             )
 
             was_running = self.status == ServiceStatus.RUNNING
