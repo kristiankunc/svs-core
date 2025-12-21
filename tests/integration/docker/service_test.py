@@ -1154,6 +1154,7 @@ RUN echo "APP_VERSION=${APP_VERSION}" >> /app_info.txt
         mock_build = mocker.patch(
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
         )
+        mocker.patch("svs_core.docker.service.DockerImageManager.rename")
 
         # Create a temporary directory to simulate source path
         with TemporaryDirectory() as tmpdir:
@@ -1286,6 +1287,7 @@ CMD ["sh", "-c", "/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_
         mock_build = mocker.patch(
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
         )
+        mocker.patch("svs_core.docker.service.DockerImageManager.rename")
 
         # Create a temporary directory to simulate Django project
         with TemporaryDirectory() as tmpdir:
@@ -1424,6 +1426,7 @@ CMD cat /message.txt
         mock_build = mocker.patch(
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
         )
+        mocker.patch("svs_core.docker.service.DockerImageManager.rename")
 
         # Create service without env vars
         service = Service.create(
@@ -1478,10 +1481,14 @@ CMD cat /to_be_deleted.txt
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile",
             return_value="deletion_build_image_id",
         )
+        mocker.patch("svs_core.docker.service.DockerImageManager.rename")
 
-        # Mock image deletion
+        # Mock image deletion and exists check
         mock_delete_image = mocker.patch(
             "svs_core.docker.service.DockerImageManager.delete"
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerImageManager.exists", return_value=True
         )
 
         # Create service
