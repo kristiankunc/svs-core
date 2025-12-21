@@ -30,6 +30,10 @@ class Service(ServiceModel):
 
     objects = ServiceModel.objects
 
+    # Constants for rebuild stop retry logic
+    MAX_STOP_RETRIES = 3
+    STOP_RETRY_DELAY_SECONDS = 1
+
     class Meta:  # noqa: D106
         proxy = True
 
@@ -562,14 +566,19 @@ class Service(ServiceModel):
             source_path (Path): The path to the directory containing the Dockerfile.
 
         Raises:
-            ValueError: If the source path does not contain a Dockerfile.
+            ValueError: If the source path does not exist, is not a directory, or if the template type is not BUILD.
         """
+        # Validate source path exists and is a directory
+        if not source_path.exists():
+            raise ValueError(f"Source path does not exist: {source_path}")
+        if not source_path.is_dir():
+            raise ValueError(f"Source path is not a directory: {source_path}")
+
         if self.template.type != TemplateType.BUILD:
             raise ValueError("Service template type is not BUILD; cannot build image.")
 
         production_image_name = f"svs-{self.id}:latest"
         build_image_name = f"{self.template.name.lower()}-{self.id}:{int(time.time())}"
-        old_image_name = self.image
 
         get_logger(__name__).info(
             f"Building image '{build_image_name}' on-demand for service '{self.name}' in path '{source_path}', with ENV vars: {[env.__str__() for env in self.env]}"
@@ -586,7 +595,7 @@ class Service(ServiceModel):
             f"Successfully built image '{build_image_name}' for service '{self.name}'"
         )
 
-        if not old_image_name:
+        if not self.image:
             DockerImageManager.rename(build_image_name, production_image_name)
 
             self.image = production_image_name
@@ -615,12 +624,77 @@ class Service(ServiceModel):
                 f"Rebuilding image for service '{self.name}' (container '{self.container_id}') to '{production_image_name}'"
             )
 
+            # Capture the running state before making changes
             was_running = self.status == ServiceStatus.RUNNING
+
+            # Stop the container if it's running
             if was_running:
                 self.stop()
 
+                # Wait for the container to actually stop after stop() is called
+                # Docker's stop operation can take time (graceful shutdown with SIGTERM, then SIGKILL)
+                for attempt in range(self.MAX_STOP_RETRIES):
+                    container = DockerContainerManager.get_container(self.container_id)
+                    if not container or container.status != "running":
+                        break
+
+                    # Wait before next check to give container time to stop
+                    if attempt < self.MAX_STOP_RETRIES - 1:
+                        get_logger(__name__).warning(
+                            f"Container {self.container_id} still running after stop() - waiting (attempt {attempt + 1}/{self.MAX_STOP_RETRIES})"
+                        )
+                        time.sleep(self.STOP_RETRY_DELAY_SECONDS)
+                    else:
+                        get_logger(__name__).error(
+                            f"Container {self.container_id} failed to stop after {self.MAX_STOP_RETRIES} attempts"
+                        )
+                        raise RuntimeError(
+                            f"Failed to stop container {self.container_id} after {self.MAX_STOP_RETRIES} attempts"
+                        )
+
+            # Remove the old container so we can create a new one with the updated image
+            get_logger(__name__).debug(
+                f"Removing old container '{self.container_id}' before recreating with new image"
+            )
+            DockerContainerManager.remove(self.container_id)
+
+            # Remove the old production image before renaming (cleanup)
+            try:
+                get_logger(__name__).debug(
+                    f"Removing old production image '{production_image_name}' before rename"
+                )
+                DockerImageManager.remove(production_image_name)
+            except Exception as e:
+                # Catch broad Exception as DockerImageManager.remove() itself raises Exception
+                # for various docker-related errors (image not found, in use, etc.)
+                # If the image doesn't exist or can't be removed, just log a warning
+                get_logger(__name__).warning(
+                    f"Could not remove old production image '{production_image_name}': {str(e)}"
+                )
+
+            # Rename the newly built image to the production name
             DockerImageManager.rename(build_image_name, production_image_name)
 
+            # Update the image reference
+            self.image = production_image_name
+
+            # Create a new container with the updated image
+            new_container = DockerContainerManager.create_container(
+                name=f"svs-{self.id}",
+                image=self.image,
+                owner=self.user.name,
+                command=self.command,
+                args=self.args,
+                labels=self.labels,
+                ports=self.exposed_ports,
+                volumes=self.volumes,
+            )
+
+            self.container_id = new_container.id
+
+            DockerContainerManager.connect_to_network(new_container, self.user.name)
+
+            # Start the new container if it was running before
             if was_running:
                 self.start()
 

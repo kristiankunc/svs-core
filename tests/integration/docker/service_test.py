@@ -1536,7 +1536,7 @@ CMD cat /version.txt
         mock_container = mocker.MagicMock()
         mock_container.id = "rebuild_running_container"
         mock_container.status = "running"
-        mocker.patch(
+        mock_create_container = mocker.patch(
             "svs_core.docker.service.DockerContainerManager.create_container",
             return_value=mock_container,
         )
@@ -1547,16 +1547,27 @@ CMD cat /version.txt
             "svs_core.docker.service.DockerContainerManager.get_container",
             return_value=mock_container,
         )
+        mock_remove_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.remove"
+        )
 
         # Mock image building and renaming
         mock_build = mocker.patch(
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
         )
         mock_rename = mocker.patch("svs_core.docker.service.DockerImageManager.rename")
+        mock_remove_image = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.remove"
+        )
 
-        # Mock start and stop
+        # Mock start and stop - stop should change container status to exited
+        def stop_side_effect():
+            mock_container.status = "exited"
+
         mock_start = mocker.patch("svs_core.docker.service.Service.start")
-        mock_stop = mocker.patch("svs_core.docker.service.Service.stop")
+        mock_stop = mocker.patch(
+            "svs_core.docker.service.Service.stop", side_effect=stop_side_effect
+        )
 
         # Create and build service initially
         service = Service.create(
@@ -1570,13 +1581,17 @@ CMD cat /version.txt
             # Initial build
             service.build(source_path)
             assert service.image is not None
-            initial_image = service.image
 
             # Reset mocks before rebuild
             mock_build.reset_mock()
             mock_rename.reset_mock()
+            mock_remove_image.reset_mock()
+            mock_create_container.reset_mock()
+            mock_remove_container.reset_mock()
             mock_start.reset_mock()
             mock_stop.reset_mock()
+            # Reset container status to running for the rebuild test
+            mock_container.status = "running"
 
             # Rebuild the service (simulating a running state)
             service.build(source_path)
@@ -1584,7 +1599,10 @@ CMD cat /version.txt
             # Verify rebuild process
             mock_build.assert_called_once()  # New image built
             mock_rename.assert_called_once()  # Image renamed to production name
+            mock_remove_image.assert_called_once()  # Old production image removed
             mock_stop.assert_called_once()  # Service stopped before rebuild
+            mock_remove_container.assert_called_once()  # Old container removed
+            mock_create_container.assert_called_once()  # New container created
             mock_start.assert_called_once()  # Service restarted after rebuild
 
     @pytest.mark.integration
@@ -1613,7 +1631,7 @@ CMD cat /version.txt
         mock_container = mocker.MagicMock()
         mock_container.id = "rebuild_stopped_container"
         mock_container.status = "exited"  # Stopped state
-        mocker.patch(
+        mock_create_container = mocker.patch(
             "svs_core.docker.service.DockerContainerManager.create_container",
             return_value=mock_container,
         )
@@ -1624,12 +1642,18 @@ CMD cat /version.txt
             "svs_core.docker.service.DockerContainerManager.get_container",
             return_value=mock_container,
         )
+        mock_remove_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.remove"
+        )
 
         # Mock image building and renaming
         mock_build = mocker.patch(
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
         )
         mock_rename = mocker.patch("svs_core.docker.service.DockerImageManager.rename")
+        mock_remove_image = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.remove"
+        )
 
         # Mock start and stop
         mock_start = mocker.patch("svs_core.docker.service.Service.start")
@@ -1651,6 +1675,9 @@ CMD cat /version.txt
             # Reset mocks before rebuild
             mock_build.reset_mock()
             mock_rename.reset_mock()
+            mock_remove_image.reset_mock()
+            mock_create_container.reset_mock()
+            mock_remove_container.reset_mock()
             mock_start.reset_mock()
             mock_stop.reset_mock()
 
@@ -1660,6 +1687,9 @@ CMD cat /version.txt
             # Verify rebuild process
             mock_build.assert_called_once()  # New image built
             mock_rename.assert_called_once()  # Image renamed to production name
+            mock_remove_image.assert_called_once()  # Old production image removed
+            mock_remove_container.assert_called_once()  # Old container removed
+            mock_create_container.assert_called_once()  # New container created
             mock_stop.assert_not_called()  # Service not stopped (already stopped)
             mock_start.assert_not_called()  # Service not started (was stopped)
 
@@ -1703,12 +1733,14 @@ CMD cat /version.txt
             "svs_core.docker.service.DockerContainerManager.get_container",
             return_value=mock_container,
         )
+        mocker.patch("svs_core.docker.service.DockerContainerManager.remove")
 
         # Mock image building and renaming
         mock_build = mocker.patch(
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
         )
         mocker.patch("svs_core.docker.service.DockerImageManager.rename")
+        mocker.patch("svs_core.docker.service.DockerImageManager.remove")
 
         # Create service with initial env vars
         service = Service.create(
