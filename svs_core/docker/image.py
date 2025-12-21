@@ -169,3 +169,16 @@ class DockerImageManager:
             image_name (str): Name of the image to delete.
         """
         DockerImageManager.remove(image_name)
+
+    @staticmethod
+    def rename(old_name: str, new_name: str) -> None:
+        """Rename a Docker image.
+
+        Args:
+            old_name (str): Current name of the image.
+            new_name (str): New name for the image.
+        """
+        client = get_docker_client()
+        image = client.images.get(old_name)
+        image.tag(new_name)
+        DockerImageManager.remove(old_name)

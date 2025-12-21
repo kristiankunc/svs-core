@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import time
+
 from pathlib import Path
 from typing import Any, List, TypeVar, Union, cast
 
@@ -565,7 +567,9 @@ class Service(ServiceModel):
         if self.template.type != TemplateType.BUILD:
             raise ValueError("Service template type is not BUILD; cannot build image.")
 
-        build_image_name = f"{self.template.name.lower()}-{self.id}:latest"
+        production_image_name = f"svs-{self.id}:latest"
+        build_image_name = f"{self.template.name.lower()}-{self.id}:{int(time.time())}"
+        old_image_name = self.image
 
         get_logger(__name__).info(
             f"Building image '{build_image_name}' on-demand for service '{self.name}' in path '{source_path}', with ENV vars: {[env.__str__() for env in self.env]}"
@@ -578,24 +582,46 @@ class Service(ServiceModel):
             build_args={env.key: env.value for env in self.env},
         )
 
-        self.image = build_image_name
         get_logger(__name__).debug(
             f"Successfully built image '{build_image_name}' for service '{self.name}'"
         )
 
-        container = DockerContainerManager.create_container(
-            name=f"svs-{self.id}",
-            image=self.image,
-            owner=self.user.name,
-            command=self.command,
-            args=self.args,
-            labels=self.labels,
-            ports=self.exposed_ports,
-            volumes=self.volumes,
-        )
+        if not old_image_name:
+            DockerImageManager.rename(build_image_name, production_image_name)
 
-        self.container_id = container.id
+            self.image = production_image_name
 
-        DockerContainerManager.connect_to_network(container, self.user.name)
+            container = DockerContainerManager.create_container(
+                name=f"svs-{self.id}",
+                image=self.image,
+                owner=self.user.name,
+                command=self.command,
+                args=self.args,
+                labels=self.labels,
+                ports=self.exposed_ports,
+                volumes=self.volumes,
+            )
+
+            self.container_id = container.id
+
+            DockerContainerManager.connect_to_network(container, self.user.name)
+
+        else:
+            container = DockerContainerManager.get_container(self.container_id)
+            if not container:
+                raise ValueError(f"Container with ID {self.container_id} not found")
+
+            get_logger(__name__).debug(
+                f"Updating container '{self.container_id}' to use new image '{self.image}'"
+            )
+
+            was_running = self.status == ServiceStatus.RUNNING
+            if was_running:
+                self.stop()
+
+            DockerImageManager.rename(build_image_name, production_image_name)
+
+            if was_running:
+                self.start()
 
         self.save()
