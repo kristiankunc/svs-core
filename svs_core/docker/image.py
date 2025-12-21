@@ -169,3 +169,42 @@ class DockerImageManager:
             image_name (str): Name of the image to delete.
         """
         DockerImageManager.remove(image_name)
+
+    @staticmethod
+    def rename(old_name: str, new_name: str) -> None:
+        """Rename a Docker image.
+
+        Args:
+            old_name (str): Current name of the image.
+            new_name (str): New name for the image.
+        """
+        logger = get_logger(__name__)
+        logger.debug(f"Renaming image from '{old_name}' to '{new_name}'")
+
+        client = get_docker_client()
+        try:
+            image = client.images.get(old_name)
+        except Exception as e:
+            logger.error(
+                f"Failed to find image '{old_name}' for renaming to '{new_name}': {str(e)}"
+            )
+            raise Exception(
+                f"Failed to rename image '{old_name}' to '{new_name}': source image not found or inaccessible. Error: {str(e)}"
+            ) from e
+
+        try:
+            image.tag(new_name)
+            logger.info(f"Tagged image '{old_name}' as '{new_name}'")
+        except Exception as e:
+            logger.error(f"Failed to tag image '{old_name}' as '{new_name}': {str(e)}")
+            raise Exception(
+                f"Failed to rename image '{old_name}' to '{new_name}': tagging failed. Error: {str(e)}"
+            ) from e
+
+        try:
+            DockerImageManager.remove(old_name)
+        except Exception as e:
+            # The new tag exists, but cleanup of the old tag failed.
+            logger.warning(
+                f"Image '{new_name}' created, but failed to remove old image '{old_name}': {str(e)}"
+            )

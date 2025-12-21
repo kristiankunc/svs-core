@@ -680,3 +680,66 @@ class TestServiceCommands:
 
         assert result.exit_code == 0
         mock_service.get_logs.assert_called_once()
+
+    def test_build_service_success(self, mocker: MockerFixture) -> None:
+        """Test building a service via CLI."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_build_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "build", "1", "/tmp/source"],
+        )
+
+        assert result.exit_code == 0
+        assert "built successfully" in result.output
+        mock_service.build.assert_called_once()
+
+    def test_build_service_permission_denied(self, mocker: MockerFixture) -> None:
+        """Test building a service without permission."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "other_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "build", "1", "/tmp/source"],
+        )
+
+        assert result.exit_code == 1
+        assert "permission" in result.output.lower()
+        mock_service.build.assert_not_called()
+
+    def test_build_service_admin_can_build_any(self, mocker: MockerFixture) -> None:
+        """Test that admin can build any service."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "other_user_service"
+        mock_service.user.name = "other_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=True)
+
+        result = self.runner.invoke(
+            app,
+            ["service", "build", "1", "/tmp/source"],
+        )
+
+        assert result.exit_code == 0
+        assert "built successfully" in result.output
+        mock_service.build.assert_called_once()

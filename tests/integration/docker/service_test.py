@@ -1154,6 +1154,7 @@ RUN echo "APP_VERSION=${APP_VERSION}" >> /app_info.txt
         mock_build = mocker.patch(
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
         )
+        mocker.patch("svs_core.docker.service.DockerImageManager.rename")
 
         # Create a temporary directory to simulate source path
         with TemporaryDirectory() as tmpdir:
@@ -1286,6 +1287,7 @@ CMD ["sh", "-c", "/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_
         mock_build = mocker.patch(
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
         )
+        mocker.patch("svs_core.docker.service.DockerImageManager.rename")
 
         # Create a temporary directory to simulate Django project
         with TemporaryDirectory() as tmpdir:
@@ -1424,6 +1426,7 @@ CMD cat /message.txt
         mock_build = mocker.patch(
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
         )
+        mocker.patch("svs_core.docker.service.DockerImageManager.rename")
 
         # Create service without env vars
         service = Service.create(
@@ -1478,10 +1481,14 @@ CMD cat /to_be_deleted.txt
             "svs_core.docker.service.DockerImageManager.build_from_dockerfile",
             return_value="deletion_build_image_id",
         )
+        mocker.patch("svs_core.docker.service.DockerImageManager.rename")
 
-        # Mock image deletion
+        # Mock image deletion and exists check
         mock_delete_image = mocker.patch(
             "svs_core.docker.service.DockerImageManager.delete"
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerImageManager.exists", return_value=True
         )
 
         # Create service
@@ -1501,3 +1508,267 @@ CMD cat /to_be_deleted.txt
 
         # Delete the service
         service.delete()
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_rebuild_service_when_running(
+        self, mocker: MockerFixture, test_user: User
+    ) -> None:
+        """Test rebuilding a service that is currently running.
+
+        This test verifies that when a service with an existing image is rebuilt:
+        1. The service is stopped before rebuilding
+        2. A new image is built and renamed
+        3. The service is restarted after the rebuild
+        """
+        # Create a BUILD template
+        build_template = Template.create(
+            name="rebuild-running-template",
+            type=TemplateType.BUILD,
+            dockerfile="""FROM busybox:latest
+RUN echo "Version 1" > /version.txt
+CMD cat /version.txt
+""",
+            description="Template for testing rebuild while running",
+        )
+
+        # Mock container operations
+        mock_container = mocker.MagicMock()
+        mock_container.id = "rebuild_running_container"
+        mock_container.status = "running"
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
+        mock_remove_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.remove"
+        )
+
+        # Mock image building and renaming
+        mock_build = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
+        )
+        mock_rename = mocker.patch("svs_core.docker.service.DockerImageManager.rename")
+        mock_remove_image = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.remove"
+        )
+
+        # Mock start and stop - stop should change container status to exited
+        def stop_side_effect():
+            mock_container.status = "exited"
+
+        mock_start = mocker.patch("svs_core.docker.service.Service.start")
+        mock_stop = mocker.patch(
+            "svs_core.docker.service.Service.stop", side_effect=stop_side_effect
+        )
+
+        # Create and build service initially
+        service = Service.create(
+            name="rebuild-running-service",
+            template_id=build_template.id,
+            user=test_user,
+        )
+
+        with TemporaryDirectory() as tmpdir:
+            source_path = Path(tmpdir)
+            # Initial build
+            service.build(source_path)
+            assert service.image is not None
+
+            # Reset mocks before rebuild
+            mock_build.reset_mock()
+            mock_rename.reset_mock()
+            mock_remove_image.reset_mock()
+            mock_create_container.reset_mock()
+            mock_remove_container.reset_mock()
+            mock_start.reset_mock()
+            mock_stop.reset_mock()
+            # Reset container status to running for the rebuild test
+            mock_container.status = "running"
+
+            # Rebuild the service (simulating a running state)
+            service.build(source_path)
+
+            # Verify rebuild process
+            mock_build.assert_called_once()  # New image built
+            mock_rename.assert_called_once()  # Image renamed to production name
+            mock_remove_image.assert_called_once()  # Old production image removed
+            mock_stop.assert_called_once()  # Service stopped before rebuild
+            mock_remove_container.assert_called_once()  # Old container removed
+            mock_create_container.assert_called_once()  # New container created
+            mock_start.assert_called_once()  # Service restarted after rebuild
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_rebuild_service_when_stopped(
+        self, mocker: MockerFixture, test_user: User
+    ) -> None:
+        """Test rebuilding a service that is currently stopped.
+
+        This test verifies that when a stopped service is rebuilt:
+        1. The service remains stopped (no start/stop calls)
+        2. A new image is built and renamed
+        """
+        # Create a BUILD template
+        build_template = Template.create(
+            name="rebuild-stopped-template",
+            type=TemplateType.BUILD,
+            dockerfile="""FROM busybox:latest
+RUN echo "Version 1" > /version.txt
+CMD cat /version.txt
+""",
+            description="Template for testing rebuild while stopped",
+        )
+
+        # Mock container operations
+        mock_container = mocker.MagicMock()
+        mock_container.id = "rebuild_stopped_container"
+        mock_container.status = "exited"  # Stopped state
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
+        mock_remove_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.remove"
+        )
+
+        # Mock image building and renaming
+        mock_build = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
+        )
+        mock_rename = mocker.patch("svs_core.docker.service.DockerImageManager.rename")
+        mock_remove_image = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.remove"
+        )
+
+        # Mock start and stop
+        mock_start = mocker.patch("svs_core.docker.service.Service.start")
+        mock_stop = mocker.patch("svs_core.docker.service.Service.stop")
+
+        # Create and build service initially
+        service = Service.create(
+            name="rebuild-stopped-service",
+            template_id=build_template.id,
+            user=test_user,
+        )
+
+        with TemporaryDirectory() as tmpdir:
+            source_path = Path(tmpdir)
+            # Initial build
+            service.build(source_path)
+            assert service.image is not None
+
+            # Reset mocks before rebuild
+            mock_build.reset_mock()
+            mock_rename.reset_mock()
+            mock_remove_image.reset_mock()
+            mock_create_container.reset_mock()
+            mock_remove_container.reset_mock()
+            mock_start.reset_mock()
+            mock_stop.reset_mock()
+
+            # Rebuild the service (simulating a stopped state)
+            service.build(source_path)
+
+            # Verify rebuild process
+            mock_build.assert_called_once()  # New image built
+            mock_rename.assert_called_once()  # Image renamed to production name
+            mock_remove_image.assert_called_once()  # Old production image removed
+            mock_remove_container.assert_called_once()  # Old container removed
+            mock_create_container.assert_called_once()  # New container created
+            mock_stop.assert_not_called()  # Service not stopped (already stopped)
+            mock_start.assert_not_called()  # Service not started (was stopped)
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_rebuild_service_with_updated_env_vars(
+        self, mocker: MockerFixture, test_user: User
+    ) -> None:
+        """Test rebuilding a service with updated environment variables.
+
+        This test verifies that updated environment variables are passed
+        as build args when rebuilding.
+        """
+        # Create a BUILD template with build args
+        build_template = Template.create(
+            name="rebuild-env-template",
+            type=TemplateType.BUILD,
+            dockerfile="""FROM busybox:latest
+ARG APP_VERSION=1.0
+RUN echo "Version ${APP_VERSION}" > /version.txt
+CMD cat /version.txt
+""",
+            description="Template for testing rebuild with env vars",
+            default_env=[
+                EnvVariable(key="APP_VERSION", value="1.0"),
+            ],
+        )
+
+        # Mock container operations
+        mock_container = mocker.MagicMock()
+        mock_container.id = "rebuild_env_container"
+        mock_container.status = "exited"
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
+        mocker.patch("svs_core.docker.service.DockerContainerManager.remove")
+
+        # Mock image building and renaming
+        mock_build = mocker.patch(
+            "svs_core.docker.service.DockerImageManager.build_from_dockerfile"
+        )
+        mocker.patch("svs_core.docker.service.DockerImageManager.rename")
+        mocker.patch("svs_core.docker.service.DockerImageManager.remove")
+
+        # Create service with initial env vars
+        service = Service.create(
+            name="rebuild-env-service",
+            template_id=build_template.id,
+            user=test_user,
+            env=[EnvVariable(key="APP_VERSION", value="1.0")],
+        )
+
+        with TemporaryDirectory() as tmpdir:
+            source_path = Path(tmpdir)
+            # Initial build
+            service.build(source_path)
+
+            # Verify initial build args
+            call_args = mock_build.call_args
+            assert call_args.kwargs["build_args"]["APP_VERSION"] == "1.0"
+
+            # Update env vars
+            service.env = [EnvVariable(key="APP_VERSION", value="2.0")]
+            service.save()
+
+            # Reset mock
+            mock_build.reset_mock()
+
+            # Rebuild the service
+            service.build(source_path)
+
+            # Verify updated build args
+            call_args = mock_build.call_args
+            assert call_args.kwargs["build_args"]["APP_VERSION"] == "2.0"
