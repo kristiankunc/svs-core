@@ -631,28 +631,27 @@ class Service(ServiceModel):
             if was_running:
                 self.stop()
 
-                # Verify the container is actually stopped after stop() completes
-                # This helps prevent race conditions where the container state changes
+                # Wait for the container to actually stop after stop() is called
+                # Docker's stop operation can take time (graceful shutdown with SIGTERM, then SIGKILL)
                 for attempt in range(self.MAX_STOP_RETRIES):
+                    # Wait before checking status to give container time to stop
+                    time.sleep(self.STOP_RETRY_DELAY_SECONDS)
+
                     container = DockerContainerManager.get_container(self.container_id)
                     if not container or container.status != "running":
                         break
 
-                    if attempt < self.MAX_STOP_RETRIES - 1:
-                        get_logger(__name__).warning(
-                            f"Container {self.container_id} still running after stop() - retry {attempt + 1}/{self.MAX_STOP_RETRIES}"
-                        )
-                        time.sleep(
-                            self.STOP_RETRY_DELAY_SECONDS
-                        )  # Wait before checking again
-                        self.stop()
-                    else:
+                    if attempt == self.MAX_STOP_RETRIES - 1:
                         get_logger(__name__).error(
                             f"Container {self.container_id} failed to stop after {self.MAX_STOP_RETRIES} attempts"
                         )
                         raise RuntimeError(
                             f"Failed to stop container {self.container_id} after {self.MAX_STOP_RETRIES} attempts"
                         )
+
+                    get_logger(__name__).warning(
+                        f"Container {self.container_id} still running after stop() - waiting (attempt {attempt + 1}/{self.MAX_STOP_RETRIES})"
+                    )
 
             # Remove the old container so we can create a new one with the updated image
             get_logger(__name__).debug(

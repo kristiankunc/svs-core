@@ -1560,9 +1560,14 @@ CMD cat /version.txt
             "svs_core.docker.service.DockerImageManager.remove"
         )
 
-        # Mock start and stop
+        # Mock start and stop - stop should change container status to exited
+        def stop_side_effect():
+            mock_container.status = "exited"
+
         mock_start = mocker.patch("svs_core.docker.service.Service.start")
-        mock_stop = mocker.patch("svs_core.docker.service.Service.stop")
+        mock_stop = mocker.patch(
+            "svs_core.docker.service.Service.stop", side_effect=stop_side_effect
+        )
 
         # Create and build service initially
         service = Service.create(
@@ -1585,6 +1590,8 @@ CMD cat /version.txt
             mock_remove_container.reset_mock()
             mock_start.reset_mock()
             mock_stop.reset_mock()
+            # Reset container status to running for the rebuild test
+            mock_container.status = "running"
 
             # Rebuild the service (simulating a running state)
             service.build(source_path)
