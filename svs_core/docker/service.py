@@ -566,12 +566,11 @@ class Service(ServiceModel):
             source_path (Path): The path to the directory containing the Dockerfile.
 
         Raises:
-            ValueError: If the source path does not contain a Dockerfile.
-            FileNotFoundError: If the source path does not exist or is not a directory.
+            ValueError: If the source path does not exist, is not a directory, or if the template type is not BUILD.
         """
         # Validate source path exists and is a directory
         if not source_path.exists():
-            raise FileNotFoundError(f"Source path does not exist: {source_path}")
+            raise ValueError(f"Source path does not exist: {source_path}")
         if not source_path.is_dir():
             raise ValueError(f"Source path is not a directory: {source_path}")
 
