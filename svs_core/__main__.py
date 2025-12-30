@@ -16,6 +16,11 @@ from svs_core.cli.state import is_current_user_admin, set_current_user, set_verb
 from svs_core.shared.env_manager import EnvManager
 from svs_core.shared.logger import add_verbose_handler, get_logger
 
+# Early verbose mode detection before heavy imports trigger logging
+if "-v" in sys.argv or "--verbose" in sys.argv:
+    set_verbose_mode(True)
+    add_verbose_handler()
+
 os.environ["DJANGO_SETTINGS_MODULE"] = "svs_core.db.settings"
 
 if EnvManager.get_runtime_environment() != EnvManager.RuntimeEnvironment.TESTING:
@@ -90,8 +95,8 @@ def global_options(
     ),
 ) -> None:
     """Global options for SVS CLI."""
-    set_verbose_mode(verbose)
     if verbose:
+        set_verbose_mode(True)
         add_verbose_handler()
         get_logger(__name__).debug("Verbose mode enabled")
 
