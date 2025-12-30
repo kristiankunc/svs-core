@@ -10,6 +10,14 @@ from svs_core.shared.env_manager import EnvManager
 _logger_instances: dict[str, logging.Logger] = {}
 
 
+def _is_verbose_mode() -> bool:
+    """Check if verbose mode is enabled using CLI state."""
+    # Import here to avoid circular imports
+    from svs_core.cli.state import is_verbose
+
+    return is_verbose()
+
+
 def get_logger(name: Optional[str] = None) -> logging.Logger:
     """Returns a logger instance with the specified name.
 
@@ -57,19 +65,43 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+    # If verbose mode is enabled, add the verbose handler to this new logger
+    if _is_verbose_mode():
+        verbose_formatter = logging.Formatter("%(levelname)s: %(name)s %(message)s")
+        verbose_handler = logging.StreamHandler(sys.stdout)
+        verbose_handler.setLevel(logging.DEBUG)
+        verbose_handler.setFormatter(verbose_formatter)
+        logger.addHandler(verbose_handler)
+
     _logger_instances[name] = logger
 
     return logger
 
 
 def add_verbose_handler() -> None:
-    """Add a stdout handler to all loggers for verbose output."""
-    formatter = logging.Formatter("%(levelname)s: %(name)s %(message)s")
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    handler.setFormatter(formatter)
+    """Add a stdout handler to all existing loggers for verbose output.
 
+    This function is safe to call multiple times - it will only add a verbose
+    handler to loggers that don't already have one.
+    """
     for logger in _logger_instances.values():
+        # Check if this logger already has a verbose handler
+        has_verbose_handler = any(
+            isinstance(h, logging.StreamHandler)
+            and h.stream == sys.stdout
+            and h.level == logging.DEBUG
+            and "%(levelname)s: %(name)s"
+            in (h.formatter._fmt or "" if h.formatter else "")
+            for h in logger.handlers
+        )
+        if has_verbose_handler:
+            continue
+
+        # Create a new handler for each logger
+        formatter = logging.Formatter("%(levelname)s: %(name)s %(message)s")
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.DEBUG)
+        handler.setFormatter(formatter)
         logger.addHandler(handler)
 
 
