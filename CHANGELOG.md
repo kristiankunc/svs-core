@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.10.0](https://github.com/kristiankunc/svs-core/compare/v0.9.1...v0.10.0) (2025-12-30)
+
+
+### Features
+
+* Add reverse proxy configuration ([#157](https://github.com/kristiankunc/svs-core/issues/157)) ([4c45355](https://github.com/kristiankunc/svs-core/commit/4c453552bcc8a04c18ba542edcd34b6b1a5583f5))
+* Add service rebuilding support ([#176](https://github.com/kristiankunc/svs-core/issues/176)) ([9d1b672](https://github.com/kristiankunc/svs-core/commit/9d1b6722a7794d9f8e6276baa7083ac7ac1a3fcb))
+* Migrate documentation build from MkDocs to Zensical ([#190](https://github.com/kristiankunc/svs-core/issues/190)) ([8906e0c](https://github.com/kristiankunc/svs-core/commit/8906e0c1dcf98c9225f8bd89152a9e350c695f9f))
+
+
+### Bug Fixes
+
+* Add adminer template ([#151](https://github.com/kristiankunc/svs-core/issues/151)) ([7fd3b7d](https://github.com/kristiankunc/svs-core/commit/7fd3b7d047f7f3f02d6b02b5fab149feb977593b))
+* Add CLI logs command ([#174](https://github.com/kristiankunc/svs-core/issues/174)) ([1f300ff](https://github.com/kristiankunc/svs-core/commit/1f300ff8e03c6a3edd066664aa2812bb7ca4b603))
+* Add tables to CLI output ([#155](https://github.com/kristiankunc/svs-core/issues/155)) ([49fe7f3](https://github.com/kristiankunc/svs-core/commit/49fe7f35963f6759a4c9ddc2abf7805c037d6ccf))
+* Ensure docker images are deleted when BUILD service is deleted ([520da75](https://github.com/kristiankunc/svs-core/commit/520da7586eabbd1513a3fdf3f0360f07392c6c9b))
+* Fix django template ([#169](https://github.com/kristiankunc/svs-core/issues/169)) ([bb0d850](https://github.com/kristiankunc/svs-core/commit/bb0d85056b254f67d1ea0f7c1882af80ebd8b196))
+* Fix system username getter if svs ran via sudo/su ([#159](https://github.com/kristiankunc/svs-core/issues/159)) ([3746d3a](https://github.com/kristiankunc/svs-core/commit/3746d3af39445ca815028de68c369496bef264fe))
+* Force set caddy network name in install script ([#161](https://github.com/kristiankunc/svs-core/issues/161)) ([d7e0b92](https://github.com/kristiankunc/svs-core/commit/d7e0b9238d0c56b11ce53d347a8495c8c452d049))
+
 ## [0.9.1](https://github.com/kristiankunc/svs-core/compare/v0.9.0...v0.9.1) (2025-12-08)
 
 
