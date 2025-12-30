@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/kristiankunc/svs-core/compare/v0.10.0...v0.10.1) (2025-12-30)
+
+
+### Bug Fixes
+
+* Call verbose setup earlier in CLI bootstrap ([c65b94e](https://github.com/kristiankunc/svs-core/commit/c65b94ea0db6a551dc40b08495592b946995f0e6))
+
 ## [0.10.0](https://github.com/kristiankunc/svs-core/compare/v0.9.1...v0.10.0) (2025-12-30)
 
 
