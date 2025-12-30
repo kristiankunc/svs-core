@@ -9,7 +9,6 @@ exclude_docs: |
 
 theme:
   name: material
-  variant: classic
   features:
     - content.code.copy
     - navigation.instant
@@ -21,14 +20,14 @@ theme:
 
   palette:
     - scheme: default
-      primary: black
-      accent: amber
+      primary: orange
+      accent: indigo
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     - scheme: slate
-      primary: black
-      accent: amber
+      primary: orange
+      accent: indigo
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
