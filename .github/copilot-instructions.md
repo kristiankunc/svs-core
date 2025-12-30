@@ -20,7 +20,7 @@
 - **Container Orchestration:** Docker + Docker Compose
 - **Testing:** pytest, pytest-asyncio, pytest-django, pytest-mock
 - **Linting/Formatting:** ruff, black, isort, mypy, djlint
-- **Documentation:** mkdocs with material theme
+- **Documentation:** Zensical
 
 ## Build & Validation Instructions
 
@@ -126,11 +126,11 @@ python -m build
 pip install -e ".[docs]"
 
 # Build documentation
-mkdocs build
+zensical build
 # Output: site/ directory
 
 # Serve documentation locally (for testing)
-mkdocs serve
+zensical serve
 # Access at http://127.0.0.1:8000
 ```
 
@@ -175,7 +175,7 @@ tests/               - Test suite
   integration/       - Integration tests (Docker required)
   cli/               - CLI command tests
   conftest.py        - Pytest fixtures
-docs/                - MkDocs documentation source
+docs/                - Zensical (mkdocs backward compatibility) documentation source
 service_templates/   - JSON templates for common services
   schema.json        - Template validation schema
 web/                 - Django web interface (future)
