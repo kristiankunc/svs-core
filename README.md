@@ -74,11 +74,12 @@ The devcontainer includes pre-configured linting and formatting tools for Visual
 
 To run the tests, you can use the `pytest` command in the terminal. This will run all tests in the `tests` directory. You can also run individual test files or functions by specifying their paths.
 
-Tests are split into unit and integration tests. They can be run separately by using the `-m` flag with pytest:
+Tests are split into unit, integration and cli tests. They can be run separately by using the `-m` flag with pytest:
 
 ```bash
 pytest -m unit
 pytest -m integration
+pytest -m cli
 ```
 
 ### Running the docs
