@@ -129,6 +129,13 @@ jobs:
         run: |
           tree docs/
 
-      - name: Deploy to GitHub Pages
+      - name: Build documentation with Zensical
         run: |
-          mkdocs gh-deploy --force
+          zensical build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          force_orphan: true
