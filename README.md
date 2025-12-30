@@ -83,7 +83,7 @@ pytest -m integration
 
 ### Running the docs
 
-Python docstrings are use throughout the codebase to generate documentation. To generate the documentation, you can use the `zensical` command in the terminal. This will build the documentation and serve it locally.
+Python docstrings are used throughout the codebase to generate documentation. To generate the documentation, you can use the `zensical` command in the terminal. This will build the documentation and serve it locally.
 To run the documentation server, you can use the following command:
 
 ```bash
