@@ -10,7 +10,7 @@ ENV PYENV_ROOT=/opt/pyenv
 ENV PATH=$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 RUN curl https://pyenv.run | bash
 
-RUN pyenv install 3.11.14 && pyenv global 3.11.14
+RUN pyenv install 3.13.11 && pyenv global 3.13.11
 
 RUN python -m pip install --upgrade pip && python -m pip install pipx && pipx ensurepath
 
