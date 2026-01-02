@@ -104,18 +104,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          add-rust-environment-hash-key: false
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e .
           python -m pip install .[docs]
-
-          cargo install typst-cli
 
       - name: Compile CLI docs
         run: |
@@ -123,19 +116,20 @@ jobs:
 
       - name: Compile typst docs
         run: |
-          typst compile fancy-docs/main.typ docs/main.pdf
-
-      - name: Tree the docs directory
-        run: |
-          tree docs/
+          docker run --rm -v ${{ github.workspace }}:/workspace ghcr.io/typst/typst:latest compile /workspace/fancy-docs/main.typ /workspace/docs/main.pdf
 
       - name: Build documentation with Zensical
         run: |
           zensical build
 
+      - name: Build documentation with Zensical
+        run: zensical build --clean
+
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: actions/upload-pages-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
-          force_orphan: true
+          path: site
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+        id: deployment
