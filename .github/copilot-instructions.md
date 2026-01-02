@@ -6,15 +6,15 @@
 
 **Repository Statistics:**
 - **Size:** ~3,200 lines of Python code
-- **Language:** Python 3.11+ (tested with 3.12)
-- **Primary Framework:** Django 5.2.8 (for database models/migrations)
+- **Language:** Python 3.13+ (tested with 3.12)
+- **Primary Framework:** Django 6.0 (for database models/migrations)
 - **CLI Framework:** Typer 0.20.0
 - **Container Management:** Docker 7.1.0
 - **Testing:** pytest with 175 tests (unit + integration)
 
 ## Technology Stack
 
-- **Runtime:** Python ≥3.11 (required in pyproject.toml)
+- **Runtime:** Python ≥3.13 (required in pyproject.toml)
 - **Database:** PostgreSQL (via asyncpg and psycopg2)
 - **Web Proxy:** Caddy (for HTTP routing)
 - **Container Orchestration:** Docker + Docker Compose
@@ -26,7 +26,7 @@
 
 ### Environment Setup
 
-**ALWAYS use a virtual environment.** The project requires Python 3.11+ and PostgreSQL + Docker for full functionality.
+**ALWAYS use a virtual environment.** The project requires Python 3.13  + and PostgreSQL + Docker for full functionality.
 
 ```bash
 # Create and activate virtual environment
@@ -196,13 +196,13 @@ web/                 - Django web interface (future)
 The CI pipeline runs on every push and pull request with two jobs:
 
 **1. lint-format job:**
-- Sets up Python 3.11
+- Sets up Python 3.13
 - Creates venv and installs dev dependencies
 - Runs `pre-commit run --all-files`
 - Must pass before tests run
 
 **2. test job:**
-- Sets up Python 3.11 and Docker
+- Sets up Python 3.13 and Docker
 - Starts PostgreSQL and Caddy containers via docker compose
 - Installs dependencies with `pip install -e ".[dev]"`
 - Runs `pytest --cov=. --cov-branch --cov-report=xml:coverage.xml`

@@ -269,7 +269,7 @@ class TestTemplate:
             "name": "django-app",
             "type": "build",
             "description": "Django application",
-            "dockerfile": "FROM python:3.11-slim\nWORKDIR /app",
+            "dockerfile": "FROM python:3.13-slim\nWORKDIR /app",
             "default_env": [
                 {"key": "DEBUG", "value": "True"},
                 {"key": "DJANGO_SETTINGS_MODULE", "value": "project.settings"},
@@ -303,7 +303,7 @@ class TestTemplate:
         assert template.name == "django-app"
         assert template.type == TemplateType.BUILD
         assert template.description == "Django application"
-        assert template.dockerfile == "FROM python:3.11-slim\nWORKDIR /app"
+        assert template.dockerfile == "FROM python:3.13-slim\nWORKDIR /app"
 
         # Verify environment variables
         assert len(template.default_env) == 2
