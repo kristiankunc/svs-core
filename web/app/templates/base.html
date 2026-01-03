@@ -9,9 +9,8 @@
         <title>
             {% block title %}SVS{% endblock %}
         </title>
-        {% if not debug %}
-            <link rel="stylesheet" href="{% vite 'css' %}">
-        {% endif %}
+        {% vite_hmr %}
+        {% vite 'css' %}
     </head>
     <body>
         <header>
@@ -97,6 +96,6 @@
         <main class="container">
             {% block content %}{% endblock %}
         </main>
-        <script type="module" src="{% vite %}"></script>
+        {% vite %}
     </body>
 </html>
