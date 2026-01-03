@@ -437,13 +437,13 @@ When working on the web interface:
    # One-time setup in web/ directory
    npm init -y
    npm install --save-dev vite
-   
+
    # Create vite.config.js to output to app/static/
    # Add scripts to package.json: "dev" and "build"
-   
+
    # Development with hot reload
    npm run dev
-   
+
    # Production build
    npm run build
    ```
