@@ -1,6 +1,13 @@
 import Alpine from 'alpinejs';
-import * as bootstrap from 'bootstrap';
+import hljs from 'highlight.js/lib/core';
+import dockerfile from 'highlight.js/lib/languages/dockerfile';
 import "./main.scss";
+
+hljs.registerLanguage('dockerfile', dockerfile);
+
+document.querySelectorAll('pre code').forEach(el => {
+  hljs.highlightElement(el)
+})
 
 // Theme management
 const getStoredTheme = () => localStorage.getItem('theme');
@@ -16,7 +23,7 @@ const getPreferredTheme = () => {
 
 const setTheme = theme => {
     if (theme === 'auto') {
-        document.documentElement.setAttribute('data-bs-theme', 
+        document.documentElement.setAttribute('data-bs-theme',
             window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     } else {
         document.documentElement.setAttribute('data-bs-theme', theme);
@@ -37,18 +44,18 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
 // Alpine.js component for theme switcher
 Alpine.data('themeSwitcher', () => ({
     theme: getStoredTheme() || 'auto',
-    
+
     init() {
         this.$watch('theme', value => {
             setStoredTheme(value);
             setTheme(value);
         });
     },
-    
+
     setTheme(newTheme) {
         this.theme = newTheme;
     },
-    
+
     toggleTheme() {
         // Toggle between light and dark only
         // If currently auto, switch to light first
@@ -58,7 +65,7 @@ Alpine.data('themeSwitcher', () => ({
             this.theme = 'dark';
         }
     },
-    
+
     isActive(checkTheme) {
         return this.theme === checkTheme;
     }
