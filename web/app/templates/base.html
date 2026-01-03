@@ -11,8 +11,6 @@
             {% block title %}SVS{% endblock %}
         </title>
         {% if not debug %}
-            <p>Production Mode</p>
-            <!-- Only load CSS in production -->
             <link rel="stylesheet" href="{% vite 'css' %}">
         {% endif %}
     </head>
