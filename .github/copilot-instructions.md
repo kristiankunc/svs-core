@@ -5,22 +5,23 @@
 **SVS (Self-Hosted Virtual Stack)** is an open-source Python library for managing self-hosted services on Linux servers using Docker containers. The project provides a CLI tool and templates for common services, designed to be beginner-friendly while allowing advanced customization.
 
 **Repository Statistics:**
-- **Size:** ~3,200 lines of Python code
+- **Size:** ~4,400 lines of Python code
 - **Language:** Python 3.13+ (tested with 3.12)
-- **Primary Framework:** Django 6.0 (for database models/migrations)
-- **CLI Framework:** Typer 0.20.0
+- **Primary Framework:** Django 6.0 (for database models/migrations and web interface)
+- **CLI Framework:** Typer 0.21.0
 - **Container Management:** Docker 7.1.0
-- **Testing:** pytest with 175 tests (unit + integration)
+- **Testing:** pytest with 278 tests (unit + integration + CLI)
 
 ## Technology Stack
 
 - **Runtime:** Python ≥3.13 (required in pyproject.toml)
 - **Database:** PostgreSQL (via asyncpg and psycopg2)
+- **Web Framework:** Django 6.0 with Bootstrap 5.3.8 and Alpine.js
 - **Web Proxy:** Caddy (for HTTP routing)
 - **Container Orchestration:** Docker + Docker Compose
 - **Testing:** pytest, pytest-asyncio, pytest-django, pytest-mock
 - **Linting/Formatting:** ruff, black, isort, mypy, djlint
-- **Documentation:** Zensical
+- **Documentation:** Zensical (mkdocs-based)
 
 ## Build & Validation Instructions
 
@@ -134,6 +135,52 @@ zensical serve
 # Access at http://127.0.0.1:8000
 ```
 
+### Building Web Application
+
+The web application is a Django-based interface located in the `web/` directory. Currently, it uses CDN-hosted assets (Bootstrap 5.3.8 and Alpine.js), but can be extended with a Vite-based build process for custom frontend assets.
+
+**Running the web application in development:**
+
+```bash
+# Set required environment variables
+export DJANGO_SETTINGS_MODULE=project.settings
+export DATABASE_URL="postgres://ci:ci@localhost:5432/cidb"
+export ENVIRONMENT=development
+
+# Navigate to web directory
+cd web
+
+# Run Django development server
+python manage.py runserver
+# Access at http://127.0.0.1:8000
+```
+
+**Setting up Vite for custom frontend assets (optional):**
+
+If you need to add custom JavaScript/CSS with a build process:
+
+```bash
+# In web/ directory, initialize npm and install Vite
+cd web
+npm init -y
+npm install --save-dev vite
+
+# Create vite.config.js for Django integration
+# Configure to output to web/app/static/ directory
+
+# Add build scripts to package.json:
+# "dev": "vite"
+# "build": "vite build"
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+**Note:** The current web application uses CDN-hosted libraries and does not require a build step. Vite setup is only needed if adding custom frontend code.
+
 ## Project Structure & Key Files
 
 ### Root Directory Files
@@ -178,7 +225,15 @@ tests/               - Test suite
 docs/                - Zensical (mkdocs backward compatibility) documentation source
 service_templates/   - JSON templates for common services
   schema.json        - Template validation schema
-web/                 - Django web interface (future)
+web/                 - Django web interface
+  app/               - Main web application code
+    templates/       - Django templates (Bootstrap + Alpine.js)
+    views/           - View functions
+    lib/             - Helper utilities (user injection, etc.)
+  project/           - Django project settings
+    settings.py      - Web app Django settings (uses svs_core.db.settings)
+  manage.py          - Django management script
+  requirements.txt   - Web-specific dependencies
 ```
 
 ### Configuration Files
@@ -235,13 +290,36 @@ pytest --cov=. --cov-branch --cov-report=xml:coverage.xml
 ### Django Integration
 Despite being primarily a CLI tool, this project uses Django for:
 - Database ORM (models in `svs_core/db/models.py`)
-- Database migrations (`python -m django migrate svs_core`)
+- Database migrations (managed via `svs_core` app)
+- Web interface (in `web/` directory with separate Django project)
 - User model and authentication
 
 **IMPORTANT:** Django settings MUST be configured before imports:
 ```python
 os.environ["DJANGO_SETTINGS_MODULE"] = "svs_core.db.settings"
 django.setup()
+```
+
+**Two Django configurations exist:**
+1. **`svs_core.db.settings`** - Core library settings for CLI and database operations
+2. **`project.settings`** - Web application settings (imports and extends `svs_core.db.settings`)
+
+**Managing database migrations:**
+```bash
+# Set the Django settings module for core library
+export DJANGO_SETTINGS_MODULE=svs_core.db.settings
+
+# Create new migrations
+python -m django makemigrations svs_core
+
+# Apply migrations
+python -m django migrate svs_core
+
+# For the web application (uses project.settings)
+cd web
+export DJANGO_SETTINGS_MODULE=project.settings
+python manage.py makemigrations
+python manage.py migrate
 ```
 
 ### Docker Architecture
@@ -252,6 +330,7 @@ django.setup()
 
 ### Key Entry Points
 - **CLI:** `svs_core/__main__.py` → `main()` function
+- **Web App:** `web/manage.py` → Django development server
 - **Database:** Set via `DATABASE_URL` environment variable
 - **Logging:** `svs_core/shared/logger.py`
 - **Environment:** `svs_core/shared/env_manager.py`
@@ -295,6 +374,22 @@ django.setup()
   pytest -m unit  # Skips Docker-dependent integration tests
   ```
 
+### Web Application Not Starting
+- **Problem:** Django web server fails to start
+- **Solution:** Ensure correct settings module and database:
+  ```bash
+  export DJANGO_SETTINGS_MODULE=project.settings
+  export DATABASE_URL="postgres://ci:ci@localhost:5432/cidb"
+  cd web && python manage.py migrate
+  ```
+
+### Wrong Django Settings Module
+- **Problem:** Tests or migrations fail with configuration errors
+- **Solution:** Use correct settings module for the context:
+  - For CLI/library: `export DJANGO_SETTINGS_MODULE=svs_core.db.settings`
+  - For web app: `export DJANGO_SETTINGS_MODULE=project.settings`
+  - Tests use `svs_core.db.settings` (set in `.github/extra/.env.ci`)
+
 ## Development Workflow
 
 ### Recommended Order for Changes
@@ -305,6 +400,53 @@ django.setup()
 5. **Run tests:** `pytest -m unit` first, then `pytest` for full suite
 6. **Build package:** `python -m build` to verify packaging
 7. **Commit changes:** Pre-commit hooks run automatically
+
+### Web Development Workflow
+
+When working on the web interface:
+
+1. **Setup web environment:**
+   ```bash
+   cd web
+   export DJANGO_SETTINGS_MODULE=project.settings
+   export DATABASE_URL="postgres://ci:ci@localhost:5432/cidb"
+   export ENVIRONMENT=development
+   ```
+
+2. **Apply migrations:**
+   ```bash
+   # From web/ directory
+   python manage.py migrate
+   ```
+
+3. **Run development server:**
+   ```bash
+   # From web/ directory
+   python manage.py runserver
+   # Access at http://127.0.0.1:8000
+   ```
+
+4. **Testing changes:**
+   - Templates are in `web/app/templates/`
+   - Views are in `web/app/views/`
+   - The web app uses Bootstrap 5.3.8 and Alpine.js from CDN
+   - No build step required unless adding custom assets
+
+5. **If adding custom frontend assets with Vite:**
+   ```bash
+   # One-time setup in web/ directory
+   npm init -y
+   npm install --save-dev vite
+   
+   # Create vite.config.js to output to app/static/
+   # Add scripts to package.json: "dev" and "build"
+   
+   # Development with hot reload
+   npm run dev
+   
+   # Production build
+   npm run build
+   ```
 
 ### Before Submitting PR
 ```bash
