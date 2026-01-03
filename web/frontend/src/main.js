@@ -49,6 +49,16 @@ Alpine.data('themeSwitcher', () => ({
         this.theme = newTheme;
     },
     
+    toggleTheme() {
+        // Toggle between light and dark only
+        // If currently auto, switch to light first
+        if (this.theme === 'auto' || this.theme === 'dark') {
+            this.theme = 'light';
+        } else {
+            this.theme = 'dark';
+        }
+    },
+    
     isActive(checkTheme) {
         return this.theme === checkTheme;
     }
