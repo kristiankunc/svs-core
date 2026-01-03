@@ -1,1 +1,11 @@
+// Custom theme colors
+$primary: #ffa724;
+
+// Import Bootstrap functions first (required for color utilities)
+@import "bootstrap/scss/functions";
+
+// Override Bootstrap variables
+@import "bootstrap/scss/variables";
+
+// Import the rest of Bootstrap
 @import "bootstrap/scss/bootstrap";
