@@ -46,23 +46,25 @@ plugins:
             - https://docs.python.org/3/objects.inv
             - https://django.readthedocs.io/en/stable/objects.inv
           options:
-            docstring_style: google
+            backlinks: tree
+            docstring_options:
+              ignore_init_summary: true
+            docstring_section_style: list
+            filters: ["!^_", "^__"]
+            heading_level: 1
+            inherited_members: true
+            merge_init_into_class: true
+            parameter_headings: true
+            separate_signature: true
             show_root_heading: true
-            show_root_toc_entry: false
+            show_root_full_path: false
             show_signature_annotations: true
             show_source: true
-            merge_init_into_class: true
-            group_by_category: false
-            members_order: source
-            show_submodules: false
-            show_docstring_description: true
-            parameter_headings: false
-            separate_signature: true
-            show_signature: true
-            line_length: 60
-            extra:
-              evaluate_annotations: true
-              signature_code_block: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            signature_crossrefs: true
+            summary: true
+            unwrap_annotated: true
 
 markdown_extensions:
   - abbr

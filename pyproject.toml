@@ -4,7 +4,7 @@ version = "0.10.1"
 description = "Core library for SVS"
 authors = [{ name = "Kristián Kunc", email = "diist7i4c@mozmail.com" }]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "asyncpg==0.31.0",
     "bcrypt==5.0.0",
@@ -12,7 +12,7 @@ dependencies = [
     "httpx==0.28.1",
     "python-dotenv==1.2.1",
     "typer==0.21.0",
-    "django==5.2.9",
+    "Django==6.0",
     "dj_database_url==3.0.1",
     "psycopg2==2.9.11",
 ]

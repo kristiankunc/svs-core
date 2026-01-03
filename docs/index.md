@@ -8,7 +8,8 @@
 - [Quickstart guide](setup/quickstart.md)
 - [CLI documentation](cli.md)
 - [API documentation](api/index.md)
-
+- [Changelog](#changelog)
+- [Paper](#paper)
 
 ## Introduction
 
@@ -92,3 +93,13 @@ A log file is maintained at `/etc/svs/svs.log` on the host machine. This log fil
 #### Data storage
 
 All container data (bind mounts) are stored in `/var/svs/volumes` directory on the host machine. Each user has their own subdirectory (keyed by their ID) where all their service data is stored. The subdirectories are automatically generated for each service. A service can have multiple bind mounts, each stored in its own subdirectory.
+
+## Paper
+
+[View raw](main.pdf){target="_blank"}
+
+![PDF paper](main.pdf){ type=application/pdf style="min-height:100vh;width:100%"}
+
+## Changelog
+
+--8<-- "CHANGELOG.md"
