@@ -1,0 +1,25 @@
+{
+	"author": "",
+	"dependencies": {
+		"bootstrap": "^5.3.8",
+		"vite": "^7.3.0"
+	},
+	"description": "",
+	"devDependencies": {
+		"sass-embedded": "^1.97.1"
+	},
+	"engines": {
+		"node": ">=25.0.0",
+		"npm": ">=11.0.0"
+	},
+	"keywords": [],
+	"license": "ISC",
+	"main": "index.js",
+	"name": "svs-froentend",
+	"scripts": {
+		"build": "vite build",
+		"dev": "vite"
+	},
+	"type": "commonjs",
+	"version": "1.0.0"
+}
