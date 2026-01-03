@@ -9,6 +9,7 @@
         <title>
             {% block title %}SVS{% endblock %}
         </title>
+        {% vite_hmr %}
         {% if not debug %}
             <link rel="stylesheet" href="{% vite 'css' %}">
         {% endif %}

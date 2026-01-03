@@ -5,6 +5,7 @@ from pathlib import Path
 from django import template
 from django.conf import settings
 from django.templatetags.static import static
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -15,8 +16,11 @@ VITE_DEV_URL = "http://127.0.0.1:5173"
 @register.simple_tag
 def vite(file_type="js"):
     if settings.DEBUG:
-        # dev server entry
-        return "http://127.0.0.1:5173/src/main.js"
+        # In development, return the dev server entry point
+        if file_type == "js":
+            return "http://127.0.0.1:5173/src/main.js"
+        # No CSS in dev mode - Vite injects it via JS
+        return ""
 
     # production: manifest
     manifest_path = Path(settings.BASE_DIR) / "static/vite/.vite/manifest.json"
@@ -33,3 +37,13 @@ def vite(file_type="js"):
             return static(f"vite/{css_files[0]}")
         return ""
     return static(f"vite/{entry['file']}")
+
+
+@register.simple_tag
+def vite_hmr():
+    """Load Vite HMR client in development mode"""
+    if settings.DEBUG:
+        return mark_safe(
+            f'<script type="module" src="{VITE_DEV_URL}/@vite/client"></script>'
+        )
+    return ""

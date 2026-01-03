@@ -6,6 +6,14 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     cors: true,
+    hmr: {
+      host: '127.0.0.1',
+      protocol: 'ws',
+    },
+    watch: {
+      usePolling: false,
+      ignored: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
+    },
   },
   emptyOutDir: true,
   build: {
@@ -14,6 +22,12 @@ export default defineConfig({
     rollupOptions: {
       input: "src/main.js",
     },
+    // Optimize build performance
+    minify: 'esbuild',
+    sourcemap: false,
   },
-
+  // Optimize dependencies
+  optimizeDeps: {
+    include: ['alpinejs', 'bootstrap', 'highlight.js'],
+  },
 })
