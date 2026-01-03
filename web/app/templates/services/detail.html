@@ -64,7 +64,7 @@
                     </div>
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>Key</th>
                                     <th>Value</th>
@@ -94,7 +94,7 @@
                     </div>
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>Host Port</th>
                                     <th>Container Port</th>
@@ -126,7 +126,7 @@
                     </div>
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>Host Path</th>
                                     <th>Container Path</th>
@@ -163,14 +163,14 @@
                             <p class="mb-2">
                                 <strong>Command:</strong>
                                 <br>
-                                <code class="bg-light p-2 rounded d-block">{{ service.command }}</code>
+                                <code class="bg-body-secondary p-2 rounded d-block">{{ service.command }}</code>
                             </p>
                         {% endif %}
                         {% if service.args %}
                             <p>
                                 <strong>Arguments:</strong>
                                 <br>
-                                <code class="bg-light p-2 rounded d-block">{{ service.args|join:" " }}</code>
+                                <code class="bg-body-secondary p-2 rounded d-block">{{ service.args|join:" " }}</code>
                             </p>
                         {% endif %}
                     </div>
@@ -184,7 +184,7 @@
                     </div>
                     <div class="table-responsive">
                         <table class="table table-sm mb-0">
-                            <thead class="table-light">
+                            <thead>
                                 <tr>
                                     <th>Key</th>
                                     <th>Value</th>
