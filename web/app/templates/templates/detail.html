@@ -52,10 +52,11 @@
                     <div class="card-header">
                         <h5 class="mb-0">Dockerfile</h5>
                     </div>
-                    <div class="card-body">
-                        <pre class="bg-body-secondary p-3 rounded"
-                             style="max-height: 400px;
-                                    overflow-y: auto"><code>{{ template.dockerfile }}</code></pre>
+                    <div class="card-body p-0">
+                        {# remove extra card-body padding #}
+                        <pre class="bg-body-secondary rounded m-0"
+                             style="max-height:400px;
+                                    overflow:auto"><code class="language-dockerfile">{{ template.dockerfile|escape }}</code></pre>
                     </div>
                 </div>
             {% endif %}
