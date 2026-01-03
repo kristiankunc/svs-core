@@ -1,21 +1,19 @@
-@register.simple_tag
-def vite(file_type="js"):
-    if settings.DEBUG:
-        # dev server entry
-        return "http://127.0.0.1:5173/src/main.js"
+import { defineConfig } from 'vite'
 
-    # production: manifest
-    manifest_path = Path(settings.BASE_DIR) / "static/vite/.vite/manifest.json"
-    if not manifest_path.exists():
-        return ""
-    with open(manifest_path) as f:
-        data = json.load(f)
-    entry = data.get("src/main.js")
-    if not entry:
-        return ""
-    if file_type == "css":
-        css_files = entry.get("css")
-        if css_files:
-            return static(f"vite/{css_files[0]}")
-        return ""
-    return static(f"vite/{entry['file']}")
+export default defineConfig({
+  server: {
+    host: '127.0.0.1',
+    port: 5173,
+    strictPort: true,
+    cors: true,
+  },
+  emptyOutDir: true,
+  build: {
+    outDir: "../static/vite",
+    manifest: true,
+    rollupOptions: {
+      input: "src/main.js",
+    },
+  },
+
+})
