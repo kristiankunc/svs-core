@@ -19,7 +19,7 @@
 	"main": "index.js",
 	"name": "svs-frontend",
 	"scripts": {
-		"build": "vite build",
+		"build": "vite build --emptyOutDir",
 		"dev": "vite"
 	},
 	"type": "commonjs",

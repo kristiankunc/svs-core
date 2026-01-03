@@ -22,11 +22,9 @@ export default defineConfig({
     rollupOptions: {
       input: "src/main.js",
     },
-    // Optimize build performance
     minify: 'esbuild',
     sourcemap: false,
   },
-  // Optimize dependencies
   optimizeDeps: {
     include: ['alpinejs', 'bootstrap', 'highlight.js'],
   },
