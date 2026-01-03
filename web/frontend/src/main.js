@@ -1,9 +1,11 @@
 import Alpine from 'alpinejs';
 import hljs from 'highlight.js/lib/core';
 import dockerfile from 'highlight.js/lib/languages/dockerfile';
+import json from 'highlight.js/lib/languages/json';
 import "./main.scss";
 
 hljs.registerLanguage('dockerfile', dockerfile);
+hljs.registerLanguage('json', json);
 
 document.querySelectorAll('pre code').forEach(el => {
   hljs.highlightElement(el)
@@ -71,5 +73,6 @@ Alpine.data('themeSwitcher', () => ({
     }
 }));
 
+window.hljs = hljs;
 window.Alpine = Alpine;
 Alpine.start();

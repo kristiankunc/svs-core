@@ -49,13 +49,19 @@
                     <div class="card-body">
                         <div class="form-group">
                             <label for="json_data" class="form-label">JSON Content</label>
-                            <textarea class="form-control font-monospace"
-                                      id="json_data"
+                            <div class="mb-3">
+                                <pre id="json_display" class="bg-body-secondary p-2 rounded" style="max-height:400px; overflow:auto;">
+                                    <code class="language-json" id="json_code"></code>
+                                </pre>
+                            </div>
+                            <textarea id="json_data"
+                                      class="form-control font-monospace"
                                       name="json_data"
                                       rows="15"
+                                      required
                                       x-model="jsonContent"
-                                      placeholder='Paste your template JSON here or use the "Fetch" button above to load from a remote URL'
-                                      required></textarea>
+                                      style="font-size: 0.875rem;
+                                             display: none"></textarea>
                             <small class="text-muted d-block mt-2">
                                 You can paste JSON directly or fetch it from a remote URL. Once the content is loaded, you can edit it before importing.
                             </small>
@@ -108,6 +114,14 @@
                 remoteUrl: '',
                 jsonContent: '',
                 isLoading: false,
+                updateHighlight() {
+                    const codeEl = document.getElementById('json_code');
+                    codeEl.textContent = this.jsonContent;
+                    codeEl.dataset.highlighted = '';
+                    if (window.hljs) {
+                        window.hljs.highlightElement(codeEl);
+                    }
+                },
                 async fetchTemplate() {
                     const url = this.remoteUrl.trim();
 
@@ -132,11 +146,11 @@
 
                         // Populate the textarea with formatted JSON
                         this.jsonContent = JSON.stringify(JSON.parse(text), null, 2);
+                        this.updateHighlight();
 
                         // Scroll to the editor
                         setTimeout(() => {
-                            document.getElementById('json_data').scrollIntoView({ behavior: 'smooth' });
-                            document.getElementById('json_data').focus();
+                            document.getElementById('json_display').scrollIntoView({ behavior: 'smooth' });
                         }, 0);
 
                     } catch (error) {
