@@ -1,5 +1,10 @@
 // Custom theme colors
 $primary: #ffa724;
+$secondary: #6c757d;
+$success: #10b981;
+$danger: #ef4444;
+$warning: #f59e0b;
+$info: #3b82f6;
 
 // Import Bootstrap functions first (required for color utilities)
 @import "bootstrap/scss/functions";
@@ -7,5 +12,48 @@ $primary: #ffa724;
 // Override Bootstrap variables
 @import "bootstrap/scss/variables";
 
+// Dark mode customization - very dark background
+$dark-bg: #0a0a0a;
+$dark-bg-subtle: #1a1a1a;
+$dark-border-subtle: #2a2a2a;
+
 // Import the rest of Bootstrap
 @import "bootstrap/scss/bootstrap";
+
+// Custom dark mode overrides
+[data-bs-theme="dark"] {
+  --bs-body-bg: #{$dark-bg};
+  --bs-body-bg-rgb: 10, 10, 10;
+  --bs-body-color: #e5e5e5;
+  --bs-body-color-rgb: 229, 229, 229;
+  
+  --bs-emphasis-color: #ffffff;
+  --bs-emphasis-color-rgb: 255, 255, 255;
+  
+  --bs-secondary-color: rgba(229, 229, 229, 0.75);
+  --bs-secondary-color-rgb: 229, 229, 229;
+  --bs-secondary-bg: #{$dark-bg-subtle};
+  --bs-secondary-bg-rgb: 26, 26, 26;
+  
+  --bs-tertiary-color: rgba(229, 229, 229, 0.5);
+  --bs-tertiary-color-rgb: 229, 229, 229;
+  --bs-tertiary-bg: #1f1f1f;
+  --bs-tertiary-bg-rgb: 31, 31, 31;
+  
+  --bs-border-color: #{$dark-border-subtle};
+  --bs-border-color-translucent: rgba(255, 255, 255, 0.08);
+  
+  --bs-heading-color: #ffffff;
+  --bs-link-color: #ffa724;
+  --bs-link-hover-color: #ffb84d;
+  
+  // Card styling
+  --bs-card-bg: #{$dark-bg-subtle};
+  --bs-card-border-color: #{$dark-border-subtle};
+  
+  // Code blocks
+  .bg-body-secondary {
+    background-color: #1f1f1f !important;
+    color: #e5e5e5;
+  }
+}
