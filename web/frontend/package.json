@@ -16,7 +16,7 @@
 	"keywords": [],
 	"license": "ISC",
 	"main": "index.js",
-	"name": "svs-froentend",
+	"name": "svs-frontend",
 	"scripts": {
 		"build": "vite build",
 		"dev": "vite"
