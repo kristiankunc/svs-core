@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.3](https://github.com/kristiankunc/svs-core/compare/v0.10.2...v0.10.3) (2026-01-04)
+
+
+### Bug Fixes
+
+* Testing core commit ([b3a6d85](https://github.com/kristiankunc/svs-core/commit/b3a6d85671d19b4555c5069330dc161ed1c9a51c))
+
 ## [0.10.2](https://github.com/kristiankunc/svs-core/compare/v0.10.1...v0.10.2) (2026-01-04)
 
 
