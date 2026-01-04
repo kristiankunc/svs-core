@@ -8,6 +8,7 @@
 				".devcontainer",
 				".github"
 			],
+			"include-component-in-tag": false,
 			"release-type": "python"
 		}
 	}
