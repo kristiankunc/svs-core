@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.2](https://github.com/kristiankunc/svs-core/compare/v0.10.1...v0.10.2) (2026-01-04)
+
+
+### Bug Fixes
+
+* Bump python to &gt;=3.13 ([58ddff7](https://github.com/kristiankunc/svs-core/commit/58ddff7f5b427a7559ffa7ec110b007c588be603))
+* **web:** Add django bootstrap ([#197](https://github.com/kristiankunc/svs-core/issues/197)) ([7f6fd98](https://github.com/kristiankunc/svs-core/commit/7f6fd98e7afd0035af88b88acc107b4773487f03))
+
 ## [0.10.1](https://github.com/kristiankunc/svs-core/compare/v0.10.0...v0.10.1) (2025-12-30)
 
 
