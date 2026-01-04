@@ -120,10 +120,6 @@ jobs:
           docker run --rm -v ${{ github.workspace }}:/workspace ghcr.io/typst/typst:latest compile /workspace/fancy-docs/main.typ /workspace/docs/main.pdf
 
       - name: Build documentation with Zensical
-        run: |
-          zensical build
-
-      - name: Build documentation with Zensical
         run: zensical build --clean
 
       - name: Deploy to GitHub Pages
