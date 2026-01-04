@@ -3,11 +3,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path
 from django.utils.timezone import now
 
+from app.lib.owner_check import is_owner_or_admin
 from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
 from svs_core.docker.service import Service
 from svs_core.docker.template import Template
 from svs_core.users.user import User
-from web.app.lib.owner_check import is_owner_or_admin
 
 
 def create_from_template(request: HttpRequest, template_id: int):
