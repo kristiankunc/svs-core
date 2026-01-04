@@ -12,13 +12,9 @@ def index(request):
 
 
 def login(request: HttpRequest):
-    if DEBUG:
-        request.session["user_id"] = 1
-        request.session["is_admin"] = True
-        return redirect("index")
 
     if not request.method == "POST":
-        return render(request, "login.html")
+        return render(request, "base/login.html")
 
     username = request.POST.get("username")
     password = request.POST.get("password")

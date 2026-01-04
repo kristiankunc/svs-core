@@ -5,9 +5,9 @@ from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.urls import path
 
+from app.lib.owner_check import is_owner_or_admin
+from app.views.base import render
 from svs_core.docker.template import Template
-from web.app.lib.owner_check import is_owner_or_admin
-from web.app.views.base import render
 
 
 def list(request: HttpRequest):
