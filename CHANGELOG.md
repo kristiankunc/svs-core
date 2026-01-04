@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.3](https://github.com/kristiankunc/svs-core/compare/v0.10.2...v0.10.3) (2026-01-04)
+
+
+### Bug Fixes
+
+* trigger release please ([52cb529](https://github.com/kristiankunc/svs-core/commit/52cb529e4ca97062141b44d7557692cead92308a))
+
 ## [0.10.2](https://github.com/kristiankunc/svs-core/compare/v0.10.1...v0.10.2) (2026-01-04)
 
 
