@@ -12,6 +12,13 @@ A web UI is provided for controlling SVS and provides a more user-friendly way t
 The web interface requires the core SVS library to be installed. Please follow the [quickstart guide](../setup/quickstart.md) to install the core library first.
 After you have installed the library and verified it is working, you can continue with the web setup.
 
+### Node.js and npm
+
+Since the web interface uses some frontend dependencies, you need to have Node.js and npm installed.
+You can install them using your system's package manager or by following the instructions on the [official Node.js website](https://nodejs.org/).
+
+Alternatively, you can use services like [nodesource](https://deb.nodesource.com/) or [nvm](https://github.com/nvm-sh/nvm). **Using latest LTS (`v24`) is recommended.**
+
 ## Installation
 
 The web interface is provided in the root repository under the `web/` directory.
@@ -50,6 +57,12 @@ Then install the same version in the virtual environment:
 
 ```bash
 pip install svs-core==<your_version_here>
+```
+
+Install and build frontend dependencies:
+
+```bash
+(cd frontend && npm ci && npm run build)
 ```
 
 ## Configuration
