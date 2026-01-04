@@ -1,19 +1,14 @@
 {
 	"$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
 	"packages": {
-		".": {
+		". ": {
+			"component": "svs-core",
 			"exclude-paths": [
 				"web",
-				"tests",
 				".devcontainer",
 				".github"
 			],
 			"release-type": "python"
-		},
-		"web": {
-			"include-component-in-tag": true,
-			"path": "web",
-			"release-type": "simple"
 		}
 	}
 }

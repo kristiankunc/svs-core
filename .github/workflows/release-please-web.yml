@@ -1,0 +1,26 @@
+name: Release Please - Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+
+permissions:
+  issues: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Generate Release PR - Web
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.RELEASE_PLEASE_PAT }}
+          config-file: release-please-config-web.json
+          manifest-file: .release-please-manifest.json
+          path: web
