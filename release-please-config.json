@@ -7,8 +7,13 @@
 				"tests",
 				".devcontainer",
 				".github"
-			]
+			],
+			"release-type": "python"
+		},
+		"web": {
+			"include-component-in-tag": true,
+			"path": "web",
+			"release-type": "node"
 		}
-	},
-	"release-type": "python"
+	}
 }
