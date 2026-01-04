@@ -12,7 +12,6 @@ from django.utils.safestring import mark_safe
 register = template.Library()
 
 VITE_DEV_SERVER = "http://127.0.0.1:5173"
-VITE_FALLBACK_URL = "http://127.0.0.1:8000"
 MANIFEST_PATH = Path(settings.BASE_DIR) / "static/vite/.vite/manifest.json"
 
 
@@ -86,10 +85,10 @@ def vite(file_type="js"):
                     return _html_tag("js", js_path)
 
         if file_type == "js":
-            src = f"{VITE_FALLBACK_URL}/static/vite/src/main.js"
+            src = static("vite/src/main.js")
             return _html_tag("js", src)
         elif file_type == "css":
-            src = f"{VITE_FALLBACK_URL}/static/vite/style.css"
+            src = static("vite/style.css")
             return _html_tag("css", src)
 
     return ""
