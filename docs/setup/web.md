@@ -37,7 +37,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-In addition, you also need to install `svs-core` library in the virtual environment. It is excluded from the requirements as installing the sane version as the one used system-wide is recommended.
+In addition, you also need to install `svs-core` library in the virtual environment. It is excluded from the requirements as installing the same version as the one used system-wide is recommended.
 Mixing different versions may lead to unexpected behaviour.
 
 Check your current version of `svs-core` using:
