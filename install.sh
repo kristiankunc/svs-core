@@ -188,14 +188,14 @@ storage_setup() {
     # Setup /etc/svs directory
     sudo mkdir -p /etc/svs
     sudo chown root:svs-admins /etc/svs
-    sudo chmod 2775 /etc/svs
+    sudo chmod 660 /etc/svs
 
     # Setup /var/svs directory
     sudo mkdir -p /var/svs
     sudo mkdir -p /var/svs/volumes
     sudo chown -R root:svs-admins /var/svs
-    sudo chmod 2775 /var/svs
-    sudo chmod 2775 /var/svs/volumes
+    sudo chmod 770 /var/svs
+    sudo chmod 770 /var/svs/volumes
 
     # Create log file with proper permissions
     sudo touch /etc/svs/svs.log
