@@ -2,12 +2,19 @@
 
 SVS provides a set of official [templates](../../index.md#template) that can be used to create common services.
 
-## Available templates
+What do you want to host?
 
-- **[nginx](nginx.md)**: A template for deploying the NGINX web server.
-- **[mysql](mysql.md)**: A template for deploying the MySQL database server.
-- **[adminer](adminer.md)**: A template for deploying the Adminer database management tool.
+## Web servers
 
+- **[nginx](web/nginx.md)**: A template for deploying the NGINX web server.
+
+## Databases
+- **[mysql](databases/mysql.md)**: A template for deploying the MySQL database server.
+- **[adminer](databases/adminer.md)**: A template for deploying the Adminer database management tool.
+
+## Python
+
+- **[django](python/django.md)**: A template for deploying Django web applications.
 
 ## Customization
 
