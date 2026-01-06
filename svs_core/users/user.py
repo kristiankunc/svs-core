@@ -40,7 +40,15 @@ class InvalidPasswordException(SVSException):
 
 
 class User(UserModel):
-    """User class representing a user in the system."""
+    """User class representing a user in the system.
+
+    Attributes:
+        id (int): Primary key (inherited from BaseModel).
+        created_at (datetime): Timestamp when created (inherited from BaseModel).
+        updated_at (datetime): Timestamp when last updated (inherited from BaseModel).
+        name (str): Unique username.
+        password (str): Hashed password.
+    """
 
     class Meta:  # noqa: D106
         proxy = True

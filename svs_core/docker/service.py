@@ -26,7 +26,29 @@ T = TypeVar("T", bound=Mergeable)
 
 
 class Service(ServiceModel):
-    """Service class representing a service in the system."""
+    """Service class representing a service in the system.
+
+    Attributes:
+        id (int): Primary key (inherited from BaseModel).
+        created_at (datetime): Timestamp when created (inherited from BaseModel).
+        updated_at (datetime): Timestamp when last updated (inherited from BaseModel).
+        name (str): Service name.
+        container_id (str | None): Docker container ID.
+        image (str | None): Docker image name.
+        domain (str | None): Domain name for the service.
+        command (str | None): Command to run in the container.
+        args (list[str]): Command arguments.
+        env (list[EnvVariable]): Environment variables.
+        exposed_ports (list[ExposedPort]): Exposed ports.
+        volumes (list[Volume]): Volume bindings.
+        labels (list[Label]): Docker labels.
+        healthcheck (Healthcheck | None): Healthcheck configuration.
+        networks (list[str]): Networks to connect to.
+        template (TemplateModel): Associated template.
+        user (UserModel): Associated user.
+        template_obj (Template): Template object property.
+        status (ServiceStatus): Current service status property.
+    """
 
     objects = ServiceModel.objects
 

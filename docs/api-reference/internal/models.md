@@ -1,5 +1,12 @@
 
 ::: svs_core.db.models
+    options:
+      members:
+        - BaseModel
+        - UserModel
+        - TemplateModel
+        - ServiceModel
+      show_bases: true
 
 ---
 

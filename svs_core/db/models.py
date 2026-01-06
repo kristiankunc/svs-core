@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 
 from django.db import models
@@ -25,18 +26,41 @@ class ServiceManager(models.Manager["ServiceModel"]):  # type: ignore[misc]
 
 
 class BaseModel(models.Model):  # type: ignore[misc]
-    """Base model with common fields."""
+    """Base model with common fields.
 
-    id = models.AutoField(primary_key=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    Attributes:
+        id (int): Primary key auto-incrementing integer.
+        created_at (datetime): Timestamp when the record was created.
+        updated_at (datetime): Timestamp when the record was last updated.
+    """
+
+    id: int
+    """Primary key auto-incrementing integer."""
+
+    created_at: datetime
+    """Timestamp when the record was created."""
+
+    updated_at: datetime
+    """Timestamp when the record was last updated."""
+
+    id = models.AutoField(primary_key=True)  # type: ignore[assignment]
+    created_at = models.DateTimeField(auto_now_add=True)  # type: ignore[assignment]
+    updated_at = models.DateTimeField(auto_now=True)  # type: ignore[assignment]
 
     class Meta:  # noqa: D106
         abstract = True
 
 
 class UserModel(BaseModel):
-    """User model."""
+    """User model.
+
+    Attributes:
+        id: Primary key (inherited from BaseModel).
+        created_at: Timestamp when created (inherited from BaseModel).
+        updated_at: Timestamp when last updated (inherited from BaseModel).
+        name: Unique username.
+        password: Hashed password.
+    """
 
     objects = UserManager()
 
@@ -59,7 +83,26 @@ class TemplateType(str, Enum):
 
 
 class TemplateModel(BaseModel):
-    """Template model."""
+    """Template model.
+
+    Attributes:
+        id: Primary key (inherited from BaseModel).
+        created_at: Timestamp when created (inherited from BaseModel).
+        updated_at: Timestamp when last updated (inherited from BaseModel).
+        name: Template name.
+        type: Template type (image or build).
+        image: Docker image name (for image templates).
+        dockerfile: Dockerfile content (for build templates).
+        description: Template description.
+        start_cmd: Default start command.
+        args: Default command arguments.
+        default_env: Default environment variables (list of EnvVariable).
+        default_ports: Default exposed ports (list of ExposedPort).
+        default_volumes: Default volume bindings (list of Volume).
+        default_contents: Default file contents (list of DefaultContent).
+        healthcheck: Healthcheck configuration.
+        labels: Default Docker labels (list of Label).
+    """
 
     objects = TemplateManager()
 
@@ -164,7 +207,27 @@ class ServiceStatus(str, Enum):
 
 
 class ServiceModel(BaseModel):
-    """Service model."""
+    """Service model.
+
+    Attributes:
+        id: Primary key (inherited from BaseModel).
+        created_at: Timestamp when created (inherited from BaseModel).
+        updated_at: Timestamp when last updated (inherited from BaseModel).
+        name: Service name.
+        container_id: Docker container ID.
+        image: Docker image name.
+        domain: Domain name for the service.
+        command: Command to run in the container.
+        args: Command arguments.
+        env: Environment variables (list of EnvVariable).
+        exposed_ports: Exposed ports (list of ExposedPort).
+        volumes: Volume bindings (list of Volume).
+        labels: Docker labels (list of Label).
+        healthcheck: Healthcheck configuration.
+        networks: Networks to connect to.
+        template: Associated template.
+        user: Associated user.
+    """
 
     objects = ServiceManager()
 
