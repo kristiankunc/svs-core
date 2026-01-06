@@ -130,3 +130,63 @@ def mock_service_container(mocker: MockerFixture) -> object:
     mocker.patch("svs_core.docker.service.DockerContainerManager.connect_to_network")
 
     return mock_container
+
+
+@pytest.fixture
+def test_service(
+    mocker: MockerFixture,
+    test_template: Template,
+    test_user: User,
+    mock_service_container: object,
+) -> object:
+    """Create a test service for integration tests.
+
+    This fixture provides a fully configured Service instance with:
+    - Associated template (test_template)
+    - Associated user (test_user)
+    - Mocked Docker container operations
+    - Default configuration (name, domain, image, ports, env, volumes, etc.)
+
+    Additional mocks provided:
+    - SystemVolumeManager.generate_free_volume (returns /tmp/test-volume)
+    - SystemPortManager.find_free_port (returns 8080)
+
+    Returns the created Service instance.
+    """
+    from svs_core.docker.service import Service
+
+    # Mock volume generation for tests that use create_from_template
+    mock_volume_path = mocker.MagicMock()
+    mock_volume_path.as_posix.return_value = "/tmp/test-volume"
+    mocker.patch(
+        "svs_core.shared.volumes.SystemVolumeManager.generate_free_volume",
+        return_value=mock_volume_path,
+    )
+
+    # Mock port finding for tests that use create_from_template
+    mocker.patch(
+        "svs_core.shared.ports.SystemPortManager.find_free_port",
+        return_value=8080,
+    )
+
+    # Create a service with standard test configuration
+    service = Service.create(
+        name="test-service",
+        template_id=test_template.id,
+        user=test_user,
+        domain="test.example.com",
+        image="nginx:alpine",
+        exposed_ports=[ExposedPort(host_port=8080, container_port=80)],
+        env=[
+            EnvVariable(key="TEST_ENV", value="test_value"),
+        ],
+        volumes=[Volume(host_path="/tmp/test", container_path="/usr/share/nginx/html")],
+        command="nginx -g 'daemon off;'",
+        healthcheck=Healthcheck(
+            test=["CMD", "curl", "-f", "http://localhost"],
+        ),
+        labels=[Label(key="environment", value="test")],
+        args=["--test-arg"],
+    )
+
+    return service
