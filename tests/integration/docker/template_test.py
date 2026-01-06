@@ -721,16 +721,17 @@ class TestTemplate:
     @pytest.mark.integration
     @pytest.mark.django_db
     def test_delete_template_with_services_raises_error(
-        self, mocker: MockerFixture
+        self,
+        mocker: MockerFixture,
+        mock_docker_network_create,
+        mock_system_user_create,
     ) -> None:
+        """Test that deleting a template with associated services raises an
+        error."""
         mocker.patch(
             "svs_core.docker.template.DockerImageManager.exists", return_value=False
         )
         mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-        mocker.patch("svs_core.users.user.DockerNetworkManager.create_network")
-        mocker.patch("svs_core.users.user.SystemUserManager.create_user")
-        """Test that deleting a template with associated services raises an
-        error."""
         from svs_core.db.models import ServiceModel
         from svs_core.users.user import User
 

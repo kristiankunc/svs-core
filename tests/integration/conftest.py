@@ -60,3 +60,48 @@ def test_user(mocker: MockerFixture) -> Generator[User, None, None]:
 
     user = User.create(name="testuser", password="password123")
     yield user
+
+
+@pytest.fixture
+def mock_system_user_create(mocker: MockerFixture):
+    """Mock SystemUserManager.create_user for integration tests."""
+    return mocker.patch(
+        "svs_core.users.system.SystemUserManager.create_user",
+        return_value=None,
+    )
+
+
+@pytest.fixture
+def mock_system_user_delete(mocker: MockerFixture):
+    """Mock SystemUserManager.delete_user for integration tests."""
+    return mocker.patch(
+        "svs_core.users.system.SystemUserManager.delete_user",
+        return_value=None,
+    )
+
+
+@pytest.fixture
+def mock_docker_network_create(mocker: MockerFixture):
+    """Mock DockerNetworkManager.create_network for integration tests."""
+    return mocker.patch(
+        "svs_core.docker.network.DockerNetworkManager.create_network",
+        return_value=None,
+    )
+
+
+@pytest.fixture
+def mock_docker_network_delete(mocker: MockerFixture):
+    """Mock DockerNetworkManager.delete_network for integration tests."""
+    return mocker.patch(
+        "svs_core.docker.network.DockerNetworkManager.delete_network",
+        return_value=None,
+    )
+
+
+@pytest.fixture
+def mock_volume_delete(mocker: MockerFixture):
+    """Mock SystemVolumeManager.delete_user_volumes for integration tests."""
+    return mocker.patch(
+        "svs_core.shared.volumes.SystemVolumeManager.delete_user_volumes",
+        return_value=None,
+    )
