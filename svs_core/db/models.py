@@ -1,4 +1,3 @@
-from datetime import datetime
 from enum import Enum
 
 from django.db import models
@@ -34,18 +33,9 @@ class BaseModel(models.Model):  # type: ignore[misc]
         updated_at (datetime): Timestamp when the record was last updated.
     """
 
-    id: int
-    """Primary key auto-incrementing integer."""
-
-    created_at: datetime
-    """Timestamp when the record was created."""
-
-    updated_at: datetime
-    """Timestamp when the record was last updated."""
-
-    id = models.AutoField(primary_key=True)  # type: ignore[assignment]
-    created_at = models.DateTimeField(auto_now_add=True)  # type: ignore[assignment]
-    updated_at = models.DateTimeField(auto_now=True)  # type: ignore[assignment]
+    id = models.AutoField(primary_key=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:  # noqa: D106
         abstract = True
@@ -55,11 +45,11 @@ class UserModel(BaseModel):
     """User model.
 
     Attributes:
-        id: Primary key (inherited from BaseModel).
-        created_at: Timestamp when created (inherited from BaseModel).
-        updated_at: Timestamp when last updated (inherited from BaseModel).
-        name: Unique username.
-        password: Hashed password.
+        id (int): Primary key (inherited from BaseModel).
+        created_at (datetime): Timestamp when created (inherited from BaseModel).
+        updated_at (datetime): Timestamp when last updated (inherited from BaseModel).
+        name (str): Unique username.
+        password (str): Hashed password.
     """
 
     objects = UserManager()
@@ -86,22 +76,22 @@ class TemplateModel(BaseModel):
     """Template model.
 
     Attributes:
-        id: Primary key (inherited from BaseModel).
-        created_at: Timestamp when created (inherited from BaseModel).
-        updated_at: Timestamp when last updated (inherited from BaseModel).
-        name: Template name.
-        type: Template type (image or build).
-        image: Docker image name (for image templates).
-        dockerfile: Dockerfile content (for build templates).
-        description: Template description.
-        start_cmd: Default start command.
-        args: Default command arguments.
-        default_env: Default environment variables (list of EnvVariable).
-        default_ports: Default exposed ports (list of ExposedPort).
-        default_volumes: Default volume bindings (list of Volume).
-        default_contents: Default file contents (list of DefaultContent).
-        healthcheck: Healthcheck configuration.
-        labels: Default Docker labels (list of Label).
+        id (int): Primary key (inherited from BaseModel).
+        created_at (datetime): Timestamp when created (inherited from BaseModel).
+        updated_at (datetime): Timestamp when last updated (inherited from BaseModel).
+        name (str): Template name.
+        type (str): Template type (image or build).
+        image (str): Docker image name (for image templates).
+        dockerfile (str): Dockerfile content (for build templates).
+        description (str): Template description.
+        start_cmd (str): Default start command.
+        args (list): Default command arguments.
+        default_env (list[EnvVariable]): Default environment variables (list of EnvVariable).
+        default_ports (list[ExposedPort]): Default exposed ports (list of ExposedPort).
+        default_volumes (list[Volume]): Default volume bindings (list of Volume).
+        default_contents (list[DefaultContent]): Default file contents (list of DefaultContent).
+        healthcheck (Healthcheck | None): Healthcheck configuration.
+        labels (list[Label]): Default Docker labels (list of Label).
     """
 
     objects = TemplateManager()
@@ -210,23 +200,23 @@ class ServiceModel(BaseModel):
     """Service model.
 
     Attributes:
-        id: Primary key (inherited from BaseModel).
-        created_at: Timestamp when created (inherited from BaseModel).
-        updated_at: Timestamp when last updated (inherited from BaseModel).
-        name: Service name.
-        container_id: Docker container ID.
-        image: Docker image name.
-        domain: Domain name for the service.
-        command: Command to run in the container.
-        args: Command arguments.
-        env: Environment variables (list of EnvVariable).
-        exposed_ports: Exposed ports (list of ExposedPort).
-        volumes: Volume bindings (list of Volume).
-        labels: Docker labels (list of Label).
-        healthcheck: Healthcheck configuration.
-        networks: Networks to connect to.
-        template: Associated template.
-        user: Associated user.
+        id (int): Primary key (inherited from BaseModel).
+        created_at (datetime): Timestamp when created (inherited from BaseModel).
+        updated_at (datetime): Timestamp when last updated (inherited from BaseModel).
+        name (str): Service name.
+        container_id (str): Docker container ID.
+        image (str): Docker image name.
+        domain (str): Domain name for the service.
+        command (str): Command to run in the container.
+        args (list): Command arguments.
+        env (list[EnvVariable]): Environment variables (list of EnvVariable).
+        exposed_ports (list[ExposedPort]): Exposed ports (list of ExposedPort).
+        volumes (list[Volume]): Volume bindings (list of Volume).
+        labels (list[Label]): Docker labels (list of Label).
+        healthcheck (Healthcheck | None): Healthcheck configuration.
+        networks (list[str]): Networks to connect to.
+        template (TemplateModel): Associated template.
+        user (UserModel): Associated user.
     """
 
     objects = ServiceManager()
