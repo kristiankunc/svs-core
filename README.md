@@ -66,6 +66,9 @@ To start the devcontainer, open the repository in Visual Studio Code and select 
 
 After attaching to the devcontainer, the dependencies will be automatically installed. After that's done, you can launch a new terminal which will have the virtual environment activated automatically.
 
+You also need to run the [`install-dev.sh`](./install-dev.sh) script to configure your system for development. This script will create the required directories and configure permissions. It is a subset of the production install script.
+
+```bash
 ### Linting + Formatting
 
 The devcontainer includes pre-configured linting and formatting tools for Visual Studio Code and all files should be formatted on save. If you use a different editor, you can run the pre-commit hooks manually by running `pre-commit run --all-files` in the terminal to apply the formatting and linting rules.
