@@ -723,8 +723,8 @@ class TestTemplate:
     def test_delete_template_with_services_raises_error(
         self,
         mocker: MockerFixture,
-        mock_docker_network_create,
-        mock_system_user_create,
+        mock_docker_network_create: object,
+        mock_system_user_create: object,
     ) -> None:
         """Test that deleting a template with associated services raises an
         error."""
