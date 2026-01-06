@@ -31,10 +31,10 @@ class GitSource(GitSourceModel):
 
         Raises:
             ValueError: If any of the input parameters are invalid.
+            Service.DoesNotExist: If the service with the given ID does not exist.
         """
 
-        if Service.objects.get(id=service_id) is None:
-            raise ValueError(f"Service with id {service_id} does not exist")
+        Service.objects.get(id=service_id)
 
         if not destination_path.is_absolute():
             raise ValueError("destination_path must be an absolute path")
