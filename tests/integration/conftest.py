@@ -106,3 +106,27 @@ def mock_volume_delete(mocker: MockerFixture) -> object:
         "svs_core.users.user.SystemVolumeManager.delete_user_volumes",
         return_value=None,
     )
+
+
+@pytest.fixture
+def mock_service_container(mocker: MockerFixture) -> object:
+    """Mock Docker container operations for Service integration tests.
+
+    This fixture provides:
+    - A mock container object with configurable id
+    - Mocked DockerContainerManager.create_container
+    - Mocked DockerContainerManager.connect_to_network
+
+    Returns the mock container object for further configuration in tests.
+    """
+    mock_container = mocker.MagicMock()
+    mock_container.id = "test_container_id"
+    mock_container.status = "created"
+
+    mocker.patch(
+        "svs_core.docker.service.DockerContainerManager.create_container",
+        return_value=mock_container,
+    )
+    mocker.patch("svs_core.docker.service.DockerContainerManager.connect_to_network")
+
+    return mock_container
