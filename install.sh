@@ -311,4 +311,7 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
-init
+# Only run init if not sourced from install-dev.sh
+if [ -z "$SOURCED_FOR_DEV" ]; then
+    init
+fi
