@@ -2,6 +2,8 @@ from pathlib import Path
 
 from svs_core.db.models import GitSourceModel
 from svs_core.shared.http import is_url
+from svs_core.shared.logger import get_logger
+from svs_core.shared.shell import run_command
 
 
 class GitSource(GitSourceModel):
@@ -56,3 +58,21 @@ class GitSource(GitSourceModel):
         )
         git_source.save()
         return git_source
+
+    def execute(self) -> None:
+        """Execute the git clone operation for this GitSource."""
+
+        get_logger().info(
+            f"Cloning repository {self.repository_url} (branch: {self.branch}) to {self.destination_path}"
+        )
+
+        run_command(
+            f"git clone --branch {self.branch} {self.repository_url} {self.destination_path}"
+        )
+
+        get_logger().info(
+            f"Successfully cloned repository {self.repository_url} to {self.destination_path}"
+        )
+
+    def __str__(self) -> str:
+        return f"GitSource(id={self.id}, repository_url={self.repository_url}, branch={self.branch}, destination_path={self.destination_path})"
