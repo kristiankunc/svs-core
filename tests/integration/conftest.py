@@ -53,11 +53,12 @@ def test_template(mocker: MockerFixture) -> Generator[Template, None, None]:
 
 
 @pytest.fixture
-def test_user(mocker: MockerFixture) -> Generator[User, None, None]:
+def test_user(
+    mocker: MockerFixture,
+    mock_docker_network_create: object,
+    mock_system_user_create: object,
+) -> Generator[User, None, None]:
     """Create a test user for integration tests."""
-    mocker.patch("svs_core.users.user.DockerNetworkManager.create_network")
-    mocker.patch("svs_core.users.user.SystemUserManager.create_user")
-
     user = User.create(name="testuser", password="password123")
     yield user
 
