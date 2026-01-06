@@ -1,4 +1,5 @@
 """Common fixtures for integration tests."""
+
 from typing import Generator
 
 import pytest
