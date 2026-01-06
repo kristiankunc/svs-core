@@ -17,6 +17,7 @@ from svs_core.docker.json_properties import (
 )
 from svs_core.docker.service import Service
 from svs_core.docker.template import Template
+from svs_core.shared.git_source import GitSource
 from svs_core.users.user import User
 
 
@@ -1730,3 +1731,114 @@ CMD cat /version.txt
             # Verify updated build args
             call_args = mock_build.call_args
             assert call_args.kwargs["build_args"]["APP_VERSION"] == "2.0"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_add_git_source(
+        self,
+        mocker: MockerFixture,
+        test_service: Service,
+    ) -> None:
+        """Test adding a git source to a service."""
+        # Mock GitSource.create
+        mock_git_source_create = mocker.patch(
+            "svs_core.docker.service.GitSource.create"
+        )
+
+        with TemporaryDirectory() as tmpdir:
+            destination_path = Path(tmpdir) / "repo"
+
+            # Add a git source to the service
+            test_service.add_git_source(
+                repository_url="https://github.com/user/repo.git",
+                branch="main",
+                destination_path=destination_path,
+            )
+
+            # Verify GitSource.create was called with correct parameters
+            mock_git_source_create.assert_called_once_with(
+                service_id=test_service.id,
+                repository_url="https://github.com/user/repo.git",
+                destination_path=destination_path,
+                branch="main",
+            )
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_add_git_source_invalid_url(
+        self,
+        mocker: MockerFixture,
+        test_service: Service,
+    ) -> None:
+        """Test adding a git source with invalid URL raises error."""
+        # Mock GitSource.create to raise ValueError
+        mocker.patch(
+            "svs_core.docker.service.GitSource.create",
+            side_effect=ValueError("repository_url must be a valid URL"),
+        )
+
+        with TemporaryDirectory() as tmpdir:
+            destination_path = Path(tmpdir) / "repo"
+
+            # Attempt to add a git source with invalid URL should raise InvalidGitSourceError
+            with pytest.raises(
+                GitSource.InvalidGitSourceError, match="Failed to add Git source"
+            ):
+                test_service.add_git_source(
+                    repository_url="invalid-url",
+                    branch="main",
+                    destination_path=destination_path,
+                )
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_add_git_source_relative_path(
+        self,
+        mocker: MockerFixture,
+        test_service: Service,
+    ) -> None:
+        """Test adding a git source with relative path raises error."""
+        # Mock GitSource.create to raise ValueError for relative path
+        mocker.patch(
+            "svs_core.docker.service.GitSource.create",
+            side_effect=ValueError("destination_path must be an absolute path"),
+        )
+
+        # Attempt to add a git source with relative path should raise InvalidGitSourceError
+        with pytest.raises(
+            GitSource.InvalidGitSourceError, match="Failed to add Git source"
+        ):
+            test_service.add_git_source(
+                repository_url="https://github.com/user/repo.git",
+                branch="main",
+                destination_path=Path("relative/path"),
+            )
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_add_git_source_invalid_branch(
+        self,
+        mocker: MockerFixture,
+        test_service: Service,
+    ) -> None:
+        """Test adding a git source with invalid branch raises error."""
+        # Mock GitSource.create to raise ValueError for invalid branch
+        mocker.patch(
+            "svs_core.docker.service.GitSource.create",
+            side_effect=ValueError(
+                "branch cannot be an empty string or contain spaces"
+            ),
+        )
+
+        with TemporaryDirectory() as tmpdir:
+            destination_path = Path(tmpdir) / "repo"
+
+            # Attempt to add a git source with invalid branch should raise InvalidGitSourceError
+            with pytest.raises(
+                GitSource.InvalidGitSourceError, match="Failed to add Git source"
+            ):
+                test_service.add_git_source(
+                    repository_url="https://github.com/user/repo.git",
+                    branch="invalid branch",
+                    destination_path=destination_path,
+                )

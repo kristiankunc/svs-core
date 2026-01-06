@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from svs_core.db.models import GitSourceModel
-from svs_core.docker.service import Service
 from svs_core.shared.http import is_url
 
 
@@ -10,6 +9,9 @@ class GitSource(GitSourceModel):
 
     class Meta:  # noqa: D106
         proxy = True
+
+    class InvalidGitSourceError(ValueError):
+        """Exception raised for invalid GitSource parameters."""
 
     @classmethod
     def create(
@@ -33,6 +35,7 @@ class GitSource(GitSourceModel):
             ValueError: If any of the input parameters are invalid.
             Service.DoesNotExist: If the service with the given ID does not exist.
         """
+        from svs_core.docker.service import Service
 
         Service.objects.get(id=service_id)
 

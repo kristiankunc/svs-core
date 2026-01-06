@@ -16,6 +16,7 @@ from svs_core.docker.json_properties import (
     Volume,
 )
 from svs_core.docker.template import Template
+from svs_core.shared.git_source import GitSource
 from svs_core.shared.logger import get_logger
 from svs_core.shared.ports import SystemPortManager
 from svs_core.shared.volumes import SystemVolumeManager
@@ -699,3 +700,32 @@ class Service(ServiceModel):
                 self.start()
 
         self.save()
+
+    def add_git_source(
+        self,
+        repository_url: str,
+        branch: str,
+        destination_path: Path,
+    ) -> None:
+        """Add a Git source to the service.
+
+        Args:
+            repository_url (str): The URL of the Git repository.
+            branch (str): The branch to checkout.
+            destination_path (Path): The destination path where the repository will be cloned.
+
+        Raises:
+            InvalidGitSourceError: If any of the input parameters are invalid.
+        """
+
+        try:
+            GitSource.create(
+                service_id=self.id,
+                repository_url=repository_url,
+                destination_path=destination_path,
+                branch=branch,
+            )
+        except Exception as e:
+            raise GitSource.InvalidGitSourceError(
+                f"Failed to add Git source: {str(e)}"
+            ) from e
