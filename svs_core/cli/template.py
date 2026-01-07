@@ -8,7 +8,7 @@ from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from svs_core.cli.lib import get_or_exit
+from svs_core.cli.lib import confirm_action, get_or_exit
 from svs_core.cli.state import reject_if_not_admin
 from svs_core.docker.template import Template
 
@@ -17,28 +17,76 @@ app = typer.Typer(help="Manage templates")
 
 @app.command("import")
 def import_template(
-    file_path: str = typer.Argument(..., help="Path to the template file to import")
+    file_path: str = typer.Argument(..., help="Path to the template file to import"),
+    recursive: bool = typer.Option(
+        False,
+        "-r",
+        "--recursive",
+        help="Import templates from directories recursively (one level deep)",
+    ),
 ) -> None:
     """Import a new template from a file."""
 
     reject_if_not_admin()
 
-    if not os.path.isfile(file_path):
-        print(f"File '{file_path}' does not exist.", file=sys.stderr)
+    if not os.path.exists(file_path):
+        print(f"File/directory '{file_path}' does not exist.", file=sys.stderr)
         raise typer.Exit(code=1)
 
-    with open(file_path, "r") as file:
-        data = json.load(file)
+    if recursive and not os.path.isdir(file_path):
+        print(
+            f"Path '{file_path}' is not a directory for recursive import.",
+            file=sys.stderr,
+        )
+        raise typer.Exit(code=1)
 
-    with Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-    ) as progress:
-        progress.add_task(description="Importing template...", total=None)
+    files = []
+    if recursive:
+        for entry in os.listdir(file_path):
+            full_path = os.path.join(file_path, entry)
+            if (
+                os.path.isfile(full_path)
+                and full_path.lower().endswith(".json")
+                and not full_path.lower().endswith("schema.json")
+            ):
+                files.append(full_path)
+    else:
+        files.append(file_path)
 
-        template = Template.import_from_json(data)
+    for path in files:
+        with open(path, "r") as file:
+            data = json.load(file)
 
-    print(f"Template '{template.name}' imported successfully.")
+        skip_import = False
+        all_templates = Template.objects.all()
+        for existing_template in all_templates:
+            if existing_template.name == data.get(
+                "name"
+            ) and existing_template.type == data.get("type"):
+                skip = confirm_action(
+                    f"Template '{existing_template.name}' of type '{existing_template.type}' already exists. Skip import?"
+                )
+
+                if skip:
+                    print(f"Skipping import of template '{data.get('name')}'.")
+                    skip_import = True
+                break
+
+        if skip_import:
+            continue
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+        ) as progress:
+            progress.add_task(
+                description=f"Importing template/{os.path.basename(path)}...",
+                total=None,
+            )
+
+            template = Template.import_from_json(data)
+
+        print(f"Template '{template.name}' imported successfully.")
 
 
 @app.command("list")
