@@ -50,12 +50,16 @@ plugins:
             docstring_options:
               ignore_init_summary: true
             docstring_section_style: list
-            filters: ["!^_", "^__"]
+            docstring_style: google
+            filters: ["!^_", "^__", "!^Meta$"]
             heading_level: 1
             inherited_members: true
             merge_init_into_class: true
             parameter_headings: true
             separate_signature: true
+            show_bases: true
+            show_docstring_attributes: true
+            show_if_no_docstring: true
             show_root_heading: true
             show_root_full_path: false
             show_signature_annotations: true

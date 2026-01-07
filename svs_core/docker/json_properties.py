@@ -9,7 +9,12 @@ V = TypeVar("V")
 
 
 class KeyValue(Generic[K, V]):
-    """Generic key-value pair representation."""
+    """Generic key-value pair representation.
+
+    Attributes:
+        key: The key of the pair.
+        value: The value of the pair.
+    """
 
     def __init__(self, key: K, value: V):
         self.key = key
@@ -74,7 +79,12 @@ class KeyValue(Generic[K, V]):
 
 
 class EnvVariable(KeyValue[str, str]):
-    """Environment variable represented as a key-value pair."""
+    """Environment variable represented as a key-value pair.
+
+    Attributes:
+        key: Environment variable name.
+        value: Environment variable value.
+    """
 
     @classmethod
     # type: ignore[override]
@@ -93,7 +103,12 @@ class EnvVariable(KeyValue[str, str]):
 
 
 class Label(KeyValue[str, str]):
-    """Docker label represented as a key-value pair."""
+    """Docker label represented as a key-value pair.
+
+    Attributes:
+        key: Label name.
+        value: Label value.
+    """
 
     @classmethod
     def from_dict(cls, data: dict[str, str]) -> "Label":  # type: ignore[override]
@@ -118,6 +133,10 @@ class ExposedPort(KeyValue[int | None, int]):
     Note: Uses key=host_port (optional) and value=container_port (mandatory) for storage.
     This ensures container_port is always present for merging operations.
     Serialization uses the format {"key": host_port, "value": container_port}.
+
+    Attributes:
+        host_port: Port on the host machine (optional, None for dynamic assignment).
+        container_port: Port inside the Docker container (mandatory).
     """
 
     def __init__(self, host_port: int | None, container_port: int):
@@ -155,6 +174,10 @@ class Volume(KeyValue[str | None, str]):
     Note: Uses key=host_path (optional) and value=container_path (mandatory) for storage.
     This ensures container_path is always present for merging operations.
     Serialization uses the format {"key": host_path, "value": container_path}.
+
+    Attributes:
+        host_path: Path on the host machine (optional, None for anonymous volumes).
+        container_path: Path inside the Docker container (mandatory).
     """
 
     def __init__(self, host_path: str | None, container_path: str):
@@ -202,6 +225,10 @@ class DefaultContent(KeyValue[str, str]):
     Note: Uses key=location and value=content for storage.
     Represents a file to be created in the container with specified content.
     Serialization uses the format {"key": location, "value": content}.
+
+    Attributes:
+        location: File path inside the container.
+        content: Content of the file.
     """
 
     def __init__(self, location: str, content: str):
@@ -255,8 +282,16 @@ class DefaultContent(KeyValue[str, str]):
         return f"DefaultContent({self.location}={content_preview})"
 
 
-class Healthcheck:  # noqa: D101
-    """Represents a healthcheck configuration for a Docker container."""
+class Healthcheck:
+    """Represents a healthcheck configuration for a Docker container.
+
+    Attributes:
+        test: Command to run to check the health of the container.
+        interval: Time between running the check (in seconds).
+        timeout: Time to wait before considering the check failed (in seconds).
+        retries: Number of consecutive failures needed to consider unhealthy.
+        start_period: Initialization time before starting health checks (in seconds).
+    """
 
     def __init__(
         self,

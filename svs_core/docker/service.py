@@ -32,8 +32,8 @@ class Service(ServiceModel):
     objects = ServiceModel.objects
 
     # Constants for rebuild stop retry logic
-    MAX_STOP_RETRIES = 3
-    STOP_RETRY_DELAY_SECONDS = 1
+    _MAX_STOP_RETRIES = 3
+    _STOP_RETRY_DELAY_SECONDS = 1
 
     class Meta:  # noqa: D106
         proxy = True
@@ -634,23 +634,23 @@ class Service(ServiceModel):
 
                 # Wait for the container to actually stop after stop() is called
                 # Docker's stop operation can take time (graceful shutdown with SIGTERM, then SIGKILL)
-                for attempt in range(self.MAX_STOP_RETRIES):
+                for attempt in range(self._MAX_STOP_RETRIES):
                     container = DockerContainerManager.get_container(self.container_id)
                     if not container or container.status != "running":
                         break
 
                     # Wait before next check to give container time to stop
-                    if attempt < self.MAX_STOP_RETRIES - 1:
+                    if attempt < self._MAX_STOP_RETRIES - 1:
                         get_logger(__name__).warning(
-                            f"Container {self.container_id} still running after stop() - waiting (attempt {attempt + 1}/{self.MAX_STOP_RETRIES})"
+                            f"Container {self.container_id} still running after stop() - waiting (attempt {attempt + 1}/{self._MAX_STOP_RETRIES})"
                         )
-                        time.sleep(self.STOP_RETRY_DELAY_SECONDS)
+                        time.sleep(self._STOP_RETRY_DELAY_SECONDS)
                     else:
                         get_logger(__name__).error(
-                            f"Container {self.container_id} failed to stop after {self.MAX_STOP_RETRIES} attempts"
+                            f"Container {self.container_id} failed to stop after {self._MAX_STOP_RETRIES} attempts"
                         )
                         raise RuntimeError(
-                            f"Failed to stop container {self.container_id} after {self.MAX_STOP_RETRIES} attempts"
+                            f"Failed to stop container {self.container_id} after {self._MAX_STOP_RETRIES} attempts"
                         )
 
             # Remove the old container so we can create a new one with the updated image
