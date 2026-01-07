@@ -1,3 +1,5 @@
+import re
+
 from typing import Optional
 
 import httpx
@@ -5,7 +7,7 @@ import httpx
 from svs_core.shared.logger import get_logger
 
 
-async def send_http_request(
+def send_http_request(
     method: str,
     url: str,
     headers: Optional[dict[str, str]] = None,
@@ -29,8 +31,8 @@ async def send_http_request(
     get_logger(__name__).debug(
         f"Sending {method} request to {url} with headers={headers}, params={params}, data={data}, json={json}"
     )
-    async with httpx.AsyncClient() as client:
-        response = await client.request(
+    with httpx.Client() as client:
+        response = client.request(
             method=method,
             url=url,
             headers=headers,
@@ -45,3 +47,20 @@ async def send_http_request(
 
         response.raise_for_status()
         return response
+
+
+def is_url(url: str) -> bool:
+    """Check if a string is a valid URL.
+
+    Args:
+        url (str): The string to check.
+
+    Returns:
+        bool: True if the string is a valid URL, False otherwise.
+    """
+    # Matches http(s)://hostname with optional port, path, query, and fragment
+    # Supports domains with dots, localhost, and IP addresses
+    url_regex = re.compile(
+        r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}(\.[a-zA-Z0-9()]{1,6})?\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
+    )
+    return re.match(url_regex, url) is not None
