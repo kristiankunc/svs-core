@@ -26,35 +26,13 @@ T = TypeVar("T", bound=Mergeable)
 
 
 class Service(ServiceModel):
-    """Service class representing a service in the system.
-
-    Attributes:
-        id (int): Primary key (inherited from BaseModel).
-        created_at (datetime): Timestamp when created (inherited from BaseModel).
-        updated_at (datetime): Timestamp when last updated (inherited from BaseModel).
-        name (str): Service name.
-        container_id (str | None): Docker container ID.
-        image (str | None): Docker image name.
-        domain (str | None): Domain name for the service.
-        command (str | None): Command to run in the container.
-        args (list[str]): Command arguments.
-        env (list[EnvVariable]): Environment variables.
-        exposed_ports (list[ExposedPort]): Exposed ports.
-        volumes (list[Volume]): Volume bindings.
-        labels (list[Label]): Docker labels.
-        healthcheck (Healthcheck | None): Healthcheck configuration.
-        networks (list[str]): Networks to connect to.
-        template (TemplateModel): Associated template.
-        user (UserModel): Associated user.
-        template_obj (Template): Template object property.
-        status (ServiceStatus): Current service status property.
-    """
+    """Service class representing a service in the system."""
 
     objects = ServiceModel.objects
 
     # Constants for rebuild stop retry logic
-    MAX_STOP_RETRIES = 3
-    STOP_RETRY_DELAY_SECONDS = 1
+    _MAX_STOP_RETRIES = 3
+    _STOP_RETRY_DELAY_SECONDS = 1
 
     class Meta:  # noqa: D106
         proxy = True
@@ -655,23 +633,23 @@ class Service(ServiceModel):
 
                 # Wait for the container to actually stop after stop() is called
                 # Docker's stop operation can take time (graceful shutdown with SIGTERM, then SIGKILL)
-                for attempt in range(self.MAX_STOP_RETRIES):
+                for attempt in range(self._MAX_STOP_RETRIES):
                     container = DockerContainerManager.get_container(self.container_id)
                     if not container or container.status != "running":
                         break
 
                     # Wait before next check to give container time to stop
-                    if attempt < self.MAX_STOP_RETRIES - 1:
+                    if attempt < self._MAX_STOP_RETRIES - 1:
                         get_logger(__name__).warning(
-                            f"Container {self.container_id} still running after stop() - waiting (attempt {attempt + 1}/{self.MAX_STOP_RETRIES})"
+                            f"Container {self.container_id} still running after stop() - waiting (attempt {attempt + 1}/{self._MAX_STOP_RETRIES})"
                         )
-                        time.sleep(self.STOP_RETRY_DELAY_SECONDS)
+                        time.sleep(self._STOP_RETRY_DELAY_SECONDS)
                     else:
                         get_logger(__name__).error(
-                            f"Container {self.container_id} failed to stop after {self.MAX_STOP_RETRIES} attempts"
+                            f"Container {self.container_id} failed to stop after {self._MAX_STOP_RETRIES} attempts"
                         )
                         raise RuntimeError(
-                            f"Failed to stop container {self.container_id} after {self.MAX_STOP_RETRIES} attempts"
+                            f"Failed to stop container {self.container_id} after {self._MAX_STOP_RETRIES} attempts"
                         )
 
             # Remove the old container so we can create a new one with the updated image

@@ -16,26 +16,7 @@ from svs_core.shared.logger import get_logger
 
 
 class Template(TemplateModel):
-    """Template class representing a Docker template in the system.
-
-    Attributes:
-        id (int): Primary key (inherited from BaseModel).
-        created_at (datetime): Timestamp when created (inherited from BaseModel).
-        updated_at (datetime): Timestamp when last updated (inherited from BaseModel).
-        name (str): Template name.
-        type (TemplateType): Template type (image or build).
-        image (str | None): Docker image name (for image templates).
-        dockerfile (str | None): Dockerfile content (for build templates).
-        description (str | None): Template description.
-        start_cmd (str | None): Default start command.
-        args (list[str]): Default command arguments.
-        default_env (list[EnvVariable]): Default environment variables.
-        default_ports (list[ExposedPort]): Default exposed ports.
-        default_volumes (list[Volume]): Default volume bindings.
-        default_contents (list[DefaultContent]): Default file contents.
-        healthcheck (Healthcheck | None): Healthcheck configuration.
-        labels (list[Label]): Default Docker labels.
-    """
+    """Template class representing a Docker template in the system."""
 
     class Meta:  # noqa: D106
         proxy = True
