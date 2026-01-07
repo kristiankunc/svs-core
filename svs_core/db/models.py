@@ -312,8 +312,11 @@ class GitSourceModel(BaseModel):
     """Git Source model."""
 
     repository_url = models.CharField(max_length=512)
+    """URL of the git repository."""
     branch = models.CharField(max_length=255, null=True, blank=True)
+    """Branch to checkout."""
     destination_path = models.CharField(max_length=512, null=True, blank=True)
+    """Destination path inside the service volume on host filesystem."""
     service = models.ForeignKey(
         ServiceModel, on_delete=models.CASCADE, related_name="git_sources"
     )

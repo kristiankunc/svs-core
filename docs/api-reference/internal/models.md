@@ -6,6 +6,7 @@
         - UserModel
         - TemplateModel
         - ServiceModel
+        - GitSourceModel
       show_bases: true
 
 ---
