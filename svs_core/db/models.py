@@ -25,6 +25,10 @@ class ServiceManager(models.Manager["ServiceModel"]):  # type: ignore[misc]
     """Typed manager for ServiceModel."""
 
 
+class GitSourceManager(models.Manager["GitSourceModel"]):  # type: ignore[misc]
+    """Typed manager for GitSourceModel."""
+
+
 class BaseModel(models.Model):  # type: ignore[misc]
     """Base model with common fields."""
 
@@ -302,3 +306,17 @@ class ServiceModel(BaseModel):
 
     class Meta:  # noqa: D106
         db_table = "services"
+
+
+class GitSourceModel(BaseModel):
+    """Git Source model."""
+
+    repository_url = models.CharField(max_length=512)
+    branch = models.CharField(max_length=255, null=True, blank=True)
+    destination_path = models.CharField(max_length=512, null=True, blank=True)
+    service = models.ForeignKey(
+        ServiceModel, on_delete=models.CASCADE, related_name="git_sources"
+    )
+
+    class Meta:  # noqa: D106
+        db_table = "git_sources"

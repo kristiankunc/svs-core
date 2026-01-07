@@ -27,3 +27,16 @@ def get_or_exit(model: Type[T], **lookup: object) -> T:
         where = ", ".join(f"{k}={v!r}" for k, v in lookup.items())
         print(f"{model.__name__} with {where} not found.", file=sys.stderr)
         raise typer.Exit(1)
+
+
+def confirm_action(prompt: str) -> bool:
+    """Prompt the user to confirm an action.
+
+    Args:
+        prompt (str): The confirmation message to display.
+
+    Returns:
+        bool: True if the user confirms, False otherwise.
+    """
+    response = input(f"{prompt} (y/N): ").strip().lower()
+    return response == "y"
