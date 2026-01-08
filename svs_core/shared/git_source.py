@@ -85,12 +85,13 @@ class GitSource(GitSourceModel):
         Returns:
             bool: True if the local repository is up to date, False otherwise.
         """
-
-        from svs_core.shared.shell import run_command
-
+                
         get_logger().info(
             f"Checking for updates in repository {self.repository_url} (branch: {self.branch}) at {self.destination_path}"
         )
+
+        if not self.isdownloaded():
+            return False
 
         owner = self.service.user.name
 

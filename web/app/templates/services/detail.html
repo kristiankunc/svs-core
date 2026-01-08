@@ -239,8 +239,8 @@
                                                 <code class="text-break">{{ git_source.destination_path }}</code>
                                             </td>
                                             <td>
-                                                {% if git_source.downloaded_at %}
-                                                    <span class="badge bg-success" title="Last downloaded: {{ git_source.downloaded_at }}">Downloaded</span>
+                                                {% if git_source.is_updated %}
+                                                    <span class="badge bg-success">Up to Date</span>
                                                 {% else %}
                                                     <span class="badge bg-warning">Not Downloaded</span>
                                                 {% endif %}
