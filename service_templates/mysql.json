@@ -43,7 +43,7 @@
 		],
 		"timeout": 10
 	},
-	"image": "mysql:latest",
+	"image": "mysql:9",
 	"name": "mysql-database",
 	"start_cmd": null,
 	"type": "image"

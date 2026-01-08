@@ -33,7 +33,7 @@
 		],
 		"timeout": 10
 	},
-	"image": "lscr.io/linuxserver/nginx:latest",
+	"image": "lscr.io/linuxserver/nginx:1.28.0",
 	"name": "nginx-webserver",
 	"start_cmd": null,
 	"type": "image"
