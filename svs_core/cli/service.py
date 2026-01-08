@@ -371,7 +371,13 @@ def download_git_source(
         print("You do not have permission to modify this service.", file=sys.stderr)
         raise typer.Exit(1)
 
-    git_source.execute()
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+    ) as progress:
+        progress.add_task(description="Downloading git source...", total=None)
+        git_source.download()
+
     print(
         f"Git source '{git_source.repository_url}' downloaded/updated for service '{service.name}' successfully."
     )

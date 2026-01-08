@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -34,7 +35,6 @@ class TestGitSourceIntegration:
     @pytest.mark.django_db
     def test_create_git_source_invalid_service_id(self) -> None:
         """Test GitSource creation fails with invalid service ID."""
-
         with TemporaryDirectory() as tmpdir:
             with pytest.raises(Service.DoesNotExist):
                 GitSource.create(
@@ -85,3 +85,21 @@ class TestGitSourceIntegration:
                     destination_path=Path(tmpdir) / "repo",
                     branch="invalid branch",
                 )
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_is_cloned(self, test_service: Service) -> None:
+        """Test is_cloned detection."""
+        with TemporaryDirectory() as tmpdir:
+            destination_path = Path(tmpdir) / "repo"
+            destination_path.mkdir(parents=True)
+            (destination_path / ".git").mkdir(parents=True)
+
+            git_source = GitSource.create(
+                service_id=test_service.id,
+                repository_url="https://github.com/user/repo.git",
+                destination_path=destination_path,
+                branch="main",
+            )
+
+            assert git_source.is_cloned()

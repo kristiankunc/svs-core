@@ -1031,7 +1031,7 @@ class TestServiceCommands:
         assert (
             "downloaded" in result.output.lower() or "updated" in result.output.lower()
         )
-        mock_git_source.execute.assert_called_once()
+        mock_git_source.download.assert_called_once()
 
     def test_download_git_source_permission_denied(self, mocker: MockerFixture) -> None:
         """Test downloading git source without permission."""
@@ -1083,4 +1083,4 @@ class TestServiceCommands:
         assert (
             "downloaded" in result.output.lower() or "updated" in result.output.lower()
         )
-        mock_git_source.execute.assert_called_once()
+        mock_git_source.download.assert_called_once()
