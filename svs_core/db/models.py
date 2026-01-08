@@ -342,7 +342,7 @@ class ServiceModel(BaseModel):
         return User.objects.filter(id=self.user_id)
 
     @property
-    def prox_git_sources(self) -> models.QuerySet["GitSource"]:
+    def proxy_git_sources(self) -> models.QuerySet["GitSource"]:
         """Get related GitSourceModel instances."""
         from svs_core.shared.git_source import GitSource
 
