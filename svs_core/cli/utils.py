@@ -4,20 +4,10 @@ from pathlib import Path
 
 import typer
 
+from django.core import management
 from rich import print as rprint
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.table import Table
 
-from svs_core.cli.lib import get_or_exit
-from svs_core.cli.state import get_current_username, is_current_user_admin
-from svs_core.docker.json_properties import (
-    EnvVariable,
-    ExposedPort,
-    Label,
-    Volume,
-)
-from svs_core.docker.service import Service
-from svs_core.users.user import User
+from svs_core.cli.state import reject_if_not_admin
 
 app = typer.Typer(help="Utility commands")
 
@@ -47,3 +37,24 @@ def format_dockerfile(
         .replace('"', '\\"')
     )
     print(formatted_content)
+
+
+@app.command("django-shell")
+def django_shell(
+    commands: list[str] = typer.Argument(
+        ..., help="Django management commands and arguments"
+    )
+) -> None:
+    """Executes Django management commands in a shell environment."""
+
+    reject_if_not_admin()
+
+    if not commands:
+        rprint("No commands provided", file=sys.stderr)
+        raise typer.Exit(code=1)
+
+    try:
+        management.call_command(*commands)
+    except Exception as e:
+        rprint(f"Error executing Django shell commands: {e}", file=sys.stderr)
+        raise typer.Exit(code=1)
