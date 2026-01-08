@@ -366,6 +366,8 @@ class GitSourceModel(BaseModel):
     service = models.ForeignKey(
         ServiceModel, on_delete=models.CASCADE, related_name="git_sources"
     )
+    is_temporary = models.BooleanField(default=False)
+    """Indicates if the git source is temporary (for BUILD services)."""
 
     class Meta:  # noqa: D106
         db_table = "git_sources"

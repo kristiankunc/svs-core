@@ -60,10 +60,13 @@ class GitSource(GitSourceModel):
         git_source.save()
         return git_source
 
-    def execute(self) -> None:
-        """Execute the git clone operation for this GitSource."""
+    def download(self) -> None:
+        """Download the Git repository to the specified destination path."""
 
-        get_logger().debug(
+        if self.is_cloned():
+            return self.update()
+
+        get_logger(__file__).debug(
             f"Cloning repository {self.repository_url} (branch: {self.branch}) to {self.destination_path}"
         )
 
@@ -72,8 +75,32 @@ class GitSource(GitSourceModel):
             user=self.service.user.name,
         )
 
-        get_logger().info(
+        get_logger(__file__).info(
             f"Successfully cloned repository {self.repository_url} to {self.destination_path}"
+        )
+
+        self.downloaded_at = datetime.now(timezone.utc)
+        self.save()
+
+    def update(self) -> None:
+        """Update the Git repository at the destination path."""
+
+        get_logger(__file__).info(
+            f"Updating repository {self.repository_url} (branch: {self.branch}) at {self.destination_path}"
+        )
+
+        owner = self.service.user.name
+
+        run_command(f"git -C {self.destination_path} fetch", user=owner)
+        run_command(
+            f"git -C {self.destination_path} checkout {self.branch}", user=owner
+        )
+        run_command(
+            f"git -C {self.destination_path} pull origin {self.branch}", user=owner
+        )
+
+        get_logger(__file__).info(
+            f"Successfully updated repository {self.repository_url} at {self.destination_path}"
         )
 
         self.downloaded_at = datetime.now(timezone.utc)
@@ -88,9 +115,15 @@ class GitSource(GitSourceModel):
 
         from svs_core.shared.shell import run_command
 
-        get_logger().info(
+        get_logger(__file__).info(
             f"Checking for updates in repository {self.repository_url} (branch: {self.branch}) at {self.destination_path}"
         )
+
+        if not self.is_cloned():
+            get_logger(__file__).debug(
+                f"Repository {self.repository_url} is not cloned. Considering it not up to date."
+            )
+            return False
 
         owner = self.service.user.name
 
@@ -106,13 +139,35 @@ class GitSource(GitSourceModel):
         is_up_to_date: bool = local_commit == remote_commit
 
         if is_up_to_date:
-            get_logger().debug(f"Repository {self.repository_url} is up to date.")
+            get_logger(__file__).debug(
+                f"Repository {self.repository_url} is up to date."
+            )
         else:
-            get_logger().debug(
+            get_logger(__file__).debug(
                 f"Repository {self.repository_url} has updates available."
             )
 
         return is_up_to_date
 
+    def is_cloned(self) -> bool:
+        """Check if the Git repository has been cloned to the destination path.
+
+        Returns:
+            bool: True if the repository is cloned, False otherwise.
+        """
+
+        destination = Path(self.destination_path)
+        git_dir = destination / ".git"
+        is_cloned = destination.exists() and git_dir.exists() and git_dir.is_dir()
+
+        if is_cloned:
+            get_logger(__file__).debug(f"Repository {self.repository_url} is cloned.")
+        else:
+            get_logger(__file__).debug(
+                f"Repository {self.repository_url} is not cloned."
+            )
+
+        return is_cloned
+
     def __str__(self) -> str:
-        return f"GitSource(id={self.id}, repository_url={self.repository_url}, branch={self.branch}, destination_path={self.destination_path}, downloaded_at={self.downloaded_at}, is_current={self.is_updated()})"
+        return f"GitSource(id={self.id}, repository_url={self.repository_url}, branch={self.branch}, destination_path={self.destination_path}, downloaded_at={self.downloaded_at}, is_updated={self.is_updated()})"
