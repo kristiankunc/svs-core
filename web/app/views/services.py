@@ -10,6 +10,7 @@ from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Vol
 from svs_core.docker.service import Service
 from svs_core.docker.template import Template
 from svs_core.shared.git_source import GitSource
+from svs_core.shared.logger import get_logger
 from svs_core.users.user import User
 
 
@@ -215,9 +216,12 @@ def download_git_source(request: HttpRequest, service_id: int, git_source_id: in
     try:
         git_source.execute()
     except Exception as e:
-        # In a production app, you'd want to show this error to the user
-        # For now, we'll just redirect back to the service detail page
-        pass
+        # Log the error for debugging
+        get_logger(__name__).error(
+            f"Failed to download git source {git_source_id} for service {service_id}: {str(e)}"
+        )
+        # In a production app with session-based messaging, you'd show this to the user
+        # For now, we just log and redirect back to the service detail page
 
     return redirect("detail_service", service_id=service.id)
 
