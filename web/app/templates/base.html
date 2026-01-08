@@ -93,6 +93,17 @@
                 </div>
             </div>
         {% endif %}
+        {% if error %}
+            <div class="container">
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Error:</strong> {{ error }}
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close"></button>
+                </div>
+            </div>
+        {% endif %}
         <main class="container">
             {% block content %}{% endblock %}
         </main>

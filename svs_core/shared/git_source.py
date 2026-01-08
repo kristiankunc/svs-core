@@ -4,7 +4,7 @@ from pathlib import Path
 from svs_core.db.models import GitSourceModel
 from svs_core.shared.http import is_url
 from svs_core.shared.logger import get_logger
-from svs_core.shared.shell import run_command
+from svs_core.shared.shell import create_directory, run_command
 
 
 class GitSource(GitSourceModel):
@@ -70,6 +70,13 @@ class GitSource(GitSourceModel):
             f"Cloning repository {self.repository_url} (branch: {self.branch}) to {self.destination_path}"
         )
 
+        if not Path(self.destination_path).parent.exists():
+            create_directory(
+                Path(self.destination_path).parent.absolute().as_posix(),
+                user=self.service.user.name,
+            )
+
+        run_command(f"rm -rf {self.destination_path}", user=self.service.user.name)
         run_command(
             f"git clone --branch {self.branch} {self.repository_url} {self.destination_path}",
             user=self.service.user.name,
