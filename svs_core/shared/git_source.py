@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from pathlib import Path
 
 from svs_core.db.models import GitSourceModel
@@ -7,7 +8,7 @@ from svs_core.shared.shell import run_command
 
 
 class GitSource(GitSourceModel):
-    """Service class representing a service in the system."""
+    """GitSource class representing a Git source repository."""
 
     class Meta:  # noqa: D106
         proxy = True
@@ -62,7 +63,7 @@ class GitSource(GitSourceModel):
     def execute(self) -> None:
         """Execute the git clone operation for this GitSource."""
 
-        get_logger().info(
+        get_logger().debug(
             f"Cloning repository {self.repository_url} (branch: {self.branch}) to {self.destination_path}"
         )
 
@@ -73,6 +74,44 @@ class GitSource(GitSourceModel):
         get_logger().info(
             f"Successfully cloned repository {self.repository_url} to {self.destination_path}"
         )
+
+        self.downloaded_at = datetime.now(timezone.utc)
+        self.save()
+
+    def is_updated(self) -> bool:
+        """Check if the Git source is up to date with remote.
+
+        Returns:
+            bool: True if the local repository is up to date, False otherwise.
+        """
+
+        from svs_core.shared.shell import run_command
+
+        get_logger().info(
+            f"Checking for updates in repository {self.repository_url} (branch: {self.branch}) at {self.destination_path}"
+        )
+
+        owner = self.service.user.username
+
+        run_command(f"git -C {self.destination_path} fetch", user=owner)
+
+        local_commit: str = run_command(
+            f"git -C {self.destination_path} rev-parse {self.branch}", user=owner
+        ).stdout.strip()
+        remote_commit: str = run_command(
+            f"git -C {self.destination_path} rev-parse origin/{self.branch}", user=owner
+        ).stdout.strip()
+
+        is_up_to_date: bool = local_commit == remote_commit
+
+        if is_up_to_date:
+            get_logger().debug(f"Repository {self.repository_url} is up to date.")
+        else:
+            get_logger().debug(
+                f"Repository {self.repository_url} has updates available."
+            )
+
+        return is_up_to_date
 
     def __str__(self) -> str:
         return f"GitSource(id={self.id}, repository_url={self.repository_url}, branch={self.branch}, destination_path={self.destination_path})"

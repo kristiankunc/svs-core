@@ -361,6 +361,8 @@ class GitSourceModel(BaseModel):
     """Branch to checkout."""
     destination_path = models.CharField(max_length=512, null=True, blank=True)
     """Destination path inside the service volume on host filesystem."""
+    downloaded_at = models.DateTimeField(null=True, blank=True)
+    """Timestamp when the repository was last downloaded."""
     service = models.ForeignKey(
         ServiceModel, on_delete=models.CASCADE, related_name="git_sources"
     )
