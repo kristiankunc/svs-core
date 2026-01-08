@@ -3,7 +3,7 @@ from __future__ import annotations
 import time
 
 from pathlib import Path
-from typing import Any, List, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, List, TypeVar, Union, cast
 
 from svs_core.db.models import ServiceModel, ServiceStatus, TemplateType
 from svs_core.docker.container import DockerContainerManager
@@ -21,6 +21,9 @@ from svs_core.shared.logger import get_logger
 from svs_core.shared.ports import SystemPortManager
 from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.user import User
+
+if TYPE_CHECKING:
+    from svs_core.shared.git_source import GitSource as GitSourceProxy
 
 Mergeable = Union[EnvVariable, ExposedPort, Volume, Label]
 T = TypeVar("T", bound=Mergeable)
@@ -51,6 +54,9 @@ class Service(ServiceModel):
         return ServiceStatus.from_str(container.status)
 
     def __str__(self) -> str:  # noqa: D105
+        git_source_instances = [
+            GitSource.objects.get(id=gs.id) for gs in self.git_sources.all()
+        ]
         return (
             f"Service(id={self.id}, name={self.name}, template_id={self.template_id}, "
             f"user_id={self.user_id}, domain={self.domain}, container_id={self.container_id}, "
@@ -62,7 +68,8 @@ class Service(ServiceModel):
             f"healthcheck={self.healthcheck}, "
             f"labels={[label.__str__() for label in self.labels]}, "
             f"args={self.args}, "
-            f"status={self.status})"
+            f"status={self.status}, "
+            f"git_sources={[gs.__str__() for gs in git_source_instances]})"
         )
 
     @staticmethod
@@ -729,3 +736,15 @@ class Service(ServiceModel):
             raise GitSource.InvalidGitSourceError(
                 f"Failed to add Git source: {str(e)}"
             ) from e
+
+    def remove_git_source(self, git_source_id: int) -> None:
+        """Remove a Git source from the service.
+
+        Args:
+            git_source_id (int): The ID of the Git source to remove.
+
+        Raises:
+            GitSource.DoesNotExist: If the Git source with the specified ID does not exist.
+        """
+        git_source = GitSource.objects.get(id=git_source_id, service_id=self.id)
+        git_source.delete()

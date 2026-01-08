@@ -7,6 +7,7 @@ django.setup()
 
 from django.db import connection
 
+from svs_core.docker.network import DockerNetworkManager
 from svs_core.shared.hash import hash_password
 from svs_core.users.user import User
 
@@ -17,7 +18,7 @@ if not devuser:
         "Devuser not specified. Please set the USER environment variable or pass it as a command line argument."
     )
 
-password_hash = hash_password("12345678")
+password_hash = hash_password("12345678").decode("utf-8")
 
 
 with connection.cursor() as cursor:
@@ -29,5 +30,7 @@ with connection.cursor() as cursor:
         """,
         [devuser, password_hash],
     )
+
+DockerNetworkManager.create_network(devuser)
 
 print(f"Created dev user '{devuser}' with password '12345678'")

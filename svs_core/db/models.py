@@ -311,6 +311,9 @@ class ServiceModel(BaseModel):
 class GitSourceModel(BaseModel):
     """Git Source model."""
 
+    objects = GitSourceManager()
+    """Manager for GitSourceModel queries."""
+
     repository_url = models.CharField(max_length=512)
     """URL of the git repository."""
     branch = models.CharField(max_length=255, null=True, blank=True)
