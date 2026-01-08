@@ -32,22 +32,24 @@
                             </p>
                         </div>
                     </div>
-                    {% if service.template_obj %}
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <p class="text-muted mb-1">Template</p>
-                                <p class="h6">
-                                    <a href="{% url 'detail_template' service.template_obj.id %}">{{ service.template_obj.name }}</a>
-                                </p>
+                    {% with template=service.proxy_template.first %}
+                        {% if template %}
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">Template</p>
+                                    <p class="h6">
+                                        <a href="{% url 'detail_template' template.id %}">{{ template.name }}</a>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="text-muted mb-1">Image</p>
+                                    <p class="h6">
+                                        <code>{{ service.image }}</code>
+                                    </p>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <p class="text-muted mb-1">Image</p>
-                                <p class="h6">
-                                    <code>{{ service.image }}</code>
-                                </p>
-                            </div>
-                        </div>
-                    {% endif %}
+                        {% endif %}
+                    {% endwith %}
                     {% if service.domain %}
                         <div class="mb-3">
                             <p class="text-muted mb-1">Domain</p>

@@ -19,11 +19,13 @@
                             <p class="card-text text-muted">
                                 <span class="badge bg-info">{{ service.status }}</span>
                             </p>
-                            {% if service.template_obj %}
-                                <p class="card-text">
-                                    <small><strong>Template:</strong> {{ service.template_obj.name }}</small>
-                                </p>
-                            {% endif %}
+                            {% with template=service.proxy_template.first %}
+                                {% if template %}
+                                    <p class="card-text">
+                                        <small><strong>Template:</strong> {{ template.name }}</small>
+                                    </p>
+                                {% endif %}
+                            {% endwith %}
                             {% if service.domain %}
                                 <p class="card-text">
                                     <small><strong>Domain:</strong> {{ service.domain }}</small>

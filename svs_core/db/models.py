@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Annotated
+from typing import TYPE_CHECKING
 
 from django.db import models
 
@@ -11,6 +11,12 @@ from svs_core.docker.json_properties import (
     Label,
     Volume,
 )
+
+if TYPE_CHECKING:
+    from svs_core.docker.service import Service
+    from svs_core.docker.template import Template
+    from svs_core.shared.git_source import GitSource
+    from svs_core.users.user import User
 
 
 class UserManager(models.Manager["UserModel"]):  # type: ignore[misc]
@@ -55,6 +61,13 @@ class UserModel(BaseModel):
     """Username, tied to the system user's account."""
     password = models.CharField(max_length=255, null=True)
     """Hashed password for authentication."""
+
+    @property
+    def proxy_services(self) -> models.QuerySet["Service"]:
+        """Get related ServiceModel instances."""
+        from svs_core.docker.service import Service
+
+        return Service.objects.filter(user_id=self.id)
 
     class Meta:  # noqa: D106
         db_table = "users"
@@ -170,6 +183,13 @@ class TemplateModel(BaseModel):
 
     class Meta:  # noqa: D106
         db_table = "templates"
+
+    @property
+    def proxy_services(self) -> models.QuerySet["Service"]:
+        """Get related ServiceModel instances."""
+        from svs_core.docker.service import Service
+
+        return Service.objects.filter(template_id=self.id)
 
 
 class ServiceStatus(str, Enum):
@@ -307,9 +327,33 @@ class ServiceModel(BaseModel):
     class Meta:  # noqa: D106
         db_table = "services"
 
+    @property
+    def proxy_template(self) -> models.QuerySet["Template"]:
+        """Get related TemplateModel instance."""
+        from svs_core.docker.template import Template
+
+        return Template.objects.filter(id=self.template_id)
+
+    @property
+    def proxy_user(self) -> models.QuerySet["User"]:
+        """Get related UserModel instance."""
+        from svs_core.users.user import User
+
+        return User.objects.filter(id=self.user_id)
+
+    @property
+    def proxy_git_sources(self) -> models.QuerySet["GitSource"]:
+        """Get related GitSourceModel instances."""
+        from svs_core.shared.git_source import GitSource
+
+        return GitSource.objects.filter(service_id=self.id)
+
 
 class GitSourceModel(BaseModel):
     """Git Source model."""
+
+    objects = GitSourceManager()
+    """Manager for GitSourceModel queries."""
 
     repository_url = models.CharField(max_length=512)
     """URL of the git repository."""
@@ -317,9 +361,18 @@ class GitSourceModel(BaseModel):
     """Branch to checkout."""
     destination_path = models.CharField(max_length=512, null=True, blank=True)
     """Destination path inside the service volume on host filesystem."""
+    downloaded_at = models.DateTimeField(null=True, blank=True)
+    """Timestamp when the repository was last downloaded."""
     service = models.ForeignKey(
         ServiceModel, on_delete=models.CASCADE, related_name="git_sources"
     )
 
     class Meta:  # noqa: D106
         db_table = "git_sources"
+
+    @property
+    def proxy_service(self) -> models.QuerySet["Service"]:
+        """Get related ServiceModel instance."""
+        from svs_core.docker.service import Service
+
+        return Service.objects.filter(id=self.service_id)

@@ -17,6 +17,7 @@ from svs_core.docker.json_properties import (
     Volume,
 )
 from svs_core.docker.service import Service
+from svs_core.shared.git_source import GitSource
 from svs_core.users.user import User
 
 app = typer.Typer(help="Manage services")
@@ -296,3 +297,81 @@ def view_service_logs(
 
     logs = service.get_logs()
     print(logs)
+
+
+@app.command("add-git-source")
+def add_git_source(
+    service_id: int = typer.Argument(
+        ..., help="ID of the service to add git source to"
+    ),
+    git_url: str = typer.Argument(..., help="Git repository URL"),
+    destination_path: str = typer.Argument(..., help="Destination path in the service"),
+    branch: str = typer.Option("main", "--branch", "-b", help="Git branch to use"),
+) -> None:
+    """Add a git source to a service."""
+
+    service = get_or_exit(Service, id=service_id)
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        print("You do not have permission to modify this service.", file=sys.stderr)
+        raise typer.Exit(1)
+
+    destination_path_formatted = Path(destination_path)
+
+    if not destination_path_formatted.is_absolute():
+        print(
+            "Destination path must be an absolute path starting with '/'.",
+            file=sys.stderr,
+        )
+        raise typer.Exit(1)
+
+    if (
+        not destination_path_formatted.is_dir()
+        and not destination_path_formatted.exists()
+    ):
+        print(
+            "Destination path must be an existing directory on the host.",
+            file=sys.stderr,
+        )
+        raise typer.Exit(1)
+
+    service.add_git_source(git_url, branch, destination_path_formatted)
+    print(f"Git source '{git_url}' added to service '{service.name}' successfully.")
+
+
+@app.command("delete-git-source")
+def delete_git_source(
+    git_source_id: int = typer.Argument(..., help="ID of the git source to delete"),
+) -> None:
+    """Delete a git source from a service."""
+
+    git_source = get_or_exit(GitSource, id=git_source_id)
+    service = git_source.service
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        print("You do not have permission to modify this service.", file=sys.stderr)
+        raise typer.Exit(1)
+
+    service.remove_git_source(git_source_id)
+    print(
+        f"Git source '{git_source.repository_url}' deleted from service '{service.name}' successfully."
+    )
+
+
+@app.command("download-git-source")
+def download_git_source(
+    git_source_id: int = typer.Argument(..., help="ID of the git source to download"),
+) -> None:
+    """Download or update a git source for a service."""
+
+    git_source = get_or_exit(GitSource, id=git_source_id)
+    service = git_source.service
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        print("You do not have permission to modify this service.", file=sys.stderr)
+        raise typer.Exit(1)
+
+    git_source.execute()
+    print(
+        f"Git source '{git_source.repository_url}' downloaded/updated for service '{service.name}' successfully."
+    )

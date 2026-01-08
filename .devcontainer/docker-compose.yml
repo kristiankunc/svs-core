@@ -9,6 +9,7 @@ services:
             - db
         env_file: ../.env
         restart: "no"
+        privileged: true
         command: sleep infinity
 
     db:
