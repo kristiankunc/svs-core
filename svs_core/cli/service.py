@@ -316,23 +316,26 @@ def add_git_source(
         print("You do not have permission to modify this service.", file=sys.stderr)
         raise typer.Exit(1)
 
-    destination_path = Path(destination_path)
+    destination_path_formatted = Path(destination_path)
 
-    if not destination_path.is_absolute():
+    if not destination_path_formatted.is_absolute():
         print(
             "Destination path must be an absolute path starting with '/'.",
             file=sys.stderr,
         )
         raise typer.Exit(1)
 
-    if destination_path.is_dir() and not destination_path.exists():
+    if (
+        not destination_path_formatted.is_dir()
+        and not destination_path_formatted.exists()
+    ):
         print(
-            "Destination path must be an existing directory in the service.",
+            "Destination path must be an existing directory on the host.",
             file=sys.stderr,
         )
         raise typer.Exit(1)
 
-    service.add_git_source(git_url, branch, destination_path)
+    service.add_git_source(git_url, branch, destination_path_formatted)
     print(f"Git source '{git_url}' added to service '{service.name}' successfully.")
 
 
