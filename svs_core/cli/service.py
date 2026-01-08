@@ -356,3 +356,22 @@ def delete_git_source(
     print(
         f"Git source '{git_source.repository_url}' deleted from service '{service.name}' successfully."
     )
+
+
+@app.command("download-git-source")
+def download_git_source(
+    git_source_id: int = typer.Argument(..., help="ID of the git source to download"),
+) -> None:
+    """Download or update a git source for a service."""
+
+    git_source = get_or_exit(GitSource, id=git_source_id)
+    service = git_source.service
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        print("You do not have permission to modify this service.", file=sys.stderr)
+        raise typer.Exit(1)
+
+    git_source.execute()
+    print(
+        f"Git source '{git_source.repository_url}' downloaded/updated for service '{service.name}' successfully."
+    )

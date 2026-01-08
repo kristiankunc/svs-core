@@ -743,3 +743,344 @@ class TestServiceCommands:
         assert result.exit_code == 0
         assert "built successfully" in result.output
         mock_service.build.assert_called_once()
+
+    def test_add_git_source_success(self, mocker: MockerFixture) -> None:
+        """Test adding a git source to a service."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+        mocker.patch("svs_core.cli.service.Path")
+
+        result = self.runner.invoke(
+            app,
+            [
+                "service",
+                "add-git-source",
+                "1",
+                "https://github.com/user/repo.git",
+                "/app/source",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "Git source" in result.output
+        assert "added to service" in result.output
+        mock_service.add_git_source.assert_called_once()
+
+    def test_add_git_source_with_branch(self, mocker: MockerFixture) -> None:
+        """Test adding a git source with a specific branch."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+        mocker.patch("svs_core.cli.service.Path")
+
+        result = self.runner.invoke(
+            app,
+            [
+                "service",
+                "add-git-source",
+                "1",
+                "https://github.com/user/repo.git",
+                "/app/source",
+                "--branch",
+                "develop",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "Git source" in result.output
+        mock_service.add_git_source.assert_called_once()
+        call_args = mock_service.add_git_source.call_args
+        assert call_args[0][1] == "develop"  # branch is second argument
+
+    def test_add_git_source_permission_denied(self, mocker: MockerFixture) -> None:
+        """Test adding a git source without permission."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "other_service"
+        mock_service.user.name = "other_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            [
+                "service",
+                "add-git-source",
+                "1",
+                "https://github.com/user/repo.git",
+                "/app/source",
+            ],
+        )
+
+        assert result.exit_code == 1
+        assert "permission" in result.output.lower()
+        mock_service.add_git_source.assert_not_called()
+
+    def test_add_git_source_admin_can_modify_any(self, mocker: MockerFixture) -> None:
+        """Test that admin can add git source to any service."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "other_service"
+        mock_service.user.name = "other_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=True)
+        mocker.patch("svs_core.cli.service.Path")
+
+        result = self.runner.invoke(
+            app,
+            [
+                "service",
+                "add-git-source",
+                "1",
+                "https://github.com/user/repo.git",
+                "/app/source",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "Git source" in result.output
+        mock_service.add_git_source.assert_called_once()
+
+    def test_add_git_source_invalid_path_not_absolute(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test adding git source with non-absolute path."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            [
+                "service",
+                "add-git-source",
+                "1",
+                "https://github.com/user/repo.git",
+                "relative/path",
+            ],
+        )
+
+        assert result.exit_code == 1
+        assert "absolute path" in result.output.lower()
+        mock_service.add_git_source.assert_not_called()
+
+    def test_add_git_source_path_does_not_exist(self, mocker: MockerFixture) -> None:
+        """Test adding git source with non-existent path."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        # Mock Path to return an object where is_absolute() returns True
+        # but is_dir() and exists() both return False
+        mock_path = mocker.MagicMock()
+        mock_path.is_absolute.return_value = True
+        mock_path.is_dir.return_value = False
+        mock_path.exists.return_value = False
+        mocker.patch("svs_core.cli.service.Path", return_value=mock_path)
+
+        result = self.runner.invoke(
+            app,
+            [
+                "service",
+                "add-git-source",
+                "1",
+                "https://github.com/user/repo.git",
+                "/nonexistent/path",
+            ],
+        )
+
+        assert result.exit_code == 1
+        assert "existing directory" in result.output.lower()
+        mock_service.add_git_source.assert_not_called()
+
+    def test_delete_git_source_success(self, mocker: MockerFixture) -> None:
+        """Test deleting a git source."""
+        mock_git_source = mocker.MagicMock()
+        mock_git_source.id = 1
+        mock_git_source.repository_url = "https://github.com/user/repo.git"
+
+        mock_service = mocker.MagicMock()
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+        mock_git_source.service = mock_service
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_git_source)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "delete-git-source", "1"],
+        )
+
+        assert result.exit_code == 0
+        assert "Git source" in result.output
+        assert "deleted" in result.output
+        mock_service.remove_git_source.assert_called_once_with(1)
+
+    def test_delete_git_source_permission_denied(self, mocker: MockerFixture) -> None:
+        """Test deleting a git source without permission."""
+        mock_git_source = mocker.MagicMock()
+        mock_git_source.id = 1
+        mock_git_source.repository_url = "https://github.com/user/repo.git"
+
+        mock_service = mocker.MagicMock()
+        mock_service.user.name = "other_user"
+        mock_git_source.service = mock_service
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_git_source)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "delete-git-source", "1"],
+        )
+
+        assert result.exit_code == 1
+        assert "permission" in result.output.lower()
+        mock_service.remove_git_source.assert_not_called()
+
+    def test_delete_git_source_admin_can_delete_any(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that admin can delete any git source."""
+        mock_git_source = mocker.MagicMock()
+        mock_git_source.id = 1
+        mock_git_source.repository_url = "https://github.com/user/repo.git"
+
+        mock_service = mocker.MagicMock()
+        mock_service.name = "other_service"
+        mock_service.user.name = "other_user"
+        mock_git_source.service = mock_service
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_git_source)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=True)
+
+        result = self.runner.invoke(
+            app,
+            ["service", "delete-git-source", "1"],
+        )
+
+        assert result.exit_code == 0
+        assert "Git source" in result.output
+        assert "deleted" in result.output
+        mock_service.remove_git_source.assert_called_once_with(1)
+
+    def test_download_git_source_success(self, mocker: MockerFixture) -> None:
+        """Test downloading/updating a git source."""
+        mock_git_source = mocker.MagicMock()
+        mock_git_source.id = 1
+        mock_git_source.repository_url = "https://github.com/user/repo.git"
+
+        mock_service = mocker.MagicMock()
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+        mock_git_source.service = mock_service
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_git_source)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "download-git-source", "1"],
+        )
+
+        assert result.exit_code == 0
+        assert (
+            "downloaded" in result.output.lower() or "updated" in result.output.lower()
+        )
+        mock_git_source.execute.assert_called_once()
+
+    def test_download_git_source_permission_denied(self, mocker: MockerFixture) -> None:
+        """Test downloading git source without permission."""
+        mock_git_source = mocker.MagicMock()
+        mock_git_source.id = 1
+        mock_git_source.repository_url = "https://github.com/user/repo.git"
+
+        mock_service = mocker.MagicMock()
+        mock_service.user.name = "other_user"
+        mock_git_source.service = mock_service
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_git_source)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "download-git-source", "1"],
+        )
+
+        assert result.exit_code == 1
+        assert "permission" in result.output.lower()
+        mock_git_source.execute.assert_not_called()
+
+    def test_download_git_source_admin_can_download_any(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that admin can download any git source."""
+        mock_git_source = mocker.MagicMock()
+        mock_git_source.id = 1
+        mock_git_source.repository_url = "https://github.com/user/repo.git"
+
+        mock_service = mocker.MagicMock()
+        mock_service.name = "other_service"
+        mock_service.user.name = "other_user"
+        mock_git_source.service = mock_service
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_git_source)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=True)
+
+        result = self.runner.invoke(
+            app,
+            ["service", "download-git-source", "1"],
+        )
+
+        assert result.exit_code == 0
+        assert (
+            "downloaded" in result.output.lower() or "updated" in result.output.lower()
+        )
+        mock_git_source.execute.assert_called_once()

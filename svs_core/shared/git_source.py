@@ -68,7 +68,8 @@ class GitSource(GitSourceModel):
         )
 
         run_command(
-            f"git clone --branch {self.branch} {self.repository_url} {self.destination_path}"
+            f"git clone --branch {self.branch} {self.repository_url} {self.destination_path}",
+            user=self.service.user.name,
         )
 
         get_logger().info(
@@ -91,7 +92,7 @@ class GitSource(GitSourceModel):
             f"Checking for updates in repository {self.repository_url} (branch: {self.branch}) at {self.destination_path}"
         )
 
-        owner = self.service.user.username
+        owner = self.service.user.name
 
         run_command(f"git -C {self.destination_path} fetch", user=owner)
 
@@ -114,4 +115,4 @@ class GitSource(GitSourceModel):
         return is_up_to_date
 
     def __str__(self) -> str:
-        return f"GitSource(id={self.id}, repository_url={self.repository_url}, branch={self.branch}, destination_path={self.destination_path})"
+        return f"GitSource(id={self.id}, repository_url={self.repository_url}, branch={self.branch}, destination_path={self.destination_path}, downloaded_at={self.downloaded_at}, is_current={self.is_updated()})"
