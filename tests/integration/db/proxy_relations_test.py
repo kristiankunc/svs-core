@@ -2,9 +2,6 @@
 
 import pytest
 
-from pytest_mock import MockerFixture
-
-from svs_core.db.models import TemplateType
 from svs_core.docker.service import Service
 from svs_core.docker.template import Template
 from svs_core.shared.git_source import GitSource
@@ -16,201 +13,43 @@ class TestProxyRelations:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_user_proxy_services(
-        self,
-        mocker: MockerFixture,
-        mock_docker_network_create: object,
-        mock_system_user_create: object,
-    ) -> None:
+    def test_user_proxy_services(self, test_user: User, test_service: Service) -> None:
         """Test UserModel.proxy_services returns related services."""
-        # Create a user
-        user = User.create(name="testuser", password="testpass123")
-
-        # Initially, user should have no services
-        assert user.proxy_services.count() == 0
-
-        # Mock container creation
-        mock_container = mocker.MagicMock()
-        mock_container.id = "test_container"
-        mocker.patch(
-            "svs_core.docker.service.DockerContainerManager.create_container",
-            return_value=mock_container,
-        )
-        mocker.patch(
-            "svs_core.docker.service.DockerContainerManager.connect_to_network"
-        )
-
-        # Create a template
-        mocker.patch(
-            "svs_core.docker.template.DockerImageManager.exists", return_value=True
-        )
-        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-        template = Template.create(
-            name="test-template",
-            type=TemplateType.IMAGE,
-            image="nginx:latest",
-            description="Test template",
-        )
-
-        # Create a service for this user
-        service = Service.create(
-            name="test-service",
-            template_id=template.id,
-            user=user,
-            image="nginx:latest",
-        )
-
         # Verify proxy_services returns the service
-        assert user.proxy_services.count() == 1
-        assert user.proxy_services.first().id == service.id
-        assert user.proxy_services.first().name == "test-service"
+        assert test_user.proxy_services.count() == 1
+        assert test_user.proxy_services.first().id == test_service.id
+        assert test_user.proxy_services.first().name == "test-service"
 
     @pytest.mark.integration
     @pytest.mark.django_db
     def test_template_proxy_services(
-        self,
-        mocker: MockerFixture,
-        mock_docker_network_create: object,
-        mock_system_user_create: object,
+        self, test_template: Template, test_service: Service
     ) -> None:
         """Test TemplateModel.proxy_services returns related services."""
-        # Create a template
-        mocker.patch(
-            "svs_core.docker.template.DockerImageManager.exists", return_value=True
-        )
-        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-        template = Template.create(
-            name="test-template",
-            type=TemplateType.IMAGE,
-            image="nginx:latest",
-            description="Test template",
-        )
-
-        # Initially, template should have no services
-        assert template.proxy_services.count() == 0
-
-        # Create a user
-        user = User.create(name="testuser", password="testpass123")
-
-        # Mock container creation
-        mock_container = mocker.MagicMock()
-        mock_container.id = "test_container"
-        mocker.patch(
-            "svs_core.docker.service.DockerContainerManager.create_container",
-            return_value=mock_container,
-        )
-        mocker.patch(
-            "svs_core.docker.service.DockerContainerManager.connect_to_network"
-        )
-
-        # Create a service using this template
-        service = Service.create(
-            name="test-service",
-            template_id=template.id,
-            user=user,
-            image="nginx:latest",
-        )
-
         # Verify proxy_services returns the service
-        assert template.proxy_services.count() == 1
-        assert template.proxy_services.first().id == service.id
-        assert template.proxy_services.first().name == "test-service"
+        assert test_template.proxy_services.count() == 1
+        assert test_template.proxy_services.first().id == test_service.id
+        assert test_template.proxy_services.first().name == "test-service"
 
     @pytest.mark.integration
     @pytest.mark.django_db
     def test_service_proxy_template(
-        self,
-        mocker: MockerFixture,
-        mock_docker_network_create: object,
-        mock_system_user_create: object,
+        self, test_service: Service, test_template: Template
     ) -> None:
         """Test ServiceModel.proxy_template returns related template."""
-        # Create a template
-        mocker.patch(
-            "svs_core.docker.template.DockerImageManager.exists", return_value=True
-        )
-        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-        template = Template.create(
-            name="test-template",
-            type=TemplateType.IMAGE,
-            image="nginx:latest",
-            description="Test template",
-        )
-
-        # Create a user
-        user = User.create(name="testuser", password="testpass123")
-
-        # Mock container creation
-        mock_container = mocker.MagicMock()
-        mock_container.id = "test_container"
-        mocker.patch(
-            "svs_core.docker.service.DockerContainerManager.create_container",
-            return_value=mock_container,
-        )
-        mocker.patch(
-            "svs_core.docker.service.DockerContainerManager.connect_to_network"
-        )
-
-        # Create a service
-        service = Service.create(
-            name="test-service",
-            template_id=template.id,
-            user=user,
-            image="nginx:latest",
-        )
-
         # Verify proxy_template returns the template
-        assert service.proxy_template.count() == 1
-        assert service.proxy_template.first().id == template.id
-        assert service.proxy_template.first().name == "test-template"
+        assert test_service.proxy_template.count() == 1
+        assert test_service.proxy_template.first().id == test_template.id
+        assert test_service.proxy_template.first().name == "test-nginx"
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_service_proxy_user(
-        self,
-        mocker: MockerFixture,
-        mock_docker_network_create: object,
-        mock_system_user_create: object,
-    ) -> None:
+    def test_service_proxy_user(self, test_service: Service, test_user: User) -> None:
         """Test ServiceModel.proxy_user returns related user."""
-        # Create a user
-        user = User.create(name="testuser", password="testpass123")
-
-        # Create a template
-        mocker.patch(
-            "svs_core.docker.template.DockerImageManager.exists", return_value=True
-        )
-        mocker.patch("svs_core.docker.template.DockerImageManager.pull")
-        template = Template.create(
-            name="test-template",
-            type=TemplateType.IMAGE,
-            image="nginx:latest",
-            description="Test template",
-        )
-
-        # Mock container creation
-        mock_container = mocker.MagicMock()
-        mock_container.id = "test_container"
-        mocker.patch(
-            "svs_core.docker.service.DockerContainerManager.create_container",
-            return_value=mock_container,
-        )
-        mocker.patch(
-            "svs_core.docker.service.DockerContainerManager.connect_to_network"
-        )
-
-        # Create a service
-        service = Service.create(
-            name="test-service",
-            template_id=template.id,
-            user=user,
-            image="nginx:latest",
-        )
-
         # Verify proxy_user returns the user
-        assert service.proxy_user.count() == 1
-        assert service.proxy_user.first().id == user.id
-        assert service.proxy_user.first().name == "testuser"
+        assert test_service.proxy_user.count() == 1
+        assert test_service.proxy_user.first().id == test_user.id
+        assert test_service.proxy_user.first().name == "testuser"
 
     @pytest.mark.integration
     @pytest.mark.django_db
