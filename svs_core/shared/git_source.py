@@ -86,9 +86,6 @@ class GitSource(GitSourceModel):
             f"Successfully cloned repository {self.repository_url} to {self.destination_path}"
         )
 
-        self.downloaded_at = datetime.now(timezone.utc)
-        self.save()
-
     def update(self) -> None:
         """Update the Git repository at the destination path."""
 
@@ -109,9 +106,6 @@ class GitSource(GitSourceModel):
         get_logger(__file__).info(
             f"Successfully updated repository {self.repository_url} at {self.destination_path}"
         )
-
-        self.downloaded_at = datetime.now(timezone.utc)
-        self.save()
 
     def is_updated(self) -> bool:
         """Check if the Git source is up to date with remote.
@@ -177,4 +171,4 @@ class GitSource(GitSourceModel):
         return is_cloned
 
     def __str__(self) -> str:
-        return f"GitSource(id={self.id}, repository_url={self.repository_url}, branch={self.branch}, destination_path={self.destination_path}, downloaded_at={self.downloaded_at}, is_updated={self.is_updated()})"
+        return f"GitSource(id={self.id}, repository_url={self.repository_url}, branch={self.branch}, destination_path={self.destination_path}, is_updated={self.is_updated()})"
