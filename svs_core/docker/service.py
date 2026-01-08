@@ -42,10 +42,6 @@ class Service(ServiceModel):
         proxy = True
 
     @property
-    def template_obj(self) -> Template:  # noqa: D102
-        return cast(Template, Template.objects.get(id=self.template_id))
-
-    @property
     def status(self) -> ServiceStatus:  # noqa: D102
         container = DockerContainerManager.get_container(self.container_id)
         if container is None:
@@ -54,9 +50,6 @@ class Service(ServiceModel):
         return ServiceStatus.from_str(container.status)
 
     def __str__(self) -> str:  # noqa: D105
-        git_source_instances = [
-            GitSource.objects.get(id=gs.id) for gs in self.git_sources.all()
-        ]
         return (
             f"Service(id={self.id}, name={self.name}, template_id={self.template_id}, "
             f"user_id={self.user_id}, domain={self.domain}, container_id={self.container_id}, "
@@ -69,7 +62,7 @@ class Service(ServiceModel):
             f"labels={[label.__str__() for label in self.labels]}, "
             f"args={self.args}, "
             f"status={self.status}, "
-            f"git_sources={[gs.__str__() for gs in git_source_instances]})"
+            f"git_sources={[gs.__str__() for gs in self.prox_git_sources]})"
         )
 
     @staticmethod

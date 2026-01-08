@@ -31,6 +31,7 @@ with connection.cursor() as cursor:
         [devuser, password_hash],
     )
 
-DockerNetworkManager.create_network(devuser)
+if not DockerNetworkManager.get_network(devuser):
+    DockerNetworkManager.create_network(devuser)
 
 print(f"Created dev user '{devuser}' with password '12345678'")
