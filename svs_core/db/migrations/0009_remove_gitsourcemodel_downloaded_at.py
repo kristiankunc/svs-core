@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("svs_core", "0001_squashed_0007_gitsourcemodel_downloaded_at"),
+        ("svs_core", "0008_gitsourcemodel_is_temporary"),
     ]
 
     operations = [

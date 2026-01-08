@@ -103,3 +103,50 @@ class TestGitSourceIntegration:
             )
 
             assert git_source.is_cloned()
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_download_creates_parent_directory(self, test_service: Service) -> None:
+        """Test download creates parent directory if it doesn't exist."""
+        with TemporaryDirectory() as tmpdir:
+            destination_path = Path(tmpdir) / "nonexistent" / "repo"
+
+            git_source = GitSource.create(
+                service_id=test_service.id,
+                repository_url="https://github.com/user/repo.git",
+                destination_path=destination_path,
+                branch="main",
+            )
+
+            with patch("svs_core.shared.git_source.create_directory") as mock_mkdir:
+                with patch("svs_core.shared.git_source.run_command") as mock_run:
+                    mock_run.return_value = MagicMock(stdout="")
+                    git_source.download()
+
+                    # Verify create_directory was called for parent
+                    mock_mkdir.assert_called_once()
+                    assert str(destination_path.parent) in mock_mkdir.call_args[0][0]
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_download_cleans_existing_directory(self, test_service: Service) -> None:
+        """Test download removes existing destination before cloning."""
+        with TemporaryDirectory() as tmpdir:
+            destination_path = Path(tmpdir) / "repo"
+            destination_path.mkdir(parents=True)
+
+            git_source = GitSource.create(
+                service_id=test_service.id,
+                repository_url="https://github.com/user/repo.git",
+                destination_path=destination_path,
+                branch="main",
+            )
+
+            with patch("svs_core.shared.git_source.run_command") as mock_run:
+                mock_run.return_value = MagicMock(stdout="")
+                git_source.download()
+
+                # Verify rm -rf was called before clone
+                call_strings = [call[0][0] for call in mock_run.call_args_list]
+                assert any("rm -rf" in cmd for cmd in call_strings)
+                assert any("git clone" in cmd for cmd in call_strings)
