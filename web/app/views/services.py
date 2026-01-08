@@ -214,14 +214,16 @@ def download_git_source(request: HttpRequest, service_id: int, git_source_id: in
         return redirect("detail_service", service_id=service.id)
 
     try:
-        git_source.execute()
+        git_source.download()
     except Exception as e:
-        # Log the error for debugging
         get_logger(__name__).error(
             f"Failed to download git source {git_source_id} for service {service_id}: {str(e)}"
         )
-        # In a production app with session-based messaging, you'd show this to the user
-        # For now, we just log and redirect back to the service detail page
+        return render(
+            request,
+            "services/detail.html",
+            {"service": service, "error": f"Failed to download git source: {str(e)}"},
+        )
 
     return redirect("detail_service", service_id=service.id)
 

@@ -5,12 +5,15 @@ from pathlib import Path
 from typing import Mapping, Optional
 
 
-def create_directory(path: str, logger: Optional[logging.Logger] = None) -> None:
+def create_directory(
+    path: str, logger: Optional[logging.Logger] = None, user: str = "svs"
+) -> None:
     """Creates a directory at the specified path if it does not exist.
 
     Args:
         path (str): The directory path to create.
         logger (Optional[logging.Logger]): custom log handler.
+        user (str): The user to create the directory as.
     """
     if not logger:
         from svs_core.shared.logger import get_logger

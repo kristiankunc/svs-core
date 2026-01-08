@@ -11,15 +11,6 @@
             </p>
         </div>
     </div>
-    {% if error %}
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <strong>Error:</strong> {{ error }}
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert"
-                    aria-label="Close"></button>
-        </div>
-    {% endif %}
     <form method="post" class="row" x-data="serviceFormData()">
         {% csrf_token %}
         <!-- Basic Information -->

@@ -241,6 +241,8 @@
                                             <td>
                                                 {% if git_source.is_updated %}
                                                     <span class="badge bg-success">Up to Date</span>
+                                                {% elif git_source.is_cloned %}
+                                                    <span class="badge bg-info">Outdated</span>
                                                 {% else %}
                                                     <span class="badge bg-warning">Not Downloaded</span>
                                                 {% endif %}
@@ -248,7 +250,7 @@
                                             <td>
                                                 <form action="{% url 'download_git_source' service.id git_source.id %}"
                                                       method="post"
-                                                      style="display: inline;">
+                                                      class="d-inline">
                                                     {% csrf_token %}
                                                     <button type="submit"
                                                             class="btn btn-sm btn-primary"
