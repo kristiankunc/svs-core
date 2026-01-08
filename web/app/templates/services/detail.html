@@ -180,7 +180,7 @@
             {% endif %}
             <!-- Labels -->
             {% if service.labels %}
-                <div class="card">
+                <div class="card mb-4">
                     <div class="card-header">
                         <h5 class="mb-0">Labels</h5>
                     </div>
@@ -208,6 +208,67 @@
                     </div>
                 </div>
             {% endif %}
+            <!-- Git Sources -->
+            {% with git_sources=service.proxy_git_sources.all %}
+                {% if git_sources %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Git Sources</h5>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Repository</th>
+                                        <th>Branch</th>
+                                        <th>Destination</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for git_source in git_sources %}
+                                        <tr>
+                                            <td>
+                                                <code class="text-break">{{ git_source.repository_url }}</code>
+                                            </td>
+                                            <td>
+                                                <code>{{ git_source.branch }}</code>
+                                            </td>
+                                            <td>
+                                                <code class="text-break">{{ git_source.destination_path }}</code>
+                                            </td>
+                                            <td>
+                                                {% if git_source.downloaded_at %}
+                                                    <span class="badge bg-success" title="Last downloaded: {{ git_source.downloaded_at }}">Downloaded</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Not Downloaded</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <form action="{% url 'download_git_source' service.id git_source.id %}"
+                                                      method="post"
+                                                      style="display: inline;">
+                                                    {% csrf_token %}
+                                                    <button type="submit"
+                                                            class="btn btn-sm btn-primary"
+                                                            title="Download/Update Git Source">
+                                                        {% if git_source.downloaded_at %}
+                                                            Update
+                                                        {% else %}
+                                                            Download
+                                                        {% endif %}
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
         </div>
         <!-- Sidebar -->
         <div class="col-lg-4">
