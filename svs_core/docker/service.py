@@ -62,7 +62,7 @@ class Service(ServiceModel):
             f"labels={[label.__str__() for label in self.labels]}, "
             f"args={self.args}, "
             f"status={self.status}, "
-            f"git_sources={[gs.__str__() for gs in self.prox_git_sources]})"
+            f"git_sources={[gs.__str__() for gs in self.proxy_git_sources]})"
         )
 
     @staticmethod

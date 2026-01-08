@@ -96,7 +96,11 @@ def list_services(request: HttpRequest):
     if is_admin:
         services = Service.objects.all()
     elif user_id:
-        services = Service.objects.filter(user_id=user_id)
+        try:
+            user = User.objects.get(id=user_id)
+            services = user.proxy_services
+        except User.DoesNotExist:
+            services = []
     else:
         services = []
 
