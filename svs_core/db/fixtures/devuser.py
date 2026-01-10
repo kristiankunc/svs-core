@@ -20,6 +20,13 @@ if not devuser:
 
 password_hash = hash_password("12345678").decode("utf-8")
 
+try:
+    User.objects.get(name=devuser)
+    print(f"Dev user '{devuser}' already exists.")
+    sys.exit(0)
+
+except User.DoesNotExist:
+    pass
 
 with connection.cursor() as cursor:
     cursor.execute(
