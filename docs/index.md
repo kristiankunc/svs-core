@@ -102,4 +102,4 @@ All container data (bind mounts) are stored in `/var/svs/volumes` directory on t
 
 ## Changelog
 
---8<-- "CHANGELOG.md"
+--8<-- "CHANGELOG.md:2"
