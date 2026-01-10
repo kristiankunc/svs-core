@@ -9,7 +9,7 @@ dependencies = [
     "bcrypt==5.0.0",
     "docker==7.1.0",
     "httpx==0.28.1",
-    "typer==0.21.0",
+    "typer==0.21.1",
     "Django==6.0.1",
     "dj_database_url==3.1.0",
     "psycopg2==2.9.11",
