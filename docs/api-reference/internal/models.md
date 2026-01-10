@@ -1,15 +1,14 @@
-
 ::: svs_core.db.models
-    options:
-      members:
-        - BaseModel
-        - UserModel
-        - TemplateModel
-        - ServiceModel
-        - GitSourceModel
-      show_bases: true
+options:
+members:
+\- BaseModel
+\- UserModel
+\- TemplateModel
+\- ServiceModel
+\- GitSourceModel
+show_bases: true
 
----
+______________________________________________________________________
 
 hello2
 

@@ -4,8 +4,10 @@ A web UI is provided for controlling SVS and provides a more user-friendly way t
 
 !!! danger
 
-    The web interface is considered insecure and experimental. Exposing to the internet is not recommended.
-    This is because it requires running as `root` before changes are made to the core library.
+```
+The web interface is considered insecure and experimental. Exposing to the internet is not recommended.
+This is because it requires running as `root` before changes are made to the core library.
+```
 
 ## Prerequisites
 

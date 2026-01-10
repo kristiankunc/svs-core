@@ -20,7 +20,6 @@ docker compose version
 
 Otherwise uou can install it by following the official [Docker Compose installation guide](https://docs.docker.com/compose/install/).
 
-
 ### Build packages
 
 Depending on your distribution, you may need the following build packages:
@@ -30,6 +29,7 @@ Depending on your distribution, you may need the following build packages:
 - build-essential
 
 Install via
+
 ```bash
 apt install -y libpq-dev python3-dev build-essential
 ```
@@ -41,7 +41,7 @@ apt install -y libpq-dev python3-dev build-essential
 Install `pipx` to safely install the CLI globally without affecting system packages. Follow the official [pipx installation guide](https://pipx.pypa.io/stable/) to install pipx.
 
 ??? question "Why PIPX?"
-    Pipx allows you to install and run Python applications in isolated environments. This prevents dependency conflicts with other Python packages on your system.
+Pipx allows you to install and run Python applications in isolated environments. This prevents dependency conflicts with other Python packages on your system.
 
 ### Install the CLI globally
 
@@ -69,7 +69,6 @@ Run the setup script to initialze the configuration. Requires sudo privileges to
 
 Download the setup script from [https://github.com/kristiankunc/svs-core/blob/main/install.sh](https://github.com/kristiankunc/svs-core/blob/main/install.sh)
 
-
 ```bash
 curl https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/install.sh -o install.sh
 sudo bash install.sh
@@ -78,22 +77,22 @@ sudo bash install.sh
 This script will
 
 1. Create a database + caddy container using Docer Compose
-2. Create necessary directories with correct permissions
-3. Create an in-place svs user to simplify permission management
-4. Run database migrations
-5. Prompt you to create an initial user (**This will also create a new system user, so you must not supply an existing one**)
+1. Create necessary directories with correct permissions
+1. Create an in-place svs user to simplify permission management
+1. Run database migrations
+1. Prompt you to create an initial user (**This will also create a new system user, so you must not supply an existing one**)
 
 ### Test
 
 **As the install script creates a new user, you need to switch to that user to test the installation.** using `su <your_admin_user>` or prefix your commands with `sudo -u <your_admin_user>`
 
 Run
+
 ```bash
 sudo svs user list
 ```
 
 This should output your user.
-
 
 That's it. Head over to the [cli documentation](../cli.md) to get started with using the CLI.
 

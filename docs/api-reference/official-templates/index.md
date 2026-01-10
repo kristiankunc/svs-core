@@ -9,6 +9,7 @@ What do you want to host?
 - **[nginx](web/nginx.md)**: A template for deploying the NGINX web server.
 
 ## Databases
+
 - **[mysql](databases/mysql.md)**: A template for deploying the MySQL database server.
 - **[adminer](databases/adminer.md)**: A template for deploying the Adminer database management tool.
 

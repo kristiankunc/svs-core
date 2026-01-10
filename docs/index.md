@@ -3,7 +3,7 @@
 - *🇬🇧 self-hosted virtual stack*
 - *🇨🇿 studentský vývojový server*
 
----
+______________________________________________________________________
 
 - [Quickstart guide](setup/quickstart.md)
 - [CLI documentation](cli.md)
@@ -15,7 +15,7 @@
 
 SVS is a python library designed to provide users with an easy way to deploy containerized services on a host machine. It abstracts away the complexities of container orchestration, allowing users to focus on deploying and managing their applications with minimal effort.
 
----
+______________________________________________________________________
 
 ## How does it work?
 
@@ -44,8 +44,9 @@ Each user has:
 - A private Docker network all their services are attached to.
 
 There are two types of users in SVS:
-1) **Admin users**: These users have elevated privileges and can manage other users, templates, and system-wide settings.
-2) **Regular users**: These users can only manage their own services and settings.
+
+1. **Admin users**: These users have elevated privileges and can manage other users, templates, and system-wide settings.
+1. **Regular users**: These users can only manage their own services and settings.
 
 ### Template
 
@@ -59,12 +60,15 @@ There are two types of templates:
 - **BUILD** templates: These templates include instructions to build a Docker image from a Dockerfile. When a service is deployed using a BUILD template, SVS will first build the Docker image according to the specified instructions before running the service. A good example of such template is the [Django template](https://github.com/kristiankunc/svs-core/blob/main/service_templates/django.json)
 
 ### Service
+
 A service is an instance of a deployed application based on a template. Each service runs in its own Docker container, isolated from other services and users.
 
 ???+ note "User mode containers"
-    To ensure safe permission mapping to the host system, all services are run in "user mode". This means that the Docker containers run with the same user ID (UID) as the system user they belong to. This prevents permission issues when services need to read or write files on the host system.
+To ensure safe permission mapping to the host system, all services are run in "user mode". This means that the Docker containers run with the same user ID (UID) as the system user they belong to. This prevents permission issues when services need to read or write files on the host system.
 
-    Note that not all Docker images are compatible with user mode. Always check the image documentation to ensure compatibility.
+```
+Note that not all Docker images are compatible with user mode. Always check the image documentation to ensure compatibility.
+```
 
 ### Backend
 
@@ -79,12 +83,12 @@ All admin users are part of the `svs-admins` system group. This allows admin use
 SVS relies on two system containers to function properly:
 
 1. **PSQL Database**: This container runs a PostgreSQL database that stores all metadata related to users, templates, and services.
-2. **Reverse Proxy**: This container runs a Caddy server that acts as a reverse proxy for all deployed services, handling incoming requests and routing them to the appropriate service containers.
+1. **Reverse Proxy**: This container runs a Caddy server that acts as a reverse proxy for all deployed services, handling incoming requests and routing them to the appropriate service containers.
 
-Configuration for these containers is stored in  `/etc/svs/docker/` directory on the host machine. It includes a Docker Compose files and an environment variable file required to run the containers.
+Configuration for these containers is stored in `/etc/svs/docker/` directory on the host machine. It includes a Docker Compose files and an environment variable file required to run the containers.
 
 !!! warning
-    Once the database container is initialized, changing the credentials in the environment file will not have any effect as the database does not automatically update existing credentials. To change the database credentials, you will need to manually update them in the database itself.
+Once the database container is initialized, changing the credentials in the environment file will not have any effect as the database does not automatically update existing credentials. To change the database credentials, you will need to manually update them in the database itself.
 
 #### Logging
 
@@ -96,10 +100,10 @@ All container data (bind mounts) are stored in `/var/svs/volumes` directory on t
 
 ## Paper
 
-[View raw](main.pdf){target="_blank"}
+[View raw](main.pdf){target="\_blank"}
 
 ![PDF paper](main.pdf){ type=application/pdf style="min-height:100vh;width:100%"}
 
 ## Changelog
 
---8<-- "CHANGELOG.md:2"
+--8\<-- "CHANGELOG.md:2"
