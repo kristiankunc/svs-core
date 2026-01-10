@@ -18,7 +18,6 @@ CI:
 
 This readme contains a quick summary and development setup info.
 
-
 ## Goals
 
 The goal of this project is to provide a simple and easy-to-use library for managing self-hosted services on a linux server. It is designed to be used by developers who want to automate the management of their self-hosted services, such as web servers, databases, and other applications.
@@ -68,7 +67,7 @@ After attaching to the devcontainer, the dependencies will be automatically inst
 
 You also need to run the [`install-dev.sh`](./install-dev.sh) script to configure your system for development. This script will create the required directories and configure permissions. It is a subset of the production install script.
 
-```bash
+````bash
 ### Linting + Formatting
 
 The devcontainer includes pre-configured linting and formatting tools for Visual Studio Code and all files should be formatted on save. If you use a different editor, you can run the pre-commit hooks manually by running `pre-commit run --all-files` in the terminal to apply the formatting and linting rules.
@@ -83,7 +82,7 @@ Tests are split into unit, integration and cli tests. They can be run separately
 pytest -m unit
 pytest -m integration
 pytest -m cli
-```
+````
 
 ### Running the docs
 

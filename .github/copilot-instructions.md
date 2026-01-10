@@ -5,6 +5,7 @@
 **SVS (Self-Hosted Virtual Stack)** is an open-source Python library for managing self-hosted services on Linux servers using Docker containers. The project provides a CLI tool and templates for common services, designed to be beginner-friendly while allowing advanced customization.
 
 **Repository Statistics:**
+
 - **Size:** ~4,400 lines of Python code
 - **Language:** Python 3.13+ (tested with 3.12)
 - **Primary Framework:** Django 6.0 (for database models/migrations and web interface)
@@ -27,7 +28,7 @@
 
 ### Environment Setup
 
-**ALWAYS use a virtual environment.** The project requires Python 3.13  + and PostgreSQL + Docker for full functionality.
+**ALWAYS use a virtual environment.** The project requires Python 3.13 + and PostgreSQL + Docker for full functionality.
 
 ```bash
 # Create and activate virtual environment
@@ -74,6 +75,7 @@ pre-commit run --all-files
 ```
 
 **Individual linting tools:**
+
 ```bash
 # Format code with black
 black .
@@ -184,6 +186,7 @@ npm run build
 ## Project Structure & Key Files
 
 ### Root Directory Files
+
 ```
 .github/               - GitHub workflows and CI configuration
   workflows/
@@ -237,6 +240,7 @@ web/                 - Django web interface
 ```
 
 ### Configuration Files
+
 - **pyproject.toml** - Package metadata, dependencies, tool configs (ruff, black)
 - **pytest.ini** - Test configuration, markers (unit, integration, django_db)
 - **mypy.ini** - Type checking configuration
@@ -251,12 +255,14 @@ web/                 - Django web interface
 The CI pipeline runs on every push and pull request with two jobs:
 
 **1. lint-format job:**
+
 - Sets up Python 3.13
 - Creates venv and installs dev dependencies
 - Runs `pre-commit run --all-files`
 - Must pass before tests run
 
 **2. test job:**
+
 - Sets up Python 3.13 and Docker
 - Starts PostgreSQL and Caddy containers via docker compose
 - Installs dependencies with `pip install -e ".[dev]"`
@@ -265,6 +271,7 @@ The CI pipeline runs on every push and pull request with two jobs:
 - Must pass before merge
 
 **3. build job (PR only):**
+
 - Runs after tests pass
 - Posts pipx install command as PR comment
 
@@ -288,23 +295,28 @@ pytest --cov=. --cov-branch --cov-report=xml:coverage.xml
 ## Architecture & Dependencies
 
 ### Django Integration
+
 Despite being primarily a CLI tool, this project uses Django for:
+
 - Database ORM (models in `svs_core/db/models.py`)
 - Database migrations (managed via `svs_core` app)
 - Web interface (in `web/` directory with separate Django project)
 - User model and authentication
 
 **IMPORTANT:** Django settings MUST be configured before imports:
+
 ```python
 os.environ["DJANGO_SETTINGS_MODULE"] = "svs_core.db.settings"
 django.setup()
 ```
 
 **Two Django configurations exist:**
+
 1. **`svs_core.db.settings`** - Core library settings for CLI and database operations
-2. **`project.settings`** - Web application settings (imports and extends `svs_core.db.settings`)
+1. **`project.settings`** - Web application settings (imports and extends `svs_core.db.settings`)
 
 **Managing database migrations:**
+
 ```bash
 # Set the Django settings module for core library
 export DJANGO_SETTINGS_MODULE=svs_core.db.settings
@@ -323,12 +335,14 @@ python manage.py migrate
 ```
 
 ### Docker Architecture
+
 - All services run in Docker containers
 - Uses `caddy` network for routing (created by docker compose)
 - User-specific networks isolate services
 - Templates define service configurations (see `service_templates/`)
 
 ### Key Entry Points
+
 - **CLI:** `svs_core/__main__.py` → `main()` function
 - **Web App:** `web/manage.py` → Django development server
 - **Database:** Set via `DATABASE_URL` environment variable
@@ -338,6 +352,7 @@ python manage.py migrate
 ## Common Issues & Workarounds
 
 ### Database Connection Issues
+
 - **Problem:** Tests fail with database connection errors
 - **Solution:** Ensure docker compose is running and database is ready:
   ```bash
@@ -346,6 +361,7 @@ python manage.py migrate
   ```
 
 ### Pre-commit Hook Failures
+
 - **Problem:** Pre-commit hooks fail on first run
 - **Solution:** Pre-commit installs environments on first use. Takes 2-3 minutes.
   ```bash
@@ -353,6 +369,7 @@ python manage.py migrate
   ```
 
 ### Import Errors During Testing
+
 - **Problem:** `django.core.exceptions.ImproperlyConfigured`
 - **Solution:** Ensure `DJANGO_SETTINGS_MODULE` is set before running tests:
   ```bash
@@ -360,6 +377,7 @@ python manage.py migrate
   ```
 
 ### Docker Daemon Not Running
+
 - **Problem:** Integration tests fail with "Cannot connect to Docker daemon"
 - **Solution:** Ensure Docker service is running:
   ```bash
@@ -368,6 +386,7 @@ python manage.py migrate
   ```
 
 ### Slow Test Execution
+
 - **Problem:** Tests take longer than expected
 - **Solution:** Run only unit tests during development:
   ```bash
@@ -375,6 +394,7 @@ python manage.py migrate
   ```
 
 ### Web Application Not Starting
+
 - **Problem:** Django web server fails to start
 - **Solution:** Ensure correct settings module and database:
   ```bash
@@ -384,6 +404,7 @@ python manage.py migrate
   ```
 
 ### Wrong Django Settings Module
+
 - **Problem:** Tests or migrations fail with configuration errors
 - **Solution:** Use correct settings module for the context:
   - For CLI/library: `export DJANGO_SETTINGS_MODULE=svs_core.db.settings`
@@ -393,19 +414,21 @@ python manage.py migrate
 ## Development Workflow
 
 ### Recommended Order for Changes
+
 1. **Setup environment:** Create venv, install dependencies
-2. **Start database:** Run docker compose in `.github/extra/`
-3. **Make code changes**
-4. **Run linting:** `pre-commit run --all-files` (or specific tools)
-5. **Run tests:** `pytest -m unit` first, then `pytest` for full suite
-6. **Build package:** `python -m build` to verify packaging
-7. **Commit changes:** Pre-commit hooks run automatically
+1. **Start database:** Run docker compose in `.github/extra/`
+1. **Make code changes**
+1. **Run linting:** `pre-commit run --all-files` (or specific tools)
+1. **Run tests:** `pytest -m unit` first, then `pytest` for full suite
+1. **Build package:** `python -m build` to verify packaging
+1. **Commit changes:** Pre-commit hooks run automatically
 
 ### Web Development Workflow
 
 When working on the web interface:
 
 1. **Setup web environment:**
+
    ```bash
    cd web
    export DJANGO_SETTINGS_MODULE=project.settings
@@ -413,26 +436,30 @@ When working on the web interface:
    export ENVIRONMENT=development
    ```
 
-2. **Apply migrations:**
+1. **Apply migrations:**
+
    ```bash
    # From web/ directory
    python manage.py migrate
    ```
 
-3. **Run development server:**
+1. **Run development server:**
+
    ```bash
    # From web/ directory
    python manage.py runserver
    # Access at http://127.0.0.1:8000
    ```
 
-4. **Testing changes:**
+1. **Testing changes:**
+
    - Templates are in `web/app/templates/`
    - Views are in `web/app/views/`
    - The web app uses Bootstrap 5.3.8 and Alpine.js from CDN
    - No build step required unless adding custom assets
 
-5. **If adding custom frontend assets with Vite:**
+1. **If adding custom frontend assets with Vite:**
+
    ```bash
    # One-time setup in web/ directory
    npm init -y
@@ -449,6 +476,7 @@ When working on the web interface:
    ```
 
 ### Before Submitting PR
+
 ```bash
 # 1. Ensure all tests pass
 pytest
@@ -466,6 +494,7 @@ mypy svs_core tests docs
 ## Trust These Instructions
 
 These instructions are comprehensive and validated through actual testing of the repository. **Only search for additional information if:**
+
 - Instructions don't cover your specific use case
 - You encounter an error not documented here
 - You need details about specific function implementations

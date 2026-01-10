@@ -35,6 +35,7 @@ python manage.py runserver
 ```
 
 The Vite dev server runs on `http://127.0.0.1:5173` and provides:
+
 - **Hot Module Replacement (HMR)**: Changes to JS/CSS are reflected instantly without page reload
 - **Fast rebuilds**: Only changed files are rebuilt
 - **Source maps**: Easy debugging in browser DevTools
@@ -49,6 +50,7 @@ npm run build
 ```
 
 This creates optimized, minified assets in `static/vite/`:
+
 - JavaScript is bundled and minified with esbuild
 - CSS is extracted and minified
 - A manifest file is generated for Django to reference
@@ -60,19 +62,19 @@ When `DEBUG=False`, Django serves the built assets from `static/vite/`.
 ### Development Mode (`DEBUG=True`)
 
 1. Vite dev server runs on port 5173
-2. Django templates load:
+1. Django templates load:
    - `@vite/client` script for HMR
    - Main entry point from dev server (`http://127.0.0.1:5173/src/main.js`)
-3. CSS is injected by Vite automatically (no separate `<link>` tag needed)
-4. Changes to `frontend/src/` trigger HMR updates
+1. CSS is injected by Vite automatically (no separate `<link>` tag needed)
+1. Changes to `frontend/src/` trigger HMR updates
 
 ### Production Mode (`DEBUG=False`)
 
 1. Run `npm run build` to generate assets
-2. Django templates load:
+1. Django templates load:
    - CSS from `static/vite/assets/main-*.css`
    - JS from `static/vite/assets/main-*.js`
-3. Asset paths are resolved using `manifest.json`
+1. Asset paths are resolved using `manifest.json`
 
 ## Architecture
 
@@ -87,6 +89,7 @@ When `DEBUG=False`, Django serves the built assets from `static/vite/`.
 ### Template Tag
 
 The `{% vite %}` template tag in `app/templatetags/vite.py` handles:
+
 - Switching between dev and production asset URLs
 - Loading the HMR client in development
 - Resolving asset paths from the manifest in production
