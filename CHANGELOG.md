@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.11.0](https://github.com/kristiankunc/svs-core/compare/v0.10.3...v0.11.0) (2026-01-12)
+
+
+### Features
+
+* Add git source management ([#214](https://github.com/kristiankunc/svs-core/issues/214)) ([20038e4](https://github.com/kristiankunc/svs-core/commit/20038e40f67e0f5c145fd2d54e829cae8ef68594))
+* **web:** Add git source functionality to web ([e711302](https://github.com/kristiankunc/svs-core/commit/e7113029f9c9e3f6ca5f92014f3e4741827e352b))
+
+
+### Bug Fixes
+
+* Add django shell admin command ([0405975](https://github.com/kristiankunc/svs-core/commit/0405975ab16655cb65cab471573ab6cb16cc6f83))
+* **cli:** Add git source management to CLI ([#218](https://github.com/kristiankunc/svs-core/issues/218)) ([9bd41be](https://github.com/kristiankunc/svs-core/commit/9bd41be12b9af02fe0b0121207df62b304a3d58f))
+* **cli:** Add recursive template import ([00c474b](https://github.com/kristiankunc/svs-core/commit/00c474ba580206f4b5e40c691c1d4eb35f4397f4))
+* **core:** Add more git source updating methods ([48751df](https://github.com/kristiankunc/svs-core/commit/48751dfaf7700653178274d6b9f3144aeccd8651))
+* **core:** Implement GitSource download functionality ([9bd41be](https://github.com/kristiankunc/svs-core/commit/9bd41be12b9af02fe0b0121207df62b304a3d58f))
+* **core:** lock template docker images ([923456a](https://github.com/kristiankunc/svs-core/commit/923456a0f82f704c3a7398027b75d1bbea2fc2bb))
+* **docs:** Add class attribute docstrings ([#217](https://github.com/kristiankunc/svs-core/issues/217)) ([e0d7ec7](https://github.com/kristiankunc/svs-core/commit/e0d7ec71f056380025df435e190c96058f3c5dee))
+* **docs:** Add NGINX guide ([#223](https://github.com/kristiankunc/svs-core/issues/223)) ([1a08f82](https://github.com/kristiankunc/svs-core/commit/1a08f82cb4dfe19ae43ff106cee5b8f3c496cd5b))
+* **docs:** Add web UI setup docs ([3cf3814](https://github.com/kristiankunc/svs-core/commit/3cf38145524e5875986bb6dd7d3d4f218fb584d5))
+* **docs:** Organise template docs ([68b1b75](https://github.com/kristiankunc/svs-core/commit/68b1b75d9c30c46a51248aa34a2be68dfdb99d5b))
+* **web:** Configure django to be production ready ([#211](https://github.com/kristiankunc/svs-core/issues/211)) ([3cf3814](https://github.com/kristiankunc/svs-core/commit/3cf38145524e5875986bb6dd7d3d4f218fb584d5))
+* **web:** Fix various import errors ([3cf3814](https://github.com/kristiankunc/svs-core/commit/3cf38145524e5875986bb6dd7d3d4f218fb584d5))
+
 ## [0.10.3](https://github.com/kristiankunc/svs-core/compare/v0.10.2...v0.10.3) (2026-01-04)
 
 
