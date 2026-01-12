@@ -12,8 +12,12 @@ theme:
   features:
     - content.code.copy
     - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.instant.progress
     - navigation.sections
     - navigation.tabs
+    - navigation.expand
+    - navigation.tracking
     - repo
     - content.action.view
     - content.action.edit
@@ -52,7 +56,7 @@ plugins:
             docstring_section_style: list
             docstring_style: google
             filters: ["!^_", "^__", "!^Meta$"]
-            heading_level: 1
+            heading_level: 2
             inherited_members: true
             merge_init_into_class: true
             parameter_headings: true

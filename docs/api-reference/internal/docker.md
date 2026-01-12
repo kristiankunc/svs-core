@@ -1,7 +1,3 @@
-::: svs_core.docker.base
-
----
-
 ::: svs_core.docker.container.DockerContainerManager
 
 ---
