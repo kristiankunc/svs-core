@@ -4,9 +4,6 @@ site_url: https://svs.kristn.co.uk
 repo_url: https://github.com/kristiankunc/svs-core
 edit_uri: blob/main/docs/
 
-exclude_docs: |
-  shared/
-
 theme:
   name: material
   features:
@@ -21,6 +18,7 @@ theme:
     - repo
     - content.action.view
     - content.action.edit
+    - content.tooltips
 
   palette:
     - scheme: default
@@ -76,6 +74,8 @@ plugins:
 
 markdown_extensions:
   - abbr
+  - attr_list
+  - pymdownx.snippets
   - admonition
   - pymdownx.snippets
   - pymdownx.superfences
@@ -87,6 +87,14 @@ markdown_extensions:
       pygments_lang_class: true
   - toc:
       permalink: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: pymdownx.superfences.fence_code_format
+  - pymdownx.snippets:
+      auto_append:
+        - docs/abbreviations.md
 
 extra:
   env:
