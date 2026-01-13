@@ -235,5 +235,3 @@ class TestGitSourceIntegration:
 
             # Verify database record was deleted
             assert not GitSource.objects.filter(id=git_source_id).exists()
-            with pytest.raises(GitSource.DoesNotExist):
-                GitSource.objects.get(id=git_source_id)
