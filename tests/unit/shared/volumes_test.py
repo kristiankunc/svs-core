@@ -16,7 +16,31 @@ def mock_base_volume_path(monkeypatch, tmp_path):
 
 @pytest.fixture
 def mock_run_command(mocker):
-    return mocker.patch("svs_core.shared.volumes.run_command")
+    # Create a mock that allows mkdir to run but mocks sudo commands
+    original_run_command = __import__('svs_core.shared.shell', fromlist=['run_command']).run_command
+    
+    def side_effect(command, **kwargs):
+        # Let mkdir commands run normally
+        if 'mkdir' in command:
+            import subprocess
+            # Remove sudo prefix if present to avoid permission issues in test
+            cmd_to_run = command.replace('sudo -u svs ', '').replace('sudo -u testuser ', '').replace('sudo -u user1 ', '').replace('sudo -u user2 ', '').replace('sudo -u otheruser ', '')
+            subprocess.run(cmd_to_run, shell=True, check=False)
+            return mocker.Mock(returncode=0, stdout='', stderr='')
+        # Let rm commands run normally
+        elif 'rm -rf' in command:
+            import subprocess
+            # Remove sudo prefix if present to avoid permission issues in test
+            cmd_to_run = command.replace('sudo -u svs ', '').replace('sudo -u testuser ', '').replace('sudo -u user1 ', '').replace('sudo -u user2 ', '').replace('sudo -u otheruser ', '')
+            subprocess.run(cmd_to_run, shell=True, check=False)
+            return mocker.Mock(returncode=0, stdout='', stderr='')
+        # Mock sudo chown and chmod commands
+        elif 'sudo chown' in command or 'sudo chmod' in command:
+            return mocker.Mock(returncode=0, stdout='', stderr='')
+        # For other commands, use the original
+        return original_run_command(command, **kwargs)
+    
+    return mocker.patch("svs_core.shared.shell.run_command", side_effect=side_effect)
 
 
 @pytest.fixture
