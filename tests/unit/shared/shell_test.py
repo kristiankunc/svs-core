@@ -23,11 +23,22 @@ class TestDirectoryManagement:
 
         create_directory("/tmp/test_dir")
 
-        mock_run.assert_called_once()
-        args, kwargs = mock_run.call_args
-        assert "mkdir -p /tmp/test_dir" == args[0]
+        # create_directory now makes 3 calls: mkdir, chown, chmod
+        assert mock_run.call_count == 3
+
+        # First call should be mkdir
+        args, kwargs = mock_run.call_args_list[0]
+        assert "sudo -u svs mkdir -p /tmp/test_dir" == args[0]
         assert kwargs.get("shell", False)
         assert kwargs.get("check", False)
+
+        # Second call should be chown
+        args, kwargs = mock_run.call_args_list[1]
+        assert "sudo chown svs:svs-admins /tmp/test_dir" == args[0]
+
+        # Third call should be chmod
+        args, kwargs = mock_run.call_args_list[2]
+        assert "sudo chmod 770 /tmp/test_dir" == args[0]
 
     @pytest.mark.unit
     def test_create_directory_with_logger(self, mocker: MockerFixture) -> None:
@@ -39,14 +50,15 @@ class TestDirectoryManagement:
         create_directory("/tmp/test_dir", logger=mock_logger)
 
         mock_logger.log.assert_called()
-        mock_run.assert_called_once()
+        # create_directory now makes 3 calls: mkdir, chown, chmod
+        assert mock_run.call_count == 3
 
     @pytest.mark.unit
     def test_create_directory_multiple_paths(self, mocker: MockerFixture) -> None:
         mock_run = mocker.patch("subprocess.run")
         mock_run.side_effect = subprocess.CalledProcessError(
             returncode=1,
-            cmd="mkdir -p /tmp/my test directory",
+            cmd="sudo -u svs mkdir -p /tmp/my test directory",
             output="",
             stderr="error",
         )
@@ -54,6 +66,7 @@ class TestDirectoryManagement:
         with pytest.raises(subprocess.CalledProcessError):
             create_directory("/tmp/my test directory")
 
+        # Should fail on the first call (mkdir)
         mock_run.assert_called_once()
 
     @pytest.mark.unit
@@ -66,7 +79,7 @@ class TestDirectoryManagement:
 
         mock_run.assert_called_once()
         args, kwargs = mock_run.call_args
-        assert "rm -rf /tmp/test_dir" == args[0]
+        assert "sudo -u svs rm -rf /tmp/test_dir" == args[0]
         assert kwargs.get("shell", False)
         assert kwargs.get("check", False)
 
@@ -86,7 +99,10 @@ class TestDirectoryManagement:
     def test_remove_directory_with_spaces(self, mocker: MockerFixture) -> None:
         mock_run = mocker.patch("subprocess.run")
         mock_run.side_effect = subprocess.CalledProcessError(
-            returncode=1, cmd="rm -rf /tmp/my test directory", output="", stderr="error"
+            returncode=1,
+            cmd="sudo -u svs rm -rf /tmp/my test directory",
+            output="",
+            stderr="error",
         )
 
         with pytest.raises(subprocess.CalledProcessError):

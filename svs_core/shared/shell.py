@@ -27,7 +27,7 @@ def create_directory(
     command = f"mkdir -p {path}"
 
     run_command(command, user=user, logger=logger)
-    
+
     # Set ownership to user:svs-admins and permissions to 770
     # This applies to the final directory and all parent directories created by mkdir -p
     run_command(f"sudo chown {user}:svs-admins {path}", check=True, logger=logger)
