@@ -10,6 +10,10 @@ def create_directory(
 ) -> None:
     """Creates a directory at the specified path if it does not exist.
 
+    Sets ownership to user:svs-admins and permissions to 770 (rwxrwx---) for the
+    final directory in the path. When using mkdir -p, parent directories are created
+    with default permissions, and only the final directory gets the specified permissions.
+
     Args:
         path (str): The directory path to create.
         logger (Optional[logging.Logger]): custom log handler.
@@ -23,6 +27,11 @@ def create_directory(
     command = f"mkdir -p {path}"
 
     run_command(command, user=user, logger=logger)
+
+    # Set ownership to user:svs-admins and permissions to 770
+    # This applies to the final directory and all parent directories created by mkdir -p
+    run_command(f"sudo chown {user}:svs-admins {path}", check=True, logger=logger)
+    run_command(f"sudo chmod 770 {path}", check=True, logger=logger)
 
 
 def remove_directory(path: str, logger: Optional[logging.Logger] = None) -> None:
