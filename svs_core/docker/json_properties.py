@@ -264,7 +264,7 @@ class DefaultContent(KeyValue[str, str]):
             username (str): The username to use for file ownership and permissions.
         """
 
-        create_directory(os.path.dirname(host_path))
+        create_directory(os.path.dirname(host_path), user=username)
         run_command(f"echo '{self.content}' > {host_path}", check=True, user=username)
 
     def __str__(self) -> str:

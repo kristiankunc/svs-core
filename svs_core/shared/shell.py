@@ -10,6 +10,10 @@ def create_directory(
 ) -> None:
     """Creates a directory at the specified path if it does not exist.
 
+    Sets ownership to user:svs-admins and permissions to 770 (rwxrwx---) for the
+    final directory in the path. When using mkdir -p, parent directories are created
+    with default permissions, and only the final directory gets the specified permissions.
+
     Args:
         path (str): The directory path to create.
         logger (Optional[logging.Logger]): custom log handler.
@@ -21,9 +25,13 @@ def create_directory(
         logger = get_logger(__name__)
 
     command = f"mkdir -p {path}"
-    logger.log(logging.DEBUG, f"Creating directory at path: {path}")
 
-    subprocess.run(command, shell=True, check=True)
+    run_command(command, user=user, logger=logger)
+
+    # Set ownership to user:svs-admins and permissions to 770
+    # This applies to the final directory and all parent directories created by mkdir -p
+    run_command(f"sudo chown {user}:svs-admins {path}", check=True, logger=logger)
+    run_command(f"sudo chmod 770 {path}", check=True, logger=logger)
 
 
 def remove_directory(path: str, logger: Optional[logging.Logger] = None) -> None:
@@ -39,9 +47,7 @@ def remove_directory(path: str, logger: Optional[logging.Logger] = None) -> None
         logger = get_logger(__name__)
 
     command = f"rm -rf {path}"
-    logger.log(logging.DEBUG, f"Removing directory at path: {path}")
-
-    subprocess.run(command, shell=True, check=True)
+    run_command(command, logger=logger)
 
 
 def read_file(path: Path, logger: Optional[logging.Logger] = None) -> str:
