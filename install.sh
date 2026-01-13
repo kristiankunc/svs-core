@@ -82,6 +82,9 @@ create_svs_user() {
         sudo useradd --system --no-create-home --shell /usr/sbin/nologin svs
         echo "✅ System user 'svs' created."
     fi
+
+    sudo usermod -a -G svs-admins svs
+    echo "✅ System user 'svs' added to 'svs-admins' group."
 }
 
 docker_setup() {
@@ -89,6 +92,7 @@ docker_setup() {
 
     sudo mkdir -p /etc/svs/docker
     sudo chown -R root:svs-admins /etc/svs/docker
+    sudo chmod 2775 /etc/svs/docker
 
     compose_path="/etc/svs/docker/docker-compose.yml"
     stack_env_path="/etc/svs/docker/stack.env"
@@ -138,6 +142,7 @@ networks:
 EOF
 '
         echo "✅ $compose_path created."
+        sudo chmod 660 "$compose_path"
     else
         echo "✅ $compose_path already exists."
     fi
@@ -160,6 +165,7 @@ POSTGRES_DB=$POSTGRES_DB
 POSTGRES_HOST=$POSTGRES_HOST
 EOL"
         echo "✅ $stack_env_path created."
+        sudo chmod 660 "$stack_env_path"
     fi
 
     # start the compose stack as daemon and wait for db to be ready
@@ -187,13 +193,12 @@ storage_setup() {
 
     # Setup /etc/svs directory
     sudo mkdir -p /etc/svs
-    sudo chown root:svs-admins /etc/svs
+    sudo chown svs:svs-admins /etc/svs
     sudo chmod 2775 /etc/svs
 
     # Setup /var/svs directory
-    sudo mkdir -p /var/svs
     sudo mkdir -p /var/svs/volumes
-    sudo chown -R root:svs-admins /var/svs
+    sudo chown -R svs:svs-admins /var/svs
     sudo chmod 2775 /var/svs
     sudo chmod 2775 /var/svs/volumes
 

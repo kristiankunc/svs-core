@@ -21,9 +21,8 @@ def create_directory(
         logger = get_logger(__name__)
 
     command = f"mkdir -p {path}"
-    logger.log(logging.DEBUG, f"Creating directory at path: {path}")
 
-    subprocess.run(command, shell=True, check=True)
+    run_command(command, user=user, logger=logger)
 
 
 def remove_directory(path: str, logger: Optional[logging.Logger] = None) -> None:
@@ -39,9 +38,7 @@ def remove_directory(path: str, logger: Optional[logging.Logger] = None) -> None
         logger = get_logger(__name__)
 
     command = f"rm -rf {path}"
-    logger.log(logging.DEBUG, f"Removing directory at path: {path}")
-
-    subprocess.run(command, shell=True, check=True)
+    run_command(command, logger=logger)
 
 
 def read_file(path: Path, logger: Optional[logging.Logger] = None) -> str:
