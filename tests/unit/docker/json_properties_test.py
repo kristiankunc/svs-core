@@ -147,19 +147,29 @@ class TestDefaultContent:
 
     def test_write_to_host(self, tmp_path, mocker):
         """Test that write_to_host creates a file with the correct content."""
-        # Mock run_command to avoid requiring actual system user
-        mock_run = mocker.patch("svs_core.docker.json_properties.run_command")
+        # Mock subprocess.run to avoid requiring actual system user
+        mock_subprocess_run = mocker.patch("subprocess.run")
+        mock_subprocess_run.return_value = mocker.Mock(
+            returncode=0, stdout="", stderr=""
+        )
 
         content = DefaultContent("/etc/config.conf", "key=value")
         host_file = tmp_path / "config.conf"
 
         content.write_to_host(str(host_file), username="testuser")
 
-        # Verify run_command was called with correct parameters
-        mock_run.assert_called_once()
-        call_args = mock_run.call_args
-        assert "key=value" in call_args[0][0]
-        assert str(host_file) in call_args[0][0]
+        # Verify subprocess.run was called 4 times total
+        # 1. mkdir -p (from create_directory)
+        # 2. chown (from create_directory)
+        # 3. chmod (from create_directory)
+        # 4. echo > file (from write_to_host)
+        assert mock_subprocess_run.call_count == 4
+
+        # Check the last call was the echo command for writing content
+        last_call = mock_subprocess_run.call_args_list[-1]
+        command = last_call[0][0]
+        assert "key=value" in command
+        assert str(host_file) in command
 
 
 @pytest.mark.unit
