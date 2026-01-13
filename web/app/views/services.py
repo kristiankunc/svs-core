@@ -228,6 +228,69 @@ def download_git_source(request: HttpRequest, service_id: int, git_source_id: in
     return redirect("detail_service", service_id=service.id)
 
 
+def attach_git_source(request: HttpRequest, service_id: int):
+    """Attach a git source to an existing service."""
+    service = get_object_or_404(Service, id=service_id)
+
+    if not is_owner_or_admin(request, service):
+        return redirect("detail_service", service_id=service.id)
+
+    if request.method == "POST":
+        git_url = request.POST.get("git_source_url", "").strip()
+        git_branch = request.POST.get("git_source_branch", "main").strip()
+        git_path = request.POST.get("git_source_path", "").strip()
+
+        if not git_url or not git_path:
+            return render(
+                request,
+                "services/detail.html",
+                {
+                    "service": service,
+                    "error": "Git URL and destination path are required.",
+                },
+            )
+
+        try:
+            git_path_obj = Path(git_path)
+            service.add_git_source(git_url, git_branch, git_path_obj)
+        except Exception as e:
+            get_logger(__name__).error(
+                f"Failed to attach git source to service {service_id}: {str(e)}"
+            )
+            return render(
+                request,
+                "services/detail.html",
+                {"service": service, "error": f"Failed to attach git source: {str(e)}"},
+            )
+
+        return redirect("detail_service", service_id=service.id)
+
+    return render(request, "services/detail.html", {"service": service})
+
+
+def delete_git_source(request: HttpRequest, service_id: int, git_source_id: int):
+    """Delete a git source from a service."""
+    service = get_object_or_404(Service, id=service_id)
+    git_source = get_object_or_404(GitSource, id=git_source_id, service_id=service_id)
+
+    if not is_owner_or_admin(request, service):
+        return redirect("detail_service", service_id=service.id)
+
+    try:
+        git_source.delete()
+    except Exception as e:
+        get_logger(__name__).error(
+            f"Failed to delete git source {git_source_id} from service {service_id}: {str(e)}"
+        )
+        return render(
+            request,
+            "services/detail.html",
+            {"service": service, "error": f"Failed to delete git source: {str(e)}"},
+        )
+
+    return redirect("detail_service", service_id=service.id)
+
+
 urlpatterns = [
     path("services/", list_services, name="list_services"),
     path(
@@ -242,8 +305,18 @@ urlpatterns = [
     path("services/<int:service_id>/delete/", delete, name="delete_service"),
     path("services/<int:service_id>/logs/", view_logs, name="view_service_logs"),
     path(
+        "services/<int:service_id>/git-sources/attach/",
+        attach_git_source,
+        name="attach_git_source",
+    ),
+    path(
         "services/<int:service_id>/git-sources/<int:git_source_id>/download/",
         download_git_source,
         name="download_git_source",
+    ),
+    path(
+        "services/<int:service_id>/git-sources/<int:git_source_id>/delete/",
+        delete_git_source,
+        name="delete_git_source",
     ),
 ]

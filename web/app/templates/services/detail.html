@@ -11,7 +11,7 @@
             </p>
         </div>
     </div>
-    <div class="row">
+    <div class="row" x-data="{ attachGitSourceVisible: false }">
         <!-- Main Content -->
         <div class="col-lg-8">
             <!-- Basic Information -->
@@ -211,7 +211,7 @@
             <!-- Git Sources -->
             {% with git_sources=service.proxy_git_sources.all %}
                 {% if git_sources %}
-                    <div class="card">
+                    <div class="card mb-4">
                         <div class="card-header">
                             <h5 class="mb-0">Git Sources</h5>
                         </div>
@@ -248,26 +248,202 @@
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                <form action="{% url 'download_git_source' service.id git_source.id %}"
-                                                      method="post"
-                                                      class="d-inline">
-                                                    {% csrf_token %}
-                                                    <button type="submit"
-                                                            class="btn btn-sm btn-primary"
-                                                            title="Download/Update Git Source">
-                                                        {% if git_source.downloaded_at %}
-                                                            Update
-                                                        {% else %}
-                                                            Download
-                                                        {% endif %}
-                                                    </button>
-                                                </form>
+                                                <div class="btn-group btn-group-sm gap-2" role="group">
+                                                    <form action="{% url 'download_git_source' service.id git_source.id %}"
+                                                          method="post"
+                                                          class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit"
+                                                                class="btn btn-primary"
+                                                                title="Download/Update Git Source">
+                                                            {% if git_source.downloaded_at %}
+                                                                Update
+                                                            {% else %}
+                                                                Download
+                                                            {% endif %}
+                                                        </button>
+                                                    </form>
+                                                    <form action="{% url 'delete_git_source' service.id git_source.id %}"
+                                                          method="post"
+                                                          class="d-inline"
+                                                          onsubmit="return confirm('Are you sure you want to delete this git source?');">
+                                                        {% csrf_token %}
+                                                        <button type="submit"
+                                                                class="btn btn-outline-danger"
+                                                                title="Delete Git Source">Delete</button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
                         </div>
+                        <div class="card-footer">
+                            <button type="button"
+                                    class="btn btn-sm btn-primary"
+                                    @click="attachGitSourceVisible = true; setTimeout(() => { const el = document.getElementById('attach-git-source-form'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100)"
+                                    x-show="!attachGitSourceVisible"
+                                    style="display: none">Attach Another Git Source</button>
+                            <button type="button"
+                                    class="btn btn-sm btn-secondary"
+                                    @click="attachGitSourceVisible = false"
+                                    x-show="attachGitSourceVisible">Hide Form</button>
+                        </div>
+                    </div>
+                    <!-- Attach Git Source Form -->
+                    <div class="card mb-4"
+                         id="attach-git-source-form"
+                         x-show="attachGitSourceVisible"
+                         x-transition>
+                        <div class="card-header">
+                            <h5 class="mb-0">Attach New Git Source</h5>
+                        </div>
+                        <form action="{% url 'attach_git_source' service.id %}"
+                              method="post"
+                              class="card-body">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="git_source_url" class="form-label">Repository URL</label>
+                                <input type="url"
+                                       class="form-control"
+                                       id="git_source_url"
+                                       name="git_source_url"
+                                       placeholder="https://github.com/user/repo.git"
+                                       required>
+                                <small class="form-text text-muted">Full URL to the Git repository</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="git_source_branch" class="form-label">Branch</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="git_source_branch"
+                                       name="git_source_branch"
+                                       placeholder="main"
+                                       value="main">
+                                <small class="form-text text-muted">Git branch to checkout (default: main)</small>
+                            </div>
+                            {% if service.volumes %}
+                                <div class="mb-3">
+                                    <label for="git_source_volume" class="form-label">Base Volume (Optional)</label>
+                                    <select class="form-select"
+                                            id="git_source_volume"
+                                            name="git_source_volume"
+                                            @change="document.getElementById('git_source_path').value = $el.value ? $el.value : ''">
+                                        <option value="">-- Choose a volume or enter custom path --</option>
+                                        {% for volume in service.volumes %}
+                                            {% if volume.host_path %}
+                                                <option value="{{ volume.host_path }}">{{ volume.host_path }} ({{ volume.container_path }})</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                    <small class="form-text text-muted">Select a volume to use as the base path for cloning, or leave empty to enter a custom path</small>
+                                </div>
+                            {% endif %}
+                            <div class="mb-3">
+                                <label for="git_source_path" class="form-label">Destination Path</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="git_source_path"
+                                       name="git_source_path"
+                                       placeholder="/absolute/path"
+                                       required>
+                                <small class="form-text text-muted">Absolute path on the host filesystem where the repository will be cloned</small>
+                            </div>
+                            <div class="d-grid gap-2 d-sm-flex">
+                                <button type="submit" class="btn btn-primary">Attach Git Source</button>
+                                <button type="button"
+                                        class="btn btn-secondary"
+                                        @click="attachGitSourceVisible = false">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Git Sources</h5>
+                        </div>
+                        <div class="card-body text-muted">
+                            <p class="mb-0">No git sources attached to this service.</p>
+                        </div>
+                        <div class="card-footer">
+                            <button type="button"
+                                    class="btn btn-sm btn-primary"
+                                    @click="attachGitSourceVisible = true; setTimeout(() => { const el = document.getElementById('attach-git-source-form-empty'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100)"
+                                    x-show="!attachGitSourceVisible"
+                                    style="display: none">Attach a Git Source</button>
+                            <button type="button"
+                                    class="btn btn-sm btn-secondary"
+                                    @click="attachGitSourceVisible = false"
+                                    x-show="attachGitSourceVisible">Hide Form</button>
+                        </div>
+                    </div>
+                    <!-- Attach Git Source Form -->
+                    <div class="card mb-4"
+                         id="attach-git-source-form-empty"
+                         x-show="attachGitSourceVisible"
+                         x-transition>
+                        <div class="card-header">
+                            <h5 class="mb-0">Attach Git Source</h5>
+                        </div>
+                        <form action="{% url 'attach_git_source' service.id %}"
+                              method="post"
+                              class="card-body">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="git_source_url_empty" class="form-label">Repository URL</label>
+                                <input type="url"
+                                       class="form-control"
+                                       id="git_source_url_empty"
+                                       name="git_source_url"
+                                       placeholder="https://github.com/user/repo.git"
+                                       required>
+                                <small class="form-text text-muted">Full URL to the Git repository</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="git_source_branch_empty" class="form-label">Branch</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="git_source_branch_empty"
+                                       name="git_source_branch"
+                                       placeholder="main"
+                                       value="main">
+                                <small class="form-text text-muted">Git branch to checkout (default: main)</small>
+                            </div>
+                            {% if service.volumes %}
+                                <div class="mb-3">
+                                    <label for="git_source_volume_empty" class="form-label">Base Volume (Optional)</label>
+                                    <select class="form-select"
+                                            id="git_source_volume_empty"
+                                            name="git_source_volume"
+                                            @change="document.getElementById('git_source_path_empty').value = $el.value ? $el.value : ''">
+                                        <option value="">-- Choose a volume or enter custom path --</option>
+                                        {% for volume in service.volumes %}
+                                            {% if volume.host_path %}
+                                                <option value="{{ volume.host_path }}">{{ volume.host_path }} ({{ volume.container_path }})</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                    <small class="form-text text-muted">Select a volume to use as the base path for cloning, or leave empty to enter a custom path</small>
+                                </div>
+                            {% endif %}
+                            <div class="mb-3">
+                                <label for="git_source_path_empty" class="form-label">Destination Path</label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="git_source_path_empty"
+                                       name="git_source_path"
+                                       placeholder="/absolute/path"
+                                       required>
+                                <small class="form-text text-muted">Absolute path on the host filesystem where the repository will be cloned</small>
+                            </div>
+                            <div class="d-grid gap-2 d-sm-flex">
+                                <button type="submit" class="btn btn-primary">Attach Git Source</button>
+                                <button type="button"
+                                        class="btn btn-secondary"
+                                        @click="attachGitSourceVisible = false">Cancel</button>
+                            </div>
+                        </form>
                     </div>
                 {% endif %}
             {% endwith %}
