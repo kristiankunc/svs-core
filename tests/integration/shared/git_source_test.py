@@ -107,7 +107,8 @@ class TestGitSourceIntegration:
     @pytest.mark.integration
     @pytest.mark.django_db
     def test_download_creates_parent_directory(self, test_service: Service) -> None:
-        """Test download creates parent directory if it doesn't exist."""
+        """Test download creates parent and destination directories if they
+        don't exist."""
         with TemporaryDirectory() as tmpdir:
             destination_path = Path(tmpdir) / "nonexistent" / "repo"
 
@@ -123,14 +124,20 @@ class TestGitSourceIntegration:
                     mock_run.return_value = MagicMock(stdout="")
                     git_source.download()
 
-                    # Verify create_directory was called for parent
-                    mock_mkdir.assert_called_once()
-                    assert str(destination_path.parent) in mock_mkdir.call_args[0][0]
+                    # Verify create_directory was called for parent and destination
+                    assert mock_mkdir.call_count == 2
+                    # First call should be for parent directory
+                    assert (
+                        str(destination_path.parent)
+                        in mock_mkdir.call_args_list[0][0][0]
+                    )
+                    # Second call should be for destination directory
+                    assert str(destination_path) in mock_mkdir.call_args_list[1][0][0]
 
     @pytest.mark.integration
     @pytest.mark.django_db
     def test_download_cleans_existing_directory(self, test_service: Service) -> None:
-        """Test download removes existing destination before cloning."""
+        """Test download removes existing directory contents before cloning."""
         with TemporaryDirectory() as tmpdir:
             destination_path = Path(tmpdir) / "repo"
             destination_path.mkdir(parents=True)
@@ -146,9 +153,12 @@ class TestGitSourceIntegration:
                 mock_run.return_value = MagicMock(stdout="")
                 git_source.download()
 
-                # Verify rm -rf was called before clone
+                # Verify find command was called to delete contents
                 call_strings = [call[0][0] for call in mock_run.call_args_list]
-                assert any("rm -rf" in cmd for cmd in call_strings)
+                assert any(
+                    "find" in cmd and "-mindepth 1 -delete" in cmd
+                    for cmd in call_strings
+                )
                 assert any("git clone" in cmd for cmd in call_strings)
 
     @pytest.mark.integration
