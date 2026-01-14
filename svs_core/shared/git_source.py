@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from svs_core.db.models import GitSourceModel
+from svs_core.shared.exceptions import ValidationException
 from svs_core.shared.http import is_url
 from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import create_directory, run_command
@@ -13,7 +14,7 @@ class GitSource(GitSourceModel):
     class Meta:  # noqa: D106
         proxy = True
 
-    class InvalidGitSourceError(ValueError):
+    class InvalidGitSourceError(ValidationException):
         """Exception raised for invalid GitSource parameters."""
 
     @classmethod
@@ -35,7 +36,7 @@ class GitSource(GitSourceModel):
             GitSource: The created GitSource instance.
 
         Raises:
-            ValueError: If any of the input parameters are invalid.
+            ValidationException: If any of the input parameters are invalid.
             Service.DoesNotExist: If the service with the given ID does not exist.
         """
         from svs_core.docker.service import Service
@@ -43,13 +44,13 @@ class GitSource(GitSourceModel):
         Service.objects.get(id=service_id)
 
         if not destination_path.is_absolute():
-            raise ValueError("destination_path must be an absolute path")
+            raise ValidationException("destination_path must be an absolute path")
 
         if not is_url(repository_url):
-            raise ValueError("repository_url must be a valid URL")
+            raise ValidationException("repository_url must be a valid URL")
 
         if branch.strip() == "" or " " in branch:
-            raise ValueError("branch cannot be an empty string or contain spaces")
+            raise ValidationException("branch cannot be an empty string or contain spaces")
 
         git_source = cls(
             service_id=service_id,

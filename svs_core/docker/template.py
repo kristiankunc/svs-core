@@ -355,17 +355,17 @@ class Template(TemplateModel):
         default_contents_list = []
         for content_data in default_contents_data:
             if not isinstance(content_data, dict):
-                raise ValueError(
+                raise TemplateException(
                     f"Invalid default content specification: {content_data}. Must be a dictionary."
                 )
 
             if "location" not in content_data:
-                raise ValueError(
+                raise TemplateException(
                     f"Invalid default content specification: {content_data}. Must contain 'location' field."
                 )
 
             if "content" not in content_data:
-                raise ValueError(
+                raise TemplateException(
                     f"Invalid default content specification: {content_data}. Must contain 'content' field."
                 )
 
@@ -373,12 +373,12 @@ class Template(TemplateModel):
             content = content_data["content"]
 
             if not isinstance(location, str):
-                raise ValueError(
+                raise TemplateException(
                     f"Default content location must be a string, got {type(location).__name__}"
                 )
 
             if not isinstance(content, str):
-                raise ValueError(
+                raise TemplateException(
                     f"Default content must be a string, got {type(content).__name__}"
                 )
 
@@ -415,11 +415,12 @@ class Template(TemplateModel):
         """Deletes the template and associated Docker image if applicable.
 
         Raises:
-            Exception: If the template is associated with existing services.
+            InvalidOperationException: If the template is associated with existing services.
         """
         get_logger(__name__).info(f"Deleting template '{self.name}'")
 
         from svs_core.docker.service import Service
+        from svs_core.shared.exceptions import InvalidOperationException
 
         services = Service.objects.filter(template=self)
 
@@ -427,7 +428,7 @@ class Template(TemplateModel):
             get_logger(__name__).warning(
                 f"Cannot delete template '{self.name}' - has {len(services)} associated services"
             )
-            raise Exception(
+            raise InvalidOperationException(
                 f"Cannot delete template {self.name} as it is associated with existing services."
             )
 

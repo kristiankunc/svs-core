@@ -1,5 +1,6 @@
 import random
 
+from svs_core.shared.exceptions import ResourceException
 from svs_core.shared.shell import run_command
 
 
@@ -32,7 +33,7 @@ class SystemPortManager:
             int: A free port number if available.
 
         Raises:
-            RuntimeError: If no free port is found within the maximum attempts.
+            ResourceException: If no free port is found within the maximum attempts.
         """
         MAX_ATTEMPTS = 50
         attempts = 0
@@ -45,4 +46,4 @@ class SystemPortManager:
 
             attempts += 1
 
-        raise RuntimeError("No free port found")
+        raise ResourceException("No free port found")
