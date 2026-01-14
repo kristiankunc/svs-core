@@ -153,9 +153,7 @@ class TestGitSourceIntegration:
 
     @pytest.mark.integration
     @pytest.mark.django_db
-    def test_delete_removes_files_when_path_exists(
-        self, test_service: Service
-    ) -> None:
+    def test_delete_removes_files_when_path_exists(self, test_service: Service) -> None:
         """Test delete removes files from destination when path exists."""
         with TemporaryDirectory() as tmpdir:
             destination_path = Path(tmpdir) / "repo"
