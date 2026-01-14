@@ -107,7 +107,8 @@ class TestGitSourceIntegration:
     @pytest.mark.integration
     @pytest.mark.django_db
     def test_download_creates_parent_directory(self, test_service: Service) -> None:
-        """Test download creates parent directory if it doesn't exist."""
+        """Test download creates parent and destination directories if they
+        don't exist."""
         with TemporaryDirectory() as tmpdir:
             destination_path = Path(tmpdir) / "nonexistent" / "repo"
 
@@ -123,14 +124,20 @@ class TestGitSourceIntegration:
                     mock_run.return_value = MagicMock(stdout="")
                     git_source.download()
 
-                    # Verify create_directory was called for parent
-                    mock_mkdir.assert_called_once()
-                    assert str(destination_path.parent) in mock_mkdir.call_args[0][0]
+                    # Verify create_directory was called for parent and destination
+                    assert mock_mkdir.call_count == 2
+                    # First call should be for parent directory
+                    assert (
+                        str(destination_path.parent)
+                        in mock_mkdir.call_args_list[0][0][0]
+                    )
+                    # Second call should be for destination directory
+                    assert str(destination_path) in mock_mkdir.call_args_list[1][0][0]
 
     @pytest.mark.integration
     @pytest.mark.django_db
     def test_download_cleans_existing_directory(self, test_service: Service) -> None:
-        """Test download removes existing destination before cloning."""
+        """Test download removes existing directory contents before cloning."""
         with TemporaryDirectory() as tmpdir:
             destination_path = Path(tmpdir) / "repo"
             destination_path.mkdir(parents=True)
@@ -146,7 +153,93 @@ class TestGitSourceIntegration:
                 mock_run.return_value = MagicMock(stdout="")
                 git_source.download()
 
-                # Verify rm -rf was called before clone
+                # Verify find command was called to delete contents
                 call_strings = [call[0][0] for call in mock_run.call_args_list]
-                assert any("rm -rf" in cmd for cmd in call_strings)
+                assert any(
+                    "find" in cmd and "-mindepth 1 -delete" in cmd
+                    for cmd in call_strings
+                )
                 assert any("git clone" in cmd for cmd in call_strings)
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_delete_removes_files_when_path_exists(self, test_service: Service) -> None:
+        """Test delete removes files from destination when path exists."""
+        with TemporaryDirectory() as tmpdir:
+            destination_path = Path(tmpdir) / "repo"
+            destination_path.mkdir(parents=True)
+            # Create a test file
+            (destination_path / "test_file.txt").write_text("test content")
+
+            git_source = GitSource.create(
+                service_id=test_service.id,
+                repository_url="https://github.com/user/repo.git",
+                destination_path=destination_path,
+                branch="main",
+            )
+
+            with patch("svs_core.shared.git_source.run_command") as mock_run:
+                mock_run.return_value = MagicMock(stdout="")
+                git_source.delete()
+
+                # Verify find command was called to delete contents
+                mock_run.assert_called_once()
+                call_args = mock_run.call_args[0][0]
+                assert "find" in call_args
+                assert str(destination_path) in call_args
+                assert "-mindepth 1 -delete" in call_args
+                assert mock_run.call_args[1]["user"] == test_service.user.name
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_delete_when_path_does_not_exist(self, test_service: Service) -> None:
+        """Test delete succeeds when destination path doesn't exist."""
+        with TemporaryDirectory() as tmpdir:
+            destination_path = Path(tmpdir) / "nonexistent" / "repo"
+
+            git_source = GitSource.create(
+                service_id=test_service.id,
+                repository_url="https://github.com/user/repo.git",
+                destination_path=destination_path,
+                branch="main",
+            )
+
+            git_source_id = git_source.id
+
+            with patch("svs_core.shared.git_source.run_command") as mock_run:
+                mock_run.return_value = MagicMock(stdout="")
+                git_source.delete()
+
+                # Verify run_command was NOT called since path doesn't exist
+                mock_run.assert_not_called()
+
+            # Verify database record was deleted
+            with pytest.raises(GitSource.DoesNotExist):
+                GitSource.objects.get(id=git_source_id)
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_delete_removes_database_record(self, test_service: Service) -> None:
+        """Test delete removes the GitSource database record."""
+        with TemporaryDirectory() as tmpdir:
+            destination_path = Path(tmpdir) / "repo"
+            destination_path.mkdir(parents=True)
+
+            git_source = GitSource.create(
+                service_id=test_service.id,
+                repository_url="https://github.com/user/repo.git",
+                destination_path=destination_path,
+                branch="main",
+            )
+
+            git_source_id = git_source.id
+
+            # Verify it exists before deletion
+            assert GitSource.objects.filter(id=git_source_id).exists()
+
+            with patch("svs_core.shared.git_source.run_command") as mock_run:
+                mock_run.return_value = MagicMock(stdout="")
+                git_source.delete()
+
+            # Verify database record was deleted
+            assert not GitSource.objects.filter(id=git_source_id).exists()

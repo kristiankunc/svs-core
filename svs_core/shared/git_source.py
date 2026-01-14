@@ -70,13 +70,24 @@ class GitSource(GitSourceModel):
             f"Cloning repository {self.repository_url} (branch: {self.branch}) to {self.destination_path}"
         )
 
-        if not Path(self.destination_path).parent.exists():
+        dest_path = Path(self.destination_path)
+
+        if not dest_path.parent.exists():
             create_directory(
-                Path(self.destination_path).parent.absolute().as_posix(),
+                dest_path.parent.absolute().as_posix(),
                 user=self.service.user.name,
             )
 
-        run_command(f"rm -rf {self.destination_path}", user=self.service.user.name)
+        if dest_path.exists():
+            run_command(
+                f"find {self.destination_path} -mindepth 1 -delete",
+                user=self.service.user.name,
+            )
+        else:
+            create_directory(
+                self.destination_path,
+                user=self.service.user.name,
+            )
         run_command(
             f"git clone --branch {self.branch} {self.repository_url} {self.destination_path}",
             user=self.service.user.name,
@@ -169,6 +180,23 @@ class GitSource(GitSourceModel):
             )
 
         return is_cloned
+
+    def delete(self) -> None:
+        """Delete the GitSource instance.
+
+        Deletes the Git repository at the destination path before
+        deleting the instance.
+        """
+        get_logger(__file__).info(
+            f"Deleting Git source {self.repository_url} at {self.destination_path}"
+        )
+        dest_path = Path(self.destination_path)
+        if dest_path.exists():
+            run_command(
+                f"find {self.destination_path} -mindepth 1 -delete",
+                user=self.service.user.name,
+            )
+        super().delete()
 
     def __str__(self) -> str:
         return f"GitSource(id={self.id}, repository_url={self.repository_url}, branch={self.branch}, destination_path={self.destination_path}, is_updated={self.is_updated()})"
