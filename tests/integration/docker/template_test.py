@@ -12,7 +12,12 @@ from svs_core.docker.json_properties import (
     Volume,
 )
 from svs_core.docker.template import Template
-from svs_core.shared.exceptions import DockerOperationException, TemplateException, ValidationException
+from svs_core.shared.exceptions import (
+    DockerOperationException,
+    InvalidOperationException,
+    TemplateException,
+    ValidationException,
+)
 
 
 class TestTemplate:
@@ -758,7 +763,7 @@ class TestTemplate:
 
         # Attempt to delete the template
         with pytest.raises(
-            TemplateException,
+            InvalidOperationException,
             match=f"Cannot delete template {template.name} as it is associated with existing services",
         ):
             template.delete()
