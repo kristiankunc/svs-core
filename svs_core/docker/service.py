@@ -16,6 +16,12 @@ from svs_core.docker.json_properties import (
     Volume,
 )
 from svs_core.docker.template import Template
+from svs_core.shared.exceptions import (
+    ConfigurationException,
+    NotFoundException,
+    ServiceOperationException,
+    ValidationException,
+)
 from svs_core.shared.git_source import GitSource
 from svs_core.shared.logger import get_logger
 from svs_core.shared.ports import SystemPortManager
@@ -153,10 +159,10 @@ class Service(ServiceModel):
         try:
             template = Template.objects.get(id=template_id)
         except Template.DoesNotExist:
-            raise ValueError(f"Template with ID {template_id} does not exist")
+            raise NotFoundException(f"Template with ID {template_id} does not exist")
 
         if not name:
-            raise ValueError("Service name cannot be empty")
+            raise ValidationException("Service name cannot be empty")
 
         env = (
             cls._merge_overrides(template.default_env, override_env)
@@ -251,120 +257,120 @@ class Service(ServiceModel):
         """
         # Input validation
         if not name:
-            raise ValueError("Service name cannot be empty")
+            raise ValidationException("Service name cannot be empty")
 
         if not isinstance(name, str):
-            raise ValueError(f"Service name must be a string: {name}")
+            raise ValidationException(f"Service name must be a string: {name}")
 
         if not isinstance(template_id, int):
-            raise ValueError(f"Template ID must be an integer: {template_id}")
+            raise ValidationException(f"Template ID must be an integer: {template_id}")
 
         if template_id <= 0:
-            raise ValueError(f"Template ID must be positive: {template_id}")
+            raise ValidationException(f"Template ID must be positive: {template_id}")
 
         if domain is not None and not isinstance(domain, str):
-            raise ValueError(f"Domain must be a string: {domain}")
+            raise ValidationException(f"Domain must be a string: {domain}")
 
         if container_id is not None and not isinstance(container_id, str):
-            raise ValueError(f"Container ID must be a string: {container_id}")
+            raise ValidationException(f"Container ID must be a string: {container_id}")
 
         if image is not None and not isinstance(image, str):
-            raise ValueError(f"Image must be a string: {image}")
+            raise ValidationException(f"Image must be a string: {image}")
 
         if command is not None and not isinstance(command, str):
-            raise ValueError(f"Command must be a string: {command}")
+            raise ValidationException(f"Command must be a string: {command}")
 
         if networks is not None:
             if not isinstance(networks, list):
-                raise ValueError(f"Networks must be a list: {networks}")
+                raise ValidationException(f"Networks must be a list: {networks}")
             for net in networks:
                 if not isinstance(net, str):
-                    raise ValueError(f"Each network must be a string: {net}")
+                    raise ValidationException(f"Each network must be a string: {net}")
 
         # Validate exposed_ports
         if exposed_ports is not None:
             if not isinstance(exposed_ports, list):
-                raise ValueError(f"Exposed ports must be a list: {exposed_ports}")
+                raise ValidationException(f"Exposed ports must be a list: {exposed_ports}")
             for port in exposed_ports:
                 if not isinstance(port, ExposedPort):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Each port must be an ExposedPort instance: {port}"
                     )
                 if not isinstance(port.container_port, int) or port.container_port <= 0:
-                    raise ValueError(
+                    raise ValidationException(
                         f"Container port must be a positive integer: {port.container_port}"
                     )
 
         # Validate env
         if env is not None:
             if not isinstance(env, list):
-                raise ValueError(f"Environment variables must be a list: {env}")
+                raise ValidationException(f"Environment variables must be a list: {env}")
             for var in env:
                 if not isinstance(var, EnvVariable):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Each environment variable must be an EnvVariable instance: {var}"
                     )
                 if not var.key or not isinstance(var.key, str):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Environment variable key must be a non-empty string: {var.key}"
                     )
                 if not isinstance(var.value, str):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Environment variable value must be a string: {var.value}"
                     )
 
         # Validate volumes
         if volumes is not None:
             if not isinstance(volumes, list):
-                raise ValueError(f"Volumes must be a list: {volumes}")
+                raise ValidationException(f"Volumes must be a list: {volumes}")
             for vol in volumes:
                 if not isinstance(vol, Volume):
-                    raise ValueError(f"Each volume must be a Volume instance: {vol}")
+                    raise ValidationException(f"Each volume must be a Volume instance: {vol}")
                 if not vol.container_path or not isinstance(vol.container_path, str):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Volume container path must be a non-empty string: {vol.container_path}"
                     )
                 if vol.host_path is not None and not isinstance(vol.host_path, str):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Volume host path must be a string: {vol.host_path}"
                     )
 
         # Validate labels
         if labels is not None:
             if not isinstance(labels, list):
-                raise ValueError(f"Labels must be a list: {labels}")
+                raise ValidationException(f"Labels must be a list: {labels}")
             for label in labels:
                 if not isinstance(label, Label):
-                    raise ValueError(f"Each label must be a Label instance: {label}")
+                    raise ValidationException(f"Each label must be a Label instance: {label}")
                 if not label.key or not isinstance(label.key, str):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Label key must be a non-empty string: {label.key}"
                     )
                 if not isinstance(label.value, str):
-                    raise ValueError(f"Label value must be a string: {label.value}")
+                    raise ValidationException(f"Label value must be a string: {label.value}")
 
         # Validate healthcheck
         if healthcheck is not None and not isinstance(healthcheck, Healthcheck):
-            raise ValueError(
+            raise ValidationException(
                 f"Healthcheck must be a Healthcheck instance: {healthcheck}"
             )
 
         # Validate args
         if args is not None:
             if not isinstance(args, list):
-                raise ValueError(f"Arguments must be a list: {args}")
+                raise ValidationException(f"Arguments must be a list: {args}")
             for arg in args:
                 if not isinstance(arg, str):
-                    raise ValueError(f"Each argument must be a string: {arg}")
+                    raise ValidationException(f"Each argument must be a string: {arg}")
 
         try:
             template = Template.objects.get(id=template_id)
         except Template.DoesNotExist:
-            raise ValueError(f"Template with ID {template_id} does not exist")
+            raise NotFoundException(f"Template with ID {template_id} does not exist")
 
         # Validate image for IMAGE templates
         if template.type == TemplateType.IMAGE and not image:
-            raise ValueError("Service must have an image specified")
+            raise ConfigurationException("Service must have an image specified")
 
         if template.type == TemplateType.IMAGE:
             if not DockerImageManager.exists(template.image):
@@ -479,11 +485,11 @@ class Service(ServiceModel):
     def start(self) -> None:
         """Start the service's Docker container."""
         if not self.container_id:
-            raise ValueError("Service does not have a container ID")
+            raise ServiceOperationException("Service does not have a container ID")
 
         container = DockerContainerManager.get_container(self.container_id)
         if not container:
-            raise ValueError(f"Container with ID {self.container_id} not found")
+            raise ServiceOperationException(f"Container with ID {self.container_id} not found")
 
         get_logger(__name__).info(
             f"Starting service '{self.name}' with container ID '{self.container_id}'"
@@ -495,11 +501,11 @@ class Service(ServiceModel):
     def stop(self) -> None:
         """Stop the service's Docker container."""
         if not self.container_id:
-            raise ValueError("Service does not have a container ID")
+            raise ServiceOperationException("Service does not have a container ID")
 
         container = DockerContainerManager.get_container(self.container_id)
         if not container:
-            raise ValueError(f"Container with ID {self.container_id} not found")
+            raise ServiceOperationException(f"Container with ID {self.container_id} not found")
 
         get_logger(__name__).info(
             f"Stopping service '{self.name}' with container ID '{self.container_id}'"
@@ -544,11 +550,11 @@ class Service(ServiceModel):
             str: The logs of the container as a string.
         """
         if not self.container_id:
-            raise ValueError("Service does not have a container ID")
+            raise ServiceOperationException("Service does not have a container ID")
 
         container = DockerContainerManager.get_container(self.container_id)
         if not container:
-            raise ValueError(f"Container with ID {self.container_id} not found")
+            raise ServiceOperationException(f"Container with ID {self.container_id} not found")
 
         get_logger(__name__).debug(
             f"Retrieving logs for service '{self.name}' with container ID '{self.container_id}'"
@@ -567,16 +573,16 @@ class Service(ServiceModel):
             source_path (Path): The path to the directory containing the Dockerfile.
 
         Raises:
-            ValueError: If the source path does not exist, is not a directory, or if the template type is not BUILD.
+            ValidationException: If the source path does not exist, is not a directory, or if the template type is not BUILD.
         """
         # Validate source path exists and is a directory
         if not source_path.exists():
-            raise ValueError(f"Source path does not exist: {source_path}")
+            raise ValidationException(f"Source path does not exist: {source_path}")
         if not source_path.is_dir():
-            raise ValueError(f"Source path is not a directory: {source_path}")
+            raise ValidationException(f"Source path is not a directory: {source_path}")
 
         if self.template.type != TemplateType.BUILD:
-            raise ValueError("Service template type is not BUILD; cannot build image.")
+            raise ConfigurationException("Service template type is not BUILD; cannot build image.")
 
         production_image_name = f"svs-{self.id}:latest"
         build_image_name = f"{self.template.name.lower()}-{self.id}:{int(time.time())}"
@@ -619,7 +625,7 @@ class Service(ServiceModel):
         else:
             container = DockerContainerManager.get_container(self.container_id)
             if not container:
-                raise ValueError(f"Container with ID {self.container_id} not found")
+                raise ServiceOperationException(f"Container with ID {self.container_id} not found")
 
             get_logger(__name__).debug(
                 f"Rebuilding image for service '{self.name}' (container '{self.container_id}') to '{production_image_name}'"
@@ -649,7 +655,7 @@ class Service(ServiceModel):
                         get_logger(__name__).error(
                             f"Container {self.container_id} failed to stop after {self._MAX_STOP_RETRIES} attempts"
                         )
-                        raise RuntimeError(
+                        raise ServiceOperationException(
                             f"Failed to stop container {self.container_id} after {self._MAX_STOP_RETRIES} attempts"
                         )
 

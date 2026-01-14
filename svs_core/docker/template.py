@@ -12,6 +12,7 @@ from svs_core.docker.json_properties import (
     Label,
     Volume,
 )
+from svs_core.shared.exceptions import TemplateException, ValidationException
 from svs_core.shared.logger import get_logger
 
 
@@ -74,57 +75,57 @@ class Template(TemplateModel):
             Template: A new Template instance.
 
         Raises:
-            ValueError: If any of the provided values are invalid.
+            ValidationException: If any of the provided values are invalid.
         """
 
         # Validate name
         if not name:
-            raise ValueError("Template name cannot be empty")
+            raise ValidationException("Template name cannot be empty")
 
         # Validate type-specific requirements
         if type == TemplateType.IMAGE:
             if not image:
-                raise ValueError("Image type templates must specify an image")
+                raise ValidationException("Image type templates must specify an image")
         elif type == TemplateType.BUILD:
             if not dockerfile:
-                raise ValueError("Build type templates must specify a dockerfile")
+                raise ValidationException("Build type templates must specify a dockerfile")
 
         # Validate image format if provided
         if image is not None:
             if not image:
-                raise ValueError("Image cannot be empty if provided")
+                raise ValidationException("Image cannot be empty if provided")
 
         # Validate dockerfile if provided
         if dockerfile is not None and not dockerfile.strip():
-            raise ValueError("Dockerfile cannot be empty if provided")
+            raise ValidationException("Dockerfile cannot be empty if provided")
 
         # Validate default_env
         if default_env is not None:
             for var in default_env:
                 if not isinstance(var.key, str) or not isinstance(var.value, str):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Default environment keys and values must be strings: {var.key}={var.value}"
                     )
                 if not var.key:
-                    raise ValueError("Default environment keys cannot be empty")
+                    raise ValidationException("Default environment keys cannot be empty")
 
         # Validate default_ports
         if default_ports is not None:
             for port in default_ports:
                 # host_port can be None (meaning any available host port), but container_port must be an int
                 if port.host_port is not None and not isinstance(port.host_port, int):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Port host_port must be an integer or None: {port}"
                     )
                 if not isinstance(port.container_port, int):
-                    raise ValueError(f"Port container_port must be an integer: {port}")
+                    raise ValidationException(f"Port container_port must be an integer: {port}")
                 # If host_port is provided, it must be positive
                 if port.host_port is not None and port.host_port <= 0:
-                    raise ValueError(
+                    raise ValidationException(
                         f"Port host_port must be a positive integer when provided: {port}"
                     )
                 if port.container_port <= 0:
-                    raise ValueError(
+                    raise ValidationException(
                         f"Port container_port must be a positive integer: {port}"
                     )
 
@@ -132,55 +133,55 @@ class Template(TemplateModel):
         if default_volumes is not None:
             for volume in default_volumes:
                 if not isinstance(volume.container_path, str):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Volume container path must be a string: {volume}"
                     )
                 if volume.host_path is not None and not isinstance(
                     volume.host_path, str
                 ):
-                    raise ValueError(f"Volume host path must be a string: {volume}")
+                    raise ValidationException(f"Volume host path must be a string: {volume}")
                 if not volume.container_path:
-                    raise ValueError("Volume container path cannot be empty")
+                    raise ValidationException("Volume container path cannot be empty")
 
         # Validate default_contents
         if default_contents is not None:
             for content in default_contents:
                 if not isinstance(content.location, str):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Default content location must be a string: {content}"
                     )
                 if not isinstance(content.content, str):
-                    raise ValueError(f"Default content must be a string: {content}")
+                    raise ValidationException(f"Default content must be a string: {content}")
                 if not content.location:
-                    raise ValueError("Default content location cannot be empty")
+                    raise ValidationException("Default content location cannot be empty")
 
         # Validate start_cmd
         if start_cmd is not None and not isinstance(start_cmd, str):
-            raise ValueError(f"Start command must be a string: {start_cmd}")
+            raise ValidationException(f"Start command must be a string: {start_cmd}")
 
         # Validate healthcheck
         if healthcheck is not None and len(healthcheck.test) == 0:
-            raise ValueError("Healthcheck must contain a 'test' field")
+            raise ValidationException("Healthcheck must contain a 'test' field")
 
         # Validate labels
         if labels is not None:
             for label in labels:
                 if not isinstance(label.key, str) or not isinstance(label.value, str):
-                    raise ValueError(
+                    raise ValidationException(
                         f"Label keys and values must be strings: {label.key}={label.value}"
                     )
                 if not label.key:
-                    raise ValueError("Label keys cannot be empty")
+                    raise ValidationException("Label keys cannot be empty")
 
         # Validate args
         if args is not None:
             if not isinstance(args, list):
-                raise ValueError(f"Arguments must be a list of strings: {args}")
+                raise ValidationException(f"Arguments must be a list of strings: {args}")
             for arg in args:
                 if not isinstance(arg, str):
-                    raise ValueError(f"Argument must be a string: {arg}")
+                    raise ValidationException(f"Argument must be a string: {arg}")
                 if not arg:
-                    raise ValueError("Arguments cannot be empty strings")
+                    raise ValidationException("Arguments cannot be empty strings")
 
         get_logger(__name__).info(f"Creating template '{name}' of type '{type}'")
         get_logger(__name__).debug(
@@ -234,7 +235,7 @@ class Template(TemplateModel):
             Template: A new Template instance created from the JSON data.
 
         Raises:
-            ValueError: If the data is invalid or missing required fields.
+            TemplateException: If the data is invalid or missing required fields.
         """
         get_logger(__name__).info(
             f"Importing template from JSON: {data.get('name', 'unnamed')}"
@@ -242,13 +243,13 @@ class Template(TemplateModel):
 
         # Validate input
         if not isinstance(data, dict):
-            raise ValueError(
+            raise TemplateException(
                 f"Template import data must be a dictionary, got {type(data)}"
             )
 
         # Validate required fields
         if "name" not in data:
-            raise ValueError("Template import data must contain a 'name' field")
+            raise TemplateException("Template import data must contain a 'name' field")
 
         # Validate template type
         template_type = data.get("type", "image")
@@ -256,24 +257,24 @@ class Template(TemplateModel):
             template_type = TemplateType(template_type)
         except ValueError:
             valid_types = [t.value for t in TemplateType]
-            raise ValueError(
+            raise TemplateException(
                 f"Invalid template type: {template_type}. Must be one of: {valid_types}"
             )
 
         # Validate type-specific fields
         if template_type == TemplateType.IMAGE and "image" not in data:
-            raise ValueError(
+            raise TemplateException(
                 "Image type templates must specify an 'image' field in import data"
             )
         elif template_type == TemplateType.BUILD and "dockerfile" not in data:
-            raise ValueError(
+            raise TemplateException(
                 "Build type templates must specify a 'dockerfile' field in import data"
             )
 
         # Process default_env: should be a list of {"key": ..., "value": ...} dicts
         default_env_data = data.get("default_env", [])
         if not isinstance(default_env_data, list):
-            raise ValueError(
+            raise TemplateException(
                 f"default_env must be a list, got {type(default_env_data).__name__}"
             )
         default_env_list = default_env_data
@@ -284,12 +285,12 @@ class Template(TemplateModel):
         default_ports_list = []
         for port_data in default_ports_data:
             if not isinstance(port_data, dict):
-                raise ValueError(
+                raise TemplateException(
                     f"Invalid port specification: {port_data}. Must be a dictionary."
                 )
 
             if "container" not in port_data:
-                raise ValueError(
+                raise TemplateException(
                     f"Invalid port specification: {port_data}. Must contain 'container' field."
                 )
 
@@ -297,12 +298,12 @@ class Template(TemplateModel):
             host_port = port_data.get("host")
 
             if not isinstance(container_port, int):
-                raise ValueError(
+                raise TemplateException(
                     f"Port container must be an integer, got {type(container_port).__name__}"
                 )
 
             if host_port is not None and not isinstance(host_port, int):
-                raise ValueError(
+                raise TemplateException(
                     f"Port host must be an integer or null, got {type(host_port).__name__}"
                 )
 
@@ -316,12 +317,12 @@ class Template(TemplateModel):
         default_volumes_list = []
         for vol_data in default_volumes_data:
             if not isinstance(vol_data, dict):
-                raise ValueError(
+                raise TemplateException(
                     f"Invalid volume specification: {vol_data}. Must be a dictionary."
                 )
 
             if "container" not in vol_data:
-                raise ValueError(
+                raise TemplateException(
                     f"Invalid volume specification: {vol_data}. Must contain 'container' field."
                 )
 
@@ -329,12 +330,12 @@ class Template(TemplateModel):
             host_path = vol_data.get("host")
 
             if not isinstance(container_path, str):
-                raise ValueError(
+                raise TemplateException(
                     f"Volume container must be a string, got {type(container_path).__name__}"
                 )
 
             if host_path is not None and not isinstance(host_path, str):
-                raise ValueError(
+                raise TemplateException(
                     f"Volume host must be a string or null, got {type(host_path).__name__}"
                 )
 
@@ -345,7 +346,7 @@ class Template(TemplateModel):
         # Process labels: should be a list of {"key": ..., "value": ...} dicts
         labels_data = data.get("labels", [])
         if not isinstance(labels_data, list):
-            raise ValueError(f"labels must be a list, got {type(labels_data).__name__}")
+            raise TemplateException(f"labels must be a list, got {type(labels_data).__name__}")
         labels_list = labels_data
 
         # Process default_contents: strict parsing according to schema
