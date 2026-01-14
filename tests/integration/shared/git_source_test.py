@@ -64,7 +64,9 @@ class TestGitSourceIntegration:
     def test_create_git_source_invalid_url(self, test_service: Service) -> None:
         """Test GitSource creation fails with invalid URL."""
         with TemporaryDirectory() as tmpdir:
-            with pytest.raises(ValidationException, match="repository_url must be a valid URL"):
+            with pytest.raises(
+                ValidationException, match="repository_url must be a valid URL"
+            ):
                 GitSource.create(
                     service_id=test_service.id,
                     repository_url="invalid-url",
@@ -78,7 +80,8 @@ class TestGitSourceIntegration:
         """Test GitSource creation fails with invalid branch."""
         with TemporaryDirectory() as tmpdir:
             with pytest.raises(
-                ValidationException, match="branch cannot be an empty string or contain spaces"
+                ValidationException,
+                match="branch cannot be an empty string or contain spaces",
             ):
                 GitSource.create(
                     service_id=test_service.id,

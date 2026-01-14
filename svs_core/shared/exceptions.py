@@ -30,8 +30,8 @@ class InvalidOperationException(SVSException):
 class ValidationException(SVSException):
     """Exception raised when user input validation fails.
 
-    This is a user-facing exception for invalid inputs that should be caught
-    and displayed with helpful messages at the CLI level.
+    This is a user-facing exception for invalid inputs that should be
+    caught and displayed with helpful messages at the CLI level.
     """
 
     def __init__(self, message: str):
@@ -75,7 +75,8 @@ class DockerOperationException(SVSException):
     """Exception raised when Docker operations fail.
 
     This is a user-facing exception for Docker API failures that users
-    should be aware of (image pull failures, container creation errors, etc.).
+    should be aware of (image pull failures, container creation errors,
+    etc.).
     """
 
     def __init__(self, message: str, original_error: Exception | None = None):
@@ -86,8 +87,8 @@ class DockerOperationException(SVSException):
 class ResourceException(SVSException):
     """Exception raised when resource allocation fails.
 
-    This is a user-facing exception for resource allocation failures
-    (no free ports, no free volumes, etc.).
+    This is a user-facing exception for resource allocation failures (no
+    free ports, no free volumes, etc.).
     """
 
     def __init__(self, message: str):

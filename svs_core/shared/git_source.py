@@ -50,7 +50,9 @@ class GitSource(GitSourceModel):
             raise ValidationException("repository_url must be a valid URL")
 
         if branch.strip() == "" or " " in branch:
-            raise ValidationException("branch cannot be an empty string or contain spaces")
+            raise ValidationException(
+                "branch cannot be an empty string or contain spaces"
+            )
 
         git_source = cls(
             service_id=service_id,

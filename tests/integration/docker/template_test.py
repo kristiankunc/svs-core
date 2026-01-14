@@ -670,7 +670,9 @@ class TestTemplate:
             Template.create(name="test-missing-dockerfile", type=TemplateType.BUILD)
 
         # Test invalid healthcheck
-        with pytest.raises(ValidationException, match="Healthcheck must contain a 'test' field"):
+        with pytest.raises(
+            ValidationException, match="Healthcheck must contain a 'test' field"
+        ):
             Template.create(
                 name="test-invalid-healthcheck",
                 type=TemplateType.IMAGE,

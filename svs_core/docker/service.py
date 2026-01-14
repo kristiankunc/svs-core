@@ -290,7 +290,9 @@ class Service(ServiceModel):
         # Validate exposed_ports
         if exposed_ports is not None:
             if not isinstance(exposed_ports, list):
-                raise ValidationException(f"Exposed ports must be a list: {exposed_ports}")
+                raise ValidationException(
+                    f"Exposed ports must be a list: {exposed_ports}"
+                )
             for port in exposed_ports:
                 if not isinstance(port, ExposedPort):
                     raise ValidationException(
@@ -304,7 +306,9 @@ class Service(ServiceModel):
         # Validate env
         if env is not None:
             if not isinstance(env, list):
-                raise ValidationException(f"Environment variables must be a list: {env}")
+                raise ValidationException(
+                    f"Environment variables must be a list: {env}"
+                )
             for var in env:
                 if not isinstance(var, EnvVariable):
                     raise ValidationException(
@@ -325,7 +329,9 @@ class Service(ServiceModel):
                 raise ValidationException(f"Volumes must be a list: {volumes}")
             for vol in volumes:
                 if not isinstance(vol, Volume):
-                    raise ValidationException(f"Each volume must be a Volume instance: {vol}")
+                    raise ValidationException(
+                        f"Each volume must be a Volume instance: {vol}"
+                    )
                 if not vol.container_path or not isinstance(vol.container_path, str):
                     raise ValidationException(
                         f"Volume container path must be a non-empty string: {vol.container_path}"
@@ -341,13 +347,17 @@ class Service(ServiceModel):
                 raise ValidationException(f"Labels must be a list: {labels}")
             for label in labels:
                 if not isinstance(label, Label):
-                    raise ValidationException(f"Each label must be a Label instance: {label}")
+                    raise ValidationException(
+                        f"Each label must be a Label instance: {label}"
+                    )
                 if not label.key or not isinstance(label.key, str):
                     raise ValidationException(
                         f"Label key must be a non-empty string: {label.key}"
                     )
                 if not isinstance(label.value, str):
-                    raise ValidationException(f"Label value must be a string: {label.value}")
+                    raise ValidationException(
+                        f"Label value must be a string: {label.value}"
+                    )
 
         # Validate healthcheck
         if healthcheck is not None and not isinstance(healthcheck, Healthcheck):
@@ -489,7 +499,9 @@ class Service(ServiceModel):
 
         container = DockerContainerManager.get_container(self.container_id)
         if not container:
-            raise ServiceOperationException(f"Container with ID {self.container_id} not found")
+            raise ServiceOperationException(
+                f"Container with ID {self.container_id} not found"
+            )
 
         get_logger(__name__).info(
             f"Starting service '{self.name}' with container ID '{self.container_id}'"
@@ -505,7 +517,9 @@ class Service(ServiceModel):
 
         container = DockerContainerManager.get_container(self.container_id)
         if not container:
-            raise ServiceOperationException(f"Container with ID {self.container_id} not found")
+            raise ServiceOperationException(
+                f"Container with ID {self.container_id} not found"
+            )
 
         get_logger(__name__).info(
             f"Stopping service '{self.name}' with container ID '{self.container_id}'"
@@ -554,7 +568,9 @@ class Service(ServiceModel):
 
         container = DockerContainerManager.get_container(self.container_id)
         if not container:
-            raise ServiceOperationException(f"Container with ID {self.container_id} not found")
+            raise ServiceOperationException(
+                f"Container with ID {self.container_id} not found"
+            )
 
         get_logger(__name__).debug(
             f"Retrieving logs for service '{self.name}' with container ID '{self.container_id}'"
@@ -582,7 +598,9 @@ class Service(ServiceModel):
             raise ValidationException(f"Source path is not a directory: {source_path}")
 
         if self.template.type != TemplateType.BUILD:
-            raise ConfigurationException("Service template type is not BUILD; cannot build image.")
+            raise ConfigurationException(
+                "Service template type is not BUILD; cannot build image."
+            )
 
         production_image_name = f"svs-{self.id}:latest"
         build_image_name = f"{self.template.name.lower()}-{self.id}:{int(time.time())}"
@@ -625,7 +643,9 @@ class Service(ServiceModel):
         else:
             container = DockerContainerManager.get_container(self.container_id)
             if not container:
-                raise ServiceOperationException(f"Container with ID {self.container_id} not found")
+                raise ServiceOperationException(
+                    f"Container with ID {self.container_id} not found"
+                )
 
             get_logger(__name__).debug(
                 f"Rebuilding image for service '{self.name}' (container '{self.container_id}') to '{production_image_name}'"

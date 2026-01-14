@@ -88,7 +88,9 @@ class Template(TemplateModel):
                 raise ValidationException("Image type templates must specify an image")
         elif type == TemplateType.BUILD:
             if not dockerfile:
-                raise ValidationException("Build type templates must specify a dockerfile")
+                raise ValidationException(
+                    "Build type templates must specify a dockerfile"
+                )
 
         # Validate image format if provided
         if image is not None:
@@ -107,7 +109,9 @@ class Template(TemplateModel):
                         f"Default environment keys and values must be strings: {var.key}={var.value}"
                     )
                 if not var.key:
-                    raise ValidationException("Default environment keys cannot be empty")
+                    raise ValidationException(
+                        "Default environment keys cannot be empty"
+                    )
 
         # Validate default_ports
         if default_ports is not None:
@@ -118,7 +122,9 @@ class Template(TemplateModel):
                         f"Port host_port must be an integer or None: {port}"
                     )
                 if not isinstance(port.container_port, int):
-                    raise ValidationException(f"Port container_port must be an integer: {port}")
+                    raise ValidationException(
+                        f"Port container_port must be an integer: {port}"
+                    )
                 # If host_port is provided, it must be positive
                 if port.host_port is not None and port.host_port <= 0:
                     raise ValidationException(
@@ -139,7 +145,9 @@ class Template(TemplateModel):
                 if volume.host_path is not None and not isinstance(
                     volume.host_path, str
                 ):
-                    raise ValidationException(f"Volume host path must be a string: {volume}")
+                    raise ValidationException(
+                        f"Volume host path must be a string: {volume}"
+                    )
                 if not volume.container_path:
                     raise ValidationException("Volume container path cannot be empty")
 
@@ -151,9 +159,13 @@ class Template(TemplateModel):
                         f"Default content location must be a string: {content}"
                     )
                 if not isinstance(content.content, str):
-                    raise ValidationException(f"Default content must be a string: {content}")
+                    raise ValidationException(
+                        f"Default content must be a string: {content}"
+                    )
                 if not content.location:
-                    raise ValidationException("Default content location cannot be empty")
+                    raise ValidationException(
+                        "Default content location cannot be empty"
+                    )
 
         # Validate start_cmd
         if start_cmd is not None and not isinstance(start_cmd, str):
@@ -176,7 +188,9 @@ class Template(TemplateModel):
         # Validate args
         if args is not None:
             if not isinstance(args, list):
-                raise ValidationException(f"Arguments must be a list of strings: {args}")
+                raise ValidationException(
+                    f"Arguments must be a list of strings: {args}"
+                )
             for arg in args:
                 if not isinstance(arg, str):
                     raise ValidationException(f"Argument must be a string: {arg}")
@@ -346,7 +360,9 @@ class Template(TemplateModel):
         # Process labels: should be a list of {"key": ..., "value": ...} dicts
         labels_data = data.get("labels", [])
         if not isinstance(labels_data, list):
-            raise TemplateException(f"labels must be a list, got {type(labels_data).__name__}")
+            raise TemplateException(
+                f"labels must be a list, got {type(labels_data).__name__}"
+            )
         labels_list = labels_data
 
         # Process default_contents: strict parsing according to schema

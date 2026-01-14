@@ -566,7 +566,9 @@ class TestService:
         )
 
         # Attempt to get logs should raise ServiceOperationException
-        with pytest.raises(ServiceOperationException, match="Service does not have a container ID"):
+        with pytest.raises(
+            ServiceOperationException, match="Service does not have a container ID"
+        ):
             service.get_logs()
 
     @pytest.mark.integration
@@ -603,7 +605,9 @@ class TestService:
         )
 
         # Attempt to get logs should raise ServiceOperationException
-        with pytest.raises(ServiceOperationException, match="Container with ID .* not found"):
+        with pytest.raises(
+            ServiceOperationException, match="Container with ID .* not found"
+        ):
             service.get_logs()
 
     @pytest.mark.integration
