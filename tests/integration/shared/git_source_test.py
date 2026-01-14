@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from svs_core.docker.service import Service
+from svs_core.shared.exceptions import ValidationException
 from svs_core.shared.git_source import GitSource
 
 
@@ -49,7 +50,7 @@ class TestGitSourceIntegration:
     def test_create_git_source_relative_path(self, test_service: Service) -> None:
         """Test GitSource creation fails with relative path."""
         with pytest.raises(
-            ValueError, match="destination_path must be an absolute path"
+            ValidationException, match="destination_path must be an absolute path"
         ):
             GitSource.create(
                 service_id=test_service.id,
@@ -63,7 +64,7 @@ class TestGitSourceIntegration:
     def test_create_git_source_invalid_url(self, test_service: Service) -> None:
         """Test GitSource creation fails with invalid URL."""
         with TemporaryDirectory() as tmpdir:
-            with pytest.raises(ValueError, match="repository_url must be a valid URL"):
+            with pytest.raises(ValidationException, match="repository_url must be a valid URL"):
                 GitSource.create(
                     service_id=test_service.id,
                     repository_url="invalid-url",
@@ -77,7 +78,7 @@ class TestGitSourceIntegration:
         """Test GitSource creation fails with invalid branch."""
         with TemporaryDirectory() as tmpdir:
             with pytest.raises(
-                ValueError, match="branch cannot be an empty string or contain spaces"
+                ValidationException, match="branch cannot be an empty string or contain spaces"
             ):
                 GitSource.create(
                     service_id=test_service.id,

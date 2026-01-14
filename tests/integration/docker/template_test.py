@@ -12,6 +12,7 @@ from svs_core.docker.json_properties import (
     Volume,
 )
 from svs_core.docker.template import Template
+from svs_core.shared.exceptions import DockerOperationException, TemplateException, ValidationException
 
 
 class TestTemplate:
@@ -648,23 +649,23 @@ class TestTemplate:
         )
         mocker.patch("svs_core.docker.template.DockerImageManager.pull")
         # Test empty name
-        with pytest.raises(ValueError, match="Template name cannot be empty"):
+        with pytest.raises(ValidationException, match="Template name cannot be empty"):
             Template.create(name="", type=TemplateType.IMAGE, image="alpine")
 
         # Test missing image for IMAGE type
         with pytest.raises(
-            ValueError, match="Image type templates must specify an image"
+            ValidationException, match="Image type templates must specify an image"
         ):
             Template.create(name="test-missing-image", type=TemplateType.IMAGE)
 
         # Test missing dockerfile for BUILD type
         with pytest.raises(
-            ValueError, match="Build type templates must specify a dockerfile"
+            ValidationException, match="Build type templates must specify a dockerfile"
         ):
             Template.create(name="test-missing-dockerfile", type=TemplateType.BUILD)
 
         # Test invalid healthcheck
-        with pytest.raises(ValueError, match="Healthcheck must contain a 'test' field"):
+        with pytest.raises(ValidationException, match="Healthcheck must contain a 'test' field"):
             Template.create(
                 name="test-invalid-healthcheck",
                 type=TemplateType.IMAGE,
@@ -674,7 +675,7 @@ class TestTemplate:
 
         # Test invalid default_contents - empty location
         with pytest.raises(
-            ValueError, match="Default content location cannot be empty"
+            ValidationException, match="Default content location cannot be empty"
         ):
             Template.create(
                 name="test-invalid-content",
@@ -757,7 +758,7 @@ class TestTemplate:
 
         # Attempt to delete the template
         with pytest.raises(
-            Exception,
+            TemplateException,
             match=f"Cannot delete template {template.name} as it is associated with existing services",
         ):
             template.delete()
