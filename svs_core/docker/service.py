@@ -159,7 +159,9 @@ class Service(ServiceModel):
         try:
             template = Template.objects.get(id=template_id)
         except Template.DoesNotExist as e:
-            raise NotFoundException(f"Template with ID {template_id} does not exist") from e
+            raise NotFoundException(
+                f"Template with ID {template_id} does not exist"
+            ) from e
 
         if not name:
             raise ValidationException("Service name cannot be empty")
@@ -376,7 +378,9 @@ class Service(ServiceModel):
         try:
             template = Template.objects.get(id=template_id)
         except Template.DoesNotExist as e:
-            raise NotFoundException(f"Template with ID {template_id} does not exist") from e
+            raise NotFoundException(
+                f"Template with ID {template_id} does not exist"
+            ) from e
 
         # Validate image for IMAGE templates
         if template.type == TemplateType.IMAGE and not image:

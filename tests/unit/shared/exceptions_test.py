@@ -97,7 +97,9 @@ class TestExceptionHierarchy:
         """Test DockerOperationException with exception chaining."""
         original_error = ValueError("Docker API error")
         try:
-            raise DockerOperationException("Docker operation failed") from original_error
+            raise DockerOperationException(
+                "Docker operation failed"
+            ) from original_error
         except DockerOperationException as exc:
             assert str(exc) == "Docker operation failed"
             assert exc.__cause__ == original_error
