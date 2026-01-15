@@ -34,12 +34,15 @@ def create_directory(
     run_command(f"sudo chmod 770 {path}", check=True, logger=logger)
 
 
-def remove_directory(path: str, logger: Optional[logging.Logger] = None) -> None:
+def remove_directory(
+    path: str, logger: Optional[logging.Logger] = None, user: str = "svs"
+) -> None:
     """Removes a directory at the specified path if it exists.
 
     Args:
         path (str): The directory path to remove.
         logger (Optional[logging.Logger]): custom log handler.
+        user (str): The user to remove the directory as.
     """
     if not logger:
         from svs_core.shared.logger import get_logger
@@ -47,7 +50,7 @@ def remove_directory(path: str, logger: Optional[logging.Logger] = None) -> None
         logger = get_logger(__name__)
 
     command = f"rm -rf {path}"
-    run_command(command, logger=logger)
+    run_command(command, logger=logger, user=user)
 
 
 def read_file(path: Path, logger: Optional[logging.Logger] = None) -> str:

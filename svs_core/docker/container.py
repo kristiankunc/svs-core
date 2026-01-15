@@ -69,7 +69,7 @@ class DockerContainerManager:
         if volumes:
             for volume in volumes:
                 if volume.host_path and volume.container_path:
-                    owner_account = User.objects.get(username=owner)
+                    owner_account = User.objects.get(name=owner)
                     if not volume.host_path.startswith(
                         (
                             SystemVolumeManager.BASE_PATH / str(owner_account.id)

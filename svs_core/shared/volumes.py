@@ -71,16 +71,17 @@ class SystemVolumeManager:
             get_logger(__name__).debug(f"No volumes found for user ID: {user_id}")
 
     @staticmethod
-    def delete_volume(volume_path: Path) -> None:
+    def delete_volume(volume_path: Path, user: str = "svs") -> None:
         """Deletes a specific volume.
 
         Args:
             volume_path (Path): The path to the volume to be deleted.
+            user (str): The user to perform the deletion as.
         """
         get_logger(__name__).debug(f"Deleting volume: {volume_path}")
 
         if volume_path.exists() and volume_path.is_dir():
-            remove_directory(volume_path.as_posix())
+            remove_directory(volume_path.as_posix(), user=user)
             get_logger(__name__).debug(f"Successfully deleted volume: {volume_path}")
         else:
             get_logger(__name__).debug(f"Volume not found: {volume_path}")

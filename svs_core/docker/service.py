@@ -552,7 +552,9 @@ class Service(ServiceModel):
         volumes = self.volumes
         for volume in volumes:
             if volume.host_path:
-                SystemVolumeManager.delete_volume(Path(volume.host_path))
+                SystemVolumeManager.delete_volume(
+                    Path(volume.host_path), user=self.user.name
+                )
 
         get_logger(__name__).info(f"Deleting service '{self.name}'")
 
