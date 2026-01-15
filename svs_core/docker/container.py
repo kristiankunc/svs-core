@@ -88,9 +88,11 @@ class DockerContainerManager:
             docker_env_vars["PUID"] = str(
                 SystemUserManager.get_system_uid_gid(owner)[0]
             )
+            docker_env_vars["PGID"] = str(SystemUserManager.get_gid("svs-admins"))
         else:
-            user_data = SystemUserManager.get_system_uid_gid(owner)
-            create_kwargs["user"] = f"{user_data[0]}:{user_data[1]}"
+            create_kwargs["user"] = (
+                f"{str(SystemUserManager.get_system_uid_gid(owner)[0])}:{str(SystemUserManager.get_gid('svs-admins'))}"
+            )
 
         create_kwargs.update(
             {

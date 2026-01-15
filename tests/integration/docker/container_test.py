@@ -26,6 +26,10 @@ class TestDockerContainerManager:
             "svs_core.docker.container.SystemUserManager.get_system_uid_gid",
             return_value=(1000, 1000),
         )
+        mocker.patch(
+            "svs_core.docker.container.SystemUserManager.get_gid",
+            return_value=1001,
+        )
 
     @pytest.fixture(autouse=True)
     def cleanup_test_containers(self):
@@ -321,3 +325,70 @@ class TestDockerContainerManager:
         container_labels = container.labels
         assert container_labels.get("caddy") == "multi-port.example.com"
         assert container_labels.get("caddy.reverse_proxy") == "{{upstreams 80}}"
+
+    @pytest.mark.integration
+    def test_create_container_sets_user_for_regular_images(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that regular (non-linuxserver) images set user with UID:GID."""
+        container = DockerContainerManager.create_container(
+            name=self.TEST_CONTAINER_NAME,
+            image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
+        )
+
+        assert container is not None
+        # Verify user is set to UID:GID format
+        assert container.attrs["Config"]["User"] == "1000:1001"
+
+    @pytest.mark.integration
+    def test_create_container_linuxserver_sets_puid_pgid(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that linuxserver images set PUID and PGID environment
+        variables."""
+        mocker.patch(
+            "svs_core.docker.image.DockerImageManager.exists", return_value=True
+        )
+
+        linuxserver_image = "lscr.io/linuxserver/nginx:latest"
+        container = DockerContainerManager.create_container(
+            name=self.TEST_CONTAINER_NAME,
+            image=linuxserver_image,
+            owner=self.TEST_OWNER,
+        )
+
+        assert container is not None
+
+        # Verify PUID and PGID are set in environment variables
+        env_vars = container.attrs["Config"]["Env"]
+        env_dict = {var.split("=")[0]: var.split("=", 1)[1] for var in env_vars}
+
+        assert "PUID" in env_dict
+        assert env_dict["PUID"] == "1000"
+        assert "PGID" in env_dict
+        assert env_dict["PGID"] == "1001"
+
+    @pytest.mark.integration
+    def test_create_container_uses_svs_admins_group(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that containers use svs-admins group for GID/PGID."""
+        mock_get_gid = mocker.patch(
+            "svs_core.docker.container.SystemUserManager.get_gid",
+            return_value=1005,
+        )
+
+        container = DockerContainerManager.create_container(
+            name=self.TEST_CONTAINER_NAME,
+            image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
+        )
+
+        assert container is not None
+
+        # Verify get_gid was called with svs-admins
+        mock_get_gid.assert_called_with("svs-admins")
+
+        # Verify GID is set correctly
+        assert container.attrs["Config"]["User"] == "1000:1005"

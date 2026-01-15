@@ -284,8 +284,10 @@ class TestSystemUser:
         assert isinstance(gid, int)
 
         assert mock_run_command.call_count == 2
-        mock_run_command.assert_any_call(f"sudo id -u {username}", check=True)
-        mock_run_command.assert_any_call(f"sudo id -g {username}", check=True)
+        mock_run_command.assert_any_call(f"sudo id -u {username}")
+        mock_run_command.assert_any_call(
+            f"sudo getent group {username} | cut -d: -f3", check=True
+        )
 
     @pytest.mark.unit
     def test_get_system_uid_gid_returns_tuple(self, mocker: MockerFixture) -> None:
@@ -325,5 +327,45 @@ class TestSystemUser:
 
         assert uid == 1234
         assert gid == 5678
-        mock_run_command.assert_any_call(f"sudo id -u {username}", check=True)
-        mock_run_command.assert_any_call(f"sudo id -g {username}", check=True)
+        mock_run_command.assert_any_call(f"sudo id -u {username}")
+        mock_run_command.assert_any_call(
+            f"sudo getent group {username} | cut -d: -f3", check=True
+        )
+
+    @pytest.mark.unit
+    def test_get_uid(self, mocker: MockerFixture) -> None:
+        """Test that get_uid returns the correct UID."""
+        mock_result = mocker.MagicMock()
+        mock_result.stdout = "1000\n"
+        mocker.patch("svs_core.users.system.run_command", return_value=mock_result)
+
+        assert SystemUserManager.get_uid("testuser") == 1000
+
+    @pytest.mark.unit
+    def test_get_uid_raises_keyerror(self, mocker: MockerFixture) -> None:
+        """Test that get_uid raises KeyError for invalid user."""
+        mock_result = mocker.MagicMock()
+        mock_result.stdout = "invalid\n"
+        mocker.patch("svs_core.users.system.run_command", return_value=mock_result)
+
+        with pytest.raises(KeyError):
+            SystemUserManager.get_uid("nonexistent")
+
+    @pytest.mark.unit
+    def test_get_gid(self, mocker: MockerFixture) -> None:
+        """Test that get_gid returns the correct GID."""
+        mock_result = mocker.MagicMock()
+        mock_result.stdout = "1000\n"
+        mocker.patch("svs_core.users.system.run_command", return_value=mock_result)
+
+        assert SystemUserManager.get_gid("testgroup") == 1000
+
+    @pytest.mark.unit
+    def test_get_gid_raises_keyerror(self, mocker: MockerFixture) -> None:
+        """Test that get_gid raises KeyError for invalid group."""
+        mock_result = mocker.MagicMock()
+        mock_result.stdout = "\n"
+        mocker.patch("svs_core.users.system.run_command", return_value=mock_result)
+
+        with pytest.raises(KeyError):
+            SystemUserManager.get_gid("nonexistent")
