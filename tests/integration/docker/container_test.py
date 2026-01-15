@@ -6,6 +6,7 @@ import pytest
 
 from pytest_mock import MockerFixture
 
+from svs_core.docker.base import get_docker_client
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.image import DockerImageManager
 from svs_core.docker.json_properties import ExposedPort, Label, Volume
@@ -15,11 +16,23 @@ class TestDockerContainerManager:
     TEST_IMAGE = "alpine:latest"
     TEST_CONTAINER_NAME = f"svs-test-container-{str(uuid.uuid4())[:8]}"
     TEST_OWNER = "testuser"
+    LINUXSERVER_TEST_IMAGE = "lscr.io/linuxserver/test:latest"
 
     @pytest.fixture(scope="session", autouse=True)
     def pull_test_image(self):
         if not DockerImageManager.exists(self.TEST_IMAGE):
             DockerImageManager.pull(self.TEST_IMAGE)
+
+        # Tag alpine as linuxserver image for testing
+        # This allows us to test linuxserver-specific behavior without pulling
+        # an actual linuxserver image
+        if not DockerImageManager.exists(self.LINUXSERVER_TEST_IMAGE):
+            try:
+                client = get_docker_client()
+                alpine_image = client.images.get(self.TEST_IMAGE)
+                alpine_image.tag(self.LINUXSERVER_TEST_IMAGE)
+            except Exception:
+                pass  # If tagging fails, the test will be skipped
 
     @pytest.fixture(autouse=True)
     def mock_system_user(self, mocker: MockerFixture) -> None:
@@ -398,14 +411,9 @@ class TestDockerContainerManager:
     ) -> None:
         """Test that linuxserver images set PUID and PGID environment
         variables."""
-        mocker.patch(
-            "svs_core.docker.image.DockerImageManager.exists", return_value=True
-        )
-
-        linuxserver_image = "lscr.io/linuxserver/nginx:latest"
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
-            image=linuxserver_image,
+            image=self.LINUXSERVER_TEST_IMAGE,
             owner=self.TEST_OWNER,
         )
 
