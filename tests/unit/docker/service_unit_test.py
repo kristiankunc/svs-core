@@ -9,6 +9,7 @@ from svs_core.docker.json_properties import (
     Volume,
 )
 from svs_core.docker.service import Service
+from svs_core.shared.exceptions import ValidationException
 
 
 class TestServiceUnit:
@@ -79,7 +80,7 @@ class TestServiceUnit:
         mock_user.id = 1
 
         # Test with non-string domain
-        with pytest.raises(ValueError, match="Domain must be a string"):
+        with pytest.raises(ValidationException, match="Domain must be a string"):
             Service.create(
                 name="test-service",
                 template_id=1,

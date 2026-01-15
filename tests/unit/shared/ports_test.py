@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from svs_core.shared.exceptions import ResourceException
 from svs_core.shared.ports import SystemPortManager
 
 
@@ -39,5 +40,5 @@ class TestSystemPortManager:
             staticmethod(lambda port: True),
         )
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(ResourceException):
             SystemPortManager.find_free_port()

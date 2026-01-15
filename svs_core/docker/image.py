@@ -8,6 +8,7 @@ from docker.errors import BuildError
 from docker.models.images import Image
 
 from svs_core.docker.base import get_docker_client
+from svs_core.shared.exceptions import DockerOperationException
 from svs_core.shared.logger import get_logger
 
 
@@ -114,7 +115,7 @@ class DockerImageManager:
             image_name (str): Name of the image.
 
         Raises:
-            Exception: If the image cannot be removed.
+            DockerOperationException: If the image cannot be removed.
         """
         get_logger(__name__).debug(f"Removing image '{image_name}'")
 
@@ -127,7 +128,7 @@ class DockerImageManager:
             get_logger(__name__).error(
                 f"Failed to remove image '{image_name}': {str(e)}"
             )
-            raise Exception(
+            raise DockerOperationException(
                 f"Failed to remove image {image_name}. Error: {str(e)}"
             ) from e
 
@@ -137,6 +138,9 @@ class DockerImageManager:
 
         Args:
             image_name (str): Name of the image.
+
+        Raises:
+            DockerOperationException: If the image cannot be pulled.
         """
         get_logger(__name__).info(f"Pulling Docker image '{image_name}' from registry")
 
@@ -147,7 +151,7 @@ class DockerImageManager:
             get_logger(__name__).info(f"Successfully pulled image '{image_name}'")
         except Exception as e:
             get_logger(__name__).error(f"Failed to pull image '{image_name}': {str(e)}")
-            raise Exception(
+            raise DockerOperationException(
                 f"Failed to pull image {image_name}. Error: {str(e)}"
             ) from e
 
@@ -177,6 +181,9 @@ class DockerImageManager:
         Args:
             old_name (str): Current name of the image.
             new_name (str): New name for the image.
+
+        Raises:
+            DockerOperationException: If the image cannot be renamed.
         """
         logger = get_logger(__name__)
         logger.debug(f"Renaming image from '{old_name}' to '{new_name}'")
@@ -188,7 +195,7 @@ class DockerImageManager:
             logger.error(
                 f"Failed to find image '{old_name}' for renaming to '{new_name}': {str(e)}"
             )
-            raise Exception(
+            raise DockerOperationException(
                 f"Failed to rename image '{old_name}' to '{new_name}': source image not found or inaccessible. Error: {str(e)}"
             ) from e
 
@@ -197,7 +204,7 @@ class DockerImageManager:
             logger.info(f"Tagged image '{old_name}' as '{new_name}'")
         except Exception as e:
             logger.error(f"Failed to tag image '{old_name}' as '{new_name}': {str(e)}")
-            raise Exception(
+            raise DockerOperationException(
                 f"Failed to rename image '{old_name}' to '{new_name}': tagging failed. Error: {str(e)}"
             ) from e
 

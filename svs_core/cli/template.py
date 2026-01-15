@@ -11,6 +11,7 @@ from rich.table import Table
 from svs_core.cli.lib import confirm_action, get_or_exit
 from svs_core.cli.state import reject_if_not_admin
 from svs_core.docker.template import Template
+from svs_core.shared.exceptions import TemplateException, ValidationException
 
 app = typer.Typer(help="Manage templates")
 
@@ -84,9 +85,12 @@ def import_template(
                 total=None,
             )
 
-            template = Template.import_from_json(data)
-
-        print(f"Template '{template.name}' imported successfully.")
+            try:
+                template = Template.import_from_json(data)
+                print(f"Template '{template.name}' imported successfully.")
+            except (TemplateException, ValidationException) as e:
+                print(f"Error importing template from '{path}': {e}", file=sys.stderr)
+                raise typer.Exit(code=1)
 
 
 @app.command("list")
