@@ -130,7 +130,7 @@ class DockerImageManager:
             )
             raise DockerOperationException(
                 f"Failed to remove image {image_name}. Error: {str(e)}", e
-            )
+            ) from e
 
     @staticmethod
     def pull(image_name: str) -> None:
@@ -153,7 +153,7 @@ class DockerImageManager:
             get_logger(__name__).error(f"Failed to pull image '{image_name}': {str(e)}")
             raise DockerOperationException(
                 f"Failed to pull image {image_name}. Error: {str(e)}", e
-            )
+            ) from e
 
     @staticmethod
     def get_all() -> list[Image]:
@@ -198,7 +198,7 @@ class DockerImageManager:
             raise DockerOperationException(
                 f"Failed to rename image '{old_name}' to '{new_name}': source image not found or inaccessible. Error: {str(e)}",
                 e,
-            )
+            ) from e
 
         try:
             image.tag(new_name)
@@ -208,7 +208,7 @@ class DockerImageManager:
             raise DockerOperationException(
                 f"Failed to rename image '{old_name}' to '{new_name}': tagging failed. Error: {str(e)}",
                 e,
-            )
+            ) from e
 
         try:
             DockerImageManager.remove(old_name)

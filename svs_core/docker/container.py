@@ -207,7 +207,7 @@ class DockerContainerManager:
             )
             raise DockerOperationException(
                 f"Failed to remove container {container_id}. Error: {str(e)}", e
-            )
+            ) from e
 
     @staticmethod
     def start_container(container: Container) -> None:
