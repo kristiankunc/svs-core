@@ -160,13 +160,15 @@ class TestMainCLI:
         from svs_core.__main__ import cli_first_user_setup
 
         mock_user_create = mocker.patch("svs_core.users.user.User.create")
-        mock_input = mocker.patch(
-            "builtins.input", side_effect=["prompted_user", "prompted_pass"]
+        mock_input = mocker.patch("builtins.input", return_value="prompted_user")
+        mock_getpass = mocker.patch(
+            "svs_core.__main__.getpass", return_value="prompted_pass"
         )
 
         cli_first_user_setup()
 
         mock_input.assert_called()
+        mock_getpass.assert_called()
         mock_user_create.assert_called_once_with("prompted_user", "prompted_pass", True)
 
     def test_cli_first_user_setup_retries_on_failure_without_credentials(
@@ -183,7 +185,11 @@ class TestMainCLI:
         )
         mock_input = mocker.patch(
             "builtins.input",
-            side_effect=["user1", "pass1", "user2", "pass2"],
+            side_effect=["user1", "user2"],
+        )
+        mock_getpass = mocker.patch(
+            "svs_core.__main__.getpass",
+            side_effect=["pass1", "pass2"],
         )
 
         cli_first_user_setup()

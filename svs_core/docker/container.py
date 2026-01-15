@@ -4,9 +4,10 @@ from docker.models.containers import Container
 
 from svs_core.docker.base import get_docker_client
 from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
-from svs_core.shared.exceptions import DockerOperationException
 from svs_core.shared.logger import get_logger
+from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.system import SystemUserManager
+from svs_core.users.user import User
 
 
 class DockerContainerManager:
@@ -42,6 +43,7 @@ class DockerContainerManager:
 
         Raises:
             ValueError: If volume paths are not properly specified.
+            PermissionError: If there are permission issues creating the container.
         """
         client = get_docker_client()
 
@@ -67,6 +69,15 @@ class DockerContainerManager:
         if volumes:
             for volume in volumes:
                 if volume.host_path and volume.container_path:
+                    owner_account = User.objects.get(name=owner)
+                    if not volume.host_path.startswith(
+                        (
+                            SystemVolumeManager.BASE_PATH / str(owner_account.id)
+                        ).as_posix()
+                    ):
+                        raise PermissionError(
+                            f"Volume host path '{volume.host_path}' is outside the allowed directory for user '{owner}'."
+                        )
                     volume_mounts.append(
                         f"{volume.host_path}:{volume.container_path}:rw"
                     )
@@ -89,9 +100,11 @@ class DockerContainerManager:
             docker_env_vars["PUID"] = str(
                 SystemUserManager.get_system_uid_gid(owner)[0]
             )
+            docker_env_vars["PGID"] = str(SystemUserManager.get_gid("svs-admins"))
         else:
-            user_data = SystemUserManager.get_system_uid_gid(owner)
-            create_kwargs["user"] = f"{user_data[0]}:{user_data[1]}"
+            create_kwargs["user"] = (
+                f"{str(SystemUserManager.get_system_uid_gid(owner)[0])}:{str(SystemUserManager.get_gid('svs-admins'))}"
+            )
 
         create_kwargs.update(
             {
@@ -189,7 +202,7 @@ class DockerContainerManager:
             container_id (str): The ID of the container to remove.
 
         Raises:
-            DockerOperationException: If the container cannot be removed.
+            Exception: If the container cannot be removed.
         """
         get_logger(__name__).debug(f"Removing container with ID: {container_id}")
 
@@ -205,7 +218,7 @@ class DockerContainerManager:
             get_logger(__name__).error(
                 f"Failed to remove container '{container_id}': {str(e)}"
             )
-            raise DockerOperationException(
+            raise Exception(
                 f"Failed to remove container {container_id}. Error: {str(e)}"
             ) from e
 

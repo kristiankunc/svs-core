@@ -171,6 +171,45 @@ class SystemUserManager:
         Returns:
             tuple[int, int]: A tuple containing the UID and GID.
         """
-        uid = run_command(f"sudo id -u {username}", check=True)
-        gid = run_command(f"sudo id -g {username}", check=True)
-        return int(uid.stdout.strip()), int(gid.stdout.strip())
+        uid = SystemUserManager.get_uid(username)
+        gid = SystemUserManager.get_gid(username)
+        return uid, gid
+
+    @staticmethod
+    def get_uid(username: str) -> int:
+        """Returns the UID of the specified username.
+
+        Args:
+            username (str): The username to look up.
+
+        Returns:
+            int: The UID of the user.
+
+        Raises:
+            KeyError: If the user does not exist.
+        """
+        uid = run_command(f"sudo id -u {username}")
+
+        if not uid.stdout.strip().isdigit():
+            raise KeyError(f"User '{username}' does not exist.")
+
+        return int(uid.stdout.strip())
+
+    @staticmethod
+    def get_gid(groupname: str) -> int:
+        """Returns the GID of the specified group name.
+
+        Args:
+            groupname (str): The group name to look up.
+
+        Returns:
+            int: The GID of the group.
+
+        Raises:
+            KeyError: If the group does not exist.
+        """
+        gid = run_command(f"sudo getent group {groupname} | cut -d: -f3", check=True)
+        if not gid.stdout.strip().isdigit():
+            raise KeyError(f"Group '{groupname}' does not exist.")
+
+        return int(gid.stdout.strip())

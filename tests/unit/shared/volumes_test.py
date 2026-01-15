@@ -259,6 +259,38 @@ class TestVolumes:
         SystemVolumeManager.delete_volume(nonexistent_path)
 
     @pytest.mark.unit
+    def test_delete_volume_with_custom_user(
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
+        """Test delete_volume with a custom user argument."""
+        volume_path = SystemVolumeManager.generate_free_volume(mock_user)
+
+        assert volume_path.exists()
+
+        # Delete the volume with a custom user
+        SystemVolumeManager.delete_volume(volume_path, user="testuser")
+
+        assert not volume_path.exists()
+        # Verify that remove_directory was called with the correct user
+        mock_run_command.assert_called()
+
+    @pytest.mark.unit
+    def test_delete_volume_with_default_user(
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
+        """Test delete_volume uses default user 'svs' when not specified."""
+        volume_path = SystemVolumeManager.generate_free_volume(mock_user)
+
+        assert volume_path.exists()
+
+        # Delete the volume without specifying user (should use default "svs")
+        SystemVolumeManager.delete_volume(volume_path)
+
+        assert not volume_path.exists()
+        # Verify that remove_directory was called (with default user)
+        mock_run_command.assert_called()
+
+    @pytest.mark.unit
     def test_delete_volume_does_not_affect_other_volumes(
         self, mock_user: Any, mocker: Any, mock_run_command: Any
     ) -> None:
