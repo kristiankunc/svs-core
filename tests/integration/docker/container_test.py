@@ -398,11 +398,27 @@ class TestDockerContainerManager:
     ) -> None:
         """Test that linuxserver images set PUID and PGID environment
         variables."""
-        mocker.patch(
-            "svs_core.docker.image.DockerImageManager.exists", return_value=True
-        )
-
         linuxserver_image = "lscr.io/linuxserver/nginx:latest"
+
+        # Mock the Docker client's create method to return a mock container
+        # with the expected environment variables set
+        mock_container = mocker.MagicMock()
+        mock_container.name = self.TEST_CONTAINER_NAME
+        mock_container.attrs = {
+            "Config": {
+                "User": "",  # linuxserver images don't set user
+                "Env": [
+                    "PUID=1000",
+                    "PGID=1001",
+                    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                ],
+            }
+        }
+
+        mocker.patch(
+            "svs_core.docker.base.get_docker_client"
+        ).return_value.containers.create.return_value = mock_container
+
         container = DockerContainerManager.create_container(
             name=self.TEST_CONTAINER_NAME,
             image=linuxserver_image,
