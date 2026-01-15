@@ -1,5 +1,7 @@
 import uuid
 
+from pathlib import Path
+
 import pytest
 
 from pytest_mock import MockerFixture
@@ -29,6 +31,35 @@ class TestDockerContainerManager:
         mocker.patch(
             "svs_core.docker.container.SystemUserManager.get_gid",
             return_value=1001,
+        )
+
+    @pytest.fixture(autouse=True)
+    def mock_user(self, mocker: MockerFixture) -> None:
+        """Mock User model."""
+        mock_user = mocker.MagicMock()
+        mock_user.id = 1
+        mocker.patch(
+            "svs_core.docker.container.User.objects.get",
+            return_value=mock_user,
+        )
+
+    @pytest.fixture()
+    def mock_volumes_default(self, mocker: MockerFixture) -> None:
+        """Mock SystemVolumeManager with default path.
+
+        Use this fixture explicitly if needed.
+        """
+        mocker.patch(
+            "svs_core.docker.container.SystemVolumeManager.BASE_PATH",
+            Path("/var/lib/svs/volumes"),
+        )
+
+    @pytest.fixture(autouse=True)
+    def mock_volumes_default_autouse(self, mocker: MockerFixture) -> None:
+        """Auto-mock SystemVolumeManager with default path."""
+        mocker.patch(
+            "svs_core.docker.container.SystemVolumeManager.BASE_PATH",
+            Path("/var/lib/svs/volumes"),
         )
 
     @pytest.fixture(autouse=True)
@@ -126,13 +157,33 @@ class TestDockerContainerManager:
         assert container.status == "running"
 
     @pytest.mark.integration
-    def test_create_container_with_volumes(self, tmp_path: object) -> None:
+    def test_create_container_with_volumes(self, mocker: MockerFixture) -> None:
         import tempfile
 
         # Create temporary directories for volume mapping
         with tempfile.TemporaryDirectory() as host_dir:
+            # Create a user-specific subdirectory within temp
+            user_id = 1
+            user_volume_dir = Path(host_dir) / str(user_id)
+            user_volume_dir.mkdir(parents=True, exist_ok=True)
+            data_dir = user_volume_dir / "data"
+            data_dir.mkdir(parents=True, exist_ok=True)
+
+            # Setup mocks that allow the temp directory structure
+            mock_user = mocker.MagicMock()
+            mock_user.id = user_id
+
+            mocker.patch(
+                "svs_core.docker.container.User.objects.get",
+                return_value=mock_user,
+            )
+            mocker.patch(
+                "svs_core.docker.container.SystemVolumeManager.BASE_PATH",
+                Path(host_dir),
+            )
+
             volumes = [
-                Volume(host_path=host_dir, container_path="/data"),
+                Volume(host_path=str(data_dir), container_path="/data"),
             ]
 
             container = DockerContainerManager.create_container(
@@ -392,3 +443,120 @@ class TestDockerContainerManager:
 
         # Verify GID is set correctly
         assert container.attrs["Config"]["User"] == "1000:1005"
+
+    @pytest.mark.integration
+    def test_create_container_with_volumes_permission_check(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that volumes are validated against user's base path."""
+        # Mock the base path to /var/lib/svs/volumes with user ID 1
+        base_path = Path("/var/lib/svs/volumes/1")
+        mocker.patch(
+            "svs_core.docker.container.SystemVolumeManager.BASE_PATH",
+            Path("/var/lib/svs/volumes"),
+        )
+
+        # Create a volume within the allowed path
+        allowed_volume_path = str(base_path / "data")
+        volumes = [
+            Volume(host_path=allowed_volume_path, container_path="/data"),
+        ]
+
+        container = DockerContainerManager.create_container(
+            name=self.TEST_CONTAINER_NAME,
+            image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
+            command="tail",
+            args=["-f", "/dev/null"],
+            volumes=volumes,
+        )
+
+        assert container is not None
+        container_mounts = container.attrs.get("Mounts", [])
+        assert container_mounts is not None
+
+    @pytest.mark.integration
+    def test_create_container_rejects_volume_outside_base_path(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that volumes outside user's base path are rejected."""
+        # Mock the base path
+        mocker.patch(
+            "svs_core.docker.container.SystemVolumeManager.BASE_PATH",
+            Path("/var/lib/svs/volumes"),
+        )
+
+        # Try to create a volume outside the allowed path (user 2 instead of user 1)
+        disallowed_volume_path = "/var/lib/svs/volumes/2/data"
+        volumes = [
+            Volume(host_path=disallowed_volume_path, container_path="/data"),
+        ]
+
+        with pytest.raises(PermissionError) as exc_info:
+            DockerContainerManager.create_container(
+                name=self.TEST_CONTAINER_NAME,
+                image=self.TEST_IMAGE,
+                owner=self.TEST_OWNER,
+                volumes=volumes,
+            )
+
+        assert "outside the allowed directory" in str(exc_info.value)
+
+    @pytest.mark.integration
+    def test_create_container_rejects_volume_outside_user_directory(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that volumes outside the user's specific directory are
+        rejected."""
+        # Mock the base path
+        mocker.patch(
+            "svs_core.docker.container.SystemVolumeManager.BASE_PATH",
+            Path("/var/lib/svs/volumes"),
+        )
+
+        # Try to create a volume at a parent directory
+        disallowed_volume_path = "/var/lib/svs/volumes"
+        volumes = [
+            Volume(host_path=disallowed_volume_path, container_path="/data"),
+        ]
+
+        with pytest.raises(PermissionError) as exc_info:
+            DockerContainerManager.create_container(
+                name=self.TEST_CONTAINER_NAME,
+                image=self.TEST_IMAGE,
+                owner=self.TEST_OWNER,
+                volumes=volumes,
+            )
+
+        assert "outside the allowed directory" in str(exc_info.value)
+
+    @pytest.mark.integration
+    def test_create_container_with_multiple_volumes_all_allowed(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test creating container with multiple volumes all within allowed
+        path."""
+        # Mock the base path
+        mocker.patch(
+            "svs_core.docker.container.SystemVolumeManager.BASE_PATH",
+            Path("/var/lib/svs/volumes"),
+        )
+
+        base_path = Path("/var/lib/svs/volumes/1")
+        volumes = [
+            Volume(host_path=str(base_path / "data"), container_path="/data"),
+            Volume(host_path=str(base_path / "logs"), container_path="/logs"),
+        ]
+
+        container = DockerContainerManager.create_container(
+            name=self.TEST_CONTAINER_NAME,
+            image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
+            command="tail",
+            args=["-f", "/dev/null"],
+            volumes=volumes,
+        )
+
+        assert container is not None
+        container_mounts = container.attrs.get("Mounts", [])
+        assert len(container_mounts) == 2
