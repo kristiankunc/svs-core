@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from svs_core.docker.json_properties import Volume
+from svs_core.shared.exceptions import ResourceException
 from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import create_directory, remove_directory
 
@@ -28,7 +29,7 @@ class SystemVolumeManager:
             Path: The path to the generated volume (absolute).
 
         Raises:
-            RuntimeError: If no free volume path is found within the maximum attempts.
+            ResourceException: If no free volume path is found within the maximum attempts.
         """
         MAX_ATTEMPTS = 50
         attempts = 0
@@ -48,7 +49,7 @@ class SystemVolumeManager:
 
             attempts += 1
 
-        raise RuntimeError("No free volume path found")
+        raise ResourceException("No free volume path found")
 
     @staticmethod
     def delete_user_volumes(user_id: int) -> None:

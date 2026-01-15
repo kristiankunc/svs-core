@@ -4,6 +4,7 @@ from docker.models.containers import Container
 
 from svs_core.docker.base import get_docker_client
 from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
+from svs_core.shared.exceptions import DockerOperationException
 from svs_core.shared.logger import get_logger
 from svs_core.users.system import SystemUserManager
 
@@ -190,7 +191,7 @@ class DockerContainerManager:
             container_id (str): The ID of the container to remove.
 
         Raises:
-            Exception: If the container cannot be removed.
+            DockerOperationException: If the container cannot be removed.
         """
         get_logger(__name__).debug(f"Removing container with ID: {container_id}")
 
@@ -206,7 +207,7 @@ class DockerContainerManager:
             get_logger(__name__).error(
                 f"Failed to remove container '{container_id}': {str(e)}"
             )
-            raise Exception(
+            raise DockerOperationException(
                 f"Failed to remove container {container_id}. Error: {str(e)}"
             ) from e
 

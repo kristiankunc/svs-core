@@ -17,6 +17,13 @@ from svs_core.docker.json_properties import (
     Volume,
 )
 from svs_core.docker.service import Service
+from svs_core.shared.exceptions import (
+    ConfigurationException,
+    NotFoundException,
+    ServiceOperationException,
+    SVSException,
+    ValidationException,
+)
 from svs_core.shared.git_source import GitSource
 from svs_core.users.user import User
 
@@ -191,19 +198,23 @@ def create_service(
             key, value = lbl.split("=", 1)
             override_labels.append(Label(key=key, value=value))
 
-    service = Service.create_from_template(
-        name,
-        template_id,
-        user,
-        domain=domain,
-        override_env=override_env,
-        override_ports=override_ports,
-        override_volumes=override_volumes,
-        override_command=command,
-        override_labels=override_labels,
-        override_args=args,
-    )
-    print(f"Service '{service.name}' created successfully with ID {service.id}.")
+    try:
+        service = Service.create_from_template(
+            name,
+            template_id,
+            user,
+            domain=domain,
+            override_env=override_env,
+            override_ports=override_ports,
+            override_volumes=override_volumes,
+            override_command=command,
+            override_labels=override_labels,
+            override_args=args,
+        )
+        print(f"Service '{service.name}' created successfully with ID {service.id}.")
+    except (ValidationException, ConfigurationException, NotFoundException) as e:
+        print(f"Error creating service: {e}", file=sys.stderr)
+        raise typer.Exit(code=1)
 
 
 @app.command("start")
@@ -218,8 +229,12 @@ def start_service(
         print("You do not have permission to start this service.", file=sys.stderr)
         raise typer.Exit(1)
 
-    service.start()
-    print(f"Service '{service.name}' started successfully.")
+    try:
+        service.start()
+        print(f"Service '{service.name}' started successfully.")
+    except ServiceOperationException as e:
+        print(f"Error starting service: {e}", file=sys.stderr)
+        raise typer.Exit(code=1)
 
 
 @app.command("stop")
@@ -234,8 +249,12 @@ def stop_service(
         print("You do not have permission to stop this service.", file=sys.stderr)
         raise typer.Exit(1)
 
-    service.stop()
-    print(f"Service '{service.name}' stopped successfully.")
+    try:
+        service.stop()
+        print(f"Service '{service.name}' stopped successfully.")
+    except ServiceOperationException as e:
+        print(f"Error stopping service: {e}", file=sys.stderr)
+        raise typer.Exit(code=1)
 
 
 @app.command("build")

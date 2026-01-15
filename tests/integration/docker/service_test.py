@@ -17,6 +17,7 @@ from svs_core.docker.json_properties import (
 )
 from svs_core.docker.service import Service
 from svs_core.docker.template import Template
+from svs_core.shared.exceptions import ServiceOperationException
 from svs_core.shared.git_source import GitSource
 from svs_core.users.user import User
 
@@ -564,8 +565,10 @@ class TestService:
             container_id=None,
         )
 
-        # Attempt to get logs should raise ValueError
-        with pytest.raises(ValueError, match="Service does not have a container ID"):
+        # Attempt to get logs should raise ServiceOperationException
+        with pytest.raises(
+            ServiceOperationException, match="Service does not have a container ID"
+        ):
             service.get_logs()
 
     @pytest.mark.integration
@@ -601,8 +604,10 @@ class TestService:
             image="nginx:alpine",
         )
 
-        # Attempt to get logs should raise ValueError
-        with pytest.raises(ValueError, match="Container with ID .* not found"):
+        # Attempt to get logs should raise ServiceOperationException
+        with pytest.raises(
+            ServiceOperationException, match="Container with ID .* not found"
+        ):
             service.get_logs()
 
     @pytest.mark.integration
