@@ -3,6 +3,7 @@
 import os
 import sys
 
+from getpass import getpass
 from importlib.metadata import version
 from typing import Optional, cast
 
@@ -56,7 +57,7 @@ def cli_first_user_setup(
         try:
             User.create(
                 input("Type your SVS username: ").strip(),
-                input("Type your SVS password: ").strip(),
+                getpass("Type your SVS password: ").strip(),
                 True,
             )
             return
