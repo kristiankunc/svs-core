@@ -89,17 +89,19 @@ class TestExceptionHierarchy:
     @pytest.mark.unit
     def test_docker_operation_exception(self) -> None:
         """Test DockerOperationException initialization and message."""
-        original_error = ValueError("Docker API error")
-        exc = DockerOperationException("Docker operation failed", original_error)
-        assert str(exc) == "Docker operation failed"
-        assert exc.original_error == original_error
-
-    @pytest.mark.unit
-    def test_docker_operation_exception_without_original(self) -> None:
-        """Test DockerOperationException without original error."""
         exc = DockerOperationException("Docker operation failed")
         assert str(exc) == "Docker operation failed"
-        assert exc.original_error is None
+
+    @pytest.mark.unit
+    def test_docker_operation_exception_with_chaining(self) -> None:
+        """Test DockerOperationException with exception chaining."""
+        original_error = ValueError("Docker API error")
+        try:
+            raise DockerOperationException("Docker operation failed") from original_error
+        except DockerOperationException as exc:
+            assert str(exc) == "Docker operation failed"
+            assert exc.__cause__ == original_error
+            assert isinstance(exc.__cause__, ValueError)
 
     @pytest.mark.unit
     def test_resource_exception(self) -> None:

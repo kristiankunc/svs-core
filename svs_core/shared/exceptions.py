@@ -79,9 +79,8 @@ class DockerOperationException(SVSException):
     etc.).
     """
 
-    def __init__(self, message: str, original_error: Exception | None = None):
+    def __init__(self, message: str):
         super().__init__(message)
-        self.original_error = original_error
 
 
 class ResourceException(SVSException):

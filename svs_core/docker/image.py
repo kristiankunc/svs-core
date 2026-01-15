@@ -129,7 +129,7 @@ class DockerImageManager:
                 f"Failed to remove image '{image_name}': {str(e)}"
             )
             raise DockerOperationException(
-                f"Failed to remove image {image_name}. Error: {str(e)}", e
+                f"Failed to remove image {image_name}. Error: {str(e)}"
             ) from e
 
     @staticmethod
@@ -152,7 +152,7 @@ class DockerImageManager:
         except Exception as e:
             get_logger(__name__).error(f"Failed to pull image '{image_name}': {str(e)}")
             raise DockerOperationException(
-                f"Failed to pull image {image_name}. Error: {str(e)}", e
+                f"Failed to pull image {image_name}. Error: {str(e)}"
             ) from e
 
     @staticmethod
@@ -196,8 +196,7 @@ class DockerImageManager:
                 f"Failed to find image '{old_name}' for renaming to '{new_name}': {str(e)}"
             )
             raise DockerOperationException(
-                f"Failed to rename image '{old_name}' to '{new_name}': source image not found or inaccessible. Error: {str(e)}",
-                e,
+                f"Failed to rename image '{old_name}' to '{new_name}': source image not found or inaccessible. Error: {str(e)}"
             ) from e
 
         try:
@@ -206,8 +205,7 @@ class DockerImageManager:
         except Exception as e:
             logger.error(f"Failed to tag image '{old_name}' as '{new_name}': {str(e)}")
             raise DockerOperationException(
-                f"Failed to rename image '{old_name}' to '{new_name}': tagging failed. Error: {str(e)}",
-                e,
+                f"Failed to rename image '{old_name}' to '{new_name}': tagging failed. Error: {str(e)}"
             ) from e
 
         try:

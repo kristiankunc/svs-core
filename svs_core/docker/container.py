@@ -206,7 +206,7 @@ class DockerContainerManager:
                 f"Failed to remove container '{container_id}': {str(e)}"
             )
             raise DockerOperationException(
-                f"Failed to remove container {container_id}. Error: {str(e)}", e
+                f"Failed to remove container {container_id}. Error: {str(e)}"
             ) from e
 
     @staticmethod
