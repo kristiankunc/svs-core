@@ -45,7 +45,11 @@ class TestAutocompletion:
         mock_queryset.filter.assert_called_once_with(name__startswith="ali")
 
     def test_username_autocomplete_as_regular_user(self, mocker: MockerFixture) -> None:
-        """Test username autocomplete returns only current user's username for non-admin."""
+        """Test username autocomplete for non-admin users filters to their own username.
+
+        Non-admin users can only autocomplete their own username, so the filter checks
+        both that name equals current user AND name starts with the incomplete string.
+        """
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=False)
         mocker.patch("svs_core.cli.lib.get_current_username", return_value="bob")
 
@@ -62,6 +66,7 @@ class TestAutocompletion:
 
         assert len(result) == 1
         assert result[0] == ("bob", "bob")
+        # Filter checks both name equals current user AND name starts with incomplete
         mock_queryset.filter.assert_called_once_with(name="bob", name__startswith="bo")
 
     def test_username_autocomplete_no_current_user(self, mocker: MockerFixture) -> None:
@@ -194,7 +199,12 @@ class TestAutocompletion:
     def test_template_id_autocomplete_as_regular_user(
         self, mocker: MockerFixture
     ) -> None:
-        """Test template ID autocomplete returns all templates for non-admin (no owner_check)."""
+        """Test template autocomplete for non-admin users shows all templates.
+
+        Templates use owner_check='' (empty string), which is falsy, so the filter
+        falls through to the else branch and only filters by id__startswith.
+        This allows all users to see all templates regardless of ownership.
+        """
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=False)
         mocker.patch("svs_core.cli.lib.get_current_username", return_value="alice")
 
@@ -212,7 +222,7 @@ class TestAutocompletion:
 
         assert len(result) == 1
         assert result[0] == ("nginx", "nginx")
-        # Templates should be accessible to all users (no owner check)
+        # Empty owner_check means only id__startswith filter is applied
         mock_queryset.filter.assert_called_once_with(id__startswith="ngin")
 
     def test_template_id_autocomplete_exception_handling(
