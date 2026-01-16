@@ -84,7 +84,8 @@ create_svs_user() {
     fi
 
     sudo usermod -a -G svs-admins svs
-    echo "✅ System user 'svs' added to 'svs-admins' group."
+    sudo usermod -a -G docker svs
+    echo "✅ System user 'svs' added to 'svs-admins' and 'docker' groups."
 }
 
 docker_setup() {
