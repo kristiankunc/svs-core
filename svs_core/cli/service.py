@@ -1,6 +1,7 @@
 import sys
 
 from pathlib import Path
+from subprocess import run as subprocess_run
 
 import typer
 
@@ -10,6 +11,7 @@ from rich.table import Table
 
 from svs_core.cli.lib import get_or_exit
 from svs_core.cli.state import get_current_username, is_current_user_admin
+from svs_core.db.models import ServiceStatus
 from svs_core.docker.json_properties import (
     EnvVariable,
     ExposedPort,
@@ -21,7 +23,6 @@ from svs_core.shared.exceptions import (
     ConfigurationException,
     NotFoundException,
     ServiceOperationException,
-    SVSException,
     ValidationException,
 )
 from svs_core.shared.git_source import GitSource
@@ -400,3 +401,58 @@ def download_git_source(
     print(
         f"Git source '{git_source.repository_url}' downloaded/updated for service '{service.name}' successfully."
     )
+
+
+@app.command("shell")
+def open_service_shell(
+    service_id: int = typer.Argument(..., help="ID of the service to open shell for"),
+    shell_path: str = typer.Option(
+        "/bin/bash",
+        "--shell",
+        "-s",
+        help="Path to the shell executable inside the container, defaults to /bin/bash",
+    ),
+) -> None:
+    """Open an interactive shell in the service's container."""
+
+    service = get_or_exit(Service, id=service_id)
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        print("You do not have permission to access this service.", file=sys.stderr)
+        raise typer.Exit(1)
+
+    if not service.status == ServiceStatus.RUNNING:
+        print("Service must be running to open a shell.", file=sys.stderr)
+        raise typer.Exit(1)
+
+    # Validate shell_path - prevent directory traversal and escape attempts
+    if ".." in shell_path or shell_path.startswith("-"):
+        print(
+            "Invalid shell path: cannot contain '..' or start with '-'.",
+            file=sys.stderr,
+        )
+        raise typer.Exit(1)
+
+    if not shell_path.startswith("/"):
+        print(
+            "Shell path must be an absolute path starting with '/'.",
+            file=sys.stderr,
+        )
+        raise typer.Exit(1)
+
+    try:
+        subprocess_run(
+            [
+                "sudo",
+                "-u",
+                "svs",
+                "docker",
+                "exec",
+                "-it",
+                service.container_id,
+                shell_path,
+            ]
+        )
+    except Exception as e:
+        print(f"Error opening shell in service: {e}", file=sys.stderr)
+        raise typer.Exit(code=1)
