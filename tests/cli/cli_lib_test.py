@@ -45,10 +45,12 @@ class TestAutocompletion:
         mock_queryset.filter.assert_called_once_with(name__startswith="ali")
 
     def test_username_autocomplete_as_regular_user(self, mocker: MockerFixture) -> None:
-        """Test username autocomplete for non-admin users filters to their own username.
+        """Test username autocomplete for non-admin users filters to their own
+        username.
 
-        Non-admin users can only autocomplete their own username, so the filter checks
-        both that name equals current user AND name starts with the incomplete string.
+        Non-admin users can only autocomplete their own username, so the
+        filter checks both that name equals current user AND name starts
+        with the incomplete string.
         """
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=False)
         mocker.patch("svs_core.cli.lib.get_current_username", return_value="bob")
@@ -70,7 +72,8 @@ class TestAutocompletion:
         mock_queryset.filter.assert_called_once_with(name="bob", name__startswith="bo")
 
     def test_username_autocomplete_no_current_user(self, mocker: MockerFixture) -> None:
-        """Test username autocomplete returns empty list when no current user."""
+        """Test username autocomplete returns empty list when no current
+        user."""
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=False)
         mocker.patch("svs_core.cli.lib.get_current_username", return_value=None)
 
@@ -96,7 +99,8 @@ class TestAutocompletion:
 
     # service_id_autocomplete tests
     def test_service_id_autocomplete_as_admin(self, mocker: MockerFixture) -> None:
-        """Test service ID autocomplete returns all matching services for admin."""
+        """Test service ID autocomplete returns all matching services for
+        admin."""
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=True)
 
         mock_service1 = mocker.MagicMock()
@@ -122,7 +126,8 @@ class TestAutocompletion:
     def test_service_id_autocomplete_as_regular_user(
         self, mocker: MockerFixture
     ) -> None:
-        """Test service ID autocomplete returns only user's services for non-admin."""
+        """Test service ID autocomplete returns only user's services for non-
+        admin."""
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=False)
         mocker.patch("svs_core.cli.lib.get_current_username", return_value="alice")
 
@@ -147,7 +152,8 @@ class TestAutocompletion:
     def test_service_id_autocomplete_no_current_user(
         self, mocker: MockerFixture
     ) -> None:
-        """Test service ID autocomplete returns empty list when no current user."""
+        """Test service ID autocomplete returns empty list when no current
+        user."""
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=False)
         mocker.patch("svs_core.cli.lib.get_current_username", return_value=None)
 
@@ -173,7 +179,8 @@ class TestAutocompletion:
 
     # template_id_autocomplete tests
     def test_template_id_autocomplete_as_admin(self, mocker: MockerFixture) -> None:
-        """Test template ID autocomplete returns all matching templates for admin."""
+        """Test template ID autocomplete returns all matching templates for
+        admin."""
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=True)
 
         mock_template1 = mocker.MagicMock()
@@ -201,9 +208,10 @@ class TestAutocompletion:
     ) -> None:
         """Test template autocomplete for non-admin users shows all templates.
 
-        Templates use owner_check='' (empty string), which is falsy, so the filter
-        falls through to the else branch and only filters by id__startswith.
-        This allows all users to see all templates regardless of ownership.
+        Templates use owner_check='' (empty string), which is falsy, so
+        the filter falls through to the else branch and only filters by
+        id__startswith. This allows all users to see all templates
+        regardless of ownership.
         """
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=False)
         mocker.patch("svs_core.cli.lib.get_current_username", return_value="alice")
@@ -243,7 +251,8 @@ class TestAutocompletion:
 
     # git_source_id_autocomplete tests
     def test_git_source_id_autocomplete_as_admin(self, mocker: MockerFixture) -> None:
-        """Test git source ID autocomplete returns all matching sources for admin."""
+        """Test git source ID autocomplete returns all matching sources for
+        admin."""
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=True)
 
         mock_source1 = mocker.MagicMock()
@@ -269,7 +278,8 @@ class TestAutocompletion:
     def test_git_source_id_autocomplete_as_regular_user(
         self, mocker: MockerFixture
     ) -> None:
-        """Test git source ID autocomplete returns only user's sources for non-admin."""
+        """Test git source ID autocomplete returns only user's sources for non-
+        admin."""
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=False)
         mocker.patch("svs_core.cli.lib.get_current_username", return_value="alice")
 
@@ -294,7 +304,8 @@ class TestAutocompletion:
     def test_git_source_id_autocomplete_no_current_user(
         self, mocker: MockerFixture
     ) -> None:
-        """Test git source ID autocomplete returns empty list when no current user."""
+        """Test git source ID autocomplete returns empty list when no current
+        user."""
         mocker.patch("svs_core.cli.lib.is_current_user_admin", return_value=False)
         mocker.patch("svs_core.cli.lib.get_current_username", return_value=None)
 
