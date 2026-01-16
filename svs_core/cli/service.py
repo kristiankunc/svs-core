@@ -9,7 +9,12 @@ from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from svs_core.cli.lib import get_or_exit
+from svs_core.cli.lib import (
+    get_or_exit,
+    git_source_id_autocomplete,
+    service_id_autocomplete,
+    template_id_autocomplete,
+)
 from svs_core.cli.state import get_current_username, is_current_user_admin
 from svs_core.db.models import ServiceStatus
 from svs_core.docker.json_properties import (
@@ -66,7 +71,11 @@ def list_services(
 
 @app.command("get")
 def get_service(
-    service_id: int = typer.Argument(..., help="ID of the service to retrieve")
+    service_id: int = typer.Argument(
+        ...,
+        help="ID of the service to retrieve",
+        autocompletion=service_id_autocomplete,
+    )
 ) -> None:
     """Get a service by ID."""
 
@@ -82,7 +91,9 @@ def get_service(
 @app.command("create")
 def create_service(
     name: str = typer.Argument(..., help="Name of the service to create"),
-    template_id: int = typer.Argument(..., help="ID of the template to use"),
+    template_id: int = typer.Argument(
+        ..., help="ID of the template to use", autocompletion=template_id_autocomplete
+    ),
     domain: str | None = typer.Option(
         None, "--domain", "-d", help="Domain for the service"
     ),
@@ -220,7 +231,9 @@ def create_service(
 
 @app.command("start")
 def start_service(
-    service_id: int = typer.Argument(..., help="ID of the service to start")
+    service_id: int = typer.Argument(
+        ..., help="ID of the service to start", autocompletion=service_id_autocomplete
+    )
 ) -> None:
     """Start a service."""
 
@@ -240,7 +253,9 @@ def start_service(
 
 @app.command("stop")
 def stop_service(
-    service_id: int = typer.Argument(..., help="ID of the service to stop")
+    service_id: int = typer.Argument(
+        ..., help="ID of the service to stop", autocompletion=service_id_autocomplete
+    )
 ) -> None:
     """Stop a service."""
 
@@ -260,7 +275,9 @@ def stop_service(
 
 @app.command("build")
 def build_service(
-    service_id: int = typer.Argument(..., help="ID of the service to build"),
+    service_id: int = typer.Argument(
+        ..., help="ID of the service to build", autocompletion=service_id_autocomplete
+    ),
     path: str = typer.Argument(
         ..., help="Path to the source code to build the service from"
     ),
@@ -287,7 +304,9 @@ def build_service(
 
 @app.command("delete")
 def delete_service(
-    service_id: int = typer.Argument(..., help="ID of the service to delete")
+    service_id: int = typer.Argument(
+        ..., help="ID of the service to delete", autocompletion=service_id_autocomplete
+    )
 ) -> None:
     """Delete a service."""
 
@@ -303,7 +322,11 @@ def delete_service(
 
 @app.command("logs")
 def view_service_logs(
-    service_id: int = typer.Argument(..., help="ID of the service to view logs for")
+    service_id: int = typer.Argument(
+        ...,
+        help="ID of the service to view logs for",
+        autocompletion=service_id_autocomplete,
+    )
 ) -> None:
     """View logs for a service."""
 
@@ -322,7 +345,9 @@ def view_service_logs(
 @app.command("add-git-source")
 def add_git_source(
     service_id: int = typer.Argument(
-        ..., help="ID of the service to add git source to"
+        ...,
+        help="ID of the service to add git source to",
+        autocompletion=service_id_autocomplete,
     ),
     git_url: str = typer.Argument(..., help="Git repository URL"),
     destination_path: str = typer.Argument(..., help="Destination path in the service"),
@@ -361,7 +386,11 @@ def add_git_source(
 
 @app.command("delete-git-source")
 def delete_git_source(
-    git_source_id: int = typer.Argument(..., help="ID of the git source to delete"),
+    git_source_id: int = typer.Argument(
+        ...,
+        help="ID of the git source to delete",
+        autocompletion=git_source_id_autocomplete,
+    )
 ) -> None:
     """Delete a git source from a service."""
 
@@ -380,7 +409,11 @@ def delete_git_source(
 
 @app.command("download-git-source")
 def download_git_source(
-    git_source_id: int = typer.Argument(..., help="ID of the git source to download"),
+    git_source_id: int = typer.Argument(
+        ...,
+        help="ID of the git source to download",
+        autocompletion=git_source_id_autocomplete,
+    )
 ) -> None:
     """Download or update a git source for a service."""
 
@@ -405,7 +438,11 @@ def download_git_source(
 
 @app.command("shell")
 def open_service_shell(
-    service_id: int = typer.Argument(..., help="ID of the service to open shell for"),
+    service_id: int = typer.Argument(
+        ...,
+        help="ID of the service to open shell for",
+        autocompletion=service_id_autocomplete,
+    ),
     shell_path: str = typer.Option(
         "/bin/bash",
         "--shell",
