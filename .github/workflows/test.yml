@@ -40,6 +40,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install ".[dev]"
 
+      - name: Cache pre-commit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
       - name: Run pre-commit hooks
         run: |
           source .venv/bin/activate
