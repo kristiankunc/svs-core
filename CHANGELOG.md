@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.11.1](https://github.com/kristiankunc/svs-core/compare/v0.11.0...v0.11.1) (2026-01-17)
+
+
+### Bug Fixes
+
+* **core:** Add shell autocompletion ([#239](https://github.com/kristiankunc/svs-core/issues/239)) ([5466751](https://github.com/kristiankunc/svs-core/commit/546675118325fadea2eb7ef2c4d6c29fb2364233))
+* **core:** Copy service templates over to sandbox Docker image ([bb1d886](https://github.com/kristiankunc/svs-core/commit/bb1d886b63cc2db692bf5d8931113f120621d504))
+* **core:** Ensure svs user is in docker group for docker operations. ([01309ec](https://github.com/kristiankunc/svs-core/commit/01309ec8f43f3effe339aa26a27aca855d8a4542))
+* **core:** Fix git source deletion logic ([#231](https://github.com/kristiankunc/svs-core/issues/231)) ([50e0ae1](https://github.com/kristiankunc/svs-core/commit/50e0ae13966945019590ef0402622e9d62aeb626))
+* **core:** Implement custom exception hierarchy for user-facing vs internal errors ([#234](https://github.com/kristiankunc/svs-core/issues/234)) ([a2dfcf9](https://github.com/kristiankunc/svs-core/commit/a2dfcf917298446f0c53d07982ac9ef910223b11))
+* **core:** Refactor system permissions ([#230](https://github.com/kristiankunc/svs-core/issues/230)) ([9507a4a](https://github.com/kristiankunc/svs-core/commit/9507a4abe12bf1d3385084320295b0566cb72130))
+* **core:** Set admin group GID to running containers ([#236](https://github.com/kristiankunc/svs-core/issues/236)) ([e25ae58](https://github.com/kristiankunc/svs-core/commit/e25ae588a3e2efe072c2cc028ee904d2fca148ac))
+* **core:** Use hidden password input for initial user setup ([bb1d886](https://github.com/kristiankunc/svs-core/commit/bb1d886b63cc2db692bf5d8931113f120621d504))
+* **docs:** Document sandbox environment ([#235](https://github.com/kristiankunc/svs-core/issues/235)) ([bb1d886](https://github.com/kristiankunc/svs-core/commit/bb1d886b63cc2db692bf5d8931113f120621d504))
+
 ## [0.11.0](https://github.com/kristiankunc/svs-core/compare/v0.10.3...v0.11.0) (2026-01-12)
 
 
