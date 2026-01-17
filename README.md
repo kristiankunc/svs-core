@@ -21,18 +21,20 @@ This readme contains a quick summary and development setup info.
 
 ## Goals
 
-The goal of this project is to provide a simple and easy-to-use library for managing self-hosted services on a linux server. It is designed to be used by developers who want to automate the management of their self-hosted services, such as web servers, databases, and other applications.
+The goal of this project is to simplify deploying and managing self-hosted applications on a linux server. Inspired by [Portainer](https://www.portainer.io/) but aimed at begginer users. Under the hood, all applications are containerized using Docker. For ease of use, the library provides pre-configured service templates for popular self-hosted applications such as:
 
-It should be both begginer-friendly and yet allow advanced users to customize the behavior of the library to suit their needs.
-
-Under the hood, all services will be managed using Docker containers, which allows for easy deployment and management of services. Given the complexity of Docker, the library will provide templates for common services and hide as much of the complexity as possible while still allowing advanced users to access the underlying Docker functionality if they wish to do so.
+ - MySQL
+ - PostgreSQL
+ - Django
+ - NGINX
+ - ...
 
 ## Technology overview
 
 Every service will run a Docker container and all of users' services will be on the same Docker network, allowing them to communicate with each other easily without
 
 1. exposing them to other users on the same server
-1. having to use compose stacks and custom networks to allow cross-service communication.
+2. having to use compose stacks and custom networks to allow cross-service communication.
 
 ## Features
 
@@ -68,7 +70,6 @@ After attaching to the devcontainer, the dependencies will be automatically inst
 
 You also need to run the [`install-dev.sh`](./install-dev.sh) script to configure your system for development. This script will create the required directories and configure permissions. It is a subset of the production install script.
 
-```bash
 ### Linting + Formatting
 
 The devcontainer includes pre-configured linting and formatting tools for Visual Studio Code and all files should be formatted on save. If you use a different editor, you can run the pre-commit hooks manually by running `pre-commit run --all-files` in the terminal to apply the formatting and linting rules.
