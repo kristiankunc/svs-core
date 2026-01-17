@@ -5,7 +5,7 @@ import typer
 from rich import print
 from rich.table import Table
 
-from svs_core.cli.lib import get_or_exit
+from svs_core.cli.lib import get_or_exit, username_autocomplete
 from svs_core.cli.state import (
     get_current_username,
     is_current_user_admin,
@@ -40,7 +40,11 @@ def create(
 
 @app.command("get")
 def get(
-    name: str = typer.Argument(..., help="Username of the user to retrieve")
+    name: str = typer.Argument(
+        ...,
+        help="Username of the user to retrieve",
+        autocompletion=username_autocomplete,
+    )
 ) -> None:
     """Get a user by name."""
 

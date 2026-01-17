@@ -8,7 +8,7 @@ from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from svs_core.cli.lib import confirm_action, get_or_exit
+from svs_core.cli.lib import confirm_action, get_or_exit, template_id_autocomplete
 from svs_core.cli.state import reject_if_not_admin
 from svs_core.docker.template import Template
 from svs_core.shared.exceptions import TemplateException, ValidationException
@@ -125,7 +125,11 @@ def list_templates(
 
 @app.command("get")
 def get_template(
-    template_id: str = typer.Argument(..., help="ID of the template to retrieve")
+    template_id: str = typer.Argument(
+        ...,
+        help="ID of the template to retrieve",
+        autocompletion=template_id_autocomplete,
+    )
 ) -> None:
     """Get a template by ID."""
 
@@ -136,7 +140,11 @@ def get_template(
 
 @app.command("delete")
 def delete_template(
-    template_id: str = typer.Argument(..., help="ID of the template to delete")
+    template_id: str = typer.Argument(
+        ...,
+        help="ID of the template to delete",
+        autocompletion=template_id_autocomplete,
+    )
 ) -> None:
     """Delete a template by ID."""
 
