@@ -50,7 +50,7 @@ def get(
 
     user = get_or_exit(User, name=name)
 
-    print(user)
+    print(user.pprint())
 
 
 @app.command("list")

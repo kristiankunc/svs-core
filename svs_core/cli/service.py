@@ -85,7 +85,7 @@ def get_service(
         print("You do not have permission to view this service.", file=sys.stderr)
         raise typer.Exit(1)
 
-    print(service)
+    print(service.pprint())
 
 
 @app.command("create")

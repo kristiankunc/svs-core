@@ -11,6 +11,7 @@ from svs_core.docker.json_properties import (
     Label,
     Volume,
 )
+from svs_core.shared.text import indentate, to_goated_time_format
 
 if TYPE_CHECKING:
     from svs_core.docker.service import Service
@@ -376,3 +377,21 @@ class GitSourceModel(BaseModel):
         from svs_core.docker.service import Service
 
         return Service.objects.filter(id=self.service_id)
+
+
+def miscelanous_str_injector(obj: BaseModel, indent: int = 1) -> str:
+    """Generate miscelanous information string for a model instance.
+
+    Args:
+        obj (BaseModel): The model instance.
+        indent (int): The indentation level in spaces * 4. Default is 1.
+
+    Returns:
+        str: Formatted miscelanous information string.
+    """
+    return indentate(
+        f"""ID: {obj.id}
+Created At: {to_goated_time_format(obj.created_at)}
+Last Updated: {to_goated_time_format(obj.updated_at)}""",
+        level=indent,
+    )
