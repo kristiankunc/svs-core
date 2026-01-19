@@ -5,6 +5,7 @@ import sys
 
 from getpass import getpass
 from importlib.metadata import version
+from subprocess import run
 from typing import Optional, cast
 
 import django
@@ -36,6 +37,7 @@ if not EnvManager.get_database_url():
 
 from svs_core.cli.service import app as service_app  # noqa: E402
 from svs_core.cli.template import app as template_app  # noqa: E402
+from svs_core.cli.tui.app import run_tui_app  # noqa: E402
 from svs_core.cli.user import app as user_app  # noqa: E402
 from svs_core.cli.utils import app as utils_app  # noqa: E402
 
@@ -111,6 +113,20 @@ def global_options(
         user_to_override = get_or_exit(User, name=user_override)
 
         set_current_user(user_to_override.name, True)
+
+
+@app.callback(invoke_without_command=True)
+def default_tui(ctx: typer.Context) -> None:
+    """Default command to run the TUI."""
+    if ctx.invoked_subcommand is None:
+        run_tui_app()
+
+
+@app.command()
+def tui() -> None:
+    """Run the SVS TUI application."""
+
+    run_tui_app()
 
 
 app.add_typer(user_app, name="user")

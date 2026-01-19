@@ -13,6 +13,7 @@ dependencies = [
     "Django==6.0.1",
     "dj_database_url==3.1.0",
     "psycopg2==2.9.11",
+    "textual==7.3.0",
 ]
 
 [project.optional-dependencies]
@@ -29,6 +30,7 @@ dev = [
     "ruff==0.14.13",
     "twine==6.2.0",
     "pytest-django==4.11.1",
+    "textual-dev=1.8.0",
 ]
 docs = [
     "zensical==0.0.16",

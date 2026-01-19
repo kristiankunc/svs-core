@@ -1,0 +1,27 @@
+#user-info {
+    dock: top;
+    width: 100%;
+    text-align: center;
+}
+
+Screen {
+    layout: horizontal;
+}
+
+#left-panel {
+    width: 25%;
+}
+
+#right-panel {
+    width: 75%;
+    border: solid green;
+}
+
+.box-container {
+    height: 1fr;
+    border: solid green;
+}
+
+.box {
+    height: 100%;
+}
