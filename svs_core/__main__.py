@@ -135,7 +135,11 @@ def main() -> None:  # noqa: D103
 
         sys.exit(1)
 
-    if not os.environ.get("SUDO_USER"):
+    if (
+        not os.environ.get("SUDO_USER")
+        and EnvManager.get_runtime_environment()
+        == EnvManager.RuntimeEnvironment.PRODUCTION
+    ):
         print("SVS CLI must be run with sudo privileges (e.g., using 'sudo svs ...').")
         sys.exit(1)
 
