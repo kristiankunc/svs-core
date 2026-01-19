@@ -135,6 +135,10 @@ def main() -> None:  # noqa: D103
 
         sys.exit(1)
 
+    if not os.environ.get("SUDO_USER"):
+        print("SVS CLI must be run with sudo privileges (e.g., using 'sudo svs ...').")
+        sys.exit(1)
+
     is_admin = cast(User, user).is_admin() if user else False
     if user:
         set_current_user(user.name, is_admin)
