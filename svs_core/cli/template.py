@@ -135,7 +135,7 @@ def get_template(
 
     template = get_or_exit(Template, id=template_id)
 
-    print(template)
+    print(template.pprint())
 
 
 @app.command("delete")

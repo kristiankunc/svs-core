@@ -180,7 +180,7 @@ class TestTemplateCommands:
     def test_get_template_success(self, mocker: MockerFixture) -> None:
         mock_get = mocker.patch("svs_core.docker.template.Template.objects.get")
         mock_template = mocker.MagicMock()
-        mock_template.__str__.return_value = "Template(name='django')"
+        mock_template.pprint.return_value = "Template(name='django')"
         mock_get.return_value = mock_template
 
         result = self.runner.invoke(

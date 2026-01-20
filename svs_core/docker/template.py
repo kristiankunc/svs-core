@@ -14,6 +14,7 @@ from svs_core.docker.json_properties import (
 )
 from svs_core.shared.exceptions import TemplateException, ValidationException
 from svs_core.shared.logger import get_logger
+from svs_core.shared.text import indentate, to_goated_time_format
 
 
 class Template(TemplateModel):
@@ -35,6 +36,53 @@ class Template(TemplateModel):
             f"default_contents={[content.__str__() for content in self.default_contents]}, "
             f"start_cmd={self.start_cmd}, healthcheck={self.healthcheck}, "
             f"labels={[label.__str__() for label in self.labels]}, args={self.args})"
+        )
+
+    def pprint(self, indent: int = 0) -> str:
+        """Pretty-print the template details.
+
+        Args:
+            indent (int): The indentation level for formatting.
+
+        Returns:
+            str: The pretty-printed template details.
+        """
+        from svs_core.docker.service import Service
+
+        services = Service.objects.filter(template=self)
+
+        # Handle type as either string or enum
+        type_value = self.type.value if hasattr(self.type, "value") else self.type
+        type_display = (
+            self.type if self.type == TemplateType.BUILD else TemplateType.IMAGE
+        )
+
+        return indentate(
+            f"""Template: {self.name}
+Type: {type_value}
+Description: {self.description if self.description else 'None'}
+Image: {self.image if type_display == TemplateType.IMAGE else 'Built on-demand (Dockerfile)'}
+
+Default Environment Variables:
+    {'\n    '.join([f'{var.key}={var.value}' for var in self.default_env]) if self.default_env else 'None'}
+
+Default Ports (Host->Container):
+    {'\n    '.join([f'{port.host_port} -> {port.container_port}' for port in self.default_ports]) if self.default_ports else 'None'}
+
+Default Volumes (Host->Container):
+    {'\n    '.join([f'{vol.host_path} -> {vol.container_path}' for vol in self.default_volumes]) if self.default_volumes else 'None'}
+
+Default Contents:
+    {'\n    '.join([f'{content.location}: {len(content.content)} bytes' for content in self.default_contents]) if self.default_contents else 'None'}
+
+Services Using This Template ({len(services)}):
+    {'\n    '.join([f"{service.name} (ID: {service.id})" for service in services]) if services else 'None'}
+
+Miscellaneous:
+    ID: {self.id}
+    Created At: {to_goated_time_format(self.created_at)}
+    Last Updated: {to_goated_time_format(self.updated_at)}""",
+            level=indent,
         )
 
     @classmethod
