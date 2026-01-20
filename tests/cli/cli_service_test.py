@@ -125,6 +125,39 @@ class TestServiceCommands:
         assert result.exit_code == 0
         assert "Service 'new_service' created successfully with ID 1." in result.output
 
+    def test_get_service_long_format(self, mocker: MockerFixture) -> None:
+        mock_get = mocker.patch("svs_core.docker.service.Service.objects.get")
+        mock_service = mocker.MagicMock()
+        mock_service.name = "test_service"
+        mock_service.id = 1
+        mock_service.status = "running"
+        mock_service.user.name = "admin"
+        mock_service.__str__.return_value = (
+            "name=test_service\n"
+            "id=1\n"
+            "status=running\n"
+            "container_id=abc123\n"
+            "image=nginx\n"
+            "user_id=1\n"
+            "template_id=1"
+        )
+        mock_get.return_value = mock_service
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=True)
+
+        result = self.runner.invoke(
+            app,
+            ["service", "get", "1", "--long"],
+        )
+
+        assert result.exit_code == 0
+        assert "name=test_service" in result.output
+        assert "id=1" in result.output
+        assert "status=running" in result.output
+        assert "container_id=abc123" in result.output
+        assert "image=nginx" in result.output
+        assert "user_id=1" in result.output
+        assert "template_id=1" in result.output
+
     def test_start_service_admin(self, mocker: MockerFixture) -> None:
         mock_get = mocker.patch("svs_core.docker.service.Service.objects.get")
         mock_service = mocker.MagicMock()

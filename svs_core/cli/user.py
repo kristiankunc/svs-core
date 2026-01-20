@@ -44,13 +44,13 @@ def get(
         ...,
         help="Username of the user to retrieve",
         autocompletion=username_autocomplete,
-    )
+    ),
 ) -> None:
     """Get a user by name."""
 
     user = get_or_exit(User, name=name)
 
-    print(user)
+    print(user.pprint())
 
 
 @app.command("list")

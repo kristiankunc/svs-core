@@ -13,6 +13,7 @@ from svs_core.shared.exceptions import (
 )
 from svs_core.shared.hash import hash_password
 from svs_core.shared.logger import get_logger
+from svs_core.shared.text import indentate, to_goated_time_format
 from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.system import SystemUserManager
 
@@ -213,3 +214,19 @@ class User(UserModel):
 
     def __str__(self) -> str:
         return f"User(id={self.id}, name={self.name}, is_admin={self.is_admin()})"
+
+    def pprint(self, indent: int = 0) -> str:
+        """Pretty-print the User details."""
+        return indentate(
+            f"""Name: {self.name}
+Role: {self.is_admin() and 'Admin' or 'Standard User'}
+
+Services ({len(self.services.all())}):
+    {'\n    '.join([f"{service.name} (ID: {service.id})" for service in self.services.all()]) if self.services.all() else 'None'}
+
+Miscelaneous:
+    ID: {self.id}
+    Created At: {to_goated_time_format(self.created_at)}
+    Last Updated: {to_goated_time_format(self.updated_at)}""",
+            level=indent,
+        )
