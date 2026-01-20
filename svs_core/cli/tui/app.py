@@ -10,6 +10,7 @@ from django.apps import apps as django_apps
 from textual import work
 from textual.app import App, ComposeResult
 from textual.containers import Container
+from textual.screen import Screen
 from textual.widgets import Footer, Header, ListItem, ListView, Static
 
 from svs_core.cli.state import (
@@ -37,7 +38,7 @@ class ItemSelected:
         self.item_id = item_id
 
 
-class SVSTUIApp(App):
+class SVSTUIApp(App[None]):
     """A Textual TUI application for SVS Core."""
 
     CSS_PATH = "./tui.css"
@@ -121,7 +122,7 @@ class SVSTUIApp(App):
         """Fetch service details in a thread to avoid blocking the UI."""
         try:
             service = Service.objects.get(id=service_id)
-            details = self._format_service_details(service)
+            details = service.pprint()
             self.call_from_thread(
                 self.display_details_with_title, service.name, details
             )
@@ -133,7 +134,7 @@ class SVSTUIApp(App):
         """Fetch template details in a thread to avoid blocking the UI."""
         try:
             template = Template.objects.get(id=template_id)
-            details = self._format_template_details(template)
+            details = template.pprint()
             self.call_from_thread(
                 self.display_details_with_title, template.name, details
             )
@@ -145,66 +146,10 @@ class SVSTUIApp(App):
         """Fetch user details in a thread to avoid blocking the UI."""
         try:
             user = User.objects.get(id=user_id)
-            details = self._format_user_details(user)
+            details = user.pprint()
             self.call_from_thread(self.display_details_with_title, user.name, details)
         except User.DoesNotExist:
             self.call_from_thread(self.display_details, "User not found")
-
-    def _format_service_details(self, service: Service) -> str:
-        """Format service details for display."""
-        ports_str = "\n".join(
-            f"- {port.host_port} -> {port.container_port}"
-            for port in service.exposed_ports
-        )
-        volumes_str = "\n".join(
-            f"- {volume.host_path} -> {volume.container_path}"
-            for volume in service.volumes
-        )
-        git_sources_str = "\n".join(
-            f"- {source.repository_url}@{source.branch} -> {source.destination_path}"
-            for source in service.git_sources.all()
-        )
-
-        lines = [
-            f"Name: {service.name}",
-            f"ID: {service.id}",
-            f"Template: {service.template.name}",
-            f"User: {service.user.name}",
-            f"Status: {service.status.value}",
-            "",
-            "Exposed Ports (host -> container):",
-            f"  {ports_str}" if ports_str else "  None",
-            "",
-            "Volumes (host -> container):",
-            f"  {volumes_str}" if volumes_str else "  None",
-            "",
-            "Git Sources:",
-            f"  {git_sources_str}" if git_sources_str else "  None",
-            "",
-            "Metadata:",
-            f"  Container ID: {service.container_id or 'N/A'}",
-            f"  Created: {service.created_at}",
-            f"  Updated: {service.updated_at}",
-        ]
-        return "\n".join(lines)
-
-    def _format_template_details(self, template: Template) -> str:
-        """Format template details for display."""
-        lines = [
-            f"Template: {template.name}",
-            f"ID: {template.id}",
-            f"Description: {template.description or 'N/A'}",
-        ]
-        return "\n".join(lines)
-
-    def _format_user_details(self, user: User) -> str:
-        """Format user details for display."""
-        lines = [
-            f"User: {user.name}",
-            f"ID: {user.id}",
-            f"Admin: {'Yes' if user.is_admin() else 'No'}",
-        ]
-        return "\n".join(lines)
 
     def display_details(self, details: str) -> None:  # noqa: D102
         """Update the details panel with the formatted content."""
@@ -221,9 +166,9 @@ class SVSTUIApp(App):
 
     def on_list_view_selected(self, message: ListView.Selected) -> None:  # noqa: D102
         """Handle when an item is selected in any ListView."""
-        item_id = message.item.id
-        if not item_id:
+        if not message.item or not message.item.id:
             return
+        item_id = message.item.id
 
         if item_id.startswith("service-"):
             service_id = item_id.replace("service-", "")
@@ -239,9 +184,9 @@ class SVSTUIApp(App):
         self, message: ListView.Highlighted
     ) -> None:  # noqa: D102
         """Handle when an item is highlighted (scrolled to) in any ListView."""
-        item_id = message.item.id
-        if not item_id:
+        if not message.item or not message.item.id:
             return
+        item_id = message.item.id
 
         if item_id.startswith("service-"):
             service_id = item_id.replace("service-", "")
@@ -263,7 +208,7 @@ class SVSTUIApp(App):
 
         self.load_homepage()
 
-    def action_quit(self) -> None:  # noqa: D102
+    async def action_quit(self) -> None:  # noqa: D102
         self.exit()
 
 
