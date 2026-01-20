@@ -5,7 +5,12 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, List, TypeVar, Union, cast
 
-from svs_core.db.models import ServiceModel, ServiceStatus, TemplateType
+from svs_core.db.models import (
+    ServiceModel,
+    ServiceStatus,
+    TemplateType,
+    miscelanous_str_injector,
+)
 from svs_core.docker.container import DockerContainerManager
 from svs_core.docker.image import DockerImageManager
 from svs_core.docker.json_properties import (
@@ -25,6 +30,7 @@ from svs_core.shared.exceptions import (
 from svs_core.shared.git_source import GitSource
 from svs_core.shared.logger import get_logger
 from svs_core.shared.ports import SystemPortManager
+from svs_core.shared.text import indentate
 from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.user import User
 
@@ -57,18 +63,57 @@ class Service(ServiceModel):
 
     def __str__(self) -> str:  # noqa: D105
         return (
-            f"Service(id={self.id}, name={self.name}, template_id={self.template_id}, "
-            f"user_id={self.user_id}, domain={self.domain}, container_id={self.container_id}, "
-            f"image={self.image}, "
-            f"exposed_ports={[port.__str__() for port in self.exposed_ports]}, "
-            f"env={[var.__str__() for var in self.env]}, "
-            f"volumes={[vol.__str__() for vol in self.volumes]}, "
-            f"command={self.command}, "
-            f"healthcheck={self.healthcheck}, "
-            f"labels={[label.__str__() for label in self.labels]}, "
-            f"args={self.args}, "
-            f"status={self.status}, "
-            f"git_sources={[gs.__str__() for gs in self.proxy_git_sources]})"
+            f"name={self.name}\n"
+            f"id={self.id}\n"
+            f"status={self.status}\n"
+            f"container_id={self.container_id}\n"
+            f"image={self.image}\n"
+            f"user_id={self.user_id}\n"
+            f"template_id={self.template_id}\n"
+            f"domain={self.domain}\n"
+            f"exposed_ports={[port.__str__() for port in self.exposed_ports]}\n"
+            f"volumes={[vol.__str__() for vol in self.volumes]}\n"
+            f"env={[var.__str__() for var in self.env]}\n"
+            f"command={self.command}\n"
+            f"args={self.args}\n"
+            f"labels={[label.__str__() for label in self.labels]}\n"
+            f"healthcheck={self.healthcheck}\n"
+            f"git_sources={[gs.__str__() for gs in self.proxy_git_sources]}"
+        )
+
+    def pprint(self, indent: int = 0) -> str:
+        """Pretty-print the service details.
+
+        Args:
+            indent (int): The indentation level for formatting.
+
+        Returns:
+            str: The pretty-printed service details.
+        """
+        return indentate(
+            f"""Service: {self.name}
+Status: {self.status.name}
+Owner: {self.user.name} (ID: {self.user_id})
+Template: {self.template.name} (ID: {self.template_id})
+Domain: {self.domain}
+Image: {self.image if self.template.type == TemplateType.IMAGE else 'Built on-demand'}
+
+Exposed Ports (Host->Container):
+    {'\n    '.join([f'{port.host_port} -> {port.container_port}' for port in self.exposed_ports]) if self.exposed_ports else 'None'}
+
+Volumes (Host->Container):
+    {'\n    '.join([f'{vol.host_path} -> {vol.container_path}' for vol in self.volumes]) if self.volumes else 'None'}
+
+Environment Variables:
+    {'\n    '.join([f'{var.key}={var.value}' for var in self.env]) if self.env else 'None'}
+
+Git Sources:
+{('\n    '.join([gs.pprint(1) for gs in self.proxy_git_sources])) if self.proxy_git_sources else 'None'}
+
+Miscelanous:
+    Container ID: {self.container_id}
+{miscelanous_str_injector(self)}""",
+            level=indent,
         )
 
     @staticmethod

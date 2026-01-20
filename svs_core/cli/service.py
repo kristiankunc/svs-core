@@ -75,7 +75,10 @@ def get_service(
         ...,
         help="ID of the service to retrieve",
         autocompletion=service_id_autocomplete,
-    )
+    ),
+    long: bool = typer.Option(
+        False, "--long", "-l", help="Display detailed service information"
+    ),
 ) -> None:
     """Get a service by ID."""
 
@@ -85,7 +88,10 @@ def get_service(
         print("You do not have permission to view this service.", file=sys.stderr)
         raise typer.Exit(1)
 
-    print(service)
+    if long:
+        print(service.__str__())
+    else:
+        print(service.pprint())
 
 
 @app.command("create")

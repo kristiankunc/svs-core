@@ -203,6 +203,7 @@ class TestMainCLI:
         """Test that main exits when SUDO_USER environment variable is not
         set."""
         from svs_core.__main__ import main
+        from svs_core.shared.env_manager import EnvManager
         from svs_core.users.user import User
 
         # Mock dependencies
@@ -215,8 +216,11 @@ class TestMainCLI:
             name="testuser", is_admin=lambda: False
         )
         mocker.patch.object(User.objects, "filter", return_value=mock_user_filter)
-        # Ensure SUDO_USER is not set
         mocker.patch.dict("os.environ", {}, clear=False)
+        mocker.patch(
+            "svs_core.__main__.EnvManager.get_runtime_environment",
+            return_value=EnvManager.RuntimeEnvironment.PRODUCTION,
+        )
 
         with pytest.raises(SystemExit) as exc_info:
             main()

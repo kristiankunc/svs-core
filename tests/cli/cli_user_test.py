@@ -86,7 +86,7 @@ class TestUserCommands:
     def test_get_existing_user(self, mocker: MockerFixture) -> None:
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_user = mocker.MagicMock()
-        mock_user.__str__.return_value = "User(name='existing_user')"
+        mock_user.pprint.return_value = "User(name='existing_user')"
         mock_get.return_value = mock_user
 
         result = self.runner.invoke(

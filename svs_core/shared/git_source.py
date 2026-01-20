@@ -1,11 +1,12 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from svs_core.db.models import GitSourceModel
+from svs_core.db.models import GitSourceModel, miscelanous_str_injector
 from svs_core.shared.exceptions import ValidationException
 from svs_core.shared.http import is_url
 from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import create_directory, run_command
+from svs_core.shared.text import indentate
 
 
 class GitSource(GitSourceModel):
@@ -203,3 +204,28 @@ class GitSource(GitSourceModel):
 
     def __str__(self) -> str:
         return f"GitSource(id={self.id}, repository_url={self.repository_url}, branch={self.branch}, destination_path={self.destination_path}, is_updated={self.is_updated()})"
+
+    def pprint(self, indent: int = 0) -> str:
+        """Pretty-print the GitSource details.
+
+        Args:
+            indent (int): The indentation level for formatting.
+
+        Returns:
+            str: The pretty-printed GitSource details.
+        """
+
+        if not self.is_cloned():
+            status = "Not cloned"
+        elif not self.is_updated():
+            status = "Outdated"
+        else:
+            status = "Up to date"
+
+        return indentate(
+            f"""{self.repository_url} @ {self.branch} -> {self.destination_path}
+Status: {status}
+Miscelaneous:
+{miscelanous_str_injector(self, indent=1)}""",
+            level=indent,
+        )
