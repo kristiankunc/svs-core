@@ -44,7 +44,7 @@ def get(
         ...,
         help="Username of the user to retrieve",
         autocompletion=username_autocomplete,
-    )
+    ),
 ) -> None:
     """Get a user by name."""
 

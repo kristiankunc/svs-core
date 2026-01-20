@@ -129,13 +129,19 @@ def get_template(
         ...,
         help="ID of the template to retrieve",
         autocompletion=template_id_autocomplete,
-    )
+    ),
+    long: bool = typer.Option(
+        False, "-l", "--long", help="Display full template details"
+    ),
 ) -> None:
     """Get a template by ID."""
 
     template = get_or_exit(Template, id=template_id)
 
-    print(template.pprint())
+    if long:
+        print(template.__str__())
+    else:
+        print(template.pprint())
 
 
 @app.command("delete")

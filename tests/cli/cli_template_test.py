@@ -192,6 +192,45 @@ class TestTemplateCommands:
         assert "Template(name='django')" in result.output
         mock_get.assert_called_once_with(id="1")
 
+    def test_get_template_long_format(self, mocker: MockerFixture) -> None:
+        mock_get = mocker.patch("svs_core.docker.template.Template.objects.get")
+        mock_template = mocker.MagicMock()
+        mock_template.name = "django"
+        mock_template.id = 1
+        mock_template.type = "image"
+        mock_template.__str__.return_value = (
+            "name=django\n"
+            "id=1\n"
+            "type=image\n"
+            "image=django:latest\n"
+            "dockerfile_head=[]\n"
+            "description=Django web framework\n"
+            "default_env=[]\n"
+            "default_ports=[]\n"
+            "default_volumes=[]\n"
+            "default_contents=[]\n"
+            "start_cmd=None\n"
+            "healthcheck=None\n"
+            "labels=[]\n"
+            "args=[]"
+        )
+        mock_get.return_value = mock_template
+
+        result = self.runner.invoke(
+            app,
+            ["template", "get", "1", "--long"],
+        )
+
+        assert result.exit_code == 0
+        assert "name=django" in result.output
+        assert "id=1" in result.output
+        assert "type=image" in result.output
+        assert "image=django:latest" in result.output
+        assert "description=Django web framework" in result.output
+        assert "default_env=[]" in result.output
+        assert "default_ports=[]" in result.output
+        assert "default_volumes=[]" in result.output
+
     def test_get_template_not_found(self, mocker: MockerFixture) -> None:
         from django.core.exceptions import ObjectDoesNotExist
 
