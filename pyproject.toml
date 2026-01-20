@@ -30,7 +30,7 @@ dev = [
     "ruff==0.14.13",
     "twine==6.2.0",
     "pytest-django==4.11.1",
-    "textual-dev=1.8.0",
+    "textual-dev==1.8.0",
 ]
 docs = [
     "zensical==0.0.16",
