@@ -8,7 +8,7 @@ import django
 
 from django.apps import apps as django_apps
 from textual import work
-from textual.app import App, ComposeResult
+from textual.app import ComposeResult
 from textual.containers import Container
 from textual.screen import Screen
 from textual.widgets import Footer, Header, ListItem, ListView, Static
@@ -38,8 +38,8 @@ class ItemSelected:
         self.item_id = item_id
 
 
-class SVSTUIApp(App[None]):
-    """A Textual TUI application for SVS Core."""
+class SVSTUIScreen(Screen[None]):
+    """A Textual TUI screen for SVS Core."""
 
     CSS_PATH = "./tui.css"
 
@@ -78,13 +78,13 @@ class SVSTUIApp(App[None]):
         if self.is_admin:
             services = list(Service.objects.all())
             users = list(User.objects.all())
-            self.call_from_thread(self.populate_users, users)
+            self.app.call_from_thread(self.populate_users, users)
         else:
             services = list(Service.objects.filter(user__name=self.current_username))
 
         templates = list(Template.objects.all())
-        self.call_from_thread(self.populate_services, services)
-        self.call_from_thread(self.populate_templates, templates)
+        self.app.call_from_thread(self.populate_services, services)
+        self.app.call_from_thread(self.populate_templates, templates)
 
     def populate_services(self, services: list[Service]) -> None:  # noqa: D102
         self.services_list.clear()
@@ -123,11 +123,11 @@ class SVSTUIApp(App[None]):
         try:
             service = Service.objects.get(id=service_id)
             details = service.pprint()
-            self.call_from_thread(
+            self.app.call_from_thread(
                 self.display_details_with_title, service.name, details
             )
         except Service.DoesNotExist:
-            self.call_from_thread(self.display_details, "Service not found")
+            self.app.call_from_thread(self.display_details, "Service not found")
 
     @work(thread=True)
     def fetch_template_details(self, template_id: str) -> None:  # noqa: D102
@@ -135,11 +135,11 @@ class SVSTUIApp(App[None]):
         try:
             template = Template.objects.get(id=template_id)
             details = template.pprint()
-            self.call_from_thread(
+            self.app.call_from_thread(
                 self.display_details_with_title, template.name, details
             )
         except Template.DoesNotExist:
-            self.call_from_thread(self.display_details, "Template not found")
+            self.app.call_from_thread(self.display_details, "Template not found")
 
     @work(thread=True)
     def fetch_user_details(self, user_id: str) -> None:  # noqa: D102
@@ -147,9 +147,11 @@ class SVSTUIApp(App[None]):
         try:
             user = User.objects.get(id=user_id)
             details = user.pprint()
-            self.call_from_thread(self.display_details_with_title, user.name, details)
+            self.app.call_from_thread(
+                self.display_details_with_title, user.name, details
+            )
         except User.DoesNotExist:
-            self.call_from_thread(self.display_details, "User not found")
+            self.app.call_from_thread(self.display_details, "User not found")
 
     def display_details(self, details: str) -> None:  # noqa: D102
         """Update the details panel with the formatted content."""
@@ -209,11 +211,19 @@ class SVSTUIApp(App[None]):
         self.load_homepage()
 
     async def action_quit(self) -> None:  # noqa: D102
-        self.exit()
+        self.app.exit()
 
 
 def run_tui_app() -> None:  # noqa: D103
-    app = SVSTUIApp()
+    from textual.app import App
+
+    class TUIApp(App[None]):
+        """Main TUI application."""
+
+        def on_mount(self) -> None:  # noqa: D102
+            self.push_screen(SVSTUIScreen())
+
+    app = TUIApp()
     app.run()
 
 
