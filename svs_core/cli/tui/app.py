@@ -448,7 +448,11 @@ class SVSTUIScreen(Screen[None]):
         self.update_action_buttons_visibility()
 
     def update_action_buttons_visibility(self) -> None:  # noqa: D102
-        """Update the visibility of action buttons based on what is selected."""
+        """Update the visibility of action buttons based on what is selected.
+
+        This method shows/hides action buttons based on the current
+        selection.
+        """
         service_actions = self.query_one("#service-actions", Container)
         template_actions = self.query_one("#template-actions", Container)
         general_actions = self.query_one("#general-actions", Container)
