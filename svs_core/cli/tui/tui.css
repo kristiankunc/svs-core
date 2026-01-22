@@ -55,7 +55,7 @@ Screen {
     width: 50;
     height: auto;
     padding: 2;
-    margin: 4 auto;
+    margin: 4 0;
     align: center middle;
 }
 

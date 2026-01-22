@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 
@@ -234,21 +235,20 @@ class ImportTemplateModal(ModalScreen[bool]):
     @work(thread=True)
     def import_template(self) -> None:  # noqa: D102
         """Import the template in a worker thread."""
-        import json
-
         path_input = self.query_one("#template-path-input", Input)
-        path = path_input.value.strip()
+        path_str = path_input.value.strip()
 
-        if not path:
+        if not path_str:
             self.app.call_from_thread(self.show_error, "Template file path is required")
             return
 
-        if not os.path.exists(path):
+        path = Path(path_str)
+        if not path.exists():
             self.app.call_from_thread(self.show_error, "File does not exist")
             return
 
         try:
-            with open(path, "r") as file:
+            with open(path, "r", encoding="utf-8") as file:
                 data = json.load(file)
 
             Template.import_from_json(data)

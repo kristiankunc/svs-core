@@ -1,6 +1,8 @@
 import os
 import sys
 
+from pathlib import Path
+
 import django
 
 from django.apps import apps as django_apps
@@ -107,7 +109,7 @@ class LoginScreen(Screen[None]):
 class LoginApp(App[None]):
     """Main app with login screen."""
 
-    CSS_PATH = "../tui/tui.css"
+    CSS_PATH = str(Path(__file__).parent / "tui.css")
 
     def on_mount(self) -> None:  # noqa: D102
         self.install_screen(SVSTUIScreen(), name="main")
