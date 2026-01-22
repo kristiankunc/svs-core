@@ -358,7 +358,10 @@ class SVSTUIScreen(Screen[None]):
         self.app.call_from_thread(self.populate_templates, templates)
 
     def populate_services(self, services: list[Service]) -> None:  # noqa: D102
+        # Remove all existing items to avoid duplicate IDs
         self.services_list.clear()
+        for child in list(self.services_list.children):
+            child.remove()
 
         for service in services:
             status_icon = "🟢" if service.status == ServiceStatus.RUNNING else "🔴"
@@ -371,7 +374,10 @@ class SVSTUIScreen(Screen[None]):
         services_container.border_title = f"Services ({len(services)})"
 
     def populate_templates(self, templates: list[Template]) -> None:  # noqa: D102
+        # Remove all existing items to avoid duplicate IDs
         self.template_list.clear()
+        for child in list(self.template_list.children):
+            child.remove()
 
         for template in templates:
             item = ListItem(Label(f"📦 {template.name}"), id=f"template-{template.id}")
@@ -381,7 +387,10 @@ class SVSTUIScreen(Screen[None]):
         templates_container.border_title = f"Templates ({len(templates)})"
 
     def populate_users(self, users: list[User]) -> None:  # noqa: D102
+        # Remove all existing items to avoid duplicate IDs
         self.users_list.clear()
+        for child in list(self.users_list.children):
+            child.remove()
 
         for user in users:
             user_icon = "👑" if user.is_admin() else "👤"
@@ -648,7 +657,18 @@ class SVSTUIScreen(Screen[None]):
 
     def create_service(self) -> None:  # noqa: D102
         """Show the create service modal."""
+        self.show_create_service_modal()
+
+    @work(thread=True)
+    def show_create_service_modal(self) -> None:  # noqa: D102
+        """Fetch templates and show create service modal in a worker thread."""
         templates = list(Template.objects.all())
+        self.app.call_from_thread(self._push_create_service_modal, templates)
+
+    def _push_create_service_modal(
+        self, templates: list[Template]
+    ) -> None:  # noqa: D102
+        """Push the create service modal screen (must run on main thread)."""
         self.app.push_screen(CreateServiceModal(templates), self.on_service_created)
 
     def on_service_created(self, created: bool | None) -> None:  # noqa: D102
