@@ -12,6 +12,7 @@ from typing import Optional
 
 import django
 from django.apps import apps as django_apps
+from asgiref.sync import sync_to_async
 
 if not django_apps.ready:
     os.environ["DJANGO_SETTINGS_MODULE"] = "svs_core.db.settings"
@@ -47,8 +48,8 @@ if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
-def get_user_from_request(request: Request) -> Optional[dict]:
-    """Extract user info from session cookie in request.
+def get_user_from_request_sync(request: Request) -> Optional[dict]:
+    """Synchronous helper to extract user info from session cookie.
     
     Args:
         request: The FastAPI request object
@@ -78,7 +79,19 @@ def get_user_from_request(request: Request) -> Optional[dict]:
         return None
 
 
-def require_login(request: Request) -> dict:
+async def get_user_from_request(request: Request) -> Optional[dict]:
+    """Async wrapper to extract user info from session cookie.
+    
+    Args:
+        request: The FastAPI request object
+        
+    Returns:
+        Dictionary with user info if valid session, None otherwise
+    """
+    return await sync_to_async(get_user_from_request_sync)(request)
+
+
+async def require_login(request: Request) -> dict:
     """Dependency that requires authentication for protected routes.
     
     Args:
@@ -90,7 +103,7 @@ def require_login(request: Request) -> dict:
     Raises:
         HTTPException: 403 if not authenticated
     """
-    user_info = get_user_from_request(request)
+    user_info = await get_user_from_request(request)
     if not user_info:
         raise HTTPException(status_code=403, detail="Not authenticated")
     return user_info
@@ -99,7 +112,7 @@ def require_login(request: Request) -> dict:
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     """Serve the main dashboard page."""
-    user_info = get_user_from_request(request)
+    user_info = await get_user_from_request(request)
     
     if not user_info:
         return RedirectResponse(url="/login", status_code=303)
@@ -117,7 +130,7 @@ async def index(request: Request):
 @app.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     """Display the login form."""
-    user_info = get_user_from_request(request)
+    user_info = await get_user_from_request(request)
     
     # Redirect to dashboard if already logged in
     if user_info:
@@ -125,6 +138,28 @@ async def login_page(request: Request):
     
     context = {"request": request, "error": None}
     return templates.TemplateResponse("login.html", context)
+
+
+async def validate_credentials(username: str, password: str) -> Optional[User]:
+    """Validate user credentials asynchronously.
+    
+    Args:
+        username: The username to validate
+        password: The password to check
+        
+    Returns:
+        User object if credentials valid, None otherwise
+    """
+    async def _validate():
+        try:
+            user = User.objects.get(name=username)
+            if user.check_password(password):
+                return user
+            return None
+        except User.DoesNotExist:
+            return None
+    
+    return await sync_to_async(_validate)()
 
 
 @app.post("/login", response_class=HTMLResponse)
@@ -135,7 +170,7 @@ async def login_submit(
 ):
     """Process login credentials and create session."""
     # Check if already logged in
-    user_info = get_user_from_request(request)
+    user_info = await get_user_from_request(request)
     if user_info:
         return RedirectResponse(url="/", status_code=303)
     
@@ -149,16 +184,9 @@ async def login_submit(
         return templates.TemplateResponse("login.html", context, status_code=400)
     
     # Check credentials
-    try:
-        user = User.objects.get(name=username)
-    except User.DoesNotExist:
-        context = {
-            "request": request,
-            "error": "Invalid username or password"
-        }
-        return templates.TemplateResponse("login.html", context, status_code=401)
+    user = await validate_credentials(username, password)
     
-    if not user.check_password(password):
+    if not user:
         context = {
             "request": request,
             "error": "Invalid username or password"
@@ -216,7 +244,7 @@ async def get_user_api(request: Request, user_info: dict = Depends(require_login
 @app.get("/api/check-session")
 async def check_session(request: Request):
     """Check if user has a valid session (for keeping sessions alive on refresh)."""
-    user_info = get_user_from_request(request)
+    user_info = await get_user_from_request(request)
     
     if not user_info:
         return JSONResponse({"authenticated": False}, status_code=401)
