@@ -360,14 +360,12 @@ class SVSTUIScreen(Screen[None]):
     def populate_services(self, services: list[Service]) -> None:  # noqa: D102
         # Remove all existing items to avoid duplicate IDs
         self.services_list.clear()
-        for child in list(self.services_list.children):
-            child.remove()
 
         for service in services:
             status_icon = "🟢" if service.status == ServiceStatus.RUNNING else "🔴"
-            item = ListItem(
-                Label(f"{status_icon} {service.name}"), id=f"service-{service.id}"
-            )
+            item = ListItem(Label(f"{status_icon} {service.name}"))
+            # Store the service ID as a data attribute instead of widget ID
+            item.data = service.id  # type: ignore[attr-defined]
             self.services_list.append(item)
 
         services_container = self.query_one("#services-container", Container)
@@ -376,11 +374,11 @@ class SVSTUIScreen(Screen[None]):
     def populate_templates(self, templates: list[Template]) -> None:  # noqa: D102
         # Remove all existing items to avoid duplicate IDs
         self.template_list.clear()
-        for child in list(self.template_list.children):
-            child.remove()
 
         for template in templates:
-            item = ListItem(Label(f"📦 {template.name}"), id=f"template-{template.id}")
+            item = ListItem(Label(f"📦 {template.name}"))
+            # Store the template ID as a data attribute instead of widget ID
+            item.data = template.id  # type: ignore[attr-defined]
             self.template_list.append(item)
 
         templates_container = self.query_one("#templates-container", Container)
@@ -389,13 +387,13 @@ class SVSTUIScreen(Screen[None]):
     def populate_users(self, users: list[User]) -> None:  # noqa: D102
         # Remove all existing items to avoid duplicate IDs
         self.users_list.clear()
-        for child in list(self.users_list.children):
-            child.remove()
 
         for user in users:
             user_icon = "👑" if user.is_admin() else "👤"
             user_display = f"{user_icon} {user.name}"
-            item = ListItem(Label(user_display), id=f"user-{user.id}")
+            item = ListItem(Label(user_display))
+            # Store the user ID as a data attribute instead of widget ID
+            item.data = user.id  # type: ignore[attr-defined]
             self.users_list.append(item)
 
         users_container = self.query_one("#users-container", Container)
@@ -501,37 +499,43 @@ class SVSTUIScreen(Screen[None]):
 
     def on_list_view_selected(self, message: ListView.Selected) -> None:  # noqa: D102
         """Handle when an item is selected in any ListView."""
-        if not message.item or not message.item.id:
+        if not message.item:
             return
-        item_id = message.item.id
 
-        if item_id.startswith("service-"):
-            service_id = item_id.replace("service-", "")
-            self.fetch_service_details(service_id)
-        elif item_id.startswith("template-"):
-            template_id = item_id.replace("template-", "")
-            self.fetch_template_details(template_id)
-        elif item_id.startswith("user-"):
-            user_id = item_id.replace("user-", "")
-            self.fetch_user_details(user_id)
+        # Get the data (database ID) stored on the item
+        if not hasattr(message.item, "data") or message.item.data is None:  # type: ignore[attr-defined]
+            return
+
+        item_id = str(message.item.data)  # type: ignore[attr-defined]
+
+        # Determine which list this came from
+        if message.list_view.id == "services-list":
+            self.fetch_service_details(item_id)
+        elif message.list_view.id == "templates-list":
+            self.fetch_template_details(item_id)
+        elif message.list_view.id == "users-list":
+            self.fetch_user_details(item_id)
 
     def on_list_view_highlighted(
         self, message: ListView.Highlighted
     ) -> None:  # noqa: D102
         """Handle when an item is highlighted (scrolled to) in any ListView."""
-        if not message.item or not message.item.id:
+        if not message.item:
             return
-        item_id = message.item.id
 
-        if item_id.startswith("service-"):
-            service_id = item_id.replace("service-", "")
-            self.fetch_service_details(service_id)
-        elif item_id.startswith("template-"):
-            template_id = item_id.replace("template-", "")
-            self.fetch_template_details(template_id)
-        elif item_id.startswith("user-"):
-            user_id = item_id.replace("user-", "")
-            self.fetch_user_details(user_id)
+        # Get the data (database ID) stored on the item
+        if not hasattr(message.item, "data") or message.item.data is None:  # type: ignore[attr-defined]
+            return
+
+        item_id = str(message.item.data)  # type: ignore[attr-defined]
+
+        # Determine which list this came from
+        if message.list_view.id == "services-list":
+            self.fetch_service_details(item_id)
+        elif message.list_view.id == "templates-list":
+            self.fetch_template_details(item_id)
+        elif message.list_view.id == "users-list":
+            self.fetch_user_details(item_id)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:  # noqa: D102
         """Handle button presses."""
