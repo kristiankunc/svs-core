@@ -9,12 +9,34 @@ Screen {
 }
 
 #left-panel {
-    width: 25%;
+    width: 30%;
+    layout: vertical;
 }
 
 #right-panel {
-    width: 75%;
+    width: 70%;
+    layout: vertical;
     border: solid green;
+}
+
+#details-content {
+    height: 1fr;
+}
+
+#action-buttons-container {
+    height: auto;
+    padding: 1;
+    border-top: solid green;
+}
+
+.action-buttons {
+    height: auto;
+    padding: 1 0;
+    layout: horizontal;
+}
+
+.action-buttons Button {
+    margin: 0 1;
 }
 
 .box-container {
@@ -24,4 +46,92 @@ Screen {
 
 .box {
     height: 100%;
+}
+
+/* Login screen styles */
+#login-container {
+    background: $surface;
+    border: thick $primary;
+    width: 50;
+    height: auto;
+    padding: 2;
+    margin: 4 auto;
+    align: center middle;
+}
+
+#login-title {
+    text-align: center;
+    text-style: bold;
+    color: $primary;
+    padding-bottom: 2;
+}
+
+.input-label {
+    padding-top: 1;
+}
+
+.input-field {
+    margin-bottom: 1;
+}
+
+#button-container {
+    layout: horizontal;
+    height: auto;
+    padding-top: 1;
+    align: center middle;
+}
+
+#button-container Button {
+    margin: 0 1;
+}
+
+/* Modal dialog styles */
+#create-service-dialog,
+#create-user-dialog,
+#import-template-dialog,
+#logs-dialog {
+    background: $surface;
+    border: thick $primary;
+    width: 60;
+    height: auto;
+    padding: 2;
+    margin: 2 4;
+}
+
+#dialog-title {
+    text-align: center;
+    text-style: bold;
+    color: $primary;
+    padding-bottom: 1;
+}
+
+#dialog-buttons {
+    layout: horizontal;
+    height: auto;
+    padding-top: 1;
+    align: center middle;
+}
+
+#dialog-buttons Button {
+    margin: 0 1;
+}
+
+.error-message {
+    color: $error;
+    padding: 1 0;
+    height: auto;
+}
+
+.logs-content {
+    height: 20;
+    overflow-y: auto;
+    border: solid $primary;
+    padding: 1;
+}
+
+/* Hide action buttons by default */
+#service-actions,
+#template-actions,
+#user-actions {
+    display: none;
 }

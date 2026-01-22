@@ -107,7 +107,7 @@ class LoginScreen(Screen[None]):
 class LoginApp(App[None]):
     """Main app with login screen."""
 
-    DEFAULT_CSS_PATH = LoginScreen.CSS
+    CSS_PATH = "../tui/tui.css"
 
     def on_mount(self) -> None:  # noqa: D102
         self.install_screen(SVSTUIScreen(), name="main")
