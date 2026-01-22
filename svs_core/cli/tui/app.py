@@ -996,40 +996,40 @@ class SVSTUIScreen(Screen[None]):
         """Show error message."""
         self.notify(message, title="Error", severity="error")
 
-     def set_status(self, message: str) -> None:  # noqa: D102
-         """Show status message at the bottom of the screen."""
-         try:
-             status_widget = self.query_one("#status-indicator", Static)
-             status_widget.update(message)
-         except Exception:
-             # UI may have changed, ignore
-             pass
+    def set_status(self, message: str) -> None:  # noqa: D102
+        """Show status message at the bottom of the screen."""
+        try:
+            status_widget = self.query_one("#status-indicator", Static)
+            status_widget.update(message)
+        except Exception:
+            # UI may have changed, ignore
+            pass
 
-     def clear_status(self) -> None:  # noqa: D102
-         """Clear status message."""
-         try:
-             status_widget = self.query_one("#status-indicator", Static)
-             status_widget.update("")
-         except Exception:
-             # UI may have changed, ignore
-             pass
+    def clear_status(self) -> None:  # noqa: D102
+        """Clear status message."""
+        try:
+            status_widget = self.query_one("#status-indicator", Static)
+            status_widget.update("")
+        except Exception:
+            # UI may have changed, ignore
+            pass
 
-     def on_mount(self) -> None:  # noqa: D102
-         """Initialize screen."""
-         self.current_username = get_current_username()
-         self.is_admin = is_current_user_admin()
+    def on_mount(self) -> None:  # noqa: D102
+        """Initialize screen."""
+        self.current_username = get_current_username()
+        self.is_admin = is_current_user_admin()
 
-         # If no user is logged in, show error and exit
-         if not self.current_username:
-             self.show_error("No user logged in. Please run: sudo svs user create <username> <password>")
-             self.app.exit(code=1)
-             return
+        # If no user is logged in, show error and exit
+        if not self.current_username:
+            self.show_error("No user logged in. Please run: sudo svs user create <username> <password>")
+            self.app.exit(code=1)
+            return
 
-         self.title = f"SVS v{version('svs-core')}"
-         self.sub_title = f"{self.current_username} {'(admin)' if self.is_admin else ''}"
+        self.title = f"SVS v{version('svs-core')}"
+        self.sub_title = f"{self.current_username} {'(admin)' if self.is_admin else ''}"
 
-         self.update_action_buttons_visibility()
-         self.load_homepage()
+        self.update_action_buttons_visibility()
+        self.load_homepage()
 
     async def action_quit(self) -> None:  # noqa: D102
         """Quit the application."""
