@@ -11,6 +11,7 @@ Screen {
 #left-panel {
     width: 30%;
     layout: vertical;
+    overflow: auto;
 }
 
 #right-panel {
@@ -33,6 +34,7 @@ Screen {
     height: auto;
     padding: 1 0;
     layout: horizontal;
+    overflow-x: auto;
 }
 
 .action-buttons Button {
@@ -46,6 +48,20 @@ Screen {
 
 .box {
     height: 100%;
+    width: 100%;
+}
+
+/* Section action buttons - placed below each section */
+.section-actions {
+    height: auto;
+    padding: 0 1;
+    margin-bottom: 1;
+    layout: horizontal;
+    align: center middle;
+}
+
+.section-actions Button {
+    margin: 0 1;
 }
 
 /* Login screen styles */
@@ -134,4 +150,18 @@ Screen {
 #template-actions,
 #user-actions {
     display: none;
+}
+
+/* Status indicator at the bottom */
+#status-indicator {
+    dock: bottom;
+    width: 100%;
+    height: auto;
+    padding: 0 1;
+    background: $panel;
+    color: $text;
+    text-align: left;
+    border-top: solid $primary;
+    min-height: 1;
+    constrain: inflect;
 }

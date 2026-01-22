@@ -1,10 +1,10 @@
+"""Web login interface for SVS TUI."""
+
 import os
 import sys
-
 from pathlib import Path
 
 import django
-
 from django.apps import apps as django_apps
 from textual import work
 from textual.app import App, ComposeResult
@@ -24,13 +24,11 @@ if not django_apps.ready:
     os.environ["DJANGO_SETTINGS_MODULE"] = "svs_core.db.settings"
     django.setup()
 
-from svs_core.docker.service import Service
-from svs_core.docker.template import Template
 from svs_core.users.user import User
 
 
 class LoginScreen(Screen[None]):
-    """Login screen for SVS TUI."""
+    """Login screen for SVS TUI with proper thread safety."""
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the login screen."""
@@ -68,15 +66,21 @@ class LoginScreen(Screen[None]):
 
     def attempt_login(self) -> None:
         """Trigger login attempt in a worker thread."""
-        username_input = self.query_one("#username-input", Input)
-        password_input = self.query_one("#password-input", Input)
+        try:
+            username_input = self.query_one("#username-input", Input)
+            password_input = self.query_one("#password-input", Input)
+        except Exception:
+            return
 
         username = username_input.value.strip()
         password = password_input.value
 
         if not username or not password:
-            error_message = self.query_one("#error-message", Static)
-            error_message.update("Please enter both username and password")
+            try:
+                error_message = self.query_one("#error-message", Static)
+                error_message.update("Please enter both username and password")
+            except Exception:
+                pass
             return
 
         self.perform_login_worker(username, password)
@@ -96,14 +100,22 @@ class LoginScreen(Screen[None]):
 
     def login_success(self) -> None:  # noqa: D102
         """Handle successful login."""
-        self.app.switch_screen("main")
+        try:
+            self.app.switch_screen("main")
+        except Exception:
+            # Screen may have changed
+            pass
 
     def login_failure(self) -> None:  # noqa: D102
         """Handle login failure."""
-        error_message = self.query_one("#error-message", Static)
-        password_input = self.query_one("#password-input", Input)
-        error_message.update("Invalid username or password")
-        password_input.value = ""
+        try:
+            error_message = self.query_one("#error-message", Static)
+            password_input = self.query_one("#password-input", Input)
+            error_message.update("Invalid username or password")
+            password_input.value = ""
+        except Exception:
+            # UI may have changed
+            pass
 
 
 class LoginApp(App[None]):
@@ -112,11 +124,13 @@ class LoginApp(App[None]):
     CSS_PATH = str(Path(__file__).parent / "tui.css")
 
     def on_mount(self) -> None:  # noqa: D102
+        """Initialize screens."""
         self.install_screen(SVSTUIScreen(), name="main")
         self.push_screen(LoginScreen())
 
 
 def run_login_app() -> None:  # noqa: D103
+    """Run the login application."""
     app = LoginApp()
     app.run()
 
