@@ -363,7 +363,7 @@ class SVSTUIScreen(Screen[None]):
         for service in services:
             status_icon = "🟢" if service.status == ServiceStatus.RUNNING else "🔴"
             item = ListItem(
-                Static(f"{status_icon} {service.name}"), id=f"service-{service.id}"
+                Label(f"{status_icon} {service.name}"), id=f"service-{service.id}"
             )
             self.services_list.append(item)
 
@@ -374,7 +374,7 @@ class SVSTUIScreen(Screen[None]):
         self.template_list.clear()
 
         for template in templates:
-            item = ListItem(Static(f"📦 {template.name}"), id=f"template-{template.id}")
+            item = ListItem(Label(f"📦 {template.name}"), id=f"template-{template.id}")
             self.template_list.append(item)
 
         templates_container = self.query_one("#templates-container", Container)
@@ -386,7 +386,7 @@ class SVSTUIScreen(Screen[None]):
         for user in users:
             user_icon = "👑" if user.is_admin() else "👤"
             user_display = f"{user_icon} {user.name}"
-            item = ListItem(Static(user_display), id=f"user-{user.id}")
+            item = ListItem(Label(user_display), id=f"user-{user.id}")
             self.users_list.append(item)
 
         users_container = self.query_one("#users-container", Container)
