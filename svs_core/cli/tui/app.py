@@ -248,12 +248,17 @@ class ImportTemplateModal(ModalScreen[bool]):
             return
 
         try:
-            with open(path, "r", encoding="utf-8") as file:
+            with path.open("r", encoding="utf-8") as file:
                 data = json.load(file)
 
             Template.import_from_json(data)
             self.app.call_from_thread(self.dismiss, True)
-        except (TemplateException, ValidationException) as e:
+        except (
+            TemplateException,
+            ValidationException,
+            FileNotFoundError,
+            json.JSONDecodeError,
+        ) as e:
             self.app.call_from_thread(self.show_error, str(e))
 
     def show_error(self, message: str) -> None:  # noqa: D102
@@ -453,9 +458,9 @@ class SVSTUIScreen(Screen[None]):
         This method shows/hides action buttons based on the current
         selection.
         """
-        service_actions = self.query_one("#service-actions", Container)
-        template_actions = self.query_one("#template-actions", Container)
-        general_actions = self.query_one("#general-actions", Container)
+        service_actions = self.query_one("#service-actions", Horizontal)
+        template_actions = self.query_one("#template-actions", Horizontal)
+        general_actions = self.query_one("#general-actions", Horizontal)
 
         # Always show general actions
         general_actions.display = True
@@ -469,7 +474,7 @@ class SVSTUIScreen(Screen[None]):
 
         # Show user actions only if a user is selected and user is admin
         if is_current_user_admin():
-            user_actions = self.query_one("#user-actions", Container)
+            user_actions = self.query_one("#user-actions", Horizontal)
             user_actions.display = self.selected_user is not None
 
     def display_details(self, details: str) -> None:  # noqa: D102
