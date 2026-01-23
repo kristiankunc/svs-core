@@ -46,8 +46,7 @@ class TestThreadSafeStateManager:
             results.append(selection.item_id)
 
         threads = [
-            threading.Thread(target=update_and_read, args=(i,))
-            for i in range(1, 11)
+            threading.Thread(target=update_and_read, args=(i,)) for i in range(1, 11)
         ]
         for t in threads:
             t.start()

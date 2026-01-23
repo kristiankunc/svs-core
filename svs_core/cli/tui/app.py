@@ -3,11 +3,13 @@
 import json
 import os
 import sys
+
 from importlib.metadata import version
 from pathlib import Path
-from typing import cast
+from typing import Any, Callable, cast
 
 import django
+
 from django.apps import apps as django_apps
 from textual import work
 from textual.app import ComposeResult
@@ -118,14 +120,14 @@ class CreateServiceModal(ModalScreen[bool]):
             return
 
         try:
-            from svs_core.users.user import User
             from svs_core.cli.state import get_current_username
-            
+            from svs_core.users.user import User
+
             username = get_current_username()
             if not username:
                 self.app.call_from_thread(self.show_error, "No user logged in")
                 return
-            
+
             user = User.objects.get(name=username)
             # Type assertion for template_id which should be a string at this point
             template_id_int = int(str(template_id))
@@ -306,7 +308,7 @@ class ConfirmationModal(ModalScreen[bool]):
 
     def __init__(self, title: str, message: str) -> None:
         """Initialize the modal.
-        
+
         Args:
             title: Title of the confirmation dialog.
             message: Message to display.
@@ -360,7 +362,7 @@ class SVSTUIScreen(Screen[None]):
             with Container(id="services-container", classes="box-container"):
                 self.services_list = ListView(id="services-list", classes="box")
                 yield self.services_list
-            
+
             # Services section action button
             with Horizontal(id="services-actions", classes="section-actions"):
                 yield Button(
@@ -370,24 +372,24 @@ class SVSTUIScreen(Screen[None]):
             with Container(id="templates-container", classes="box-container"):
                 self.template_list = ListView(id="templates-list", classes="box")
                 yield self.template_list
-            
+
             # Templates section action button
             if is_current_user_admin():
                 with Horizontal(id="templates-actions", classes="section-actions"):
                     yield Button(
-                        "📥 Import Template", id="import-template-direct-btn", variant="primary"
+                        "📥 Import Template",
+                        id="import-template-direct-btn",
+                        variant="primary",
                     )
 
             if is_current_user_admin():
                 with Container(id="users-container", classes="box-container"):
                     self.users_list = ListView(id="users-list", classes="box")
                     yield self.users_list
-                
+
                 # Users section action button
                 with Horizontal(id="users-actions", classes="section-actions"):
-                    yield Button(
-                        "➕ New User", id="create-user-btn", variant="primary"
-                    )
+                    yield Button("➕ New User", id="create-user-btn", variant="primary")
 
         with Vertical(id="right-panel"):
             yield Static(
@@ -401,7 +403,9 @@ class SVSTUIScreen(Screen[None]):
                 with Horizontal(id="service-actions", classes="action-buttons"):
                     yield Button("▶ Start", id="start-service-btn", variant="success")
                     yield Button("⏸ Stop", id="stop-service-btn", variant="warning")
-                    yield Button("⚙ Restart", id="restart-service-btn", variant="warning")
+                    yield Button(
+                        "⚙ Restart", id="restart-service-btn", variant="warning"
+                    )
                     yield Button("📋 Logs", id="logs-service-btn", variant="primary")
                     yield Button("🗑 Delete", id="delete-service-btn", variant="error")
 
@@ -414,9 +418,13 @@ class SVSTUIScreen(Screen[None]):
 
                 # User action buttons - only for admins
                 if is_current_user_admin():
-                     with Horizontal(id="user-actions", classes="action-buttons"):
-                         yield Button("🔐 Reset Password", id="reset-password-btn", variant="warning")
-                         yield Button("🗑 Delete", id="delete-user-btn", variant="error")
+                    with Horizontal(id="user-actions", classes="action-buttons"):
+                        yield Button(
+                            "🔐 Reset Password",
+                            id="reset-password-btn",
+                            variant="warning",
+                        )
+                        yield Button("🗑 Delete", id="delete-user-btn", variant="error")
 
         # Status indicator at the bottom
         yield Static("", id="status-indicator", classes="status-indicator")
@@ -579,7 +587,9 @@ class SVSTUIScreen(Screen[None]):
         except Exception:
             pass
 
-    def display_details_with_title(self, title: str, details: str) -> None:  # noqa: D102
+    def display_details_with_title(
+        self, title: str, details: str
+    ) -> None:  # noqa: D102
         """Update the details panel with title."""
         try:
             details_panel = self.query_one("#details-content", Static)
@@ -599,16 +609,27 @@ class SVSTUIScreen(Screen[None]):
         # Debounce to prevent rapid cascading queries
         if list_view_id == "services-list":
             self.event_debouncer.debounce(
-                "service_detail", lambda: self.fetch_service_details(item_id)
+                "service_detail",
+                self._make_debounced_fetch(self.fetch_service_details, item_id),
             )
         elif list_view_id == "templates-list":
             self.event_debouncer.debounce(
-                "template_detail", lambda: self.fetch_template_details(item_id)
+                "template_detail",
+                self._make_debounced_fetch(self.fetch_template_details, item_id),
             )
         elif list_view_id == "users-list":
             self.event_debouncer.debounce(
-                "user_detail", lambda: self.fetch_user_details(item_id)
+                "user_detail",
+                self._make_debounced_fetch(self.fetch_user_details, item_id),
             )
+
+    def _make_debounced_fetch(
+        self, func: Callable[[int], Any], item_id: int
+    ) -> Callable[[], None]:
+        def callback() -> None:
+            func(item_id)
+
+        return callback
 
     def on_list_view_highlighted(
         self, message: ListView.Highlighted
@@ -628,19 +649,35 @@ class SVSTUIScreen(Screen[None]):
         # Service actions
         if button_id == "start-service-btn" and selection.type == SelectionType.SERVICE:
             self.start_service(selection.item_id)
-        elif button_id == "stop-service-btn" and selection.type == SelectionType.SERVICE:
+        elif (
+            button_id == "stop-service-btn" and selection.type == SelectionType.SERVICE
+        ):
             self.stop_service(selection.item_id)
-        elif button_id == "restart-service-btn" and selection.type == SelectionType.SERVICE:
+        elif (
+            button_id == "restart-service-btn"
+            and selection.type == SelectionType.SERVICE
+        ):
             self.restart_service(selection.item_id)
-        elif button_id == "logs-service-btn" and selection.type == SelectionType.SERVICE:
+        elif (
+            button_id == "logs-service-btn" and selection.type == SelectionType.SERVICE
+        ):
             self.view_service_logs(selection.item_id)
-        elif button_id == "delete-service-btn" and selection.type == SelectionType.SERVICE:
+        elif (
+            button_id == "delete-service-btn"
+            and selection.type == SelectionType.SERVICE
+        ):
             self.delete_service(selection.item_id)
 
         # Template actions
-        elif button_id == "import-template-btn" or button_id == "import-template-direct-btn":
+        elif (
+            button_id == "import-template-btn"
+            or button_id == "import-template-direct-btn"
+        ):
             self.import_template()
-        elif button_id == "delete-template-btn" and selection.type == SelectionType.TEMPLATE:
+        elif (
+            button_id == "delete-template-btn"
+            and selection.type == SelectionType.TEMPLATE
+        ):
             self.delete_template(selection.item_id)
 
         # User actions
@@ -662,15 +699,15 @@ class SVSTUIScreen(Screen[None]):
             return
 
         if not self.state_manager.start_operation():
-            self.app.call_from_thread(
-                self.show_error, "Operation already in progress"
-            )
+            self.app.call_from_thread(self.show_error, "Operation already in progress")
             return
 
         try:
             service = self.data_access.get_service(service_id)
             if service:
-                self.app.call_from_thread(self.set_status, f"⏳ Starting service '{service.name}'...")
+                self.app.call_from_thread(
+                    self.set_status, f"⏳ Starting service '{service.name}'..."
+                )
                 service.start()
                 self.data_access.invalidate_service_cache(service_id)
                 self.app.call_from_thread(
@@ -691,15 +728,15 @@ class SVSTUIScreen(Screen[None]):
             return
 
         if not self.state_manager.start_operation():
-            self.app.call_from_thread(
-                self.show_error, "Operation already in progress"
-            )
+            self.app.call_from_thread(self.show_error, "Operation already in progress")
             return
 
         try:
             service = self.data_access.get_service(service_id)
             if service:
-                self.app.call_from_thread(self.set_status, f"⏳ Stopping service '{service.name}'...")
+                self.app.call_from_thread(
+                    self.set_status, f"⏳ Stopping service '{service.name}'..."
+                )
                 service.stop()
                 self.data_access.invalidate_service_cache(service_id)
                 self.app.call_from_thread(
@@ -725,7 +762,7 @@ class SVSTUIScreen(Screen[None]):
                 logs = service.get_logs()
                 self.app.call_from_thread(self.show_logs, service.name, logs)
         except Exception as e:
-             self.app.call_from_thread(self.show_error, f"Error fetching logs: {e}")
+            self.app.call_from_thread(self.show_error, f"Error fetching logs: {e}")
 
     def delete_service(self, service_id: int | None) -> None:  # noqa: D102
         """Delete service - show confirmation first."""
@@ -735,12 +772,17 @@ class SVSTUIScreen(Screen[None]):
         try:
             service = self.data_access.get_service(service_id)
             if service:
+
+                def on_confirmed(confirmed: bool | None) -> None:
+                    if confirmed:
+                        self._perform_delete_service(service_id)
+
                 self.app.push_screen(
                     ConfirmationModal(
                         "Delete Service",
-                        f"Are you sure you want to delete service '{service.name}'?\nThis action cannot be undone."
+                        f"Are you sure you want to delete service '{service.name}'?\nThis action cannot be undone.",
                     ),
-                    lambda confirmed: self._perform_delete_service(service_id) if confirmed else None
+                    on_confirmed,
                 )
         except Exception as e:
             self.show_error(f"Error: {e}")
@@ -749,9 +791,7 @@ class SVSTUIScreen(Screen[None]):
     def _perform_delete_service(self, service_id: int) -> None:  # noqa: D102
         """Actually delete the service after confirmation."""
         if not self.state_manager.start_operation():
-            self.app.call_from_thread(
-                self.show_error, "Operation already in progress"
-            )
+            self.app.call_from_thread(self.show_error, "Operation already in progress")
             return
 
         try:
@@ -776,15 +816,15 @@ class SVSTUIScreen(Screen[None]):
             return
 
         if not self.state_manager.start_operation():
-            self.app.call_from_thread(
-                self.show_error, "Operation already in progress"
-            )
+            self.app.call_from_thread(self.show_error, "Operation already in progress")
             return
 
         try:
             service = self.data_access.get_service(service_id)
             if service:
-                self.app.call_from_thread(self.set_status, f"⏳ Restarting service '{service.name}'...")
+                self.app.call_from_thread(
+                    self.set_status, f"⏳ Restarting service '{service.name}'..."
+                )
                 service.stop()
                 service.start()
                 self.data_access.invalidate_service_cache(service_id)
@@ -797,7 +837,7 @@ class SVSTUIScreen(Screen[None]):
             self.app.call_from_thread(self.show_error, f"Error restarting service: {e}")
             self.app.call_from_thread(self.clear_status)
         finally:
-             self.state_manager.end_operation()
+            self.state_manager.end_operation()
 
     @work(thread=True)
     def delete_template(self, template_id: int | None) -> None:  # noqa: D102
@@ -808,12 +848,17 @@ class SVSTUIScreen(Screen[None]):
         try:
             template = self.data_access.get_template(template_id)
             if template:
+
+                def on_confirmed(confirmed: bool | None) -> None:
+                    if confirmed:
+                        self._perform_delete_template(template_id)
+
                 self.app.push_screen(
                     ConfirmationModal(
                         "Delete Template",
-                        f"Are you sure you want to delete template '{template.name}'?\nThis action cannot be undone."
+                        f"Are you sure you want to delete template '{template.name}'?\nThis action cannot be undone.",
                     ),
-                    lambda confirmed: self._perform_delete_template(template_id) if confirmed else None
+                    on_confirmed,
                 )
         except Exception as e:
             self.show_error(f"Error: {e}")
@@ -822,9 +867,7 @@ class SVSTUIScreen(Screen[None]):
     def _perform_delete_template(self, template_id: int) -> None:  # noqa: D102
         """Actually delete the template after confirmation."""
         if not self.state_manager.start_operation():
-            self.app.call_from_thread(
-                self.show_error, "Operation already in progress"
-            )
+            self.app.call_from_thread(self.show_error, "Operation already in progress")
             return
 
         try:
@@ -840,7 +883,7 @@ class SVSTUIScreen(Screen[None]):
         except Exception as e:
             self.app.call_from_thread(self.show_error, f"Error deleting template: {e}")
         finally:
-             self.state_manager.end_operation()
+            self.state_manager.end_operation()
 
     @work(thread=True)
     def delete_user(self, user_id: int | None) -> None:  # noqa: D102
@@ -851,12 +894,17 @@ class SVSTUIScreen(Screen[None]):
         try:
             user = self.data_access.get_user(user_id)
             if user:
+
+                def on_confirmed(confirmed: bool | None) -> None:
+                    if confirmed:
+                        self._perform_delete_user(user_id)
+
                 self.app.push_screen(
                     ConfirmationModal(
                         "Delete User",
-                        f"Are you sure you want to delete user '{user.name}'?\nThis action cannot be undone."
+                        f"Are you sure you want to delete user '{user.name}'?\nThis action cannot be undone.",
                     ),
-                    lambda confirmed: self._perform_delete_user(user_id) if confirmed else None
+                    on_confirmed,
                 )
         except Exception as e:
             self.show_error(f"Error: {e}")
@@ -865,9 +913,7 @@ class SVSTUIScreen(Screen[None]):
     def _perform_delete_user(self, user_id: int) -> None:  # noqa: D102
         """Actually delete the user after confirmation."""
         if not self.state_manager.start_operation():
-            self.app.call_from_thread(
-                self.show_error, "Operation already in progress"
-            )
+            self.app.call_from_thread(self.show_error, "Operation already in progress")
             return
 
         try:
@@ -883,7 +929,7 @@ class SVSTUIScreen(Screen[None]):
         except Exception as e:
             self.app.call_from_thread(self.show_error, f"Error deleting user: {e}")
         finally:
-             self.state_manager.end_operation()
+            self.state_manager.end_operation()
 
     @work(thread=True)
     def reset_user_password(self, user_id: int | None) -> None:  # noqa: D102
@@ -894,12 +940,17 @@ class SVSTUIScreen(Screen[None]):
         try:
             user = self.data_access.get_user(user_id)
             if user:
+
+                def on_confirmed(confirmed: bool | None) -> None:
+                    if confirmed:
+                        self._perform_reset_user_password(user_id)
+
                 self.app.push_screen(
                     ConfirmationModal(
                         "Reset Password",
-                        f"Are you sure you want to reset password for user '{user.name}'?"
+                        f"Are you sure you want to reset password for user '{user.name}'?",
                     ),
-                    lambda confirmed: self._perform_reset_user_password(user_id) if confirmed else None
+                    on_confirmed,
                 )
         except Exception as e:
             self.show_error(f"Error: {e}")
@@ -908,9 +959,7 @@ class SVSTUIScreen(Screen[None]):
     def _perform_reset_user_password(self, user_id: int) -> None:  # noqa: D102
         """Actually reset the user password after confirmation."""
         if not self.state_manager.start_operation():
-            self.app.call_from_thread(
-                self.show_error, "Operation already in progress"
-            )
+            self.app.call_from_thread(self.show_error, "Operation already in progress")
             return
 
         try:
@@ -919,7 +968,7 @@ class SVSTUIScreen(Screen[None]):
                 # Generate a temporary password
                 import secrets
                 import string
-                
+
                 temp_password = "".join(
                     secrets.choice(string.ascii_letters + string.digits)
                     for _ in range(12)
@@ -927,11 +976,11 @@ class SVSTUIScreen(Screen[None]):
                 user.set_password(temp_password)
                 user.save()
                 self.data_access.invalidate_user_cache(user_id)
-                
+
                 # Show the temporary password
                 self.app.call_from_thread(
                     self.show_success,
-                    f"Password reset for '{user.name}'. New password: {temp_password}"
+                    f"Password reset for '{user.name}'. New password: {temp_password}",
                 )
                 self.app.call_from_thread(self.action_refresh)
         except Exception as e:
@@ -979,10 +1028,10 @@ class SVSTUIScreen(Screen[None]):
         self.app.push_screen(CreateUserModal(), self.on_user_created)
 
     def on_user_created(self, created: bool | None) -> None:  # noqa: D102
-         """Handle user creation."""
-         if created:
-             self.show_success("User created successfully")
-             self.action_refresh()
+        """Handle user creation."""
+        if created:
+            self.show_success("User created successfully")
+            self.action_refresh()
 
     def show_logs(self, service_name: str, logs: str) -> None:  # noqa: D102
         """Show the logs modal."""
@@ -1016,13 +1065,15 @@ class SVSTUIScreen(Screen[None]):
 
     def on_mount(self) -> None:  # noqa: D102
         """Initialize screen."""
-        self.current_username = get_current_username()
+        self.current_username = get_current_username() or ""
         self.is_admin = is_current_user_admin()
 
         # If no user is logged in, show error and exit
         if not self.current_username:
-            self.show_error("No user logged in. Please run: sudo svs user create <username> <password>")
-            self.app.exit(code=1)
+            self.show_error(
+                "No user logged in. Please run: sudo svs user create <username> <password>"
+            )
+            self.app.exit(1)
             return
 
         self.title = f"SVS v{version('svs-core')}"

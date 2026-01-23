@@ -2,9 +2,11 @@
 
 import os
 import sys
+
 from pathlib import Path
 
 import django
+
 from django.apps import apps as django_apps
 from textual import work
 from textual.app import App, ComposeResult

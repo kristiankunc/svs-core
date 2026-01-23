@@ -137,17 +137,17 @@ def start_service(self, service_id: int) -> None:
     if not self.state_manager.start_operation():
         self.app.call_from_thread(self.show_error, "Operation in progress")
         return
-    
+
     try:
         # 2. Get data (cached)
         service = self.data_access.get_service(service_id)
-        
+
         # 3. Perform operation
         service.start()
-        
+
         # 4. Invalidate cache
         self.data_access.invalidate_service_cache(service_id)
-        
+
         # 5. Update UI (thread-safe)
         self.app.call_from_thread(self.show_success, "Service started")
         self.app.call_from_thread(self.action_refresh)
@@ -186,7 +186,7 @@ List selection is debounced to prevent cascading queries:
 ```python
 def on_list_view_selected(self, message: ListView.Selected) -> None:
     item_id = int(message.item.data)
-    
+
     # Debounce to prevent rapid cascading queries
     self.event_debouncer.debounce(
         "service_detail",

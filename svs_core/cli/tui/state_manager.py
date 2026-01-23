@@ -1,6 +1,7 @@
 """Thread-safe state management for TUI."""
 
 import threading
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import Generic, TypeVar
@@ -55,7 +56,10 @@ class ThreadSafeStateManager:
             return self._selection
 
     def start_operation(self) -> bool:
-        """Mark operation as pending. Returns False if operation already pending."""
+        """Mark operation as pending.
+
+        Returns False if operation already pending.
+        """
         with self._lock:
             if self._is_operation_pending:
                 return False

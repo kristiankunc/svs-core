@@ -123,7 +123,7 @@ class TestTUIEventDebouncer:
         """Test debouncing multiple different events."""
         import time
 
-        calls = {"event1": [], "event2": []}
+        calls: dict[str, list[int]] = {"event1": [], "event2": []}
         debouncer = EventDebouncer(delay_seconds=0.05)
 
         debouncer.debounce("event1", lambda: calls["event1"].append(1))
@@ -150,7 +150,7 @@ class TestTUIEventDebouncer:
         """Test cancelling all pending events."""
         import time
 
-        calls = {"event1": [], "event2": []}
+        calls: dict[str, list[int]] = {"event1": [], "event2": []}
         debouncer = EventDebouncer(delay_seconds=0.05)
 
         debouncer.debounce("event1", lambda: calls["event1"].append(1))
@@ -270,6 +270,8 @@ class TestTUIScreen:
 
         screen = SVSTUIScreen()
         assert len(screen.BINDINGS) == 2
+        assert isinstance(screen.BINDINGS[0], tuple)
+        assert isinstance(screen.BINDINGS[1], tuple)
         assert screen.BINDINGS[0][0] == "q"  # Quit
         assert screen.BINDINGS[1][0] == "r"  # Refresh
 

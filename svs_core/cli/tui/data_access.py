@@ -2,6 +2,7 @@
 
 import threading
 import time
+
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -41,7 +42,9 @@ class DataAccessLayer:
         self._templates_list_cache: CacheEntry | None = None
         self._users_list_cache: CacheEntry | None = None
 
-    def _get_from_cache(self, cache_dict: dict[int, CacheEntry], item_id: int) -> Any | None:
+    def _get_from_cache(
+        self, cache_dict: dict[int, CacheEntry], item_id: int
+    ) -> Any | None:
         """Get item from cache if valid."""
         if item_id in cache_dict:
             entry = cache_dict[item_id]
@@ -108,14 +111,14 @@ class DataAccessLayer:
             except User.DoesNotExist:
                 return None
 
-    def get_all_services(self, filter_username: str | None = None) -> list[Any]:
+    def get_all_services(self, filter_username: str | None = None) -> list[object]:
         """Get all services with caching."""
         # Import here to avoid circular imports and ensure Django is ready
         from svs_core.docker.service import Service
 
         with self._lock:
             if self._services_list_cache and self._services_list_cache.is_valid():
-                return self._services_list_cache.data
+                return list(self._services_list_cache.data)
 
             if filter_username:
                 services = list(Service.objects.filter(user__name=filter_username))
@@ -127,14 +130,14 @@ class DataAccessLayer:
             )
             return services
 
-    def get_all_templates(self) -> list[Any]:
+    def get_all_templates(self) -> list[object]:
         """Get all templates with caching."""
         # Import here to avoid circular imports and ensure Django is ready
         from svs_core.docker.template import Template
 
         with self._lock:
             if self._templates_list_cache and self._templates_list_cache.is_valid():
-                return self._templates_list_cache.data
+                return list(self._templates_list_cache.data)
 
             templates = list(Template.objects.all())
             self._templates_list_cache = CacheEntry(
@@ -142,14 +145,14 @@ class DataAccessLayer:
             )
             return templates
 
-    def get_all_users(self) -> list[Any]:
+    def get_all_users(self) -> list[object]:
         """Get all users with caching."""
         # Import here to avoid circular imports and ensure Django is ready
         from svs_core.users.user import User
 
         with self._lock:
             if self._users_list_cache and self._users_list_cache.is_valid():
-                return self._users_list_cache.data
+                return list(self._users_list_cache.data)
 
             users = list(User.objects.all())
             self._users_list_cache = CacheEntry(
@@ -193,4 +196,3 @@ class DataAccessLayer:
             self._services_list_cache = None
             self._templates_list_cache = None
             self._users_list_cache = None
-

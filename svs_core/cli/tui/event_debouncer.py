@@ -2,6 +2,7 @@
 
 import threading
 import time
+
 from typing import Callable
 
 
@@ -31,7 +32,9 @@ class EventDebouncer:
                 self._timers[event_id].cancel()
 
             # Schedule new timer
-            timer = threading.Timer(self._delay, lambda: self._execute(event_id, callback))
+            timer = threading.Timer(
+                self._delay, lambda: self._execute(event_id, callback)
+            )
             timer.daemon = True
             timer.start()
             self._timers[event_id] = timer
