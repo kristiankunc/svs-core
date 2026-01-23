@@ -146,12 +146,7 @@ def main() -> None:  # noqa: D103
     if not user:
         logger.warning(f"User '{username}' tried to run CLI but was not found.")
         print(
-            f"You are running as system user '{username}', but no matching SVS user was found.",
-            file=sys.stderr,
-        )
-        print(
-            f"To create a user, run: sudo svs user create {username} <password>",
-            file=sys.stderr,
+            f"You are running as system user '{username}', but no matching SVS user was found."
         )
 
         sys.exit(1)
