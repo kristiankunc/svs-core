@@ -102,3 +102,25 @@ def remove_ssh_key(
 
     user.remove_ssh_key(ssh_key)
     print(f"SSH key removed from user '{user.name}'.")
+
+
+@app.command("delete")
+def delete(
+    name: str = typer.Argument(
+        ...,
+        help="Username of the user to delete",
+        autocompletion=username_autocomplete,
+    ),
+) -> None:
+    """Delete a user."""
+
+    reject_if_not_admin()
+
+    user = get_or_exit(User, name=name)
+
+    try:
+        user.delete()
+        print(f"User '{user.name}' deleted successfully.")
+    except Exception as e:
+        print(f"Error deleting user: {e}", file=sys.stderr)
+        raise typer.Exit(code=1)
