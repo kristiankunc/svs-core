@@ -405,3 +405,82 @@ class TestUserCommands:
 
         # Exception should propagate and cause non-zero exit
         assert result.exit_code != 0
+
+    # Delete command tests
+    def test_delete_user_without_admin_rights(self, mocker: MockerFixture) -> None:
+        mock_admin_check = mocker.patch(
+            "svs_core.cli.user.reject_if_not_admin", side_effect=SystemExit(1)
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["user", "delete", "someuser"],
+        )
+
+        assert mock_admin_check.called
+        assert result.exit_code == 1
+
+    def test_delete_user_success(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "deleted_user"
+        mock_user.delete = mocker.MagicMock()
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            ["user", "delete", "deleted_user"],
+        )
+
+        assert result.exit_code == 0
+        assert "User 'deleted_user' deleted successfully." in result.output
+        mock_user.delete.assert_called_once()
+
+    def test_delete_user_not_found(self, mocker: MockerFixture) -> None:
+        from django.core.exceptions import ObjectDoesNotExist
+
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_get.side_effect = ObjectDoesNotExist()
+
+        result = self.runner.invoke(
+            app,
+            ["user", "delete", "non_existing_user"],
+        )
+
+        assert result.exit_code == 1
+        assert "not found" in result.output
+
+    def test_delete_user_error_handling_on_method_call(
+        self, mocker: MockerFixture
+    ) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "testuser"
+        mock_user.delete = mocker.MagicMock(side_effect=Exception("Delete failed"))
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            ["user", "delete", "testuser"],
+        )
+
+        assert result.exit_code == 1
+        assert "Error deleting user" in result.output
+
+    def test_delete_calls_get_with_name(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "someuser"
+        mock_user.delete = mocker.MagicMock()
+        mock_get.return_value = mock_user
+
+        self.runner.invoke(
+            app,
+            ["user", "delete", "someuser"],
+        )
+
+        mock_get.assert_called_once_with(name="someuser")
