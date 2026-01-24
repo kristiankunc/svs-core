@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.2](https://github.com/kristiankunc/svs-core/compare/v0.11.1...v0.11.2) (2026-01-24)
+
+
+### Bug Fixes
+
+* **core:** Add a user friendly error when cli running without sudo ([#243](https://github.com/kristiankunc/svs-core/issues/243)) ([c59f139](https://github.com/kristiankunc/svs-core/commit/c59f139759c3f9c19aed858fca85af3aa417c20c))
+* **core:** Add better string object representation ([#245](https://github.com/kristiankunc/svs-core/issues/245)) ([628a2bf](https://github.com/kristiankunc/svs-core/commit/628a2bf4002595588731eec7253715f7539feb59))
+
 ## [0.11.1](https://github.com/kristiankunc/svs-core/compare/v0.11.0...v0.11.1) (2026-01-17)
 
 
