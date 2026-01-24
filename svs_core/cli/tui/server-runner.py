@@ -1,5 +1,5 @@
 if __name__ == "__main__":
-    from textual_serve.server import Server
+    from svs_core.cli.tui.server import SVSServer
 
-    server = Server("python svs_core/cli/tui/web.py")
+    server = SVSServer("python svs_core/cli/tui/web.py")
     server.serve()
