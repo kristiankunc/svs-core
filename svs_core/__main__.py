@@ -108,10 +108,10 @@ def global_options(
 
         from svs_core.users.user import User  # noqa: E402
 
-    user_to_override = get_or_exit(User, name=user_override)
+        user_to_override = get_or_exit(User, name=user_override)
 
-    # Preserve the actual admin status of the overridden user
-    set_current_user(user_to_override.name, user_to_override.is_admin())
+        # Preserve the actual admin status of the overridden user
+        set_current_user(user_to_override.name, user_to_override.is_admin())
 
 
 app.add_typer(user_app, name="user")
