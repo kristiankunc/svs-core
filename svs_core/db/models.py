@@ -379,6 +379,32 @@ class GitSourceModel(BaseModel):
         return Service.objects.filter(id=self.service_id)
 
 
+class UserGroupModel(BaseModel):
+    """User Group model."""
+
+    name = models.CharField(max_length=255, unique=True)
+    """Name of the user group."""
+    description = models.TextField(null=True, blank=True)
+    """Description of the user group."""
+
+    members = models.ManyToManyField(
+        UserModel,
+        related_name="groups",
+        blank=True,
+    )
+    """Members of the user group."""
+
+    class Meta:  # noqa: D106
+        db_table = "user_groups"
+
+    @property
+    def proxy_members(self) -> models.QuerySet["User"]:
+        """Get related UserModel instances."""
+        from svs_core.users.user import User
+
+        return User.objects.filter(groups__id=self.id)
+
+
 def miscelanous_str_injector(obj: BaseModel, indent: int = 1) -> str:
     """Generate miscelanous information string for a model instance.
 

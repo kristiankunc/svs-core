@@ -484,3 +484,156 @@ class TestUserCommands:
         )
 
         mock_get.assert_called_once_with(name="someuser")
+
+    # Group-related command tests
+    def test_create_group_without_admin_rights(self, mocker: MockerFixture) -> None:
+        mock_admin_check = mocker.patch(
+            "svs_core.cli.user.reject_if_not_admin", side_effect=SystemExit(1)
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["user", "create-group", "newgroup"],
+        )
+
+        assert mock_admin_check.called
+        assert result.exit_code == 1
+
+    def test_create_group_with_admin_rights(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_create = mocker.patch("svs_core.users.user_group.UserGroup.create")
+        mock_create.return_value.name = "newgroup"
+
+        result = self.runner.invoke(
+            app,
+            ["user", "create-group", "newgroup"],
+        )
+
+        assert result.exit_code == 0
+        assert "User group 'newgroup' created successfully." in result.output
+
+    def test_delete_group_without_admin_rights(self, mocker: MockerFixture) -> None:
+        mock_admin_check = mocker.patch(
+            "svs_core.cli.user.reject_if_not_admin", side_effect=SystemExit(1)
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["user", "delete-group", "somegroup"],
+        )
+
+        assert mock_admin_check.called
+        assert result.exit_code == 1
+
+    def test_delete_group_success(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user_group.UserGroup.objects.get")
+        mock_group = mocker.MagicMock()
+        mock_group.name = "deleted_group"
+        mock_group.delete = mocker.MagicMock()
+        mock_get.return_value = mock_group
+
+        result = self.runner.invoke(
+            app,
+            ["user", "delete-group", "deleted_group"],
+        )
+
+        assert result.exit_code == 0
+        assert "User group 'deleted_group' deleted successfully." in result.output
+        mock_group.delete.assert_called_once()
+
+    def test_add_user_to_group_without_admin_rights(
+        self, mocker: MockerFixture
+    ) -> None:
+        mock_admin_check = mocker.patch(
+            "svs_core.cli.user.reject_if_not_admin", side_effect=SystemExit(1)
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["user", "add-to-group", "someuser", "group1"],
+        )
+
+        assert mock_admin_check.called
+        assert result.exit_code == 1
+
+    def test_add_user_to_group_success(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get_user = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "theuser"
+        mock_get_user.return_value = mock_user
+
+        mock_get_group = mocker.patch("svs_core.users.user_group.UserGroup.objects.get")
+        mock_group = mocker.MagicMock()
+        mock_group.name = "thegroup"
+        mock_group.add_member = mocker.MagicMock()
+        mock_get_group.return_value = mock_group
+
+        result = self.runner.invoke(
+            app,
+            ["user", "add-to-group", "theuser", "thegroup"],
+        )
+
+        assert result.exit_code == 0
+        assert "User 'theuser' added to group 'thegroup' successfully." in result.output
+        mock_group.add_member.assert_called_once_with(mock_user)
+
+    def test_remove_user_from_group_without_admin_rights(
+        self, mocker: MockerFixture
+    ) -> None:
+        mock_admin_check = mocker.patch(
+            "svs_core.cli.user.reject_if_not_admin", side_effect=SystemExit(1)
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["user", "remove-from-group", "someuser", "group1"],
+        )
+
+        assert mock_admin_check.called
+        assert result.exit_code == 1
+
+    def test_remove_user_from_group_success(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get_user = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "theuser"
+        mock_get_user.return_value = mock_user
+
+        mock_get_group = mocker.patch("svs_core.users.user_group.UserGroup.objects.get")
+        mock_group = mocker.MagicMock()
+        mock_group.name = "thegroup"
+        mock_group.remove_member = mocker.MagicMock()
+        mock_get_group.return_value = mock_group
+
+        result = self.runner.invoke(
+            app,
+            ["user", "remove-from-group", "theuser", "thegroup"],
+        )
+
+        assert result.exit_code == 0
+        assert (
+            "User 'theuser' removed from group 'thegroup' successfully."
+            in result.output
+        )
+        mock_group.remove_member.assert_called_once_with(mock_user)
+
+    def test_list_users_with_group_filter(self, mocker: MockerFixture) -> None:
+        # Patch UserGroup.objects.get and its proxy_members
+        mock_get_group = mocker.patch("svs_core.users.user_group.UserGroup.objects.get")
+        mock_group = mocker.MagicMock()
+        mock_user1 = mocker.MagicMock()
+        mock_user1.id = 1
+        mock_user1.name = "guser1"
+        mock_user1.is_admin.return_value = False
+        mock_group.proxy_members = [mock_user1]
+        mock_get_group.return_value = mock_group
+
+        result = self.runner.invoke(
+            app,
+            ["user", "list", "--group", "somegroup"],
+        )
+
+        assert result.exit_code == 0
+        assert "guser1" in result.output
