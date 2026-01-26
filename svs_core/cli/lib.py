@@ -108,3 +108,10 @@ def git_source_id_autocomplete(incomplete: str) -> list[tuple[str, str]]:
     from svs_core.shared.git_source import GitSource
 
     return _complete(GitSource, incomplete, key="id", owner_check="service__user__name")
+
+
+def user_group_name_autocomplete(incomplete: str) -> list[tuple[str, str]]:
+    """Autocomplete user group names for CLI commands."""
+    from svs_core.users.user_group import UserGroup
+
+    return _complete(UserGroup, incomplete, key="name", owner_check="")

@@ -397,6 +397,13 @@ class UserGroupModel(BaseModel):
     class Meta:  # noqa: D106
         db_table = "user_groups"
 
+    @property
+    def proxy_members(self) -> models.QuerySet["User"]:
+        """Get related UserModel instances."""
+        from svs_core.users.user import User
+
+        return User.objects.filter(groups__id=self.id)
+
 
 def miscelanous_str_injector(obj: BaseModel, indent: int = 1) -> str:
     """Generate miscelanous information string for a model instance.

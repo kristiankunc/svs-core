@@ -213,7 +213,7 @@ class User(UserModel):
             raise
 
     def __str__(self) -> str:
-        return f"User(id={self.id}, name={self.name}, is_admin={self.is_admin()})"
+        return f"User(id={self.id}, name={self.name}, is_admin={self.is_admin()}, groups={[g.name for g in self.groups.all()]})"
 
     def pprint(self, indent: int = 0) -> str:
         """Pretty-print the User details."""
