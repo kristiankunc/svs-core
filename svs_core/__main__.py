@@ -110,7 +110,8 @@ def global_options(
 
         user_to_override = get_or_exit(User, name=user_override)
 
-        set_current_user(user_to_override.name, True)
+        # Preserve the actual admin status of the overridden user
+        set_current_user(user_to_override.name, user_to_override.is_admin())
 
 
 app.add_typer(user_app, name="user")
