@@ -47,6 +47,7 @@ plugins:
           inventories:
             - https://docs.python.org/3/objects.inv
             - https://django.readthedocs.io/en/stable/objects.inv
+            - https://docker-py.readthedocs.io/en/stable/objects.inv
           options:
             backlinks: tree
             docstring_options:
