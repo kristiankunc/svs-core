@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% block title %}{{ service.name }} - My Site{% endblock %}
 {% block content %}
+    <style>
+        .build-popover {
+            z-index: 1050;
+            min-width: 300px;
+        }
+    </style>
+    <!-- htmlhint inline-style-disabled:false -->
     <div class="row mb-4">
         <div class="col">
             <a href="{% url 'list_services' %}"
@@ -471,12 +478,14 @@
                                         class="btn btn-info w-100"
                                         @click="buildPopoverVisible = !buildPopoverVisible"
                                         title="Build the service image from Dockerfile">Build Service</button>
-                                <div class="card position-absolute top-100 start-0 mt-2 p-3"
+                                <!-- djlint:off H201-->
+                                <div class="card position-absolute top-100 start-0 mt-2 p-3 build-popover"
                                      x-show="buildPopoverVisible"
                                      x-transition
                                      @click.away="buildPopoverVisible = false"
                                      role="dialog"
                                      aria-label="Build Service Dialog">
+                                    <!-- djlint:on -->
                                     <div class="mb-3">
                                         <label for="build_path" class="form-label small">Build Context Path</label>
                                         {% if service.volumes %}
