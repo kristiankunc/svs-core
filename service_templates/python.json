@@ -9,7 +9,7 @@
 			"host": null
 		}
 	],
-	"description": "A generic Python 3.14 runtime environment built from Dockerfile",
+	"description": "A generic Python 3.14 runtime environment",
 	"dockerfile": "FROM python:3.14-slim\n\nENV PYTHONDONTWRITEBYTECODE=1\nENV PYTHONUNBUFFERED=1\n\nRUN apt-get update \\\n    && apt-get install -y --no-install-recommends ca-certificates curl \\\n    && rm -rf /var/lib/apt/lists/*\n\nRUN groupadd -r appuser && useradd -r -g appuser appuser\n\nWORKDIR /app\nCOPY . /app\n\nUSER appuser\n\nRUN if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi\n\nCMD [\"python\", \"--version\"]\n",
 	"healthcheck": null,
 	"name": "python-generic",
