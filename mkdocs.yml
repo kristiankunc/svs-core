@@ -35,7 +35,6 @@ theme:
         name: Switch to light mode
 
 plugins:
-  - mkdocs-typer2
   - mkdocs-pdf
   - search:
       lang: en

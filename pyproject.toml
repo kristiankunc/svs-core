@@ -35,7 +35,6 @@ docs = [
     "mkdocstrings[python]==1.0.2",
     "mkdocs-awesome-nav==3.3.0",
     "mkdocs-pdf==0.1.2",
-    "mkdocs-typer2==0.2.0",
 ]
 
 [project.scripts]
