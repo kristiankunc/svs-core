@@ -3,6 +3,7 @@ tests/_playground.py
 docs/cli.md
 fancy-docs/*.pdf
 docs/main.pdf
+docs/cli-documentation/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
