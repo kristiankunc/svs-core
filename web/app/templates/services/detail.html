@@ -11,7 +11,8 @@
             </p>
         </div>
     </div>
-    <div class="row" x-data="{ attachGitSourceVisible: false }">
+    <div class="row"
+         x-data="{ attachGitSourceVisible: false, buildPopoverVisible: false }">
         <!-- Main Content -->
         <div class="col-lg-8">
             <!-- Basic Information -->
@@ -459,8 +460,60 @@
                         {% csrf_token %}
                         <button type="submit"
                                 class="btn btn-success w-100"
-                                {% if service.status.value == 'running' %}disabled{% endif %}>Start Service</button>
+                                {% if service.status.value == 'running' or not service.container_id %}disabled{% endif %}>
+                            Start Service
+                        </button>
                     </form>
+                    {% with template=service.proxy_template.first %}
+                        {% if template and template.type == 'build' %}
+                            <div class="position-relative">
+                                <button type="button"
+                                        class="btn btn-info w-100"
+                                        @click="buildPopoverVisible = !buildPopoverVisible"
+                                        title="Build the service image from Dockerfile">Build Service</button>
+                                <div class="card position-absolute top-100 start-0 mt-2 p-3"
+                                     x-show="buildPopoverVisible"
+                                     x-transition
+                                     @click.away="buildPopoverVisible = false"
+                                     role="dialog"
+                                     aria-label="Build Service Dialog">
+                                    <div class="mb-3">
+                                        <label for="build_path" class="form-label small">Build Context Path</label>
+                                        {% if service.volumes %}
+                                            <select class="form-select form-select-sm mb-2"
+                                                    id="build_volume"
+                                                    @change="document.getElementById('build_path').value = $el.value ? $el.value : ''">
+                                                <option value="">-- Choose a volume or enter custom path --</option>
+                                                {% for volume in service.volumes %}
+                                                    {% if volume.host_path %}<option value="{{ volume.host_path }}">{{ volume.host_path }}</option>{% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        {% endif %}
+                                        <input type="text"
+                                               class="form-control form-control-sm"
+                                               id="build_path"
+                                               placeholder="/absolute/path"
+                                               required>
+                                        <small class="form-text text-muted d-block mt-1">Absolute path on host filesystem</small>
+                                    </div>
+                                    <form action="{% url 'build_service' service.id %}"
+                                          method="post"
+                                          class="d-grid gap-2">
+                                        {% csrf_token %}
+                                        <input type="hidden" id="build_path_input" name="build_path" value="">
+                                        <button type="submit"
+                                                class="btn btn-sm btn-info"
+                                                @click="document.getElementById('build_path_input').value = document.getElementById('build_path').value; if (!document.getElementById('build_path').value) { event.preventDefault(); alert('Please enter a build path'); }">
+                                            Build
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-secondary"
+                                                @click="buildPopoverVisible = false">Cancel</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
                     <form action="{% url 'stop_service' service.id %}" method="post">
                         {% csrf_token %}
                         <button type="submit"

@@ -15,7 +15,12 @@ from svs_core.users.user import User
 
 
 def create_from_template(request: HttpRequest, template_id: int):
-    """Display form to create a service from a template."""
+    """Display form to create a service from a template - only authenticated users."""
+    # Check if user is authenticated
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+
     template = get_object_or_404(Template, id=template_id)
 
     if request.method == "POST":
@@ -105,32 +110,50 @@ def create_from_template(request: HttpRequest, template_id: int):
 
 
 def detail(request: HttpRequest, service_id: int):
-    """Display service details."""
+    """Display service details - only owners or admins can view."""
     service = get_object_or_404(Service, id=service_id)
+
+    # Check if user is authenticated
+    user_id = request.session.get("user_id")
+    is_admin = request.session.get("is_admin", False)
+
+    if not user_id:
+        return redirect("login")
+
+    # Check if user is owner or admin
+    if not is_owner_or_admin(request, service) and not is_admin:
+        return redirect("list_services")
+
     return render(request, "services/detail.html", {"service": service})
 
 
 def list_services(request: HttpRequest):
-    """List all services."""
+    """List services - authenticated users see their own, admins see all."""
     user_id = request.session.get("user_id")
     is_admin = request.session.get("is_admin", False)
 
+    # Only authenticated users can see services
+    if not user_id:
+        return redirect("login")
+
     if is_admin:
         services = Service.objects.all()
-    elif user_id:
+    else:
         try:
             user = User.objects.get(id=user_id)
             services = user.proxy_services
         except User.DoesNotExist:
             services = []
-    else:
-        services = []
 
     return render(request, "services/list.html", {"services": services})
 
 
 def start(request: HttpRequest, service_id: int):
-    """Start a service."""
+    """Start a service - only owners or admins."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+
     service = get_object_or_404(Service, id=service_id)
 
     if not is_owner_or_admin(request, service):
@@ -141,7 +164,11 @@ def start(request: HttpRequest, service_id: int):
 
 
 def stop(request: HttpRequest, service_id: int):
-    """Stop a service."""
+    """Stop a service - only owners or admins."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+
     service = get_object_or_404(Service, id=service_id)
 
     if not is_owner_or_admin(request, service):
@@ -152,7 +179,11 @@ def stop(request: HttpRequest, service_id: int):
 
 
 def restart(request: HttpRequest, service_id: int):
-    """Restart a service."""
+    """Restart a service - only owners or admins."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+
     service = get_object_or_404(Service, id=service_id)
 
     if not is_owner_or_admin(request, service):
@@ -163,8 +194,44 @@ def restart(request: HttpRequest, service_id: int):
     return redirect("detail_service", service_id=service.id)
 
 
+def build(request: HttpRequest, service_id: int):
+    """Build a service image from Dockerfile - only owners or admins."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+
+    service = get_object_or_404(Service, id=service_id)
+
+    if not is_owner_or_admin(request, service):
+        return redirect("detail_service", service_id=service.id)
+
+    build_path = request.POST.get("build_path", "")
+    if not build_path:
+        return render(
+            request,
+            "services/detail.html",
+            {"service": service, "error": "Build path is required"},
+        )
+
+    try:
+        service.build(Path(build_path))
+    except Exception as e:
+        get_logger(__name__).error(f"Failed to build service {service_id}: {str(e)}")
+        return render(
+            request,
+            "services/detail.html",
+            {"service": service, "error": f"Failed to build service: {str(e)}"},
+        )
+
+    return redirect("detail_service", service_id=service.id)
+
+
 def delete(request: HttpRequest, service_id: int):
-    """Delete a service."""
+    """Delete a service - only owners or admins."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+
     service = get_object_or_404(Service, id=service_id)
 
     if not is_owner_or_admin(request, service):
@@ -175,11 +242,15 @@ def delete(request: HttpRequest, service_id: int):
 
 
 def view_logs(request: HttpRequest, service_id: int):
-    """View service logs.
+    """View service logs - only owners or admins.
 
     Returns JSON if Accept header contains 'application/json', otherwise
     HTML.
     """
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+
     service = get_object_or_404(Service, id=service_id)
 
     if not is_owner_or_admin(request, service):
@@ -206,7 +277,11 @@ def view_logs(request: HttpRequest, service_id: int):
 
 
 def download_git_source(request: HttpRequest, service_id: int, git_source_id: int):
-    """Download or update a git source for a service."""
+    """Download or update a git source for a service - only owners or admins."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+
     service = get_object_or_404(Service, id=service_id)
     git_source = get_object_or_404(GitSource, id=git_source_id, service_id=service_id)
 
@@ -229,7 +304,11 @@ def download_git_source(request: HttpRequest, service_id: int, git_source_id: in
 
 
 def attach_git_source(request: HttpRequest, service_id: int):
-    """Attach a git source to an existing service."""
+    """Attach a git source to an existing service - only owners or admins."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+
     service = get_object_or_404(Service, id=service_id)
 
     if not is_owner_or_admin(request, service):
@@ -269,7 +348,11 @@ def attach_git_source(request: HttpRequest, service_id: int):
 
 
 def delete_git_source(request: HttpRequest, service_id: int, git_source_id: int):
-    """Delete a git source from a service."""
+    """Delete a git source from a service - only owners or admins."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+
     service = get_object_or_404(Service, id=service_id)
     git_source = get_object_or_404(GitSource, id=git_source_id, service_id=service_id)
 
@@ -302,6 +385,7 @@ urlpatterns = [
     path("services/<int:service_id>/start/", start, name="start_service"),
     path("services/<int:service_id>/stop/", stop, name="stop_service"),
     path("services/<int:service_id>/restart/", restart, name="restart_service"),
+    path("services/<int:service_id>/build/", build, name="build_service"),
     path("services/<int:service_id>/delete/", delete, name="delete_service"),
     path("services/<int:service_id>/logs/", view_logs, name="view_service_logs"),
     path(
