@@ -104,6 +104,8 @@ class TemplateModel(BaseModel):
     """Default start command for containers."""
     args = models.JSONField(null=True, blank=True, default=list)
     """Default arguments for the start command."""
+    docs_url = models.CharField(max_length=512, null=True, blank=True)
+    """URL to documentation for this template."""
 
     _default_env = models.JSONField(null=True, blank=True, default=list)
     """JSON-serialized default environment variables."""
