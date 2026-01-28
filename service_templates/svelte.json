@@ -1,0 +1,42 @@
+{
+	"$schema": "https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/service_templates/schema.json",
+	"args": [],
+	"default_env": [
+		{
+			"key": "NODE_ENV",
+			"value": "production"
+		},
+		{
+			"key": "PORT",
+			"value": "3000"
+		}
+	],
+	"default_ports": [
+		{
+			"container": 3000,
+			"host": null
+		}
+	],
+	"default_volumes": [
+		{
+			"container": "/app",
+			"host": null
+		}
+	],
+	"description": "SvelteKit application container built on-demand from source",
+	"dockerfile": "FROM node:24-slim AS builder\n\nWORKDIR /app\n\nCOPY package*.json ./\nRUN npm install\n\nRUN npm run build\n\n\nFROM node:24-slim\n\nRUN groupadd -r appuser && useradd -r -g appuser appuser\n\nWORKDIR /app\n\nCOPY --from=builder /app/node_modules /app/node_modules\nCOPY --from=builder /app/package*.json /app/\n\nRUN chown -R appuser:appuser /app\n\nEXPOSE 3000\n\nUSER appuser\n\nCMD [\"node\", \"build\"]",
+	"healthcheck": {
+		"interval": 30,
+		"retries": 3,
+		"start_period": 5,
+		"test": [
+			"CMD",
+			"curl",
+			"-f",
+			"http://localhost:3000/"
+		],
+		"timeout": 10
+	},
+	"name": "sveltekit-app",
+	"type": "build"
+}

@@ -28,6 +28,12 @@ class DockerImageManager:
             image_name (str): Name of the image.
             dockerfile_content (str): Dockerfile contents.
             path_to_copy (Path | None): Optional path to copy into the build context.
+            build_args (dict[str, str] | None): Optional build arguments to pass to Docker.
+
+        Raises:
+            BuildError: If the Docker build fails. On failure, a detailed error log is written to
+                `<path_to_copy>/docker_build_error.log` (or `./docker_build_error.log` if path_to_copy
+                is not provided) containing the image name, error message, and full build log output.
         """
         get_logger(__name__).info(
             f"Building Docker image '{image_name}' from Dockerfile"
@@ -67,24 +73,69 @@ class DockerImageManager:
                     f"Successfully built Docker image '{image_name}'"
                 )
             except BuildError as e:
-                build_log = "\n".join(
-                    line.decode("utf-8") if isinstance(line, bytes) else str(line)
-                    for line in e.build_log
-                )
+                logger = get_logger(__name__)
 
+                # Parse build log from the exception
+                build_log_lines = []
+                if hasattr(e, "build_log") and e.build_log:
+                    for line in e.build_log:
+                        if isinstance(line, bytes):
+                            build_log_lines.append(
+                                line.decode("utf-8", errors="replace")
+                            )
+                        elif isinstance(line, str):
+                            build_log_lines.append(line)
+                        elif isinstance(line, dict):
+                            # Docker API sometimes returns JSON objects
+                            if "stream" in line:
+                                build_log_lines.append(line["stream"].rstrip())
+                            elif "error" in line:
+                                build_log_lines.append(f"ERROR: {line['error']}")
+                            else:
+                                build_log_lines.append(str(line))
+                        else:
+                            build_log_lines.append(str(line))
+
+                build_log = "\n".join(build_log_lines)
+
+                # Log the error message immediately
+                error_msg = str(e)
+                logger.error(f"Docker build failed: {error_msg}")
+
+                # Log the full build output
+                if build_log:
+                    logger.error(f"Build log output:\n{build_log}")
+
+                # Write detailed log file
                 if path_to_copy:
                     log_path = Path(path_to_copy) / "docker_build_error.log"
                 else:
                     log_path = Path.cwd() / "docker_build_error.log"
 
-                with open(log_path, "w", encoding="utf-8") as log_file:
-                    log_file.write(build_log)
+                try:
+                    with open(log_path, "w", encoding="utf-8") as log_file:
+                        log_file.write(f"Docker Build Error\n")
+                        log_file.write(f"==================\n\n")
+                        log_file.write(f"Image: {image_name}\n")
+                        log_file.write(f"Error: {error_msg}\n\n")
+                        log_file.write(f"Build Log:\n")
+                        log_file.write(f"-----------\n")
+                        log_file.write(build_log)
 
-                get_logger(__name__).error(
-                    f"Failed to build image {image_name}. Error log written to {log_path}"
-                )
-
-                raise
+                    error_with_log_path = (
+                        f"{error_msg}\n\nDetailed error log written to: {log_path}"
+                    )
+                    logger.error(
+                        f"Failed to build image '{image_name}'. {error_with_log_path}"
+                    )
+                    raise DockerOperationException(error_with_log_path) from e
+                except DockerOperationException:
+                    raise
+                except Exception as log_write_error:
+                    logger.error(
+                        f"Failed to write error log to {log_path}: {str(log_write_error)}"
+                    )
+                    raise
 
     @staticmethod
     def exists(image_name: str) -> bool:
