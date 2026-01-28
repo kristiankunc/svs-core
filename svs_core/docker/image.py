@@ -4,7 +4,7 @@ import tempfile
 
 from pathlib import Path
 
-from docker.errors import BuildError
+from docker.errors import APIError, BuildError
 from docker.models.images import Image
 
 from svs_core.docker.base import get_docker_client
@@ -31,7 +31,7 @@ class DockerImageManager:
             build_args (dict[str, str] | None): Optional build arguments to pass to Docker.
 
         Raises:
-            BuildError: If the Docker build fails. On failure, a detailed error log is written to
+            DockerOperationException: If the Docker build fails. On failure, a detailed error log is written to
                 `<path_to_copy>/docker_build_error.log` (or `./docker_build_error.log` if path_to_copy
                 is not provided) containing the image name, error message, and full build log output.
         """
@@ -72,7 +72,7 @@ class DockerImageManager:
                 get_logger(__name__).info(
                     f"Successfully built Docker image '{image_name}'"
                 )
-            except BuildError as e:
+            except (BuildError, APIError) as e:
                 logger = get_logger(__name__)
 
                 # Parse build log from the exception

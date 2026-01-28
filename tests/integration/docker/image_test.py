@@ -7,6 +7,7 @@ import pytest
 
 from svs_core.docker.base import get_docker_client
 from svs_core.docker.image import DockerImageManager
+from svs_core.shared.exceptions import DockerOperationException
 
 
 class TestDockerImageManager:
@@ -38,6 +39,60 @@ RUN echo 'hello from test' > /message
 
         with pytest.raises(Exception):  # docker-py may raise different exceptions
             DockerImageManager.build_from_dockerfile(image_name, invalid_dockerfile)
+
+    @pytest.mark.integration
+    def test_build_invalid_dockerfile_with_error_log(self) -> None:
+        """Test that build failure creates a detailed error log file."""
+        image_name = "svs-core-test-image-invalid-log:fail"
+        invalid_dockerfile = "FRMO busybox:latest"  # typo in FROM
+
+        with TemporaryDirectory() as tmpdir:
+            tmppath = Path(tmpdir)
+
+            with pytest.raises(DockerOperationException):
+                DockerImageManager.build_from_dockerfile(
+                    image_name, invalid_dockerfile, path_to_copy=tmppath
+                )
+
+            # Verify error log file was created
+            log_file = tmppath / "docker_build_error.log"
+            assert (
+                log_file.exists()
+            ), "Error log file should be created on build failure"
+
+            # Verify log file contains expected information
+            log_content = log_file.read_text(encoding="utf-8")
+            assert "Docker Build Error" in log_content
+            assert image_name in log_content
+            assert "Build Log:" in log_content
+
+    @pytest.mark.integration
+    def test_build_invalid_dockerfile_creates_cwd_error_log(self) -> None:
+        """Test that build failure creates error log in current directory when
+        no path provided."""
+        image_name = "svs-core-test-image-invalid-cwd-log:fail"
+        invalid_dockerfile = "FRMO busybox:latest"  # typo in FROM
+        log_file = Path.cwd() / "docker_build_error.log"
+
+        try:
+            with pytest.raises(DockerOperationException):
+                DockerImageManager.build_from_dockerfile(
+                    image_name, invalid_dockerfile, path_to_copy=None
+                )
+
+            # Verify error log file was created in current directory
+            assert (
+                log_file.exists()
+            ), "Error log file should be created in cwd on build failure"
+
+            # Verify log file contains expected information
+            log_content = log_file.read_text(encoding="utf-8")
+            assert "Docker Build Error" in log_content
+            assert image_name in log_content
+        finally:
+            # Cleanup
+            if log_file.exists():
+                log_file.unlink()
 
     @pytest.mark.integration
     def test_exists_nonexistent_image(self) -> None:
