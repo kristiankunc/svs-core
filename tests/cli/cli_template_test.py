@@ -20,10 +20,11 @@ class TestTemplateCommands:
     def test_list_templates(self, mocker: MockerFixture) -> None:
         mock_all = mocker.patch("svs_core.docker.template.Template.objects.all")
         mock_template = mocker.MagicMock()
-        mock_template.id = 1
+        mock_template.id = "1"
         mock_template.name = "django"
         mock_template.type = "web"
         mock_template.description = "Django web framework"
+        mock_template.docs_url = None
         mock_all.return_value = [mock_template]
 
         result = self.runner.invoke(

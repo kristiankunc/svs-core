@@ -16,6 +16,7 @@
 	],
 	"description": "A generic PHP 8.3 Apache runtime environment with support for Composer.",
 	"dockerfile": "FROM php:8.3-apache\n\nRUN apt-get update \\\n    && apt-get install -y --no-install-recommends ca-certificates curl \\\n    && rm -rf /var/lib/apt/lists/*\n\nRUN groupadd -r appuser && useradd -r -g appuser appuser\n\nWORKDIR /var/www/html\n\nRUN chown -R appuser:appuser /var/www/html\n\nUSER appuser\n\nRUN if [ -f composer.json ]; then curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && composer install --no-interaction --prefer-dist; fi\n\nCMD [\"apache2-foreground\"]\n",
+	"docs_url": "https://svs.kristn.co.uk/guides/php/",
 	"healthcheck": {
 		"interval": 30,
 		"retries": 3,

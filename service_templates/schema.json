@@ -138,6 +138,9 @@
 				"null"
 			]
 		},
+		"docs_url": {
+			"type": "string"
+		},
 		"healthcheck": {
 			"additionalProperties": false,
 			"properties": {

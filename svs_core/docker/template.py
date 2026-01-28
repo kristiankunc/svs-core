@@ -33,6 +33,7 @@ class Template(TemplateModel):
             f"image={self.image}\n"
             f"dockerfile_head={dockerfile_head}\n"
             f"description={self.description}\n"
+            f"docs_url={self.docs_url}\n"
             f"default_env={[var.__str__() for var in self.default_env]}\n"
             f"default_ports={[port.__str__() for port in self.default_ports]}\n"
             f"default_volumes={[vol.__str__() for vol in self.default_volumes]}\n"
@@ -67,6 +68,7 @@ class Template(TemplateModel):
 Type: {type_value}
 Description: {self.description if self.description else 'None'}
 Image: {self.image if type_display == TemplateType.IMAGE else 'Built on-demand (Dockerfile)'}
+Documentation: {self.docs_url if self.docs_url else 'None'}
 
 Default Environment Variables:
     {'\n    '.join([f'{var.key}={var.value}' for var in self.default_env]) if self.default_env else 'None'}
@@ -106,6 +108,7 @@ Miscellaneous:
         healthcheck: Healthcheck | None = None,
         labels: list[Label] | None = None,
         args: list[str] | None = None,
+        docs_url: str | None = None,
     ) -> Template:
         """Creates a new template with all supported attributes.
 
@@ -123,6 +126,7 @@ Miscellaneous:
             healthcheck (Healthcheck | None, optional): The healthcheck configuration. Defaults to None.
             labels (list[Label] | None, optional): Default Docker labels. Defaults to None.
             args (list[str] | None, optional): Default arguments for the container. Defaults to None.
+            docs_url (str | None, optional): URL to documentation for this template. Defaults to None.
 
         Returns:
             Template: A new Template instance.
@@ -250,12 +254,23 @@ Miscellaneous:
                 if not arg:
                     raise ValidationException("Arguments cannot be empty strings")
 
+        # Validate docs_url
+        if docs_url is not None:
+            if not isinstance(docs_url, str):
+                raise ValidationException(
+                    f"Documentation URL must be a string: {docs_url}"
+                )
+            if not docs_url:
+                raise ValidationException(
+                    "Documentation URL cannot be empty if provided"
+                )
+
         get_logger(__name__).info(f"Creating template '{name}' of type '{type}'")
         get_logger(__name__).debug(
             f"Template details: image={image}, dockerfile={'set' if dockerfile else 'None'}, "
             f"description={description}, default_env={default_env}, default_ports={default_ports}, "
             f"default_volumes={default_volumes}, default_contents={default_contents}, start_cmd={start_cmd}, healthcheck={healthcheck}, "
-            f"labels={labels}, args={args}"
+            f"labels={labels}, args={args}, docs_url={docs_url}"
         )
 
         template = cls.objects.create(
@@ -272,6 +287,7 @@ Miscellaneous:
             healthcheck=healthcheck,
             labels=labels,
             args=args,
+            docs_url=docs_url,
         )
 
         if type == TemplateType.IMAGE and image is not None:
@@ -471,6 +487,7 @@ Miscellaneous:
                 healthcheck=Healthcheck.from_dict(data.get("healthcheck")),
                 labels=Label.from_dict_array(labels_list),
                 args=data.get("args"),
+                docs_url=data.get("docs_url"),
             )
             get_logger(__name__).info(
                 f"Successfully imported template '{template.name}' from JSON"

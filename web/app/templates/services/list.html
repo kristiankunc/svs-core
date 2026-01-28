@@ -22,7 +22,7 @@
                             {% with template=service.proxy_template.first %}
                                 {% if template %}
                                     <p class="card-text">
-                                        <small><strong>Template:</strong> {{ template.name }}</small>
+                                        <small><strong>Template:</strong> <a href="{% url 'detail_template' template.id %}">{{ template.name }}</a></small>
                                     </p>
                                 {% endif %}
                             {% endwith %}
@@ -33,8 +33,18 @@
                             {% endif %}
                         </div>
                         <div class="card-footer bg-body-tertiary border-top">
-                            <a href="{% url 'detail_service' service.id %}"
-                               class="btn btn-sm btn-outline-primary w-100">View</a>
+                            <div class="d-grid gap-2">
+                                {% with template=service.proxy_template.first %}
+                                    {% if template and template.docs_url %}
+                                        <a href="{{ template.docs_url }}"
+                                           target="_blank"
+                                           rel="noopener noreferrer"
+                                           class="btn btn-sm btn-outline-secondary">📖 Template Docs</a>
+                                    {% endif %}
+                                {% endwith %}
+                                <a href="{% url 'detail_service' service.id %}"
+                                   class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
                         </div>
                     </div>
                 </div>
