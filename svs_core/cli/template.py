@@ -111,13 +111,14 @@ def list_templates(
         print("\n".join(f"{t}" for t in templates))
         raise typer.Exit(code=0)
 
-    table = Table("ID", "Name", "Type", "Description")
+    table = Table("ID", "Name", "Type", "Description", "Documentation")
     for template in templates:
         table.add_row(
             str(template.id),
             template.name,
             template.type,
             template.description or "-",
+            template.docs_url or "-",
         )
 
     print(table)

@@ -10,6 +10,7 @@
 	],
 	"default_volumes": [],
 	"description": "Adminer database management tool",
+	"docs_url": "https://svs.kristn.co.uk/guides/adminer/",
 	"healthcheck": {
 		"interval": 30,
 		"retries": 5,
