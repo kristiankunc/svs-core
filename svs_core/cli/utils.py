@@ -1,3 +1,4 @@
+import subprocess
 import sys
 
 from pathlib import Path
@@ -52,9 +53,20 @@ def django_shell(
     if not commands:
         rprint("No commands provided", file=sys.stderr)
         raise typer.Exit(code=1)
-
     try:
-        management.call_command(*commands)
+        result = subprocess.run(
+            [sys.executable, "-m", "django"] + commands,
+            capture_output=True,
+            text=True,
+        )
     except Exception as e:
         rprint(f"Error executing Django shell commands: {e}", file=sys.stderr)
+        raise typer.Exit(code=1)
+
+    if result.stdout:
+        print(result.stdout, end="")
+
+    if result.returncode != 0:
+        err = result.stderr or f"Process exited with code {result.returncode}"
+        rprint(f"Error executing Django shell commands: {err}", file=sys.stderr)
         raise typer.Exit(code=1)
