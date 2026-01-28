@@ -13,9 +13,21 @@
         </div>
     </div>
     {% if templates %}
+        <div class="mb-4">
+            <input type="text"
+                   class="form-control form-control-lg"
+                   placeholder="Search templates by name or description..."
+                   x-data
+                   @input="$dispatch('search-templates', { query: $el.value })"
+                   x-on:search-templates.window="document.querySelectorAll('[data-template-item]').forEach(item => { const query = $event.detail.query.toLowerCase(); const name = item.dataset.templateName.toLowerCase(); const description = item.dataset.templateDescription.toLowerCase(); item.style.display = (name.includes(query) || description.includes(query)) ? '' : 'none'; })"
+                   autocomplete="off">
+        </div>
         <div class="row">
             {% for template in templates %}
-                <div class="col-md-6 col-lg-4 mb-4">
+                <div class="col-md-6 col-lg-4 mb-4"
+                     data-template-item
+                     data-template-name="{{ template.name }}"
+                     data-template-description="{{ template.description|default:'' }}">
                     <div class="card h-100">
                         <div class="card-body">
                             <h5 class="card-title">{{ template.name }}</h5>
