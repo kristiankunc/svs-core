@@ -15,6 +15,15 @@ What do you want to host?
 ## Python
 
 - **[django](python/django.md)**: A template for deploying Django web applications.
+- **[generic](python/generic.md)**: A generic template for deploying Python applications.
+
+## PHP
+
+- **[generic](php/generic.md)**: A generic template for deploying PHP applications with Apache.
+
+## Node.JS
+
+- **[svelte](nodejs/svelte.md)**: A template for deploying SvelteKit applications using Node.JS.
 
 ## Customization
 
