@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.12.0](https://github.com/kristiankunc/svs-core/compare/v0.11.2...v0.12.0) (2026-01-31)
+
+
+### Features
+
+* **core:** Add docs url field to templates ([#271](https://github.com/kristiankunc/svs-core/issues/271)) ([37793d1](https://github.com/kristiankunc/svs-core/commit/37793d1fb721db5334a38b63881019dcf4899b84))
+* **core:** Add generic PHP template ([#268](https://github.com/kristiankunc/svs-core/issues/268)) ([e7a6632](https://github.com/kristiankunc/svs-core/commit/e7a6632f10132d07d9da2bf7ee23c6f1097544b8))
+* **core:** Add generic python template ([#267](https://github.com/kristiankunc/svs-core/issues/267)) ([0571bea](https://github.com/kristiankunc/svs-core/commit/0571bea0af0a9099c05cf35d02e9ff4337aca67f))
+* **core:** Add Svelte template ([#270](https://github.com/kristiankunc/svs-core/issues/270)) ([ca42b83](https://github.com/kristiankunc/svs-core/commit/ca42b83651b25af87faee78f97131c75bce2fba8))
+* **web:** Add service building UI ([#267](https://github.com/kristiankunc/svs-core/issues/267)) ([0571bea](https://github.com/kristiankunc/svs-core/commit/0571bea0af0a9099c05cf35d02e9ff4337aca67f))
+
+
+### Bug Fixes
+
+* **core:** Add user deletion cli command ([#256](https://github.com/kristiankunc/svs-core/issues/256)) ([d9dc56f](https://github.com/kristiankunc/svs-core/commit/d9dc56f4cec93b69dca7960286d5c0bdab2406c5))
+* **core:** Add user groups ([#264](https://github.com/kristiankunc/svs-core/issues/264)) ([58960d7](https://github.com/kristiankunc/svs-core/commit/58960d7fafc76e663c279f9946e9c99945017e4f))
+* **core:** Fix django shell command ([e15ddbe](https://github.com/kristiankunc/svs-core/commit/e15ddbeefedf1c265d63c5d5e8dc09b712a9cf14))
+* **core:** Improve Docker image build error reporting ([ca42b83](https://github.com/kristiankunc/svs-core/commit/ca42b83651b25af87faee78f97131c75bce2fba8))
+* **core:** Set proper admin status for user override ([#263](https://github.com/kristiankunc/svs-core/issues/263)) ([03a712c](https://github.com/kristiankunc/svs-core/commit/03a712ceba038f5ea5e984ac9b5cc887c428a0b6))
+* **docs:** Add better CLI docs ([#265](https://github.com/kristiankunc/svs-core/issues/265)) ([ad12c96](https://github.com/kristiankunc/svs-core/commit/ad12c961aa857bcda6cf2db38a783905176cc09b))
+* **docs:** Add docker-py inventory file ([#261](https://github.com/kristiankunc/svs-core/issues/261)) ([a32fa45](https://github.com/kristiankunc/svs-core/commit/a32fa45458431b0ad06d9710691de7c191229297))
+* **docs:** Add references to templates ([#273](https://github.com/kristiankunc/svs-core/issues/273)) ([4dfadbb](https://github.com/kristiankunc/svs-core/commit/4dfadbbde9416a3faf8b4eb8d589218337707f8d))
+* **web:** Add docs links to templates and services ([37793d1](https://github.com/kristiankunc/svs-core/commit/37793d1fb721db5334a38b63881019dcf4899b84))
+* **web:** Add template search ([37793d1](https://github.com/kristiankunc/svs-core/commit/37793d1fb721db5334a38b63881019dcf4899b84))
+
 ## [0.11.2](https://github.com/kristiankunc/svs-core/compare/v0.11.1...v0.11.2) (2026-01-24)
 
 
