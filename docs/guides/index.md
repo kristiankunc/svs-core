@@ -6,6 +6,7 @@ This section contains various guides aimed at helping you configure and deploy y
 
 - [Static website (NGINX)](./nginx.md) - NGINX is used to deploy static (HTML, CSS, JS) websites.
 - [MySQL database](./mysql.md) - MySQL is a widely used open-source relational database management system.
+- [Adminer database management](./adminer.md) - Adminer is a full-featured database management tool written in PHP.
 
 ## Terminology
 
@@ -29,6 +30,9 @@ graph LR
 
 Volumes can be examined using the [detailed service view](#detailed-view).
 
+### DNS
+
+All services owned by a single user are connected to the same network. This means that services can communicate with each other using their service names as hostnames. For example, if you have a database service named `my-database`, other services can connect to it using the hostname `my-database`.
 ---
 
 ## Generic stepts

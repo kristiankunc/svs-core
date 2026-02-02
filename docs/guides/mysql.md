@@ -19,8 +19,7 @@ When [creating the service](./index.md#create-a-service), you can configure your
 
 ## Access your database
 
-Because of Docker's DNS, the service name can be used as the hostname to connect to the database from other services owned by the same SVS user.
-For example, if your MySQL service is named `my-database`, you can connect to it from another service using the hostname `my-database` instead of any IP address.
+Refer to [Docker's DNS](./index.md#dns) section for information on how to connect to your database service from other services.
 
 
 Once you have [started the service](./index.md#control). You can use the port that's been [assigned to your service](./index.md#detailed-view) along with the service name to connect to your MySQL database.
