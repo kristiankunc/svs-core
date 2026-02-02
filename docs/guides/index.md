@@ -5,7 +5,7 @@ This section contains various guides aimed at helping you configure and deploy y
 **Available Guides:**
 
 - [Static website (NGINX)](./nginx.md) - NGINX is used to deploy static (HTML, CSS, JS) websites.
-
+- [MySQL database](./mysql.md) - MySQL is a widely used open-source relational database management system.
 
 ## Terminology
 
