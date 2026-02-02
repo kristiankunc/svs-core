@@ -12,13 +12,13 @@ Grab the example template configuration from [https://github.com/kristiankunc/sv
 curl https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/service_templates/nginx.json -o nginx.json
 ```
 
-and apply it using the [`svs template import`](../cli.md#svs-template-import) command
+and apply it using the [`svs template import`](../cli-documentation/template.md#svs-template-import) command
 
 ```bash
 sudo svs template import nginx.json
 ```
 
-Verify all data via [`svs template list`](../cli.md#svs-template-list)
+Verify all data via [`svs template list`](../cli-documentation/template.md#svs-template-list)
 
 ```bash
 sudo svs template list
@@ -26,7 +26,7 @@ sudo svs template list
 
 ### Creating the service
 
-We use [`svs service create`](../cli.md#svs-service-create)
+We use [`svs service create`](../cli-documentation/service.md#svs-service-create) to create a new service based on the imported nginx template.
 
 ```bash
 sudo svs service create <name> <template_id>
@@ -36,7 +36,7 @@ The IDs are indexed from 1 so you can likely put that in, if in doubt use the li
 
 ### Configuring
 
-When reading info about the service using [`svs service get <id>`](../cli.md#svs-service-get), you will see a section about Volumes
+When reading info about the service using [`svs service get <id>`](../cli-documentation/service.md#svs-service-get), you will see a section about Volumes
 
 ??? example "Example output"
     `volumes=['Volume(/config=/var/svs/volumes/1/hbhuclgfnfnqwrru)']`
