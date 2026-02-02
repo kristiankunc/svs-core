@@ -95,6 +95,6 @@ sudo svs user list
 This should output your user.
 
 
-That's it. Head over to the [cli documentation](../cli.md) to get started with using the CLI.
+That's it. Head over to the [cli documentation](../cli-documentation/index.md) to get started with using the SVS CLI.
 
 Or, you can follow the [hello-world guide](hello-world.md) to start your first service.
