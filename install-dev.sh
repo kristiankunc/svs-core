@@ -10,6 +10,6 @@ SOURCED_FOR_DEV=true
 
 source "$SCRIPT_DIR/install.sh"
 
-create_svs_user
 permissions_setup
+create_svs_user
 storage_setup
