@@ -20,9 +20,27 @@
 )
 #set heading(numbering: "1.")
 
+#show heading.where(level: 1): it => {
+  set text(size: 14pt, weight: "bold")
+  it
+  v(12pt)
+}
+
+#show heading.where(level: 2): it => {
+  set text(size: 13pt, weight: "bold")
+  it
+  v(12pt)
+}
+
+#show heading.where(level: 3): it => {
+  set text(size: 13pt, weight: "bold")
+  it
+  v(12pt)
+}
+
 #set par(
-  first-line-indent: 1em,
-  spacing: 0.65em,
+  first-line-indent: (amount: 1.5em, all: true),
+  leading: 1.5em,
   justify: true,
 )
 
@@ -96,7 +114,19 @@ Fanouškům
 
 #pagebreak()
 
-#heading(numbering: none, outlined: false)[Abstrakty]
+#heading(numbering: none, outlined: false)[Anotace]
+Souhrn je pomyslnou vizitkou celé práce. Po jeho přečtení by čtenáři mělo být jasné, čím se práce zabývá a jaké jsou její zásadní výstupy. Souhrn sumarizuje celou práci, tedy včetně cílů, metodiky, nejdůležitějších výsledků a závěrů. Doporučujeme odpovědět na otázky Co? Proč? Jak? a S jakým výsledkem? jste ve své práci dělali. Souhrn pište až na samotném závěru práce v rozsahu 5 až 10 vět.
+
+#heading(numbering: none, outlined: false)[Klíčová slova]
+3-5 klíčových slov oddělených středníkem v abecedním pořadí. Klíčová slova více definují zaměření práce, a proto není vhodné, aby byla totožná se slovy, která se vyskytují v názvu práce.
+
+#heading(numbering: none, outlined: false)[Abstract]
+#lorem(50)
+
+#heading(numbering: none, outlined: false)[Keywords]
+#lorem(5)
+
+
 
 #pagebreak()
 
