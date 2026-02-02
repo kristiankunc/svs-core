@@ -45,8 +45,8 @@
 		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
 	],
 	"name": "Library DevContainer",
-	"postCreateCommand": "pip install --upgrade pip && pip install -e '.[dev,docs]' && pip install -r web/requirements.txt &&  pre-commit install",
-	"postStartCommand": "sudo chown -R vscode:vscode /home/vscode/.ssh && chmod 700 /home/vscode/.ssh && chmod 600 /home/vscode/.ssh/* 2>/dev/null || true && python -m django migrate && python svs_core/db/fixtures/devuser.py",
+	"postCreateCommand": "pip install --upgrade pip && pip install -e '.[dev,docs]' && pip install -r web/requirements.txt &&  pre-commit install && python svs_core/db/fixtures/devuser.py",
+	"postStartCommand": "sudo chown -R vscode:vscode /home/vscode/.ssh && chmod 700 /home/vscode/.ssh && chmod 600 /home/vscode/.ssh/* 2>/dev/null || true && python -m django migrate",
 	"remoteUser": "vscode",
 	"service": "devcontainer",
 	"shutdownAction": "stopCompose",
