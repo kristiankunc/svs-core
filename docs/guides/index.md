@@ -69,6 +69,9 @@ Example output:
 Navigate to the _Templates_ section. There you will find a list of all templates.
 
 [![Templates section](./images/template-list.png)](./images/template-list.png)
+
+---
+
 ### Create a service
 
 Once you have identified the appropriate template for your service, you can proceed to create the service using that template.
@@ -93,10 +96,19 @@ sudo svs service create my-static-site 7 --domain example.com
 
 #### Web
 
-On the _Templates_ page, locate the template you wish to use for your service. Click on the _View_ button associated with that template. This action will take you to the template's detailed view page.
+On the _Templates_ page, locate the template you wish to use for your service. Click on the _View_ button associated with that template.
 
-On that page, click _Create Service from Template_. You will be presented with a form to fill in the necessary details for your new service, such as the service name and domain. If you are unsure about any of the fields, the default values provided should suffice for most cases. After completing the form, submit it to create your service.
+[![Template detailed view](./images/template-list-view.png)](./images/template-list-view.png)
 
+This action will take you to the template's detailed view page. On that page, click _Create Service from Template_.
+
+[![Create service from template](./images/service-create-from-template.png)](./images/service-create-from-template.png)
+
+You will be presented with a form to fill in the necessary details for your new service, such as the service name and domain. If you are unsure about any of the fields, the default values provided should suffice for most cases. After completing the form, submit it to create your service.
+
+[![Service creation form](./images/service-create-form.png)](./images/service-create-form.png)
+
+---
 
 ### Manage your service
 
@@ -163,6 +175,9 @@ sudo svs service delete <service_id>
 sudo svs service logs <service_id>
 ```
 
+More details about these commands can be found in the [CLI documentation](../cli-documentation/service.md).
 #### Web
 
 Navigate to the _Services_ section. There you will find a list of all services. On the service card, click on _View_ to see more details about the service. From there, you can start, stop, restart, or delete the service using the respective buttons.
+
+[![Service management](./images/service-management.png)](./images/service-management.png)
