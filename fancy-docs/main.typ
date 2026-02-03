@@ -134,7 +134,7 @@ Souhrn je pomyslnou vizitkou celé práce. Po jeho přečtení by čtenáři mě
 
 #pagebreak()
 
-= Jednicka
+= Úvod
 #lorem(20)
 
 == Další
