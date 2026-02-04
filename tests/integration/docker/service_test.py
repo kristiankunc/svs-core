@@ -1859,6 +1859,7 @@ CMD cat /version.txt
         # Mock container operations
         mock_old_container = mocker.MagicMock()
         mock_old_container.id = "old-container-id"
+        mock_old_container.status = "exited"  # Set status to avoid ServiceStatus error
         mock_new_container = mocker.MagicMock()
         mock_new_container.id = "new-container-id"
         mock_new_container.start = mocker.MagicMock()
@@ -1952,6 +1953,7 @@ CMD cat /version.txt
             name="no-container-service",
             template_id=test_template.id,
             user=test_user,
+            image="nginx:alpine",  # Provide image to satisfy validation
         )
 
         # Remove container ID to simulate a service without a container
@@ -2044,6 +2046,7 @@ CMD cat /version.txt
             name="multi-network-service",
             template_id=test_template.id,
             user=test_user,
+            image="nginx:alpine",  # Provide image to satisfy validation
             networks=["network1", "network2", "network3"],
         )
 
