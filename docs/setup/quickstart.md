@@ -21,19 +21,6 @@ docker compose version
 Otherwise uou can install it by following the official [Docker Compose installation guide](https://docs.docker.com/compose/install/).
 
 
-### Build packages
-
-Depending on your distribution, you may need the following build packages:
-
-- libpq-dev
-- python3-dev
-- build-essential
-
-Install via
-```bash
-apt install -y libpq-dev python3-dev build-essential
-```
-
 ## Application setup
 
 ### Install pipx
