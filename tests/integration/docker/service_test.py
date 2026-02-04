@@ -1847,3 +1847,221 @@ CMD cat /version.txt
                     branch="invalid branch",
                     destination_path=destination_path,
                 )
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_recreate_success(
+        self,
+        mocker: MockerFixture,
+        test_service: Service,
+    ) -> None:
+        """Test successful service recreation."""
+        # Mock container operations
+        mock_old_container = mocker.MagicMock()
+        mock_old_container.id = "old-container-id"
+        mock_new_container = mocker.MagicMock()
+        mock_new_container.id = "new-container-id"
+        mock_new_container.start = mocker.MagicMock()
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_old_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.recreate_container",
+            return_value=mock_new_container,
+        )
+        mock_connect = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Store initial container ID
+        initial_container_id = test_service.container_id
+
+        # Recreate the service
+        test_service.recreate()
+
+        # Verify container ID was updated
+        assert test_service.container_id == "new-container-id"
+        assert test_service.container_id != initial_container_id
+
+        # Verify networks were connected
+        mock_connect.assert_called()
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_recreate_restarts_running_service(
+        self,
+        mocker: MockerFixture,
+        test_service: Service,
+    ) -> None:
+        """Test that recreate restarts a running service."""
+        # Set service status to RUNNING
+        test_service.status = ServiceStatus.RUNNING
+        test_service.save()
+
+        # Mock container operations
+        mock_old_container = mocker.MagicMock()
+        mock_new_container = mocker.MagicMock()
+        mock_new_container.id = "new-container-id"
+        mock_new_container.start = mocker.MagicMock()
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_old_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.recreate_container",
+            return_value=mock_new_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Recreate the service
+        test_service.recreate()
+
+        # Verify container was started
+        mock_new_container.start.assert_called_once()
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_recreate_without_container_id(
+        self,
+        mocker: MockerFixture,
+        test_user: Any,
+        test_template: Any,
+    ) -> None:
+        """Test that recreate raises exception when container_id is None."""
+        # Create a service without starting it (no container ID)
+        mock_container = mocker.MagicMock()
+        mock_container.id = "test_container_id"
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        service = Service.create(
+            name="no-container-service",
+            template_id=test_template.id,
+            user=test_user,
+        )
+
+        # Remove container ID to simulate a service without a container
+        service.container_id = None
+        service.save()
+
+        # Attempt to recreate should raise ServiceOperationException
+        with pytest.raises(
+            ServiceOperationException, match="Service does not have a container ID"
+        ):
+            service.recreate()
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_start_auto_recreates_on_config_change(
+        self,
+        mocker: MockerFixture,
+        test_service: Service,
+    ) -> None:
+        """Test that start auto-recreates container when config has changed."""
+        # Mock container with changed config
+        mock_old_container = mocker.MagicMock()
+        mock_old_container.id = "old-container-id"
+        mock_old_container.status = "exited"
+        mock_old_container.start = mocker.MagicMock()
+
+        mock_new_container = mocker.MagicMock()
+        mock_new_container.id = "new-container-id"
+        mock_new_container.start = mocker.MagicMock()
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_old_container,
+        )
+
+        # Mock has_config_changed to return True
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.has_config_changed",
+            return_value=True,
+        )
+
+        mock_recreate = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.recreate_container",
+            return_value=mock_new_container,
+        )
+
+        mock_connect = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Start the service
+        test_service.start()
+
+        # Verify recreate was called
+        mock_recreate.assert_called_once()
+
+        # Verify container ID was updated
+        assert test_service.container_id == "new-container-id"
+
+        # Verify networks were reconnected
+        mock_connect.assert_called()
+
+        # Verify new container was started
+        mock_new_container.start.assert_called_once()
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_create_with_multiple_networks(
+        self,
+        mocker: MockerFixture,
+        test_template: Any,
+        test_user: Any,
+    ) -> None:
+        """Test service creation with multiple network connections."""
+        # Mock container creation
+        mock_container = mocker.MagicMock()
+        mock_container.id = "multi-network-container"
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+
+        mock_connect = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        # Create service with multiple networks
+        service = Service.create(
+            name="multi-network-service",
+            template_id=test_template.id,
+            user=test_user,
+            networks=["network1", "network2", "network3"],
+        )
+
+        # Verify service was created
+        assert service.id is not None
+
+        # Verify connect_to_network was called for each network plus the user network
+        assert mock_connect.call_count >= 4  # user network + 3 custom networks
+
+        # Verify user network was connected
+        user_network_calls = [
+            call for call in mock_connect.call_args_list if call[0][1] == test_user.name
+        ]
+        assert len(user_network_calls) == 1
+
+        # Verify custom networks were connected
+        for network_name in ["network1", "network2", "network3"]:
+            network_calls = [
+                call
+                for call in mock_connect.call_args_list
+                if call[0][1] == network_name
+            ]
+            assert (
+                len(network_calls) == 1
+            ), f"Network {network_name} should be connected exactly once"
