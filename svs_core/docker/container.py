@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from docker.models.containers import Container
 
@@ -8,9 +8,6 @@ from svs_core.shared.logger import get_logger
 from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.system import SystemUserManager
 from svs_core.users.user import User
-
-if TYPE_CHECKING:
-    from svs_core.docker.service import Service
 
 
 class DockerContainerManager:
@@ -246,135 +243,3 @@ class DockerContainerManager:
                 f"Failed to start container '{container.name}': {str(e)}"
             )
             raise
-
-    @staticmethod
-    def has_config_changed(container: Container, service: "Service") -> bool:
-        """Check if the container's configuration has changed.
-
-        Compares the current configuration of the Docker container with the
-        desired configuration defined in the service definition.
-
-        Args:
-            container (Container): The Docker container instance.
-            service (Service): The service definition to compare against.
-
-        Returns:
-            bool: True if the configuration has changed.
-        """
-
-        container.reload()
-        container_attrs = container.attrs
-
-        # Check image
-        if container_attrs["Config"]["Image"] != service.image:
-            return True
-
-        # Check command
-        container_command = " ".join(container_attrs["Config"]["Cmd"] or [])
-        service_command = service.command or ""
-        if container_command != service_command:
-            return True
-
-        # Check environment variables
-        container_env = set(container_attrs["Config"]["Env"] or [])
-        service_env = set(
-            f"{env_var.key}={env_var.value}"
-            for env_var in service.environment_variables
-        )
-        if container_env != service_env:
-            return True
-
-        # Check exposed ports
-        container_ports = set(container_attrs["NetworkSettings"]["Ports"] or {})
-        service_ports = set(f"{port.container_port}/tcp" for port in service.ports)
-        if container_ports != service_ports:
-            return True
-
-        # Check volumes
-        container_mounts = set(
-            mount["Destination"] for mount in container_attrs["Mounts"] or []
-        )
-        service_volumes = set(volume.container_path for volume in service.volumes)
-        if container_mounts != service_volumes:
-            return True
-
-        return False
-
-    @staticmethod
-    def recreate_container(container: Container, service: "Service") -> Container:
-        """Recreate a Docker container.
-
-        Stops and removes the existing container, then creates a new one with the
-        updated configuration from the service definition.
-
-        Args:
-            container (Container): The existing Docker container instance to recreate.
-            service (Service): The service definition with the target configuration.
-
-        Returns:
-            Container: The newly created Docker container instance.
-
-        Raises:
-            ServiceOperationException: If the container cannot be properly stopped or removed.
-        """
-        from svs_core.shared.exceptions import ServiceOperationException
-
-        get_logger(__name__).info(
-            f"Recreating container '{container.name}' (ID: {container.id}) with updated configuration"
-        )
-
-        was_running = container.status == "running"
-
-        # Stop the container if it's running
-        if was_running:
-            try:
-                get_logger(__name__).debug(
-                    f"Stopping container '{container.name}' before recreation"
-                )
-                container.stop()
-            except Exception as e:
-                get_logger(__name__).error(
-                    f"Failed to stop container '{container.name}': {str(e)}"
-                )
-                raise ServiceOperationException(
-                    f"Failed to stop container {container.id}: {str(e)}"
-                ) from e
-
-        # Remove the old container
-        try:
-            get_logger(__name__).debug(
-                f"Removing old container '{container.name}' (ID: {container.id})"
-            )
-            container.remove(force=True)
-        except Exception as e:
-            get_logger(__name__).error(
-                f"Failed to remove container '{container.name}': {str(e)}"
-            )
-            raise ServiceOperationException(
-                f"Failed to remove container {container.id}: {str(e)}"
-            ) from e
-
-        # Create a new container with the updated configuration
-        try:
-            new_container = DockerContainerManager.create_container(
-                name=container.name,
-                image=service.image,
-                owner=service.user.name,
-                command=service.command,
-                args=service.args,
-                labels=service.labels,
-                ports=service.exposed_ports,
-                volumes=service.volumes,
-                environment_variables=service.env,
-            )
-
-            get_logger(__name__).info(
-                f"Successfully recreated container with ID: {new_container.id}"
-            )
-
-            return new_container
-        except Exception as e:
-            get_logger(__name__).error(f"Failed to create new container: {str(e)}")
-            raise ServiceOperationException(
-                f"Failed to recreate container: {str(e)}"
-            ) from e

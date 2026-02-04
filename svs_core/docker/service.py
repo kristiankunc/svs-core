@@ -532,12 +532,7 @@ Miscelanous:
 
             service_instance.container_id = container.id
 
-            # Connect to user network and any additional networks
             DockerContainerManager.connect_to_network(container, user.name)
-
-            if networks:
-                for network in networks:
-                    DockerContainerManager.connect_to_network(container, network)
 
             if "caddy" in [label.key for label in all_labels]:
                 DockerContainerManager.connect_to_network(container, "caddy")
@@ -561,23 +556,7 @@ Miscelanous:
             f"Starting service '{self.name}' with container ID '{self.container_id}'"
         )
 
-        # update the container in case it was changed externally
-        if DockerContainerManager.has_config_changed(container, self):
-            get_logger(__name__).info(
-                f"Container configuration for service '{self.name}' has changed externally. Recreating container."
-            )
-            new_container = DockerContainerManager.recreate_container(container, self)
-            self.container_id = new_container.id
-            container = new_container
-
-            # Reconnect to networks
-            DockerContainerManager.connect_to_network(new_container, self.user.name)
-
-            if any(label.key == "caddy" for label in self.labels):
-                DockerContainerManager.connect_to_network(new_container, "caddy")
-
         container.start()
-
         self.save()
 
     def stop(self) -> None:
@@ -597,52 +576,6 @@ Miscelanous:
 
         container.stop()
         self.save()
-
-    def recreate(self) -> None:
-        """Recreate the service's Docker container with current configuration.
-
-        This method stops and removes the existing container, then creates a new one
-        with the current service configuration. Useful when container settings have changed
-        and you want to apply those changes without manually deleting and recreating the service.
-
-        Raises:
-            ServiceOperationException: If the container does not exist or cannot be recreated.
-        """
-        if not self.container_id:
-            raise ServiceOperationException("Service does not have a container ID")
-
-        container = DockerContainerManager.get_container(self.container_id)
-        if not container:
-            raise ServiceOperationException(
-                f"Container with ID {self.container_id} not found"
-            )
-
-        get_logger(__name__).info(f"Recreating container for service '{self.name}'")
-
-        # Capture the running state before recreation
-        was_running = self.status == ServiceStatus.RUNNING
-
-        # Recreate the container
-        new_container = DockerContainerManager.recreate_container(container, self)
-
-        # Update the service with the new container ID
-        self.container_id = new_container.id
-
-        # Reconnect to networks
-        DockerContainerManager.connect_to_network(new_container, self.user.name)
-
-        # Check for caddy network connection
-        if any(label.key == "caddy" for label in self.labels):
-            DockerContainerManager.connect_to_network(new_container, "caddy")
-
-        self.save()
-
-        # Start the container if it was running before recreation
-        if was_running:
-            new_container.start()
-            get_logger(__name__).info(
-                f"Restarted container for service '{self.name}' after recreation"
-            )
 
     def delete(self) -> None:
         """Delete the service and its Docker container."""
@@ -752,7 +685,6 @@ Miscelanous:
                 labels=self.labels,
                 ports=self.exposed_ports,
                 volumes=self.volumes,
-                environment_variables=self.env,
             )
 
             self.container_id = container.id
