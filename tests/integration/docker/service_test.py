@@ -1896,20 +1896,24 @@ CMD cat /version.txt
         test_service: Service,
     ) -> None:
         """Test that recreate restarts a running service."""
-        # Set service status to RUNNING
-        test_service.status = ServiceStatus.RUNNING
-        test_service.save()
-
         # Mock container operations
         mock_old_container = mocker.MagicMock()
+        mock_old_container.status = "running"  # Container is running
         mock_new_container = mocker.MagicMock()
         mock_new_container.id = "new-container-id"
         mock_new_container.start = mocker.MagicMock()
 
-        mocker.patch(
-            "svs_core.docker.service.DockerContainerManager.get_container",
-            return_value=mock_old_container,
+        # Mock get_container to return running container first
+        mock_get_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container"
         )
+        # First call for status check (in recreate), second call for recreation
+        mock_get_container.side_effect = [
+            mock_old_container,
+            mock_old_container,
+            mock_old_container,
+        ]
+
         mocker.patch(
             "svs_core.docker.service.DockerContainerManager.recreate_container",
             return_value=mock_new_container,
@@ -1921,7 +1925,7 @@ CMD cat /version.txt
         # Recreate the service
         test_service.recreate()
 
-        # Verify container was started
+        # Verify container was started (it was running before)
         mock_new_container.start.assert_called_once()
 
     @pytest.mark.integration

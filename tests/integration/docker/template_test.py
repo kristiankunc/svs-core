@@ -810,6 +810,7 @@ class TestTemplate:
     def test_postgres_template_json_is_valid(self) -> None:
         """Test that the postgres.json template has valid JSON structure."""
         import json
+
         from pathlib import Path
 
         # Load the postgres template
@@ -842,9 +843,7 @@ class TestTemplate:
 
         # Verify volumes
         assert len(template_data["default_volumes"]) == 1
-        assert (
-            template_data["default_volumes"][0]["container"] == "/var/lib/postgresql"
-        )
+        assert template_data["default_volumes"][0]["container"] == "/var/lib/postgresql"
 
         # Verify healthcheck
         assert template_data["healthcheck"] is not None
@@ -871,9 +870,9 @@ class TestTemplate:
             dockerfile_content = f.read()
 
         # Verify the CMD includes migrate command
-        assert "python manage.py migrate" in dockerfile_content, (
-            "Django Dockerfile should include 'python manage.py migrate' in CMD"
-        )
+        assert (
+            "python manage.py migrate" in dockerfile_content
+        ), "Django Dockerfile should include 'python manage.py migrate' in CMD"
 
         # Verify it's in the CMD line (not just a comment)
         cmd_lines = [
@@ -883,9 +882,9 @@ class TestTemplate:
 
         # Check that migrate is part of the CMD
         cmd_line = cmd_lines[0]
-        assert "migrate" in cmd_line, (
-            "CMD should include migrate command for auto-migration on startup"
-        )
+        assert (
+            "migrate" in cmd_line
+        ), "CMD should include migrate command for auto-migration on startup"
 
         # Verify it runs before gunicorn
         assert (

@@ -32,9 +32,7 @@ class TestDockerContainerManagerUnit:
         mock_service.ports = []
         mock_service.volumes = []
 
-        result = DockerContainerManager.has_config_changed(
-            mock_container, mock_service
-        )
+        result = DockerContainerManager.has_config_changed(mock_container, mock_service)
 
         assert result is True
         mock_container.reload.assert_called_once()
@@ -61,9 +59,7 @@ class TestDockerContainerManagerUnit:
         mock_service.ports = []
         mock_service.volumes = []
 
-        result = DockerContainerManager.has_config_changed(
-            mock_container, mock_service
-        )
+        result = DockerContainerManager.has_config_changed(mock_container, mock_service)
 
         assert result is True
 
@@ -92,9 +88,7 @@ class TestDockerContainerManagerUnit:
         mock_service.ports = []
         mock_service.volumes = []
 
-        result = DockerContainerManager.has_config_changed(
-            mock_container, mock_service
-        )
+        result = DockerContainerManager.has_config_changed(mock_container, mock_service)
 
         assert result is True
 
@@ -123,9 +117,7 @@ class TestDockerContainerManagerUnit:
         ]
         mock_service.volumes = []
 
-        result = DockerContainerManager.has_config_changed(
-            mock_container, mock_service
-        )
+        result = DockerContainerManager.has_config_changed(mock_container, mock_service)
 
         assert result is True
 
@@ -154,9 +146,7 @@ class TestDockerContainerManagerUnit:
             Volume(host_path="/tmp/config", container_path="/config"),  # Additional
         ]
 
-        result = DockerContainerManager.has_config_changed(
-            mock_container, mock_service
-        )
+        result = DockerContainerManager.has_config_changed(mock_container, mock_service)
 
         assert result is True
 
@@ -182,9 +172,7 @@ class TestDockerContainerManagerUnit:
         mock_service.ports = [ExposedPort(host_port=8080, container_port=80)]
         mock_service.volumes = [Volume(host_path="/tmp/data", container_path="/data")]
 
-        result = DockerContainerManager.has_config_changed(
-            mock_container, mock_service
-        )
+        result = DockerContainerManager.has_config_changed(mock_container, mock_service)
 
         assert result is False
 
@@ -192,7 +180,8 @@ class TestDockerContainerManagerUnit:
     def test_recreate_container_stops_running_container(
         self, mocker: MockerFixture
     ) -> None:
-        """Test recreate_container stops a running container before recreating."""
+        """Test recreate_container stops a running container before
+        recreating."""
         # Mock running container
         mock_container = mocker.MagicMock()
         mock_container.name = "test-container"
@@ -220,9 +209,7 @@ class TestDockerContainerManagerUnit:
             return_value=mock_new_container,
         )
 
-        result = DockerContainerManager.recreate_container(
-            mock_container, mock_service
-        )
+        result = DockerContainerManager.recreate_container(mock_container, mock_service)
 
         # Verify container was stopped and removed
         mock_container.stop.assert_called_once()
@@ -275,9 +262,7 @@ class TestDockerContainerManagerUnit:
             return_value=mock_new_container,
         )
 
-        result = DockerContainerManager.recreate_container(
-            mock_container, mock_service
-        )
+        result = DockerContainerManager.recreate_container(mock_container, mock_service)
 
         # Verify container was not stopped (already stopped)
         mock_container.stop.assert_not_called()
@@ -293,7 +278,8 @@ class TestDockerContainerManagerUnit:
     def test_recreate_container_raises_on_stop_failure(
         self, mocker: MockerFixture
     ) -> None:
-        """Test recreate_container raises ServiceOperationException on stop failure."""
+        """Test recreate_container raises ServiceOperationException on stop
+        failure."""
         # Mock container that fails to stop
         mock_container = mocker.MagicMock()
         mock_container.name = "test-container"
@@ -310,7 +296,8 @@ class TestDockerContainerManagerUnit:
     def test_recreate_container_raises_on_remove_failure(
         self, mocker: MockerFixture
     ) -> None:
-        """Test recreate_container raises ServiceOperationException on remove failure."""
+        """Test recreate_container raises ServiceOperationException on remove
+        failure."""
         # Mock container that fails to remove
         mock_container = mocker.MagicMock()
         mock_container.name = "test-container"
@@ -329,7 +316,8 @@ class TestDockerContainerManagerUnit:
     def test_recreate_container_raises_on_create_failure(
         self, mocker: MockerFixture
     ) -> None:
-        """Test recreate_container raises ServiceOperationException on create failure."""
+        """Test recreate_container raises ServiceOperationException on create
+        failure."""
         # Mock container
         mock_container = mocker.MagicMock()
         mock_container.name = "test-container"

@@ -583,26 +583,16 @@ class TestDockerContainerManager:
             args=["-f", "/dev/null"],
         )
 
-        # Create a mock service with identical configuration
+        # Test with different image - should detect change
         mock_service = mocker.MagicMock()
-        mock_service.image = self.TEST_IMAGE
+        mock_service.image = "nginx:latest"  # Different from TEST_IMAGE
         mock_service.command = "tail -f /dev/null"
         mock_service.environment_variables = []
         mock_service.ports = []
         mock_service.volumes = []
 
-        # Should return False since config is the same (ignoring system env vars)
-        # Note: has_config_changed currently does exact comparison, so this will be True
-        # because the container has no env vars set by us
         result = DockerContainerManager.has_config_changed(container, mock_service)
-        # The container will have PATH and other system env vars, so it will show as changed
-        # This is expected behavior - the method detects any difference
-        assert result is True or result is False  # Accept either result for this edge case
-
-        # Test with actual change - different image
-        mock_service.image = "nginx:latest"
-        result = DockerContainerManager.has_config_changed(container, mock_service)
-        assert result is True
+        assert result is True, "Should detect image change"
 
     @pytest.mark.integration
     def test_recreate_container_with_real_container(

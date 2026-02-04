@@ -155,7 +155,8 @@ class TestServiceUnit:
 
     @pytest.mark.unit
     def test_recreate_without_container_id(self, mocker: MockerFixture) -> None:
-        """Test that Service.recreate raises exception when container_id is None."""
+        """Test that Service.recreate raises exception when container_id is
+        None."""
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = None
 
@@ -167,7 +168,8 @@ class TestServiceUnit:
 
     @pytest.mark.unit
     def test_recreate_container_not_found(self, mocker: MockerFixture) -> None:
-        """Test that Service.recreate raises exception when container is not found."""
+        """Test that Service.recreate raises exception when container is not
+        found."""
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = "missing-container-id"
 
@@ -233,7 +235,8 @@ class TestServiceUnit:
 
     @pytest.mark.unit
     def test_recreate_restarts_running_service(self, mocker: MockerFixture) -> None:
-        """Test that Service.recreate restarts a running service after recreation."""
+        """Test that Service.recreate restarts a running service after
+        recreation."""
         # Create mock service with RUNNING status
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = "old-container-id"
@@ -269,7 +272,8 @@ class TestServiceUnit:
 
     @pytest.mark.unit
     def test_recreate_connects_to_caddy_network(self, mocker: MockerFixture) -> None:
-        """Test that Service.recreate connects to caddy network when label is present."""
+        """Test that Service.recreate connects to caddy network when label is
+        present."""
         # Create mock service with caddy label
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = "old-container-id"
