@@ -40,4 +40,4 @@ EXPOSE 8000
 
 USER appuser
 
-CMD ["sh", "-c", "/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_NAME}.wsgi"]
+CMD ["sh", "-c", "python manage.py migrate && /usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_NAME}.wsgi"]
