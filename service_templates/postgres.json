@@ -1,0 +1,46 @@
+{
+	"$schema": "https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/service_templates/schema.json",
+	"args": [],
+	"default_env": [
+		{
+			"key": "POSTGRES_USER",
+			"value": ""
+		},
+		{
+			"key": "POSTGRES_PASSWORD",
+			"value": ""
+		},
+		{
+			"key": "POSTGRES_DB",
+			"value": ""
+		}
+	],
+	"default_ports": [
+		{
+			"container": 5432,
+			"host": null
+		}
+	],
+	"default_volumes": [
+		{
+			"container": "/var/lib/postgresql",
+			"host": null
+		}
+	],
+	"description": "PostgreSQL database",
+	"docs_url": "https://svs.kristn.co.uk/guides/postgres/",
+	"healthcheck": {
+		"interval": 30,
+		"retries": 5,
+		"start_period": 20,
+		"test": [
+			"CMD-SHELL",
+			"pg_isready -U $$POSTGRES_USER"
+		],
+		"timeout": 10
+	},
+	"image": "postgres:17",
+	"name": "postgres-database",
+	"start_cmd": null,
+	"type": "image"
+}
