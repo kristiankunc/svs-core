@@ -39,9 +39,10 @@ def login(request: HttpRequest):
             )
             return redirect("index")
 
-    # Log failed login attempt
+    # Log failed login attempt without revealing whether username exists
+    ip_address = request.META.get("REMOTE_ADDR")
     security_logger.warning(
-        f"Failed login attempt for user '{username}' from IP {request.META.get('REMOTE_ADDR')}"
+        f"Failed login attempt from IP {ip_address} (username attempt: {username[:3] + '***' if username and len(username) > 3 else '***'})"
     )
     return render(request, "base/login.html", {"error": "Invalid credentials"})
 
