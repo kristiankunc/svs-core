@@ -90,11 +90,7 @@ jobs:
       - name: Build and Cache Images
         uses: docker/bake-action@v6
         with:
-          # Use the local checked-out code as the context
-          source: .
-          # Run from the directory where the compose and .env.ci files are
-          workdir: .github/extra
-          files: docker-compose.yml
+          files: .github/extra/docker-compose.yml
           load: true
           set: |
             *.cache-from=type=gha
@@ -108,6 +104,7 @@ jobs:
           POSTGRES_HOST: localhost
           PGPORT: 5432
         run: |
+          # Bake has already pulled/built and loaded images into Docker
           docker compose -f .github/extra/docker-compose.yml up -d
 
       - name: Install dependencies
