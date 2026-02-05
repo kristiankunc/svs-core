@@ -118,3 +118,114 @@ The `{% vite %}` template tag in `app/templatetags/vite.py` handles:
 - Run `npm run build` to generate assets
 - Ensure `DEBUG=False` in Django settings
 - Check that `static/vite/.vite/manifest.json` exists
+
+## Security Features
+
+The web interface includes several security hardening features for semi-production/testing environments:
+
+### HTTPS/SSL Security
+
+When `DEBUG=False`, the following security features are automatically enabled:
+- **HTTPS Redirect**: All HTTP traffic is redirected to HTTPS
+- **Secure Cookies**: Session and CSRF cookies are only sent over HTTPS
+- **HSTS Headers**: HTTP Strict Transport Security with 1-year duration
+
+These features require HTTPS to be configured via a reverse proxy (see deployment section below).
+
+### Session Management
+
+- **Signed Cookie Sessions**: Sessions are stored in cryptographically signed cookies
+- Sessions persist across server restarts
+- No server-side storage overhead
+- Session integrity guaranteed by cryptographic signing
+
+### Rate Limiting
+
+Login attempts are rate-limited to prevent brute-force attacks:
+- **Limit**: 5 login attempts per 15 minutes per IP address
+- After exceeding the limit, users must wait before trying again
+- Rate limit resets automatically after the time window
+
+### Security Audit Logging
+
+All security-critical events are logged to `logs/security.log`:
+- Failed login attempts (username, IP, timestamp)
+- Successful logins (username, IP, timestamp)
+- Rate limit violations
+
+**Log Location**: `web/logs/security.log`
+
+Make sure the `logs/` directory exists and is writable:
+```bash
+mkdir -p logs
+chmod 755 logs
+```
+
+### Additional Security Headers
+
+The following security headers are set on all responses:
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `X-XSS-Protection: 1; mode=block`
+- `Referrer-Policy: same-origin`
+
+## Deployment Recommendations
+
+### HTTPS Setup with Reverse Proxy
+
+For production deployments, use a reverse proxy like nginx or Caddy for HTTPS termination:
+
+**Example nginx configuration:**
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name your-domain.com;
+
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+**Example Caddy configuration:**
+```caddyfile
+your-domain.com {
+    reverse_proxy localhost:8000
+}
+```
+
+### Security Best Practices
+
+1. **Generate a strong SECRET_KEY**:
+   ```bash
+   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+   ```
+
+2. **Always set `DEBUG=False` in production** - This enables all security features
+
+3. **Use HTTPS** - Configure a reverse proxy with valid SSL certificates (Let's Encrypt recommended)
+
+4. **Network Isolation** - Run the web interface on an isolated network or VPN when possible
+
+5. **Regular Updates** - Keep all dependencies up to date for security patches
+
+6. **Monitor Logs** - Regularly review `logs/security.log` for suspicious activity
+
+### Important Security Notes
+
+!!! warning
+    The web interface requires running as root to manage Docker containers. While this is unavoidable for the application's functionality, the security measures implemented provide defense in depth:
+    
+    - Rate limiting prevents brute-force attacks
+    - Audit logging enables security monitoring
+    - HTTPS and secure cookies protect data in transit
+    - Security headers prevent common web vulnerabilities
+    
+    **The interface should NOT be exposed directly to the public internet.** Use a VPN, firewall rules, or network isolation to restrict access to trusted users only.
