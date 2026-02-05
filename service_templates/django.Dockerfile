@@ -40,12 +40,4 @@ EXPOSE 8000
 
 USER appuser
 
-CMD ["sh", "-c", "\
-    python manage.py migrate && \
-    gunicorn ${APP_NAME}.wsgi \
-    --bind 0.0.0.0:8000 \
-    --workers 3 \
-    --access-logfile - \
-    --error-logfile - \
-    --log-level info \
-    "]
+CMD ["sh", "-c", "python manage.py migrate && gunicorn ${APP_NAME}.wsgi --bind 0.0.0.0:8000 --workers 3 --access-logfile - --error-logfile - --log-level info"]
