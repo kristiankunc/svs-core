@@ -32,7 +32,8 @@ Volumes can be examined using the [detailed service view](#detailed-view).
 
 ### DNS
 
-All services owned by a single user are connected to the same network. This means that services can communicate with each other using their service names as hostnames. For example, if you have a database service named `my-database`, other services can connect to it using the hostname `my-database`.
+All services owned by a single user are connected to the same network. This means that services can communicate with each other using their service `IDs` as hostnames. For example, if you have a database service with `ID` 5, you can connect to it from another service using the hostname `svs-5` - in general `svs-<service_id>`.
+
 ---
 
 ## Generic stepts
