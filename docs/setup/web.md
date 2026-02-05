@@ -5,7 +5,7 @@ A web UI is provided for controlling SVS and provides a more user-friendly way t
 !!! danger "Security Notice"
 
     The web interface requires running as `root` to manage Docker containers. While security hardening features are implemented (rate limiting, HTTPS, audit logging), the interface should **NOT be exposed directly to the public internet**.
-    
+
     **Recommended deployment:**
     - Use within an isolated network or VPN
     - Configure firewall rules to restrict access
@@ -82,69 +82,6 @@ cp .env.example .env
 
 All the required environment variables are documented in the `.env.example` file.
 
-### Security Configuration
-
-For semi-production/testing deployments, ensure proper security configuration:
-
-1. **Generate a strong SECRET_KEY**:
-   ```bash
-   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-   ```
-   Add this to your `.env` file as `DJANGO_SECRET_KEY`.
-
-2. **Set DEBUG=False** in production to enable:
-   - HTTPS redirects
-   - Secure cookies (session and CSRF)
-   - HSTS headers
-   - Additional security protections
-
-3. **Configure ALLOWED_HOSTS** with your actual domain/IP:
-   ```bash
-   DJANGO_ALLOWED_HOSTS=yourdomain.com,192.168.1.100
-   ```
-
-### HTTPS Setup with Reverse Proxy
-
-The web interface requires HTTPS for production use. Use a reverse proxy like nginx or Caddy:
-
-**Caddy (recommended for simplicity):**
-```caddyfile
-yourdomain.com {
-    reverse_proxy localhost:8000
-}
-```
-
-Caddy automatically handles HTTPS certificates via Let's Encrypt.
-
-**nginx:**
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name yourdomain.com;
-
-    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### Security Features
-
-The web interface includes:
-
-- **Rate Limiting**: Login attempts limited to 5 per 15 minutes per IP
-- **Audit Logging**: Security events logged to `web/logs/security.log`
-- **Signed Cookie Sessions**: Cryptographically secure session storage
-- **Security Headers**: XSS protection, clickjacking prevention, content type sniffing protection
-- **HTTPS Enforcement**: Automatic redirect when `DEBUG=False`
-
 ## Running
 
 Create the logs directory for security audit logging:
@@ -161,11 +98,12 @@ sudo -E .venv/bin/gunicorn project.wsgi --bind 0.0.0.0:8000 # sudo warning menti
 
 After starting, you can access the web interface in your browser at `http://<your-server-ip>:8000`
 
-!!! note "Production Deployment"
+## Security recommendations
 
-    For production use:
-    1. Set `DEBUG=False` in your `.env` file
-    2. Configure HTTPS using a reverse proxy (Caddy or nginx)
-    3. Ensure the `logs/` directory exists and is writable
-    4. Review security logs regularly: `tail -f web/logs/security.log`
-    5. Use firewall rules or VPN to restrict access to trusted IPs only
+For production use:
+
+1. Set `DEBUG=False` in your `.env` file
+2. Configure HTTPS using a reverse proxy (Caddy or nginx)
+3. Ensure the `logs/` directory exists and is writable
+4. Review security logs regularly: `tail -f web/logs/security.log`
+5. Use firewall rules or VPN to restrict access to trusted IPs only
