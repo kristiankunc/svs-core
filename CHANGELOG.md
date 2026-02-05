@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.1](https://github.com/kristiankunc/svs-core/compare/v0.12.0...v0.12.1) (2026-02-05)
+
+
+### Bug Fixes
+
+* **core:** Make django prod ready ([#277](https://github.com/kristiankunc/svs-core/issues/277)) ([ec8bd0a](https://github.com/kristiankunc/svs-core/commit/ec8bd0ac283f617af934e10df7db4b286d4b37f1))
+* **docs:** Add MySQL and Adminer template guides ([#275](https://github.com/kristiankunc/svs-core/issues/275)) ([77e20b3](https://github.com/kristiankunc/svs-core/commit/77e20b32912c9e13512e7a702dd6dc4c39aa0e8c))
+
 ## [0.12.0](https://github.com/kristiankunc/svs-core/compare/v0.11.2...v0.12.0) (2026-01-31)
 
 
