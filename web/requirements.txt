@@ -1,4 +1,4 @@
+django-ratelimit==4.1.0
 gunicorn==24.1.1
 python-dotenv==1.2.1
 whitenoise==6.11.0
-django-ratelimit==4.1.0
