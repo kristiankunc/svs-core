@@ -2,10 +2,15 @@
 
 A web UI is provided for controlling SVS and provides a more user-friendly way to organise your system.
 
-!!! danger
+!!! danger "Security Notice"
 
-    The web interface is considered insecure and experimental. Exposing to the internet is not recommended.
-    This is because it requires running as `root` before changes are made to the core library.
+    The web interface requires running as `root` to manage Docker containers. While security hardening features are implemented (rate limiting, HTTPS, audit logging), the interface should **NOT be exposed directly to the public internet**.
+
+    **Recommended deployment:**
+    - Use within an isolated network or VPN
+    - Configure firewall rules to restrict access
+    - Always use HTTPS with a reverse proxy
+    - Enable all security features by setting `DEBUG=False`
 
 ## Prerequisites
 
@@ -79,6 +84,12 @@ All the required environment variables are documented in the `.env.example` file
 
 ## Running
 
+Create the logs directory for security audit logging:
+
+```bash
+mkdir -p logs
+```
+
 To start the web interface, simply run:
 
 ```bash
@@ -86,3 +97,13 @@ sudo -E .venv/bin/gunicorn project.wsgi --bind 0.0.0.0:8000 # sudo warning menti
 ```
 
 After starting, you can access the web interface in your browser at `http://<your-server-ip>:8000`
+
+## Security recommendations
+
+For production use:
+
+1. Set `DEBUG=False` in your `.env` file
+2. Configure HTTPS using a reverse proxy (Caddy or nginx)
+3. Ensure the `logs/` directory exists and is writable
+4. Review security logs regularly: `tail -f web/logs/security.log`
+5. Use firewall rules or VPN to restrict access to trusted IPs only
