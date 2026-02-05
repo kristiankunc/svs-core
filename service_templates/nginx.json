@@ -21,7 +21,7 @@
 		}
 	],
 	"description": "A minimal NGINX web server with default config",
-	"docs_url": "https://svs.kristn.co.uk/guides/nginx/",
+	"docs_url": "https://svs.kristn.co.uk/api-reference/official-templates/webservers/nginx/",
 	"healthcheck": {
 		"interval": 30,
 		"retries": 3,

@@ -32,7 +32,7 @@
 		}
 	],
 	"description": "MySQL database",
-	"docs_url": "https://svs.kristn.co.uk/guides/mysql/",
+	"docs_url": "https://svs.kristn.co.uk/api-reference/official-templates/databases/mysql/",
 	"healthcheck": {
 		"interval": 30,
 		"retries": 5,
