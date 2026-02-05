@@ -2,12 +2,6 @@
 
 This section contains various guides aimed at helping you configure and deploy your projects.
 
-**Available Guides:**
-
-- [Static website (NGINX)](./nginx.md) - NGINX is used to deploy static (HTML, CSS, JS) websites.
-- [MySQL database](./mysql.md) - MySQL is a widely used open-source relational database management system.
-- [Adminer database management](./adminer.md) - Adminer is a full-featured database management tool written in PHP.
-
 ## Terminology
 
 - **Docker**: Docker is a platform that balances the ease of application deployment with the need for isolation and resource control. It uses containerization technology to package applications and their dependencies into lightweight, portable containers that can run consistently across different environments.

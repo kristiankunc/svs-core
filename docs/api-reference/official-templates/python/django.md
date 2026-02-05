@@ -18,7 +18,6 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
 Additionally, you need to set `APP_NAME` environment variable to match your Django project name so that the template can correctly point to your `wsgi` module. For example, if your project is named `myproject`, set `APP_NAME` to `myproject`.
 
-
 ## Definition
 
 ??? note "Source"
