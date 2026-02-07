@@ -1,4 +1,4 @@
 django-ratelimit==4.1.0
-gunicorn==24.1.1
+gunicorn==25.0.2
 python-dotenv==1.2.1
 whitenoise==6.11.0
