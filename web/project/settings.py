@@ -4,11 +4,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from svs_core.db.settings import DATABASES as SVS_DATABASES
 from svs_core.shared.env_manager import EnvManager
 
 EnvManager.load_env_file()
 
+from svs_core.db.settings import DATABASES as SVS_DATABASES
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
