@@ -107,3 +107,63 @@ For production use:
 3. Ensure the `logs/` directory exists and is writable
 4. Review security logs regularly: `tail -f web/logs/security.log`
 5. Use firewall rules or VPN to restrict access to trusted IPs only
+
+## Background service
+
+Best way to run the web interface in production is to set it up as a systemd service. Create a new file at `/etc/systemd/system/svs-web.service` with the following content:
+
+```ini
+[Unit]
+Description=SVS Web Interface
+After=network.target
+[Service]
+User=root
+WorkingDirectory=/path/to/svs-core/web
+ExecStart=/path/to/svs-core/web/.venv/bin/gunicorn project.wsgi --bind 0.0.0.0:8000 --workers 3
+Restart=always
+[Install]
+WantedBy=multi-user.target
+```
+
+Replace all the variables and paths with the appropriate values for your system. After creating the service file, reload systemd and start the service:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable svs-web
+sudo systemctl start svs-web
+```
+
+## Domain configuration
+
+**As mentioned above, exposing publically is not recommended, but is supported**.
+
+Modify `/etc/svs/docker/docker-compose.yml` and append the following to the `caddy` service definition to mount the Caddyfile and tell Caddy to use it:
+
+```yaml
+caddy:
+    ...
+    volumes:
+      ...
+      - ./web.Caddyfile:/etc/caddy/web.Caddyfile:ro # Mount the Caddyfile
+    environment:
+      ...
+      - CADDY_DOCKER_CADDYFILE_PATH=/etc/caddy/web.Caddyfile # Tell Caddy to use the mounted Caddyfile
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # Allow Caddy to access the host network
+```
+
+Then create the `web.Caddyfile` in the root repository with the following content:
+
+```caddy
+example.com {
+    reverse_proxy host.docker.internal:8000
+}
+```
+
+This is a minimal config, you can extend it with additional security features like rate limiting, IP allowlisting, etc. For more details, refer to the [Caddy documentation](https://caddyserver.com/docs/caddyfile).
+
+Restart the SVS services to apply the changes:
+
+```bash
+(cd /etc/svs/docker && docker compose down && docker compose up -d)
+```
