@@ -32,7 +32,7 @@ dev = [
 ]
 docs = [
     "zensical==0.0.20",
-    "mkdocstrings[python]==1.0.2",
+    "mkdocstrings[python]==1.0.3",
     "mkdocs-awesome-nav==3.3.0",
     "mkdocs-pdf==0.1.2",
 ]
