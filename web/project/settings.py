@@ -4,11 +4,11 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from svs_core.db.settings import DATABASES as SVS_DATABASES
 from svs_core.shared.env_manager import EnvManager
 
 EnvManager.load_env_file()
 
-from svs_core.db.settings import DATABASES as SVS_DATABASES
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -22,6 +22,12 @@ DEBUG = os.getenv("DJANGO_DEBUG", False).lower() in ("true", "1", "t")
 
 ALLOWED_HOSTS = (
     os.getenv("DJANGO_ALLOWED_HOSTS", "localhost, 127.0.0.1")
+    .replace(" ", "")
+    .split(",")
+)
+
+CSRF_TRUSTED_ORIGINS = (
+    os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "https://localhost, https://127.0.0.1")
     .replace(" ", "")
     .split(",")
 )
