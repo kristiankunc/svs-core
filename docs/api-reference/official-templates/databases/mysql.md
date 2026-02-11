@@ -4,25 +4,49 @@ A template for the [MySQL](https://www.mysql.com/) database server.
 
 ## Usage
 
-This template allows you to quickly deploy a MySQL database server. You only need to configure the credentials for the root user and a normal user using the environment variables provided.
+1. [Create a service](../../../guides/index.md#create-a-service) with required environment variables (see below)
+2. [Start the service](../../../guides/index.md#control)
+3. Connect from other services using the container name `svs-{service_id}` (see [DNS](../../../guides/index.md#dns))
 
+## Required Environment Variables
 
-When [creating the service](./index.md#create-a-service), you can configure your MySQL database by setting the following [environment variables](./index.md#terminology):
+When creating the service, configure these environment variables:
 
- - `MYSQL_ROOT_PASSWORD`: The password for the MySQL root user.
- - `MYSQL_DATABASE`: The name of a database to be created when the MySQL server starts for.
- - `MYSQL_USER`: The name of a user to be created when the MySQL server starts.
- - `MYSQL_PASSWORD`: The password for the user specified in MYSQL_USER.
+- `MYSQL_ROOT_PASSWORD` - Password for root user
+- `MYSQL_DATABASE` - Database name to create on startup
+- `MYSQL_USER` - Username to create
+- `MYSQL_PASSWORD` - Password for the user
 
+**Example:**
+```bash
+sudo svs service create my-db <template_id> \
+  --env MYSQL_ROOT_PASSWORD=rootpass \
+  --env MYSQL_DATABASE=mydb \
+  --env MYSQL_USER=myuser \
+  --env MYSQL_PASSWORD=mypass
+```
 
-## Access your database
+## Connecting to Your Database
 
-Refer to [Docker's DNS](./index.md#dns) section for information on how to connect to your database service from other services.
+**From another service:** Use [Docker DNS](../../../guides/index.md#dns) with the service container name:
+```
+mysql://svs-{database_service_id}:3306/mydb
+```
 
+For example, if your MySQL service has ID `4`:
+```
+mysql://svs-4:3306/mydb
+```
 
-Once you have [started the service](./index.md#control). You can use the port that's been [assigned to your service](./index.md#detailed-view) along with the service name to connect to your MySQL database.
+**From external clients:** Find the assigned host port in [service details](../../../guides/index.md#detailed-view) and use:
+```bash
+mysql -h server-ip -P <host_port> -u myuser -p
+```
 
-To connect, use either the root user or the user you created with the environment variables during setup.
+## Configuration
+
+- **Port:** Container port 3306 (MySQL default)
+- **Volume:** `/var/lib/mysql` - Database files (persistent)
 
 ## Definition
 

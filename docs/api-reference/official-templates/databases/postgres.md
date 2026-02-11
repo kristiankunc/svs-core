@@ -4,22 +4,47 @@ A template for the [PostgreSQL](https://www.postgresql.org/) database server.
 
 ## Usage
 
-This template allows you to quickly deploy a PostgreSQL database server. You only need to configure the credentials for the default user and database using the environment variables provided.
+1. [Create a service](../../../guides/index.md#create-a-service) with required environment variables (see below)
+2. [Start the service](../../../guides/index.md#control)
+3. Connect from other services using the container name `svs-{service_id}` (see [DNS](../../../guides/index.md#dns))
 
-When [creating the service](./index.md#create-a-service), you can configure your PostgreSQL database by setting the following [environment variables](./index.md#terminology):
+## Required Environment Variables
 
- - `POSTGRES_USER`: The username for the PostgreSQL user to be created when the server starts.
- - `POSTGRES_PASSWORD`: The password for the user specified in POSTGRES_USER.
- - `POSTGRES_DB`: The name of a database to be created when the PostgreSQL server starts.
+When creating the service, configure these environment variables:
 
+- `POSTGRES_USER` - Username for PostgreSQL user
+- `POSTGRES_PASSWORD` - Password for the user
+- `POSTGRES_DB` - Database name to create on startup
 
-## Access your database
+**Example:**
+```bash
+sudo svs service create my-db <template_id> \
+  --env POSTGRES_USER=myuser \
+  --env POSTGRES_PASSWORD=mypass \
+  --env POSTGRES_DB=mydb
+```
 
-Refer to [Docker's DNS](./index.md#dns) section for information on how to connect to your database service from other services.
+## Connecting to Your Database
 
-Once you have [started the service](./index.md#control), you can use the port that's been [assigned to your service](./index.md#detailed-view) along with the service name to connect to your PostgreSQL database.
+**From another service:** Use [Docker DNS](../../../guides/index.md#dns) with the service container name:
+```
+postgresql://svs-{database_service_id}:5432/mydb
+```
 
-To connect, use the user and database credentials you configured with the environment variables during setup.
+For example, if your PostgreSQL service has ID `3`:
+```
+postgresql://svs-3:5432/mydb
+```
+
+**From external clients:** Find the assigned host port in [service details](../../../guides/index.md#detailed-view) and use:
+```bash
+psql -h server-ip -p <host_port> -U myuser -d mydb
+```
+
+## Configuration
+
+- **Port:** Container port 5432 (PostgreSQL default)
+- **Volume:** `/var/lib/postgresql/data` - Database files (persistent)
 
 ## Definition
 
