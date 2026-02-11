@@ -14,7 +14,7 @@ Further, continue on the respective guide for the type of service you want to de
 
 ---
 
-## Generic stepts
+## Generic steps
 
 The section below outlines the generic steps to follow when using any of the guides provided.
 
@@ -171,6 +171,51 @@ To access your service via a custom domain name, you need to add a domain to it.
 
 Generally, SVS tends to be hosted under one domain, for example, `example.com`. In that case, you can access your service via a subdomain like `my-service.example.com` by adding `my-service.example.com` as a domain to your service. If you add a domain that is not a subdomain of the main domain, for example, `anotherdomain.com`, you will need to configure the DNS records for that domain to point to your server's IP address.
 
+---
+
+### DNS
+
+SVS automatically configures Docker DNS for inter-service communication. Each service can communicate with other services using Docker's internal DNS resolution.
+
+#### Container naming
+
+All service containers are named using the pattern `svs-{id}`, where `{id}` is the service ID. For example, if your service has ID `5`, its container will be named `svs-5`.
+
+#### Connecting services
+
+To connect one service to another (e.g., connecting a web application to a database), use the container name `svs-{id}`:
+
+**Example: Connecting to a database service**
+
+If you have a PostgreSQL database service with ID `3`, you can connect to it from other services using:
+
+```
+Host: svs-3
+Port: 5432 (the container port, not the host port)
+```
+
+For example, in a Django `settings.py`:
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mydatabase',
+        'USER': 'myuser',
+        'PASSWORD': 'mypassword',
+        'HOST': 'svs-3',  # Use the service container name
+        'PORT': '5432',   # Use the container port
+    }
+}
+```
+
+**Important notes:**
+
+- Always use the **container port**, not the host port, for inter-service communication
+- Services must be in the same Docker network (by default, services owned by the same user share a network)
+- External access to services uses the host port and server IP address
+
+---
 
 ### Uploading files
 
@@ -182,3 +227,78 @@ Generally, SVS tends to be hosted under one domain, for example, `example.com`. 
 #### GIT
 
 Each service can have multiple GIT sources configured. This allows you to deploy your code directly from a GIT repository. You can use any GIT provider (GitHub, GitLab, Bitbucket, etc.).
+
+**Adding a git source:**
+
+```bash
+sudo svs service add-git-source <service_id> <git_url> <destination_path> --branch <branch_name>
+```
+
+Example:
+```bash
+sudo svs service add-git-source 7 https://github.com/user/my-app.git /var/svs/volumes/1/randomid --branch main
+```
+
+**Downloading/updating from git:**
+
+```bash
+sudo svs service download-git-source <git_source_id>
+```
+
+This clones or pulls the latest code from the repository to the configured destination path.
+
+**Deleting a git source:**
+
+```bash
+sudo svs service delete-git-source <git_source_id>
+```
+
+To see all git sources for a service, use `svs service get <service_id>` and look at the `git_sources` field.
+
+---
+
+### Building services
+
+SVS supports two types of templates:
+
+1. **Image templates** - Use pre-built Docker images from registries (e.g., NGINX, PostgreSQL, MySQL)
+2. **Build templates** - Build Docker images on-demand from your source code (e.g., Django, Python, PHP, SvelteKit)
+
+#### Build process
+
+For build templates, you need to:
+
+1. Create a service from a build template
+2. Upload your source code to the service's volume
+3. Build the Docker image: `sudo svs service build <service_id> <volume_path>`
+4. Start the service
+
+The volume's host path becomes the build context. All files in the volume are available during the Docker build.
+
+**If the build fails**, a detailed error log is written to `docker_build_error.log` in your volume directory (the build context).
+
+**Example:**
+
+```bash
+# 1. Create service
+sudo svs service create my-app 5 --env APP_NAME=myproject
+
+# 2. Get volume path
+sudo svs service get 7
+# Shows: volumes=['Volume(/app=/var/svs/volumes/1/abc123)']
+
+# 3. Upload code via GIT
+sudo svs service add-git-source 7 https://github.com/user/my-app.git /var/svs/volumes/1/abc123 --branch main
+sudo svs service download-git-source 1
+
+# Or upload via SSH
+scp -r ./my-app/* user@server:/var/svs/volumes/1/abc123/
+
+# 4. Build
+sudo svs service build 7 /var/svs/volumes/1/abc123
+
+# 5. Start
+sudo svs service start 7
+```
+
+To rebuild after code updates, re-download the git source or re-upload via SSH, then run the build command again.
