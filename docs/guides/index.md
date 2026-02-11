@@ -228,6 +228,33 @@ DATABASES = {
 
 Each service can have multiple GIT sources configured. This allows you to deploy your code directly from a GIT repository. You can use any GIT provider (GitHub, GitLab, Bitbucket, etc.).
 
+**Adding a git source:**
+
+```bash
+sudo svs service add-git-source <service_id> <git_url> <destination_path> --branch <branch_name>
+```
+
+Example:
+```bash
+sudo svs service add-git-source 7 https://github.com/user/my-app.git /var/svs/volumes/1/randomid --branch main
+```
+
+**Downloading/updating from git:**
+
+```bash
+sudo svs service download-git-source <git_source_id>
+```
+
+This clones or pulls the latest code from the repository to the configured destination path.
+
+**Deleting a git source:**
+
+```bash
+sudo svs service delete-git-source <git_source_id>
+```
+
+To see all git sources for a service, use `svs service get <service_id>` and look at the `git_sources` field.
+
 ---
 
 ### Building services
@@ -237,82 +264,41 @@ SVS supports two types of templates:
 1. **Image templates** - Use pre-built Docker images from registries (e.g., NGINX, PostgreSQL, MySQL)
 2. **Build templates** - Build Docker images on-demand from your source code (e.g., Django, Python, PHP, SvelteKit)
 
-#### How build templates work
+#### Build process
 
-For build templates (marked as `type: build` in template list), SVS builds a Docker image from your source code when you first start the service. Here's how it works:
+For build templates, you need to:
 
-**1. Service creation**
+1. Create a service from a build template
+2. Upload your source code to the service's volume
+3. Build the Docker image: `sudo svs service build <service_id> <volume_path>`
+4. Start the service
 
-When you create a service from a build template, SVS automatically creates a volume where your source code will be stored. This volume is mounted to a path inside the container (e.g., `/app` for Python/Django templates).
+The volume's host path becomes the build context. All files in the volume are available during the Docker build.
 
-**2. Upload your source code**
+**If the build fails**, a detailed error log is written to `docker_build_error.log` in your volume directory (the build context).
 
-Before building, you need to upload your application source code to the service's volume. You can do this via:
-
-- **GIT**: Use `svs service git-source add` to connect a Git repository
-- **SSH**: Use `scp` or `sftp` to copy files directly to the volume path
-
-To find your service's volume path, use `svs service get <service_id>` and look for the volume mapping. For example:
-
-```
-volumes=['Volume(/app=/var/svs/volumes/1/abc123xyz)']
-```
-
-This means:
-- `/app` is the container path (where your app runs inside the container)
-- `/var/svs/volumes/1/abc123xyz` is the host path (where files are stored on the server)
-
-**3. The build process**
-
-When you build a service (either via `svs service build <service_id> <volume_path>` or when deploying from GIT), SVS:
-
-1. Uses the **volume's host path** as the build context
-2. Copies all files from the volume into a temporary build directory
-3. Creates a Dockerfile from the template's definition
-4. Runs `docker build` with your source files and the Dockerfile
-5. Names the resulting image `svs-{service_id}:latest`
-6. Creates a container from this image
-
-**Important notes:**
-
-- Your source code must be in the volume directory **before** building
-- The entire volume directory becomes the build context (all files are available during build)
-- For build templates, the container is created **after** the image is built, not during service creation
-- Environment variables are passed as build arguments and can be used in the Dockerfile
-
-**Example workflow for a Django app:**
+**Example:**
 
 ```bash
-# 1. Create the service
-sudo svs service create my-django-app 5 --env APP_NAME=myproject
+# 1. Create service
+sudo svs service create my-app 5 --env APP_NAME=myproject
 
-# 2. Find the volume path
+# 2. Get volume path
 sudo svs service get 7
-# Output shows: volumes=['Volume(/app=/var/svs/volumes/1/randomid)']
+# Shows: volumes=['Volume(/app=/var/svs/volumes/1/abc123)']
 
-# 3. Upload your Django project to the volume
-# Either via GIT:
-sudo svs service git-source add 7 https://github.com/user/django-project.git main
-sudo svs service git-source deploy 7 1
+# 3. Upload code via GIT
+sudo svs service add-git-source 7 https://github.com/user/my-app.git /var/svs/volumes/1/abc123 --branch main
+sudo svs service download-git-source 1
 
-# Or via SSH/SCP:
-scp -r ./my-django-project/* user@server:/var/svs/volumes/1/randomid/
+# Or upload via SSH
+scp -r ./my-app/* user@server:/var/svs/volumes/1/abc123/
 
-# 4. Build the service (if using SSH; GIT deploy does this automatically)
-sudo svs service build 7 /var/svs/volumes/1/randomid
+# 4. Build
+sudo svs service build 7 /var/svs/volumes/1/abc123
 
-# 5. Start the service
+# 5. Start
 sudo svs service start 7
 ```
 
-#### Rebuilding services
-
-If you update your source code, you can rebuild the service to apply the changes:
-
-```bash
-# Update your code (via GIT or SSH)
-# Then rebuild
-sudo svs service build <service_id> <volume_path>
-```
-
-This creates a new Docker image with your updated code. If the service is running, it will be stopped, rebuilt, and restarted automatically.
+To rebuild after code updates, re-download the git source or re-upload via SSH, then run the build command again.
