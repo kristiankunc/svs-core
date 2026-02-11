@@ -12,11 +12,18 @@ A template for the [Adminer](https://www.adminer.org/) database management tool 
 ## Connecting to SVS Database Services
 
 On the Adminer login page:
-- **Server:** Use the service name (e.g., `my-postgres` or `my-mysql`)
+- **Server:** Use the container name `svs-{service_id}` (e.g., `svs-3` for a database with ID 3)
 - **Username/Password:** Use credentials from your database service
 - **Database:** Database name (optional)
 
-For more on service names, see [Docker DNS](../../../guides/index.md#dns).
+For example, to connect to a PostgreSQL service with ID `3`:
+- System: PostgreSQL
+- Server: `svs-3`
+- Username: `myuser`
+- Password: `mypassword`
+- Database: `mydatabase`
+
+For more on service naming, see [Docker DNS](../../../guides/index.md#dns).
 
 ## Configuration
 

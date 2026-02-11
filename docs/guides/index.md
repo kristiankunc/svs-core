@@ -171,6 +171,51 @@ To access your service via a custom domain name, you need to add a domain to it.
 
 Generally, SVS tends to be hosted under one domain, for example, `example.com`. In that case, you can access your service via a subdomain like `my-service.example.com` by adding `my-service.example.com` as a domain to your service. If you add a domain that is not a subdomain of the main domain, for example, `anotherdomain.com`, you will need to configure the DNS records for that domain to point to your server's IP address.
 
+---
+
+### DNS
+
+SVS automatically configures Docker DNS for inter-service communication. Each service can communicate with other services using Docker's internal DNS resolution.
+
+#### Container naming
+
+All service containers are named using the pattern `svs-{id}`, where `{id}` is the service ID. For example, if your service has ID `5`, its container will be named `svs-5`.
+
+#### Connecting services
+
+To connect one service to another (e.g., connecting a web application to a database), use the container name `svs-{id}`:
+
+**Example: Connecting to a database service**
+
+If you have a PostgreSQL database service with ID `3`, you can connect to it from other services using:
+
+```
+Host: svs-3
+Port: 5432 (the container port, not the host port)
+```
+
+For example, in a Django `settings.py`:
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mydatabase',
+        'USER': 'myuser',
+        'PASSWORD': 'mypassword',
+        'HOST': 'svs-3',  # Use the service container name
+        'PORT': '5432',   # Use the container port
+    }
+}
+```
+
+**Important notes:**
+
+- Always use the **container port**, not the host port, for inter-service communication
+- Services must be in the same Docker network (by default, services owned by the same user share a network)
+- External access to services uses the host port and server IP address
+
+---
 
 ### Uploading files
 
@@ -182,3 +227,92 @@ Generally, SVS tends to be hosted under one domain, for example, `example.com`. 
 #### GIT
 
 Each service can have multiple GIT sources configured. This allows you to deploy your code directly from a GIT repository. You can use any GIT provider (GitHub, GitLab, Bitbucket, etc.).
+
+---
+
+### Building services
+
+SVS supports two types of templates:
+
+1. **Image templates** - Use pre-built Docker images from registries (e.g., NGINX, PostgreSQL, MySQL)
+2. **Build templates** - Build Docker images on-demand from your source code (e.g., Django, Python, PHP, SvelteKit)
+
+#### How build templates work
+
+For build templates (marked as `type: build` in template list), SVS builds a Docker image from your source code when you first start the service. Here's how it works:
+
+**1. Service creation**
+
+When you create a service from a build template, SVS automatically creates a volume where your source code will be stored. This volume is mounted to a path inside the container (e.g., `/app` for Python/Django templates).
+
+**2. Upload your source code**
+
+Before building, you need to upload your application source code to the service's volume. You can do this via:
+
+- **GIT**: Use `svs service git-source add` to connect a Git repository
+- **SSH**: Use `scp` or `sftp` to copy files directly to the volume path
+
+To find your service's volume path, use `svs service get <service_id>` and look for the volume mapping. For example:
+
+```
+volumes=['Volume(/app=/var/svs/volumes/1/abc123xyz)']
+```
+
+This means:
+- `/app` is the container path (where your app runs inside the container)
+- `/var/svs/volumes/1/abc123xyz` is the host path (where files are stored on the server)
+
+**3. The build process**
+
+When you build a service (either via `svs service build <service_id> <volume_path>` or when deploying from GIT), SVS:
+
+1. Uses the **volume's host path** as the build context
+2. Copies all files from the volume into a temporary build directory
+3. Creates a Dockerfile from the template's definition
+4. Runs `docker build` with your source files and the Dockerfile
+5. Names the resulting image `svs-{service_id}:latest`
+6. Creates a container from this image
+
+**Important notes:**
+
+- Your source code must be in the volume directory **before** building
+- The entire volume directory becomes the build context (all files are available during build)
+- For build templates, the container is created **after** the image is built, not during service creation
+- Environment variables are passed as build arguments and can be used in the Dockerfile
+
+**Example workflow for a Django app:**
+
+```bash
+# 1. Create the service
+sudo svs service create my-django-app 5 --env APP_NAME=myproject
+
+# 2. Find the volume path
+sudo svs service get 7
+# Output shows: volumes=['Volume(/app=/var/svs/volumes/1/randomid)']
+
+# 3. Upload your Django project to the volume
+# Either via GIT:
+sudo svs service git-source add 7 https://github.com/user/django-project.git main
+sudo svs service git-source deploy 7 1
+
+# Or via SSH/SCP:
+scp -r ./my-django-project/* user@server:/var/svs/volumes/1/randomid/
+
+# 4. Build the service (if using SSH; GIT deploy does this automatically)
+sudo svs service build 7 /var/svs/volumes/1/randomid
+
+# 5. Start the service
+sudo svs service start 7
+```
+
+#### Rebuilding services
+
+If you update your source code, you can rebuild the service to apply the changes:
+
+```bash
+# Update your code (via GIT or SSH)
+# Then rebuild
+sudo svs service build <service_id> <volume_path>
+```
+
+This creates a new Docker image with your updated code. If the service is running, it will be stopped, rebuilt, and restarted automatically.

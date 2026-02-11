@@ -6,7 +6,7 @@ A template for the [PostgreSQL](https://www.postgresql.org/) database server.
 
 1. [Create a service](../../../guides/index.md#create-a-service) with required environment variables (see below)
 2. [Start the service](../../../guides/index.md#control)
-3. Connect from other services using the service name (e.g., `my-postgres:5432`)
+3. Connect from other services using the container name `svs-{service_id}` (see [DNS](../../../guides/index.md#dns))
 
 ## Required Environment Variables
 
@@ -26,9 +26,14 @@ sudo svs service create my-db <template_id> \
 
 ## Connecting to Your Database
 
-**From another service:** Use [Docker DNS](../../../guides/index.md#dns) with the service name:
+**From another service:** Use [Docker DNS](../../../guides/index.md#dns) with the service container name:
 ```
-postgresql://my-postgres:5432/mydb
+postgresql://svs-{database_service_id}:5432/mydb
+```
+
+For example, if your PostgreSQL service has ID `3`:
+```
+postgresql://svs-3:5432/mydb
 ```
 
 **From external clients:** Find the assigned host port in [service details](../../../guides/index.md#detailed-view) and use:

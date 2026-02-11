@@ -6,8 +6,10 @@ A template for the [Django](https://www.djangoproject.com/) web framework. This 
 
 1. Prepare your Django project (see below)
 2. [Create a service](../../../guides/index.md#create-a-service) with required environment variables
-3. [Upload your code](../../../guides/index.md#uploading-files) via GIT or SSH
-4. [Start the service](../../../guides/index.md#control)
+3. [Upload your code](../../../guides/index.md#uploading-files) via GIT or SSH to the service volume
+4. [Build and start](../../../guides/index.md#building-services) the service
+
+For detailed information about the build process, see [Building services](../../../guides/index.md#building-services).
 
 ## Preparation
 
@@ -49,13 +51,13 @@ sudo svs service create my-app <template_id> \
 
 For PostgreSQL, add these environment variables and configure `settings.py`:
 ```bash
---env DB_HOST=my-postgres \
+--env DB_HOST=svs-{postgres_service_id} \
 --env DB_NAME=mydb \
 --env DB_USER=myuser \
 --env DB_PASSWORD=mypass
 ```
 
-Use [Docker DNS](../../../guides/index.md#dns) with the service name.
+Replace `{postgres_service_id}` with your database service's ID. See [DNS](../../../guides/index.md#dns) for more details on service naming.
 
 ## Definition
 
