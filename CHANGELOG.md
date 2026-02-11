@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.2](https://github.com/kristiankunc/svs-core/compare/v0.12.1...v0.12.2) (2026-02-11)
+
+
+### Bug Fixes
+
+* **web:** Fix example env ([6a64e4d](https://github.com/kristiankunc/svs-core/commit/6a64e4d317a87d18a9ec330156d2c915cf8d75a3))
+
 ## [0.12.1](https://github.com/kristiankunc/svs-core/compare/v0.12.0...v0.12.1) (2026-02-05)
 
 
