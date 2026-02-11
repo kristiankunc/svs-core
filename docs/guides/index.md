@@ -14,19 +14,9 @@ Further, continue on the respective guide for the type of service you want to de
 
 ---
 
-## Common Steps
+## Generic steps
 
-For detailed information about the common steps used when deploying any service with SVS, see the **[Common Deployment Steps](common-steps.md)** reference page.
-
-This includes:
-- Finding and selecting templates
-- Creating and managing services
-- Configuring domains, environment variables, ports, and volumes
-- Uploading files via GIT or SSH
-- Accessing services via DNS
-- Viewing logs and troubleshooting
-
-The section below provides a quick overview of these steps.
+The section below outlines the generic steps to follow when using any of the guides provided.
 
 ### Find a template
 
