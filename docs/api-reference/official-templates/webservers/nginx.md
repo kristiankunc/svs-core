@@ -4,7 +4,9 @@ A template for the [NGINX](https://nginx.org) web server.
 
 ## Usage
 
-This template is fairly straightforward. After creating a service using this template, you can access the `www` directory inside the bind mount. All files here will be served by the NGINX web server.
+1. [Create a service](../../../guides/index.md#create-a-service) using the NGINX template
+2. Add a [domain](../../../guides/index.md#domains) to your service if you want to access it via a custom domain name.
+3. [Upload your website files](../../../guides/index.md#uploading-files) to the service's storage.
 
 
 ## Definition

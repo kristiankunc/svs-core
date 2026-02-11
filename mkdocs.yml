@@ -95,7 +95,7 @@ markdown_extensions:
           format: pymdownx.superfences.fence_code_format
   - pymdownx.snippets:
       auto_append:
-        - docs/abbreviations.md
+        - docs-includes/abbreviations.md
 
 extra:
   env:

@@ -6,7 +6,7 @@ What do you want to host?
 
 ## Web servers
 
-- **[nginx](web/nginx.md)**: A template for deploying the NGINX web server.
+- **[nginx](webservers/nginx.md)**: A template for deploying the NGINX web server.
 
 ## Databases
 - **[mysql](databases/mysql.md)**: A template for deploying the MySQL database server.

@@ -5,7 +5,7 @@
 
 ---
 
-- [Quickstart guide](setup/quickstart.md)
+- [Installation Quickstart guide](setup/quickstart.md)
 - [CLI documentation](cli.md)
 - [API documentation](api/index.md)
 - [Changelog](#changelog)
@@ -15,7 +15,15 @@
 
 SVS is a python library designed to provide users with an easy way to deploy containerized services on a host machine. It abstracts away the complexities of container orchestration, allowing users to focus on deploying and managing their applications with minimal effort.
 
+## Support
+
+Support is offered through the QnA section on [GitHub Discussions](https://github.com/kristiankunc/svs-core/discussions/categories/q-a).
+
 ---
+
+## Looking to deploy a service?
+
+Head over to the [Guide for users](guides/index.md) to learn how to deploy your first service with SVS.
 
 ## How does it work?
 

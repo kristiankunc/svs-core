@@ -2,31 +2,15 @@
 
 This section contains various guides aimed at helping you configure and deploy your projects.
 
-## Terminology
+## Support and troubleshooting
 
-- **Docker**: Docker is a platform that balances the ease of application deployment with the need for isolation and resource control. It uses containerization technology to package applications and their dependencies into lightweight, portable containers that can run consistently across different environments.
-- **Template**: A template is a predefined configuration that outlines how to build and run a specific type of service. It includes settings such as the base image, environment variables, ports, and volumes. Templates simplify the process of deploying services by providing a standardized setup.
-- **Service**: A service is an instance of a running application or process that is managed by SVS. Services are created based on templates and can be started, stopped, and configured as needed.
-- **Environment Variables**: Environment variables are dynamic values that can be used to configure the behavior of applications and services. They are often used to store sensitive information, such as database credentials or API keys, and can be accessed by the application at runtime.
-- **Port**: A port is a communication endpoint used by networked applications to send and receive data. In the context of SVS, ports are used to expose services to the outside world, allowing users to access web applications, databases, and other services running within containers.
-- **Domain**: A domain is a human-readable address used to access websites and services on the internet. In SVS, domains can be associated with services to provide easy access via web browsers. Otherwise, services can be accessed using the server's IP address and the assigned port.
+If you encounter any issues or have questions while using SVS, use QnA section on [GitHub Discussions](https://github.com/kristiankunc/svs-core/discussions/categories/q-a).
 
-### Volumes
+## What do you want to deploy?
 
-Because services run inside Docker containers, any data stored within the container is ephemeral and will be lost when the container is stopped or removed. To persist data beyond the lifecycle of a container, SVS uses Docker volumes (bind mounts) to map directories from the host system into the container.
+Be that a static website, a database, a web application, or something else - consult the [available templates](/api-reference/official-templates/index.md)
 
-To think of it simply, an SVS volume defines a mapping between a directory on the host machine and a directory inside the container. This allows data to be stored on the host system, ensuring that it remains intact even if the container is recreated or updated. Containers can both read and write data to these volumes.
-
-```mermaid
-graph LR
-    A[Host System<br/>/var/svs/volumes/foo/bar] <-->|Bind Mount| B[Docker Container<br/>/container/data]
-```
-
-Volumes can be examined using the [detailed service view](#detailed-view).
-
-### DNS
-
-All services owned by a single user are connected to the same network. This means that services can communicate with each other using their service `IDs` as hostnames. For example, if you have a database service with `ID` 5, you can connect to it from another service using the hostname `svs-5` - in general `svs-<service_id>`.
+Further, continue on the respective guide for the type of service you want to deploy.
 
 ---
 
@@ -180,3 +164,21 @@ More details about these commands can be found in the [CLI documentation](../cli
 Navigate to the _Services_ section. There you will find a list of all services. On the service card, click on _View_ to see more details about the service. From there, you can start, stop, restart, or delete the service using the respective buttons.
 
 [![Service management](./images/service-management.png)](./images/service-management.png)
+
+### Domains
+
+To access your service via a custom domain name, you need to add a domain to it. **You can do this during the service creation.**
+
+Generally, SVS tends to be hosted under one domain, for example, `example.com`. In that case, you can access your service via a subdomain like `my-service.example.com` by adding `my-service.example.com` as a domain to your service. If you add a domain that is not a subdomain of the main domain, for example, `anotherdomain.com`, you will need to configure the DNS records for that domain to point to your server's IP address.
+
+
+### Uploading files
+
+???+ note
+
+    Uploading files is currently only supported via GIT and SSH (scp, sftp). Support for direct file uploads via the Web UI is planned for a future release.
+
+
+#### GIT
+
+Each service can have multiple GIT sources configured. This allows you to deploy your code directly from a GIT repository. You can use any GIT provider (GitHub, GitLab, Bitbucket, etc.).
