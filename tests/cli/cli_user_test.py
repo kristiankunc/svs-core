@@ -767,9 +767,7 @@ class TestUserPasswordFeatures:
         assert "User 'minuser' created successfully." in result.output
         mock_create.assert_called_once_with("minuser", min_password)
 
-    def test_create_user_with_spaces_in_password(
-        self, mocker: MockerFixture
-    ) -> None:
+    def test_create_user_with_spaces_in_password(self, mocker: MockerFixture) -> None:
         """Test user creation with spaces in password."""
         mocker.patch("svs_core.cli.user.reject_if_not_admin")
         mock_create = mocker.patch("svs_core.users.user.User.create")
