@@ -30,8 +30,10 @@ The web interface is provided in the root repository under the `web/` directory.
 
 ### Clone the repository
 
+Clone the latest release of the repository and navigate to the `web/` directory/the one corresponding to the version you have installed:
+
 ```bash
-git clone https://github.com/kristiankunc/svs-core && cd svs-core/web
+git clone --depth 1 --branch <tag_name> <repo_url> && cd svs-core/web
 ```
 
 ### Create virtual environment
@@ -97,6 +99,40 @@ sudo -E .venv/bin/gunicorn project.wsgi --bind 0.0.0.0:8000 # sudo warning menti
 ```
 
 After starting, you can access the web interface in your browser at `http://<your-server-ip>:8000`
+
+## Updating
+
+???+ warning "Updating the web interface"
+  SVS currently does not have a built-in update mechanism for the web interface. To update, you will need to pull the latest changes from the repository and repeat the installation steps (installing dependencies, building frontend, etc.).
+
+1) Get the latest release tag from the [releases page](https://github.com/kristiankunc/svs-core/releases/latest) and pull the latest changes:
+
+_Ensure this release tag matches the version of `svs-core` you have installed to avoid compatibility issues._
+
+```bash
+git pull && git checkout <latest_tag>
+```
+
+2) Run django migrations to update the database schema if needed:
+
+```bash
+sudo svs utils django-shell migrate
+```
+
+3) Rebuild frontend assets:
+
+```bash
+(cd frontend && npm ci && npm run build)
+```
+
+4) Restart the web interface to apply the changes:
+
+```bash
+sudo systemctl restart svs-web # If you set it up as a systemd service
+# OR
+sudo -E .venv/bin/gunicorn project.wsgi --bind 0.0.0:8000 # If you are running it manually
+```
+
 
 ## Security recommendations
 
