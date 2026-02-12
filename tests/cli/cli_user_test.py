@@ -23,7 +23,8 @@ class TestUserCommands:
 
         result = self.runner.invoke(
             app,
-            ["user", "create", "new_user", "password123"],
+            ["user", "create", "new_user"],
+            input="password123\npassword123\n",
         )
 
         assert mock_admin_check.called
@@ -36,7 +37,8 @@ class TestUserCommands:
 
         result = self.runner.invoke(
             app,
-            ["user", "create", "new_user", "password123"],
+            ["user", "create", "new_user"],
+            input="password123\npassword123\n",
         )
 
         assert mock_admin_check.called
@@ -50,7 +52,8 @@ class TestUserCommands:
 
         result = self.runner.invoke(
             app,
-            ["user", "create", "invalid", "password123"],
+            ["user", "create", "invalid"],
+            input="password123\npassword123\n",
         )
 
         assert result.exit_code == 1
@@ -63,7 +66,8 @@ class TestUserCommands:
 
         result = self.runner.invoke(
             app,
-            ["user", "create", "new_user", "weak"],
+            ["user", "create", "new_user"],
+            input="weak\nweak\n",
         )
 
         assert result.exit_code == 1
@@ -76,7 +80,8 @@ class TestUserCommands:
 
         result = self.runner.invoke(
             app,
-            ["user", "create", "existing_user", "password123"],
+            ["user", "create", "existing_user"],
+            input="password123\npassword123\n",
         )
 
         assert result.exit_code == 1
