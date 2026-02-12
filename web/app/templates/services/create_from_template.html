@@ -218,34 +218,6 @@
                             @click="addVolumeRow()">+ Add Volume</button>
                 </div>
             </div>
-            <!-- Git Sources -->
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Git Sources</h5>
-                    <small class="text-muted">Add repositories to clone</small>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-sm mb-0">
-                        <thead>
-                            <tr>
-                                <th>Repository URL</th>
-                                <th>Branch</th>
-                                <th>Destination Path</th>
-                                <th class="col-narrow"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="git-source-table-body">
-                            <!-- Git sources will be added dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="card-body pt-0 border-top">
-                    <small class="text-muted">Add git repositories to clone into the service volumes:</small>
-                    <button type="button"
-                            class="btn btn-sm btn-outline-primary mt-2"
-                            @click="addGitSourceRow()">+ Add Git Source</button>
-                </div>
-            </div>
         </div>
         <!-- Summary Sidebar -->
         <div class="col-lg-4">
@@ -345,26 +317,7 @@
                     `;
                     tbody.appendChild(row);
                 },
-                addGitSourceRow() {
-                    const tbody = document.getElementById('git-source-table-body');
-                    const row = document.createElement('tr');
-                    row.className = 'git-source-row';
-                    row.innerHTML = `
-                        <td>
-                            <input type="text" class="form-control form-control-sm" name="git_source_url[]" placeholder="https://github.com/user/repo.git" required>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control form-control-sm" name="git_source_branch[]" placeholder="main" value="main">
-                        </td>
-                        <td>
-                            <input type="text" class="form-control form-control-sm" name="git_source_path[]" placeholder="/absolute/path" required>
-                        </td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-outline-danger" @click="deleteGitSourceRow($el.closest('tr'))" title="Delete">X</button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                },
+
                 deleteEnvRow(row) {
                     row.remove();
                 },
@@ -372,9 +325,6 @@
                     row.remove();
                 },
                 deleteVolumeRow(row) {
-                    row.remove();
-                },
-                deleteGitSourceRow(row) {
                     row.remove();
                 }
             };
