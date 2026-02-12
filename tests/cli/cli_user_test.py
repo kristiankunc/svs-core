@@ -59,7 +59,7 @@ class TestUserCommands:
     def test_create_user_invalid_password(self, mocker: MockerFixture) -> None:
         mocker.patch("svs_core.cli.user.reject_if_not_admin")
         mock_create = mocker.patch("svs_core.users.user.User.create")
-        mock_create.side_effect = InvalidPasswordException("Password is too weak")
+        mock_create.side_effect = InvalidPasswordException()
 
         result = self.runner.invoke(
             app,

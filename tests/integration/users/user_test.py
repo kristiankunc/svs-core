@@ -129,7 +129,8 @@ class TestUserPasswordSecurity:
     def test_different_users_same_password_different_hashes(
         self, mock_docker_network_create, mock_system_user_create
     ):
-        """Test that same password for different users produces different hashes."""
+        """Test that same password for different users produces different
+        hashes."""
         password = "samepassword"
         user1 = User.create(name="user1", password=password)
         user2 = User.create(name="user2", password=password)
@@ -196,7 +197,8 @@ class TestUserPasswordSecurity:
     def test_password_hash_persists_across_retrievals(
         self, mock_docker_network_create, mock_system_user_create
     ):
-        """Test that password hash remains consistent across database retrievals."""
+        """Test that password hash remains consistent across database
+        retrievals."""
         username = "persisttest"
         password = "testpassword"
         user = User.create(name=username, password=password)

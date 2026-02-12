@@ -40,7 +40,8 @@ class TestHash:
 
     @pytest.mark.unit
     def test_hash_password_with_empty_string(self):
-        """Test that empty password can be hashed (validation happens elsewhere)."""
+        """Test that empty password can be hashed (validation happens
+        elsewhere)."""
         password = ""
         hashed = hash_password(password)
         assert isinstance(hashed, bytes)
