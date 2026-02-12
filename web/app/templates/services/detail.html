@@ -197,36 +197,6 @@
                     </div>
                 </div>
             {% endif %}
-            <!-- Labels -->
-            {% if service.labels %}
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">Labels</h5>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-sm mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Key</th>
-                                    <th>Value</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for label in service.labels %}
-                                    <tr>
-                                        <td>
-                                            <code>{{ label.key }}</code>
-                                        </td>
-                                        <td>
-                                            <code>{{ label.value }}</code>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            {% endif %}
             <!-- Git Sources -->
             {% with git_sources=service.proxy_git_sources.all %}
                 {% if git_sources %}

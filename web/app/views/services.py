@@ -9,7 +9,6 @@ from app.lib.owner_check import is_owner_or_admin
 from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
 from svs_core.docker.service import Service
 from svs_core.docker.template import Template
-from svs_core.shared.git_source import GitSource
 from svs_core.shared.logger import get_logger
 from svs_core.users.user import User
 
@@ -61,11 +60,6 @@ def create_from_template(request: HttpRequest, template_id: int):
                 Volume(host_path=host if host else None, container_path=container)
             )
 
-        # Parse git sources
-        git_source_urls = request.POST.getlist("git_source_url[]")
-        git_source_branches = request.POST.getlist("git_source_branch[]")
-        git_source_paths = request.POST.getlist("git_source_path[]")
-
         try:
             service = Service.create_from_template(
                 name=service_name,
@@ -76,18 +70,6 @@ def create_from_template(request: HttpRequest, template_id: int):
                 override_ports=override_ports if override_ports else None,
                 override_volumes=override_volumes if override_volumes else None,
             )
-
-            # Create git sources after service creation
-            for url, branch, path in zip(
-                git_source_urls, git_source_branches, git_source_paths
-            ):
-                if url and path:  # Only create if both URL and path are provided
-                    GitSource.create(
-                        service_id=service.id,
-                        repository_url=url,
-                        destination_path=Path(path),
-                        branch=branch if branch else "main",
-                    )
 
             return redirect("detail_service", service_id=service.id)
         except Exception as e:
