@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.3](https://github.com/kristiankunc/svs-core/compare/v0.12.2...v0.12.3) (2026-02-12)
+
+
+### Bug Fixes
+
+* **core:** Fix variable names in config change detection ([#292](https://github.com/kristiankunc/svs-core/issues/292)) ([945fbcf](https://github.com/kristiankunc/svs-core/commit/945fbcffb7b58cd931e55d4354d77a0b541e1f98))
+* **docs:** Update guide + nginx docs ([4f7c415](https://github.com/kristiankunc/svs-core/commit/4f7c4150020c877fc416e8144abb96e0f3d5fbf1))
+
 ## [0.12.2](https://github.com/kristiankunc/svs-core/compare/v0.12.1...v0.12.2) (2026-02-11)
 
 
