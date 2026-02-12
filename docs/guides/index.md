@@ -14,6 +14,29 @@ Further, continue on the respective guide for the type of service you want to de
 
 ---
 
+## Key concepts
+
+Before deploying anything, it is important to understand some key concepts:
+
+### Docker
+
+SVS uses Docker to run services in isolated containers - essentially each service you deploy is an isolated Linux system. This is great for isolation but comes with some caveats.
+
+### Volumes
+
+One of the most important things to remember is that once a service gets shut down or deleted, all the changes made on the system are lost, including any files.
+
+This is why SVS supports volumes - they are special folders on the host machine that are mounted into the service container. Anything stored in those folders will persist even if the service is deleted.
+
+When you create a service, a volume is automatically created for it. You can also create additional volumes and mount them to the service if needed. Each volume has a host path (e.g., `/var/svs/volumes/1/abc123`) and a container path (e.g., `/app`). The container path is where the volume is mounted inside the service container, and the host path is where the data is stored on the server.
+
+```mermaid
+graph LR
+    A["/var/svs/volumes/1/abc123<br/><sub>Host machine</sub>"] <-->|Volume mount| B["/app/data<br/><sub>Service</sub>"]
+```
+
+
+
 ## Generic steps
 
 The section below outlines the generic steps to follow when using any of the guides provided.
@@ -226,9 +249,13 @@ DATABASES = {
 
 #### GIT
 
+##### CLI
+
 Each service can have multiple GIT sources configured. This allows you to deploy your code directly from a GIT repository. You can use any GIT provider (GitHub, GitLab, Bitbucket, etc.).
 
 **Adding a git source:**
+
+Use the [`svs service add-git-source`](../cli-documentation/service.md#svs-service-add-git-source).
 
 ```bash
 sudo svs service add-git-source <service_id> <git_url> <destination_path> --branch <branch_name>
@@ -241,6 +268,8 @@ sudo svs service add-git-source 7 https://github.com/user/my-app.git /var/svs/vo
 
 **Downloading/updating from git:**
 
+Use the [`svs service download-git-source`](../cli-documentation/service.md#svs-service-download-git-source).
+
 ```bash
 sudo svs service download-git-source <git_source_id>
 ```
@@ -249,11 +278,17 @@ This clones or pulls the latest code from the repository to the configured desti
 
 **Deleting a git source:**
 
+Use the [`svs service delete-git-source`](../cli-documentation/service.md#svs-service-delete-git-source).
+
 ```bash
 sudo svs service delete-git-source <git_source_id>
 ```
 
 To see all git sources for a service, use `svs service get <service_id>` and look at the `git_sources` field.
+
+##### Web
+
+After creating a service, scroll down to the git sources section. Click on _Add Git Source_ and fill in the form with the repository URL, destination path, and branch name. After adding the git source, you can click _Download Git Source_ to clone or pull the latest code to the specified destination path.
 
 ---
 

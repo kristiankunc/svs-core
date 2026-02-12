@@ -4,8 +4,8 @@ A template for the [NGINX](https://nginx.org) web server for hosting static webs
 
 ## Usage
 
-1. [Create a service](../../../guides/index.md#create-a-service) using the NGINX template
-2. [Upload your website files](../../../guides/index.md#uploading-files) to the service's `/config` volume
+1. [Create a service](../../../guides/index.md#create-a-service) using the NGINX template. _Add a [domain](../../../guides/index.md#domains) if you wish_
+2. [Upload your website files](../../../guides/index.md#uploading-files) to the service's `/config/www` directory
 3. [Start the service](../../../guides/index.md#control)
 4. Access via your configured domain or assigned port
 
@@ -17,7 +17,7 @@ A template for the [NGINX](https://nginx.org) web server for hosting static webs
 
 ## Customization
 
-NGINX configuration files are in `/config/nginx/` in your service's volume. Customize for SSL, rewrites, caching, etc.
+NGINX configuration files are in `/config/` in your service's volume. Customize for SSL, rewrites, caching, etc.
 
 ## Definition
 
