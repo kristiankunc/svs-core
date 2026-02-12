@@ -81,11 +81,11 @@ class TestDockerContainerManagerUnit:
         mock_service = mocker.MagicMock()
         mock_service.image = "nginx:latest"
         mock_service.command = "nginx"
-        mock_service.environment_variables = [
+        mock_service.env = [
             EnvVariable(key="VAR1", value="value1"),
             EnvVariable(key="VAR2", value="value2"),  # Additional env var
         ]
-        mock_service.ports = []
+        mock_service.exposed_ports = []
         mock_service.volumes = []
 
         result = DockerContainerManager.has_config_changed(mock_container, mock_service)
@@ -110,8 +110,8 @@ class TestDockerContainerManagerUnit:
         mock_service = mocker.MagicMock()
         mock_service.image = "nginx:latest"
         mock_service.command = "nginx"
-        mock_service.environment_variables = []
-        mock_service.ports = [
+        mock_service.env = []
+        mock_service.exposed_ports = [
             ExposedPort(host_port=8080, container_port=80),
             ExposedPort(host_port=8443, container_port=443),  # Additional port
         ]
@@ -139,8 +139,8 @@ class TestDockerContainerManagerUnit:
         mock_service = mocker.MagicMock()
         mock_service.image = "nginx:latest"
         mock_service.command = "nginx"
-        mock_service.environment_variables = []
-        mock_service.ports = []
+        mock_service.env = []
+        mock_service.exposed_ports = []
         mock_service.volumes = [
             Volume(host_path="/tmp/data", container_path="/data"),
             Volume(host_path="/tmp/config", container_path="/config"),  # Additional
@@ -168,8 +168,8 @@ class TestDockerContainerManagerUnit:
         mock_service = mocker.MagicMock()
         mock_service.image = "nginx:latest"
         mock_service.command = "nginx"
-        mock_service.environment_variables = [EnvVariable(key="VAR1", value="value1")]
-        mock_service.ports = [ExposedPort(host_port=8080, container_port=80)]
+        mock_service.env = [EnvVariable(key="VAR1", value="value1")]
+        mock_service.exposed_ports = [ExposedPort(host_port=8080, container_port=80)]
         mock_service.volumes = [Volume(host_path="/tmp/data", container_path="/data")]
 
         result = DockerContainerManager.has_config_changed(mock_container, mock_service)

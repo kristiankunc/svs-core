@@ -277,16 +277,15 @@ class DockerContainerManager:
 
         # Check environment variables
         container_env = set(container_attrs["Config"]["Env"] or [])
-        service_env = set(
-            f"{env_var.key}={env_var.value}"
-            for env_var in service.environment_variables
-        )
+        service_env = set(f"{env_var.key}={env_var.value}" for env_var in service.env)
         if container_env != service_env:
             return True
 
         # Check exposed ports
         container_ports = set(container_attrs["NetworkSettings"]["Ports"] or {})
-        service_ports = set(f"{port.container_port}/tcp" for port in service.ports)
+        service_ports = set(
+            f"{port.container_port}/tcp" for port in service.exposed_ports
+        )
         if container_ports != service_ports:
             return True
 
