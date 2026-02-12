@@ -33,11 +33,10 @@ class InvalidUsernameException(SVSException):
 class InvalidPasswordException(SVSException):
     """Exception raised when the provided password is invalid."""
 
-    def __init__(self, password: str):
+    def __init__(self) -> None:
         super().__init__(
-            f"Invalid password: '{password}'. Password must be at least 8 characters long."
+            f"Invalid password. Password must be at least 8 characters long."
         )
-        self.password = password
 
 
 class User(UserModel):
@@ -65,7 +64,7 @@ class User(UserModel):
         if not cls.is_username_valid(name):
             raise InvalidUsernameException(name)
         if not cls.is_password_valid(password):
-            raise InvalidPasswordException(password)
+            raise InvalidPasswordException()
         if cls.username_exists(name):
             raise AlreadyExistsException(entity="User", identifier=name)
 

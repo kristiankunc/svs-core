@@ -24,12 +24,12 @@ app = typer.Typer(help="Manage users")
 @app.command("create")
 def create(
     name: str = typer.Argument(..., help="Username of the new user"),
-    password: str = typer.Argument(..., help="Password for the new user"),
 ) -> None:
     """Create a new user."""
 
     reject_if_not_admin()
 
+    password = typer.prompt("Password", hide_input=True, confirmation_prompt=True)
     try:
         user = User.create(name, password)
         print(f"User '{user.name}' created successfully.")

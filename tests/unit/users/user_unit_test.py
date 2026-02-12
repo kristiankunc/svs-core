@@ -47,4 +47,4 @@ class TestUser:
             raise AlreadyExistsException(entity="User", identifier=uname)
 
         with pytest.raises(InvalidPasswordException):
-            raise InvalidPasswordException(upass)
+            raise InvalidPasswordException()
