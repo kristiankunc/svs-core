@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.4](https://github.com/kristiankunc/svs-core/compare/v0.12.3...v0.12.4) (2026-02-14)
+
+
+### Bug Fixes
+
+* **core:** Improve password security ([#295](https://github.com/kristiankunc/svs-core/issues/295)) ([09ee654](https://github.com/kristiankunc/svs-core/commit/09ee654e30e542fe012128050c3cbc90f931de9a))
+
 ## [0.12.3](https://github.com/kristiankunc/svs-core/compare/v0.12.2...v0.12.3) (2026-02-12)
 
 
