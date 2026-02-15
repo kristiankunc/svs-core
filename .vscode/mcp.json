@@ -1,0 +1,13 @@
+{
+	"servers": {
+		"typst": {
+			"args": [
+				"run",
+				"--rm",
+				"-i",
+				"ghcr.io/johannesbrandenburger/typst-mcp:latest"
+			],
+			"command": "docker"
+		}
+	}
+}
