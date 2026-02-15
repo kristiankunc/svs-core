@@ -38,9 +38,32 @@
   v(12pt)
 }
 
+#show raw.where(block: true): it => {
+  set text(size: 9pt)
+  block(
+    fill: luma(245),
+    inset: 1em,
+    radius: 0.5em,
+    width: 100%,
+  )[
+    #let lines = it.text.split("\n")
+    #grid(
+      columns: (auto, 1fr),
+      column-gutter: 0.5em,
+      row-gutter: 0.2em,
+      ..lines
+        .enumerate()
+        .map(((i, line)) => {
+          (align(right)[#text(fill: gray, size: 9pt, str(i + 1))], raw(line, block: false, lang: it.lang))
+        })
+        .flatten()
+    )
+  ]
+}
+
 #set par(
   first-line-indent: (amount: 1.5em, all: true),
-  leading: 1.5em,
+  leading: 1.15em,
   justify: true,
 )
 
@@ -134,15 +157,112 @@ Souhrn je pomyslnou vizitkou celé práce. Po jeho přečtení by čtenáři mě
 
 #pagebreak()
 
-= Jednicka
+= Úvod
 #lorem(20)
 
-== Další
-#lorem(50)
+= Teoretická část
+
+TODO: intro
+
+== Hosting a selfhosting
+
+Při vývoji jakékoliv aplikace je potřeba zvážit způsob distribuce a nasazení. Typicky lze zvolit mezi lokálním spuštěním na zařízení uživatele nebo nasazením na server. Právě při nasazení na server se často setkáváme s pojmem "hosting". Hosting je služba, která umožňuje umístit proces aplikace na server, který je stále připojen k internetu, a tím k ní umožnit přístup odkudkoliv. Exstují různé typy hostingu:
+
++ VPS (Virtual Private Server) - poskytuje virtuální server, který je izolovaný od ostatních uživatelů, ale sdílí fyzický hardware s ostatními VPS. Uživatel má plnou kontrolu nad svým systémem a může instalovat vlastní software. Je to flexibilní řešení, ale vyžaduje určité technické znalosti.
+
++ Dedikovaný server - poskytuje fyzický server, který je zcela vyhrazen pro jednoho uživatele. Uživatel má plnou kontrolu nad hardwarem a softwarem, ale je to nákladnější řešení než VPS.
+
++ Cloud hosting - poskytuje škálovatelnou a flexibilní infrastrukturu. Nabízí typicky širokou škálu služeb, jako jsou virtuální servery, úložiště a databáze. Uživatel platí pouze za využité zdroje, což může být ekonomické řešení pro různé typy aplikací.
+
+TODO: selfhosting
+
+== Docker a kontejnerizace
+
+Docker @merkel2014docker je platforma pro vývoj, distribuci a provozování aplikací. Kontejnerizace, kterou Docker využívá, se staví na pomezí virtualizace a holého hardwaru. Na rozdíl od tradiční virtualizace, která vytváří kompletní virtuální stroj s vlastním operačním systémem, kontejnerizace umožňuje spouštět aplikace v izolovaných prostředích, která sdílejí jádro hostitelského operačního systému. To přináší několik výhod:
+
++ Rychlost: Kontejnery jsou lehké a spouštějí se rychleji než virtuální stroje, protože nevyžadují načítání celého operačního systému.
++ Efektivita: Kontejnery sdílejí jádro hostitelského operačního systému, což umožňuje efektivnější využití zdrojů.
++ Přenositelnost: Kontejnery jsou přenosné mezi různými prostředími, což usnadňuje vývoj, testování a nasazení aplikací.
++ Izolace: Kontejnery poskytují izolaci mezi aplikacemi, což zvyšuje bezpečnost a stabilitu.
+
+Filozofie Dockeru spočívá v tom, že aplikace by měla být balena s veškerými závislostmi do jednoho kontejneru, což umožňuje konzistentní běh aplikace bez ohledu na prostředí, ve kterém je nasazena. Toho se docílí deklarativním popisem prostředí a konfigurace aplikace pomocí souboru Dockerfile, který obsahuje instrukce pro sestavení kontejneru.
+
+```dockerfile
+# Volba základního obrazu (image), v tomto případě Debian Trixie (13)
+FROM debian:trixie
+
+# Instalace potřebných balíčků a závislostí
+RUN apt-get update && apt-get install -y \
+    python3 \ # Python 3 pro běh aplikace
+    python3-pip \ # Pip pro správu Python balíčků
+
+# Nastavení pracovního adresáře v kontejneru
+WORKDIR /app
+
+# Kopírování souborů aplikace do kontejneru
+COPY . /app
+
+# Instalace Python závislostí z requirements.txt
+RUN pip3 install -r requirements.txt
+
+# Exponování portu, na kterém aplikace běží
+EXPOSE 8000
+
+# Definice příkazu pro spuštění aplikace
+CMD ["python3", "app.py"]
+```
+
+Docker obrazy (images) fungují na principu vrstev (layers), kde každá instrukce v Dockerfile vytváří novou vrstvu. Tyto vrstvy jsou ukládány a mohou být znovu použity, což zvyšuje efektivitu při sestavování. Další vrstvení také probíhá při volbě základního obrazu, jakmile více obrazů sdílí stejné vrstvy, Docker je znovu použije, což urychluje proces sestavení a snižuje velikost výsledného obrazu.
+
+Postavený obraz lze spustit jako kontejner, který představuje jeho instanci. Kontejnery jsou izolované, ale mohou komunikovat s ostatními kontejnery a hostitelským systémem prostřednictvím sítí a svazků (volumes). To umožňuje vytvářet komplexní aplikace složené z více služeb, které spolu spolupracují.
+
+== Existující řešení
+
+= Implementace
+
+== Struktura projektu
+
+== Uživatelé a oprávnění
+
+== Docker abstrakce
+
+=== Template systém
+
+=== Service
+
+=== Síťová architektura
+
+== Systémové kontejnery
+
+== Uživatelské rozhraní
+
+=== CLI
+
+=== Webové rozhraní
+
+== Testování
+
+=== Unit testy
+
+=== Zkušební nasazení
+
+== Dokumentace
+
+=== Docstringy
+
+=== Zensical
+
+= Závěr
+
+== Dosažené výsledky
+
+== Porování s existujícími řešeními
+
+== Budoucí vývoj
 
 #pagebreak()
 
-= Dvojka
+
 #lorem(100)
 @Madje_Typst
 #lorem(30)
