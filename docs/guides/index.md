@@ -312,6 +312,8 @@ The volume's host path becomes the build context. All files in the volume are av
 
 **If the build fails**, a detailed error log is written to `docker_build_error.log` in your volume directory (the build context).
 
+##### CLI
+
 **Example:**
 
 ```bash
@@ -337,3 +339,11 @@ sudo svs service start 7
 ```
 
 To rebuild after code updates, re-download the git source or re-upload via SSH, then run the build command again.
+
+##### Web
+
+You can use the same process as the CLI, upload your files to the volume via GIT or SSH, then click the _Build_ button on the service's detailed view page.
+
+Set the build context to the volume path (e.g., `/var/svs/volumes/1/abc123`) and start the build. If the build fails, check the `docker_build_error.log` file in your volume directory for detailed error logs.
+
+[![Build service](./images/service-build.png)](./images/service-build.png)
