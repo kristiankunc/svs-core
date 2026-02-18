@@ -100,3 +100,9 @@ To run the documentation server, you can use the following command:
 ```bash
 zensical serve
 ```
+
+### Documentation Previews on Pull Requests
+
+When you open a pull request that modifies documentation files, a preview of the documentation is automatically built and deployed. A comment will be posted on the PR with a link to the preview site.
+
+For setup instructions and troubleshooting, see [`.github/DOCS_PREVIEW_SETUP.md`](.github/DOCS_PREVIEW_SETUP.md).
