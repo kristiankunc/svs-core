@@ -1,3 +1,14 @@
+# This workflow automatically builds and deploys documentation previews for pull requests
+# using Cloudflare Pages. When a PR is opened or updated with changes to documentation
+# files, it:
+# 1. Builds the documentation using Zensical (mkdocs)
+# 2. Compiles CLI documentation from Typer commands
+# 3. Compiles the typst documentation to PDF
+# 4. Deploys to Cloudflare Pages with a unique PR-specific URL
+# 5. Posts/updates a comment on the PR with the preview link
+#
+# Setup instructions: See .github/DOCS_PREVIEW_SETUP.md
+
 name: Deploy Docs Preview
 
 on:
