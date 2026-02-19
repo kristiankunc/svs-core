@@ -108,7 +108,7 @@ jobs:
           ENVIRONMENT: ${{ env.ENVIRONMENT }}
           DJANGO_SETTINGS_MODULE: ${{ env.DJANGO_SETTINGS_MODULE }}
         run: |
-          pytest --cov=. --cov-branch --cov-report=xml:coverage.xml -q
+          pytest -n auto --cov=. --cov-branch --cov-report=xml:coverage.xml -q
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
