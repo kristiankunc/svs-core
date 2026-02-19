@@ -70,6 +70,14 @@ This script will
 4. Run database migrations
 5. Prompt you to create an initial user (**This will also create a new system user, so you must not supply an existing one**)
 
+### Install completions
+
+Due to the `sudo` requirements of the CLI, you need to install the completions manually. Run the following command to install bash completions for svs for all users.
+
+```bash
+sudo svs --show-completion | sudo tee /usr/share/bash-completion/completions/svs > /dev/null
+```
+
 ### Test
 
 **As the install script creates a new user, you need to switch to that user to test the installation.** using `su <your_admin_user>` or prefix your commands with `sudo -u <your_admin_user>`
