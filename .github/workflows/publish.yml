@@ -117,7 +117,7 @@ jobs:
 
       - name: Compile typst docs
         run: |
-          docker run --rm -v ${{ github.workspace }}:/workspace ghcr.io/typst/typst:latest compile /workspace/fancy-docs/main.typ /workspace/docs/main.pdf
+          docker run --rm -v ${{ github.workspace }}:/workspace ghcr.io/typst/typst:latest compile --input type=soc /workspace/fancy-docs/main.typ /workspace/docs/main.pdf
 
       - name: Build documentation with Zensical
         run: zensical build --clean
