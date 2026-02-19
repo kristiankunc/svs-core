@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.5](https://github.com/kristiankunc/svs-core/compare/v0.12.4...v0.12.5) (2026-02-19)
+
+
+### Bug Fixes
+
+* **cli:** Fix sudo error for autocompletion ([61486a4](https://github.com/kristiankunc/svs-core/commit/61486a4354a91fe96c64700621ae899b401a68a0))
+
 ## [0.12.4](https://github.com/kristiankunc/svs-core/compare/v0.12.3...v0.12.4) (2026-02-16)
 
 
