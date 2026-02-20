@@ -5,7 +5,7 @@ A template for the [NGINX](https://nginx.org) web server for hosting static webs
 ## Usage
 
 1. [Create a service](../../../guides/index.md#create-a-service) using the NGINX template. _Add a [domain](../../../guides/index.md#domains) if you wish_
-2. [Upload your website files](../../../guides/index.md#uploading-files) to the service's `/config/www` directory
+2. [Upload your website files](../../../guides/index.md#uploading-files) to the service's `/www` directory
 3. [Start the service](../../../guides/index.md#control)
 4. Access via your configured domain or assigned port
 
