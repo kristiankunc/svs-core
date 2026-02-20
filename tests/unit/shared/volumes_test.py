@@ -56,7 +56,10 @@ def mock_run_command(mocker):
         # For other commands, use the original
         return original_run_command(command, **kwargs)
 
-    return mocker.patch("svs_core.shared.shell.run_command", side_effect=side_effect)
+    # Patch both locations: shell module (for create_directory/remove_directory internals)
+    # and volumes module (for the direct run_command import in volumes.py)
+    mocker.patch("svs_core.shared.shell.run_command", side_effect=side_effect)
+    return mocker.patch("svs_core.shared.volumes.run_command", side_effect=side_effect)
 
 
 @pytest.fixture
@@ -442,3 +445,61 @@ class TestVolumes:
         result = SystemVolumeManager.find_host_path(container_path, volumes)
 
         assert result is None
+
+    @pytest.mark.unit
+    def test_create_user_volume_creates_directory(
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
+        """Test that create_user_volume creates the user directory when it doesn't exist."""
+        user_dir = SystemVolumeManager.BASE_PATH / str(mock_user.id)
+        assert not user_dir.exists()
+
+        SystemVolumeManager.create_user_volume(mock_user)
+
+        assert user_dir.exists()
+        assert user_dir.is_dir()
+
+    @pytest.mark.unit
+    def test_create_user_volume_skips_existing_directory(
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
+        """Test that create_user_volume does not raise when directory already exists."""
+        user_dir = SystemVolumeManager.BASE_PATH / str(mock_user.id)
+        user_dir.mkdir(parents=True, exist_ok=True)
+        assert user_dir.exists()
+
+        # Should not raise
+        SystemVolumeManager.create_user_volume(mock_user)
+
+        assert user_dir.exists()
+
+    @pytest.mark.unit
+    def test_create_user_volume_calls_chown(
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
+        """Test that create_user_volume calls chown on the created directory."""
+        SystemVolumeManager.create_user_volume(mock_user)
+
+        chown_calls = [
+            call
+            for call in mock_run_command.call_args_list
+            if "chown" in str(call)
+        ]
+        assert len(chown_calls) > 0
+        assert mock_user.name in str(chown_calls[0])
+
+    @pytest.mark.unit
+    def test_generate_free_volume_creates_user_dir_when_missing(
+        self, mock_user: Any, mock_run_command: Any
+    ) -> None:
+        """Test that generate_free_volume creates the user directory when it
+        doesn't exist yet (the bug fix scenario)."""
+        user_dir = SystemVolumeManager.BASE_PATH / str(mock_user.id)
+        assert not user_dir.exists()
+
+        volume_path = SystemVolumeManager.generate_free_volume(mock_user)
+
+        assert user_dir.exists()
+        assert user_dir.is_dir()
+        assert volume_path.exists()
+        assert volume_path.parent == user_dir
