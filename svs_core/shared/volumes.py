@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from svs_core.docker.json_properties import Volume
 from svs_core.shared.exceptions import ResourceException
 from svs_core.shared.logger import get_logger
-from svs_core.shared.shell import create_directory, remove_directory
+from svs_core.shared.shell import create_directory, remove_directory, run_command
 
 if TYPE_CHECKING:
     from svs_core.users.user import User
@@ -43,6 +43,9 @@ class SystemVolumeManager:
             )
             volume_path = base_resolved / str(user.id) / volume_id
             if not volume_path.exists():
+
+                if not volume_path.parent.exists():
+                    SystemVolumeManager.create_user_volume(user)
                 create_directory(volume_path.as_posix(), user=user.name)
 
                 return volume_path
@@ -50,6 +53,25 @@ class SystemVolumeManager:
             attempts += 1
 
         raise ResourceException("No free volume path found")
+
+    @staticmethod
+    def create_user_volume(user: "User") -> None:
+        """Creates a volume directory for a given user ID.
+
+        Args:
+            user (User): The user for whom to create the volume.
+        """
+        get_logger(__name__).info(f"Creating volume for user ID: {user.id}")
+
+        user_path = SystemVolumeManager.BASE_PATH / str(user.id)
+        if not user_path.exists():
+            create_directory(user_path.as_posix())
+            run_command(f"sudo chown {user.name}:svs-admins {user_path.as_posix()}")
+            get_logger(__name__).info(
+                f"Successfully created volume for user ID: {user.id}"
+            )
+        else:
+            get_logger(__name__).debug(f"Volume already exists for user ID: {user.id}")
 
     @staticmethod
     def delete_user_volumes(user_id: int) -> None:
