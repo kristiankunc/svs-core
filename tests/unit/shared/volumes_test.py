@@ -450,7 +450,8 @@ class TestVolumes:
     def test_create_user_volume_creates_directory(
         self, mock_user: Any, mock_run_command: Any
     ) -> None:
-        """Test that create_user_volume creates the user directory when it doesn't exist."""
+        """Test that create_user_volume creates the user directory when it
+        doesn't exist."""
         user_dir = SystemVolumeManager.BASE_PATH / str(mock_user.id)
         assert not user_dir.exists()
 
@@ -463,7 +464,8 @@ class TestVolumes:
     def test_create_user_volume_skips_existing_directory(
         self, mock_user: Any, mock_run_command: Any
     ) -> None:
-        """Test that create_user_volume does not raise when directory already exists."""
+        """Test that create_user_volume does not raise when directory already
+        exists."""
         user_dir = SystemVolumeManager.BASE_PATH / str(mock_user.id)
         user_dir.mkdir(parents=True, exist_ok=True)
         assert user_dir.exists()
@@ -477,13 +479,12 @@ class TestVolumes:
     def test_create_user_volume_calls_chown(
         self, mock_user: Any, mock_run_command: Any
     ) -> None:
-        """Test that create_user_volume calls chown on the created directory."""
+        """Test that create_user_volume calls chown on the created
+        directory."""
         SystemVolumeManager.create_user_volume(mock_user)
 
         chown_calls = [
-            call
-            for call in mock_run_command.call_args_list
-            if "chown" in str(call)
+            call for call in mock_run_command.call_args_list if "chown" in str(call)
         ]
         assert len(chown_calls) > 0
         assert mock_user.name in str(chown_calls[0])
