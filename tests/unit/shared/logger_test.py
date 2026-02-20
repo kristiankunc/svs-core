@@ -117,3 +117,19 @@ class TestLogger:
         captured = capsys.readouterr()
 
         assert "DEBUG: verbose_test verbose message" in captured.out
+
+    @pytest.mark.unit
+    def test_log_level_env_var_sets_handler_level(
+        self, capsys: pytest.CaptureFixture[str], mocker: MockerFixture
+    ) -> None:
+        mocker.patch.dict(
+            os.environ, {"ENVIRONMENT": "production", "LOG_LEVEL": "DEBUG"}
+        )
+        mock_path = mocker.patch("svs_core.shared.logger.Path")
+        mock_path.return_value.exists.return_value = False
+
+        logger = get_logger("log_level_test")
+        logger.debug("debug in prod")
+
+        captured = capsys.readouterr()
+        assert "[DEBUG] log_level_test debug in prod" in captured.out
