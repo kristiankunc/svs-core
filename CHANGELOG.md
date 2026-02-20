@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.12.6](https://github.com/kristiankunc/svs-core/compare/v0.12.5...v0.12.6) (2026-02-20)
+
+
+### Bug Fixes
+
+* **core:** Add LOG_LEVEL env var to override log verbosity at runtime ([#311](https://github.com/kristiankunc/svs-core/issues/311)) ([7c1864d](https://github.com/kristiankunc/svs-core/commit/7c1864d0f7539fa5c6a4fb07e3f6f2c7622fbe04))
+* **core:** Fix initial volume creation ([#309](https://github.com/kristiankunc/svs-core/issues/309)) ([b353d7e](https://github.com/kristiankunc/svs-core/commit/b353d7e06cfd26e89684cacf276239d93d20ec8a))
+* **web:** Simplify git source creation ([ae162ea](https://github.com/kristiankunc/svs-core/commit/ae162ea4d93cf39628750115f95aaa36c569ced9))
+
 ## [0.12.5](https://github.com/kristiankunc/svs-core/compare/v0.12.4...v0.12.5) (2026-02-19)
 
 
