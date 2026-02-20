@@ -1,3 +1,4 @@
+import logging
 import os
 
 import pytest
@@ -72,8 +73,10 @@ class TestEnvManager:
     def test_env_variables_enum_members(self) -> None:
         assert hasattr(EnvManager.EnvVariables, "ENVIRONMENT")
         assert hasattr(EnvManager.EnvVariables, "DATABASE_URL")
+        assert hasattr(EnvManager.EnvVariables, "LOG_LEVEL")
         assert EnvManager.EnvVariables.ENVIRONMENT.value == "ENVIRONMENT"
         assert EnvManager.EnvVariables.DATABASE_URL.value == "DATABASE_URL"
+        assert EnvManager.EnvVariables.LOG_LEVEL.value == "LOG_LEVEL"
 
     @pytest.mark.unit
     def test_runtime_environment_enum_members(self) -> None:
@@ -127,3 +130,47 @@ class TestEnvManager:
             EnvManager.load_env_file()
 
         assert ".env file not found" in str(exc_info.value)
+
+    @pytest.mark.unit
+    def test_get_log_level_defaults_to_info_in_production(
+        self, mocker: MockerFixture
+    ) -> None:
+        mocker.patch.dict(os.environ, {"ENVIRONMENT": "production"}, clear=True)
+        result = EnvManager.get_log_level()
+        assert result == logging.INFO
+
+    @pytest.mark.unit
+    def test_get_log_level_defaults_to_debug_in_development(
+        self, mocker: MockerFixture
+    ) -> None:
+        mocker.patch.dict(os.environ, {"ENVIRONMENT": "development"}, clear=True)
+        result = EnvManager.get_log_level()
+        assert result == logging.DEBUG
+
+    @pytest.mark.unit
+    def test_get_log_level_overridden_by_env_var(self, mocker: MockerFixture) -> None:
+        mocker.patch.dict(
+            os.environ, {"ENVIRONMENT": "production", "LOG_LEVEL": "DEBUG"}
+        )
+        result = EnvManager.get_log_level()
+        assert result == logging.DEBUG
+
+    @pytest.mark.unit
+    def test_get_log_level_env_var_case_insensitive(
+        self, mocker: MockerFixture
+    ) -> None:
+        mocker.patch.dict(
+            os.environ, {"ENVIRONMENT": "production", "LOG_LEVEL": "debug"}
+        )
+        result = EnvManager.get_log_level()
+        assert result == logging.DEBUG
+
+    @pytest.mark.unit
+    def test_get_log_level_invalid_env_var_falls_back_to_default(
+        self, mocker: MockerFixture
+    ) -> None:
+        mocker.patch.dict(
+            os.environ, {"ENVIRONMENT": "production", "LOG_LEVEL": "INVALID"}
+        )
+        result = EnvManager.get_log_level()
+        assert result == logging.INFO
