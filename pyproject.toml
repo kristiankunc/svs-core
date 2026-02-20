@@ -1,6 +1,6 @@
 [project]
 name = "svs_core"
-version = "0.12.5"
+version = "0.12.6"
 description = "Core library for SVS"
 authors = [{ name = "Kristián Kunc", email = "diist7i4c@mozmail.com" }]
 readme = "README.md"
