@@ -9,6 +9,7 @@ from app.lib.owner_check import is_owner_or_admin
 from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
 from svs_core.docker.service import Service
 from svs_core.docker.template import Template
+from svs_core.shared.git_source import GitSource
 from svs_core.shared.logger import get_logger
 from svs_core.users.user import User
 
