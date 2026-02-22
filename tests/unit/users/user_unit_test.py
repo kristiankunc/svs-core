@@ -105,7 +105,9 @@ class TestUser:
         from svs_core.users.system import SystemUserManager
 
         mocker.patch("svs_core.users.user.hash_password", return_value=b"hashed")
-        mocker.patch.object(SystemUserManager, "change_user_password")
+        mock_change_password = mocker.patch.object(
+            SystemUserManager, "change_user_password"
+        )
 
         user = User(name="testuser", password="oldhash")
         mocker.patch.object(user, "save")
@@ -113,9 +115,7 @@ class TestUser:
         user.change_password("newpassword123")
 
         assert user.password == "hashed"
-        SystemUserManager.change_user_password.assert_called_once_with(
-            "testuser", "newpassword123"
-        )
+        mock_change_password.assert_called_once_with("testuser", "newpassword123")
 
     @pytest.mark.unit
     def test_change_password_invalid_raises(self, mocker):
