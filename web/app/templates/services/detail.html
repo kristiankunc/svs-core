@@ -72,7 +72,11 @@
                     {% if service.domain %}
                         <div class="mb-3">
                             <p class="text-muted mb-1">Domain</p>
-                            <p class="h6">{{ service.domain }}</p>
+                            <p class="h6">
+                                <a href="https://{{ service.domain }}"
+                                   target="_blank"
+                                   rel="noopener noreferrer">{{ service.domain }}</a>
+                            </p>
                         </div>
                     {% endif %}
                 </div>

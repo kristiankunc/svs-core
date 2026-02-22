@@ -32,7 +32,9 @@
                                     {% endwith %}
                                     {% if service.domain %}
                                         <p class="card-text">
-                                            <small><strong>Domain:</strong> {{ service.domain }}</small>
+                                            <small><strong>Domain:</strong> <a href="https://{{ service.domain }}"
+    target="_blank"
+    rel="noopener noreferrer">{{ service.domain }}</a></small>
                                         </p>
                                     {% endif %}
                                 </div>
@@ -75,7 +77,9 @@
                                     {% endwith %}
                                     {% if service.domain %}
                                         <p class="card-text">
-                                            <small><strong>Domain:</strong> {{ service.domain }}</small>
+                                            <small><strong>Domain:</strong> <a href="https://{{ service.domain }}"
+    target="_blank"
+    rel="noopener noreferrer">{{ service.domain }}</a></small>
                                         </p>
                                     {% endif %}
                                     <p class="card-text">
@@ -130,7 +134,9 @@
                                 {% endwith %}
                                 {% if service.domain %}
                                     <p class="card-text">
-                                        <small><strong>Domain:</strong> {{ service.domain }}</small>
+                                        <small><strong>Domain:</strong> <a href="https://{{ service.domain }}"
+    target="_blank"
+    rel="noopener noreferrer">{{ service.domain }}</a></small>
                                     </p>
                                 {% endif %}
                             </div>
