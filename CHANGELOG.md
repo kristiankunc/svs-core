@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.7](https://github.com/kristiankunc/svs-core/compare/v0.12.6...v0.12.7) (2026-02-22)
+
+
+### Bug Fixes
+
+* **web:** Split service view on ownership ([6f322d1](https://github.com/kristiankunc/svs-core/commit/6f322d1cfd661468991a0ae2160cf01ba0c8904e))
+
 ## [0.12.6](https://github.com/kristiankunc/svs-core/compare/v0.12.5...v0.12.6) (2026-02-20)
 
 
