@@ -234,3 +234,28 @@ def remove_user_from_group(
 
     user_group.remove_member(user)
     print(f"User '{user.name}' removed from group '{user_group.name}' successfully.")
+
+
+@app.command("reset-password")
+def reset_password(
+    username: str = typer.Argument(
+        ...,
+        help="Username of the user to reset the password for",
+        autocompletion=username_autocomplete,
+    ),
+) -> None:
+    """Reset a user's password."""
+
+    reject_if_not_admin()
+
+    user = get_or_exit(User, name=username)
+
+    new_password = typer.prompt(
+        "New Password", hide_input=True, confirmation_prompt=True
+    )
+    try:
+        user.change_password(new_password)
+        print(f"Password for user '{user.name}' reset successfully.")
+    except InvalidPasswordException as e:
+        print(f"Error resetting password: {e}", file=sys.stderr)
+        raise typer.Exit(code=1)

@@ -211,6 +211,34 @@ class User(UserModel):
             )
             raise
 
+    def change_password(self, new_password: str) -> None:
+        """Changes the user's password.
+
+        Args:
+            new_password (str): The new password to set for the user.
+        """
+        get_logger(__name__).info(f"Changing password for user '{self.name}'")
+
+        if not self.is_password_valid(new_password):
+            get_logger(__name__).warning(
+                f"Invalid password provided for user '{self.name}'"
+            )
+            raise InvalidPasswordException()
+
+        try:
+            hashed_password = hash_password(new_password).decode("utf-8")
+            self.password = hashed_password
+            SystemUserManager.change_user_password(self.name, new_password)
+            get_logger(__name__).debug(
+                f"Successfully changed password for user '{self.name}'"
+            )
+            self.save()
+        except Exception as e:
+            get_logger(__name__).error(
+                f"Failed to change password for user '{self.name}': {str(e)}"
+            )
+            raise
+
     def __str__(self) -> str:
         return f"User(id={self.id}, name={self.name}, is_admin={self.is_admin()}, groups={[g.name for g in self.groups.all()]})"
 

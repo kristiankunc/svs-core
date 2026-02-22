@@ -99,3 +99,29 @@ class TestUser:
 
         with pytest.raises(InvalidPasswordException):
             raise InvalidPasswordException()
+
+    @pytest.mark.unit
+    def test_change_password_valid(self, mocker):
+        from svs_core.users.system import SystemUserManager
+
+        mocker.patch("svs_core.users.user.hash_password", return_value=b"hashed")
+        mock_change_password = mocker.patch.object(
+            SystemUserManager, "change_user_password"
+        )
+
+        user = User(name="testuser", password="oldhash")
+        mocker.patch.object(user, "save")
+
+        user.change_password("newpassword123")
+
+        assert user.password == "hashed"
+        mock_change_password.assert_called_once_with("testuser", "newpassword123")
+
+    @pytest.mark.unit
+    def test_change_password_invalid_raises(self, mocker):
+        from svs_core.users.user import InvalidPasswordException
+
+        user = User(name="testuser", password="oldhash")
+
+        with pytest.raises(InvalidPasswordException):
+            user.change_password("short")
