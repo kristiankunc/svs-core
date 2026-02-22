@@ -254,7 +254,7 @@ def reset_password(
         "New Password", hide_input=True, confirmation_prompt=True
     )
     try:
-        user.set_password(new_password)
+        user.change_password(new_password)
         print(f"Password for user '{user.name}' reset successfully.")
     except InvalidPasswordException as e:
         print(f"Error resetting password: {e}", file=sys.stderr)
