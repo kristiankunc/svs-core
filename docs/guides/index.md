@@ -308,7 +308,7 @@ For build templates, you need to:
 3. Build the Docker image: `sudo svs service build <service_id> <volume_path>`
 4. Start the service
 
-The volume's host path becomes the build context. All files in the volume are available during the Docker build.
+The volume's host path becomes the build context. All files in the volume are available during the Docker build. **Build context should usually be set to your project's root directory inside the volume.**
 
 **If the build fails**, a detailed error log is written to `docker_build_error.log` in your volume directory (the build context).
 

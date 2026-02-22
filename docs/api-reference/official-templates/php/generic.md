@@ -7,6 +7,7 @@ A template for deploying PHP applications with Apache - websites, WordPress, Lar
 1. Prepare your application (see below)
 2. [Create a service](../../../guides/index.md#create-a-service)
 3. [Upload your code](../../../guides/index.md#uploading-files) via GIT or SSH
+5. [Build your service](../../../guides/index.md#building-services) to install dependencies and set up the environment
 4. [Start the service](../../../guides/index.md#control)
 
 ## Preparation
