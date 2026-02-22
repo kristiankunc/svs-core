@@ -120,7 +120,18 @@ def list_services(request: HttpRequest):
         return redirect("login")
 
     if is_admin:
-        services = Service.objects.all()
+        owned_services = Service.objects.filter(user_id=user_id)
+        other_services = Service.objects.exclude(user_id=user_id)
+        return render(
+            request,
+            "services/list.html",
+            {
+                "services": None,
+                "owned_services": owned_services,
+                "other_services": other_services,
+                "is_admin": True,
+            },
+        )
     else:
         try:
             user = User.objects.get(id=user_id)
@@ -128,7 +139,7 @@ def list_services(request: HttpRequest):
         except User.DoesNotExist:
             services = []
 
-    return render(request, "services/list.html", {"services": services})
+        return render(request, "services/list.html", {"services": services})
 
 
 def start(request: HttpRequest, service_id: int):
