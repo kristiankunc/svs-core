@@ -369,3 +369,13 @@ class TestSystemUser:
 
         with pytest.raises(KeyError):
             SystemUserManager.get_gid("nonexistent")
+
+    @pytest.mark.unit
+    def test_change_user_password(self, mocker: MockerFixture) -> None:
+        mock_run_command = mocker.patch("svs_core.users.system.run_command")
+
+        SystemUserManager.change_user_password("testuser", "newpassword")
+
+        mock_run_command.assert_called_once_with(
+            "echo 'testuser:newpassword' | sudo chpasswd", check=True
+        )

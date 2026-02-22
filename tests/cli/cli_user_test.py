@@ -624,6 +624,60 @@ class TestUserCommands:
         )
         mock_group.remove_member.assert_called_once_with(mock_user)
 
+    # Reset password command tests
+    def test_reset_password_success(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "testuser"
+        mock_user.change_password = mocker.MagicMock()
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            ["user", "reset-password", "testuser"],
+            input="newpassword123\nnewpassword123\n",
+        )
+
+        assert result.exit_code == 0
+        assert "Password for user 'testuser' reset successfully." in result.output
+        mock_user.change_password.assert_called_once_with("newpassword123")
+
+    def test_reset_password_user_not_found(self, mocker: MockerFixture) -> None:
+        from django.core.exceptions import ObjectDoesNotExist
+
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_get.side_effect = ObjectDoesNotExist()
+
+        result = self.runner.invoke(
+            app,
+            ["user", "reset-password", "non_existing_user"],
+            input="newpassword\nnewpassword\n",
+        )
+
+        assert result.exit_code == 1
+        assert "not found" in result.output
+
+    def test_reset_password_invalid_password(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "testuser"
+        mock_user.change_password = mocker.MagicMock(
+            side_effect=InvalidPasswordException()
+        )
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            ["user", "reset-password", "testuser"],
+            input="weak\nweak\n",
+        )
+
+        assert result.exit_code == 1
+        assert "Error resetting password" in result.output
+
     def test_list_users_with_group_filter(self, mocker: MockerFixture) -> None:
         # Patch UserGroup.objects.get and its proxy_members
         mock_get_group = mocker.patch("svs_core.users.user_group.UserGroup.objects.get")
