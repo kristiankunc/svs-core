@@ -297,7 +297,7 @@ Pro zjednodušení práce s `Dockerem` a skrytí jeho komplexity před uživatel
 
 === Šablony
 
-Vzhledem k tomu, že každá uživatelská služba, která by měla být spuštěná v `Dockeru`, by potřebovala vlastní _Dockerfile_, je vytvořen systém šablon, které umožňují definovat různé typy šlužby a jejich konfigurace. Tyto šablony jsou definovány pomocí `JSON` souborů, které obsahují všechny potřebné informace pro sestavení a spuštění kontejneru, včetně konfigurace sítě, portů a dalších parametrů.
+Vzhledem k tomu, že každá uživatelská služba, která by měla být spuštěná v `Dockeru`, by potřebovala vlastní _Dockerfile_, která není vždy jednoduchá na vytvoření, je použit systém šablon, které umožňují definovat různé typy služeb a jejich konfigurace. Tyto šablony jsou definovány pomocí `JSON` souborů, které obsahují všechny potřebné informace pro sestavení a spuštění kontejneru, včetně konfigurace sítě, portů a dalších parametrů.
 
 Šablony jsou navrženy tak, aby byly snadno rozšiřitelné a přizpůsobitelné pro různé typy služeb. Uživatelé mohou vytvářet vlastní šablony nebo upravovat stávající, což umožňuje velkou flexibilitu při správě svých služeb.
 
@@ -311,15 +311,33 @@ Statické šablony nezávisí na zdrojovém kódu dodaným uživatelem. Jsou př
 
 Dynamické šablony jsou navrženy tak, aby umožňovaly větší flexibilitu a přizpůsobení. Tyto šablony typicky závisí na zdrojovém kódu a výsledný _Docker image_ je sestaven pro každou uživatelskou službu individuálně. Jsou vhodné pro běh vlastních aplikací, které vyžadují specifickou konfiguraci nebo závislosti, které nejsou pokryty statickými šablonami.
 
-=== Service
+=== Služba
+
+Služba představuje konkrétní instanci šablony ze které si přebírá konfiguraci. Tato konfigurace může být dále rozšířena či upravena uživatelem. Služba je pak zodpovědná za správu svého kontejneru, včetně jeho spuštění, zastavení, aktualizace a dalších operací.
+
+=== Soubory
+
+Vzhledem k tomu, že `Docker` kontejnery jsou izolované a nemají přímý přístup k souborům na hostitelském systému a všechny změny provedené uvnitř kontejneru by byly ztraceny po jeho zastavení, je potřeba použít _volumes_ pro sdílení souborů mezi hostitelským systémem a kontejnery.
+Každá služba může vytvořit několik složek na hostitelském systému, které jsou pak připojeny na specifické místo v kontejneru pomocí _Bind mounts_ @dockerBindMounts. Tyto složky jsou pak přístupné jak pro uživatele, tak pro kontejner, což umožňuje snadnou správu přetrvávajících dat jako jsou například data dataábází.
 
 === Síťová architektura
 
+Každá služba může otevřít libovolné množství portů v nekonfliktním rozsahu, které jsou pak přístupné z vnějšího světa. Pro komunikaci mezi službami, jsou všechny kontejnery stejného uživatele připojeny do společné `Docker` sítě, která umožňuje jejich vzájemnou komunikaci pomocí názvů kontejnerů jako hostnames.
+
 == Systémové kontejnery
+
+Pro zajištění běhu aplikace jsou použity dva systémové kontejnery, které se inicializují při instalaci. První z nich je `Caddy`, který funguje jako reverzní proxy a zajišťuje bezpečný přístup k uživatelským službám přes `HTTPS`. Druhým kontejnerem je `PostgreSQL` databáze, která slouží pro ukládání dat aplikace. Tyto kontejnery jsou spravovány aplikací a jsou nezbytné pro její správný chod.
+
 
 == Uživatelské rozhraní
 
-=== CLI
+Uživatel mám možnost s aplikací komunikovat dvěma způsoby, a to pomocí příkazové řádky nebo přes webové rozhraní. Obě rozhraní poskytují různý stupeň kontroly nad aplikací a jsou navrženy tak, aby byly přístupné pro různé typy uživatelů.
+
+=== Příkazová řádka
+
+Příkazová řádka je uživatel§m přístupná po připojení přes `SSH` a poskytuje širokou škálu příkazů pro správu a konfiguraci aplikace. Implementována je pomocí knihovny `Typer` @ramirez_typer
+
+
 
 === Webové rozhraní
 
