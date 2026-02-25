@@ -134,8 +134,9 @@
   #mp-page()
 ]
 
+#pagebreak()
+
 #if type == "soc" [
-  #pagebreak()
 
   #heading(numbering: none, outlined: false)[Prohlášení]
 
@@ -154,11 +155,29 @@
     [sdělovat dílo veřejnosti v nehmotné podobě, a to především počítačovou nebo obdobnou sítí.],
   )
 
-
-
   Dále prohlašuji, že při tvorbě této práce jsem použil nástroj generativního modelu AI Github Copilot; https://github.com/copilot za účelem [???]. Po použití tohoto nástroje jsem provedl/a kontrolu obsahu a přebírám za něj plnou zodpovědnost.
 
   #v(5em)
+  #grid(
+    columns: (1fr, 1fr),
+    align: (left, center),
+    [V Praze dne: #box(line(length: 2cm, stroke: 0.8pt)) 2026],
+    [
+      #box(line(length: 5cm, stroke: 0.8pt)) \
+      Kristián Kunc
+    ],
+  )
+]
+
+#if type == "mp" [
+
+  #v(2fr)
+
+  Prohlašuji, že jsem jediným autorem tohoto projektu, všechny citace jsou
+  řádně označené a všechna použitá literatura a další zdroje jsou v práci uvedené. Tímto dle zákona 121/2000 Sb. (tzv. Autorský zákon) ve znění pozdějších předpisů uděluji bezúplatně škole Gymnázium, Praha 6, Arabská 14 oprávnění k výkonu práva na rozmnožování díla (§ 13) a práva na sdělování díla veřejnosti (§ 18) na dobu časově neomezenou a bez omezení územního rozsahu.
+
+  #v(5em)
+
   #grid(
     columns: (1fr, 1fr),
     align: (left, center),
@@ -265,7 +284,7 @@ Nicméně, většina těchto řešení je navržena pro profesionální a neimpl
 
 = Implementace
 
-Projekt je implementován v programovacím jazyce `Python 3.13` a využivá framework `Django 6` pro vývoj webováho rozhraní.
+Projekt je implementován v programovacím jazyce `Python 3.13` a využivá framework `Django 6` @django6 pro vývoj webováho rozhraní.
 
 == Struktura projektu
 
@@ -320,6 +339,12 @@ Služba představuje konkrétní instanci šablony ze které si přebírá konfi
 Vzhledem k tomu, že `Docker` kontejnery jsou izolované a nemají přímý přístup k souborům na hostitelském systému a všechny změny provedené uvnitř kontejneru by byly ztraceny po jeho zastavení, je potřeba použít _volumes_ pro sdílení souborů mezi hostitelským systémem a kontejnery.
 Každá služba může vytvořit několik složek na hostitelském systému, které jsou pak připojeny na specifické místo v kontejneru pomocí _Bind mounts_ @dockerBindMounts. Tyto složky jsou pak přístupné jak pro uživatele, tak pro kontejner, což umožňuje snadnou správu přetrvávajících dat jako jsou například data dataábází.
 
+=== Nahrávání zdrojového kódu
+
+Pro usnadnění práce s vlastním zdrojovým kódem, který je potřeba pro běh služby, je implementována funkce nahrávání zdrojového kódu z `Git` platforem jako jsou například `GitHub` nebo `GitLab`. Uživatel může zadat URL repozitáře a aplikace automaticky stáhne zdrojový kód do vybráného adresáře na hostitelském systému a připojí ho do kontejneru pomocí výše zmíněných _Bind mounts_. Tímto způsobem může uživatel snadno spravovat svůj zdrojový kód a mít ho vždy aktuální bez nutnosti manuálního nahrávání souborů.
+
+Kromě nahrávání zdrojového z `Git` repozitářů, je možné použít také standartní nástroje jako `scp`  nebo `sftp` pro přenos souborů mezi systémem uživatele a hostitelským systémem.
+
 === Síťová architektura
 
 Každá služba může otevřít libovolné množství portů v nekonfliktním rozsahu, které jsou pak přístupné z vnějšího světa. Pro komunikaci mezi službami, jsou všechny kontejnery stejného uživatele připojeny do společné `Docker` sítě, která umožňuje jejich vzájemnou komunikaci pomocí názvů kontejnerů jako hostnames.
@@ -335,15 +360,43 @@ Uživatel mám možnost s aplikací komunikovat dvěma způsoby, a to pomocí p�
 
 === Příkazová řádka
 
-Příkazová řádka je uživatel§m přístupná po připojení přes `SSH` a poskytuje širokou škálu příkazů pro správu a konfiguraci aplikace. Implementována je pomocí knihovny `Typer` @ramirez_typer
+Příkazová řádka je uživatel§m přístupná po připojení přes `SSH` a poskytuje širokou škálu příkazů pro správu a konfiguraci aplikace. Implementována je pomocí knihovny `Typer` @ramirez_typer, která nabízí snadnou implementaci a formátování příkazá a pomocných zpráv. Pro zjednodušení práce s objekty aplikace, jako jsou služby, šablony a uživatelé, je implementován systém automatického dokončování, který umožňuje rychlé a intuitivní zadávání příkazů. V příkazové řádce je pak spustitelný pomocí tabulátoru, který nabízí návrhy na základě aktuálního kontextu a dostupných objektů. Na příkladu níže je ukázáno, jak funguje automatické dokončování při zadávání příkazu pro resetování hesla uživatele. Po stisknutí tabulátoru se automaticky nabídnou možnosti dokončení na základě existujících uživatelů v systému.
 
+```sh
+$ svs user reset-password te<tab>
+# Po stisknutí tabulátoru se automaticky nabídnou možnosti dokončení:
+testuser
+testuser2
+```
 
+Vzhledem k tomu, že proces aplikace musí být schopen spouštět příkazy s `sudo` oprávněními a interně přepínat na systémového uživatele `svs`, je potřeba zajistit, aby příkazová řádka byla spustitelná pomocí `sudo` a zároveň aby byla přístupná pro běžné uživatele. Toho je dosaženo pomocí upravení souboru `/etc/sudoers` @runCommandsWithSudo. Konkrétně prídáním následujícího řádku, který umožňuje všem uživatelům spouštět příkaz `svs` s `sudo` bez zadávání hesla.
+
+```txt
+ALL ALL=NOPASSWD: /usr/local/bin/svs"
+```
+
+Tento přístup se jeví jako nebezpečný, ale aplikace si sama kontroluje, zda uživatel, který spouští příkaz, má oprávnění k provedení dané operace. Tím pádem uživatel nemá přímý přístup k `sudo` a nemůže spouštět libovolné příkazy, ale pouze ty, které jsou definovány v aplikaci a pro které má oprávnění. Samozřejmě při chybě v implementaci může být toto řešení problematické a může vést k eskalaci oprávnění běžného uživatele.
 
 === Webové rozhraní
 
+Jako alternativa k příkazové řádce je k dispozici webové rozhraní, které poskytuje uživatelsky přívětivější způsob správy a interakce s aplikací a je orientováno spíše na méně zkušené uživatele. Webové rozhraní je implementováno pomocí `Django` @django6 a `Bootstrap`.
+
+Webové rozhraní umožnuje uživatelům snadno spravovat své služby, šablony a další aspekty aplikace pomocí intuitivního grafického rozhraní. Uživatelé mohou vytvářet, upravovat a mazat služby, prohlížet stav svých služeb, spravovat soubory a přistupovat k dalším funkcím aplikace bez nutnosti používat příkazovou řádku.
+
+#figure(
+  image("img/web_service.png", width: 80%),
+  caption: [
+    Příklad správy služby pomocí webového rozhraní.
+  ],
+)
+
+Na obrázku výše je zobrazeno webové rozhraní pro správu služby umožnující kompletní ovládání a úpravu konfigurace služby.
+
+Podobně jako jako proces příkazové řádky, i webové rozhraní musí mít přístup k `sudo` oprávněním. To je ale s ohledem na bezpečnostní rizika ještě problematičtější než u příkazové řádky, protože webové rozhraní je přístupné z vnějšího světa a může být cílem útoků. Vzhledem k tomu, že proces je spuštěn pod administrátorským učtem a má přístup k `sudo`, je webové rozhaní nebezpečné a může být zneužito k eskalaci oprávnění. Proto je doporučeno webové rozhraní používat pouze v interní sítí a znepřístupnit ho z vnějšího světa. Pro připojení mimo sít je pak možné použit `SSH tunel` nebo `VPN (Virtual Private Network)`.
+
 == Testování
 
-TODO: intro
+Vzhledem k tomu, že aplikace běží na systémech hostitelů, vývojář nemá přímou kontrolu nad prostředím a proto je diagnostika chyb náročnější. Pro zajištění správné funkčnosti a stability aplikace je potřeba implementovat rozsáhlé testování.
 
 === jednotkové testy
 
@@ -383,7 +436,19 @@ Gyarab zkušební nasazení.
 
 == Distribuce
 
-Pip
+Aplikace je prirárně distribuovaná jako `pip` balíček, který je dostupný na `PyPI (Python Package Index)` (https://pypi.org/project/svs-core/). Tento způsob distribuce umožňuje snadnou instalaci a aktualizaci aplikace pomocí standardních nástrojů pro správu Python balíčků. Pro omezení konfliktů se systémovou `Python` instalací, je doporučeno používat nástroj `pipx` @pipx1, který umožňuje instalovat a spouštět Python balíčky v izolovaném prostředí.
+
+Samotný balíček ale není jediným požadavkem pro správné fungovaní. Aplikace závisí na `Docker engine`, který je potřeba manuálně nainstalovat a nakonfigurovat. Ostatní požadavky jako například systémové skupiny, uživatelé mohou být automaticky vytvořeny pomocí instalačního skriptu.
+
+=== CI/CD
+
+CI/CD je technika vývoje softwaru, která automatizuje procesy jako jsou, testování a distribuce. Projekt využívá `GitHub Actions` pro implementaci CI/CD pipeline.
+
+Pro zajištění jednotnosti formátu kódu a dodržování standardů je použit nástroj `pre-commit` s mnoha formátovacími a kontrolními nástroji, jako jsou `Black`, `isort`, `mypy` a další. Každý commit je automaticky kontrolován oproti těmto standardům a pokud jsou nalezeny nějaké problémy, commit je odmítnut a vývojář je informován o potřebě opravy.
+
+Výše zmíněné jednotkové testy jsou také integrovány do CI pipeline, což zajišťuje, že každý push do repozitáře spustí testy a ověří, že nedošlo k zavedení chyb.
+
+@conventionalcommits
 
 == Dokumentace
 
