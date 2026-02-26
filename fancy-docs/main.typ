@@ -446,6 +446,10 @@ Aplikace je prirárně distribuovaná jako `pip` balíček, který je dostupný 
 
 Samotný balíček ale není jediným požadavkem pro správné fungovaní. Aplikace závisí na `Docker engine`, který je potřeba manuálně nainstalovat a nakonfigurovat. Ostatní požadavky jako například systémové skupiny, uživatelé mohou být automaticky vytvořeny pomocí instalačního skriptu.
 
+Pro verzování se používá technika sematického verzování, které umožňuje jasně komunikovat změny a kompatibilitu mezi různými verzemi aplikace. Každá verze je označena třemi čísly ve formátu `MAJOR.MINOR.PATCH`, kde `MAJOR` označuje nekompatibilní změny, `MINOR` přidává nové funkce zpětně kompatibilní a `PATCH` obsahuje opravy chyb a drobné vylepšení. Toho lze automaticky docílit pomocí techniky semantických commitů @conventionalcommits, které umožňují automatické generování verzí a changelogů na základě zpráv commitů.
+
+Kdykoliv je projekt připraven na novou verzi, je spuštěn proces `Release Please` @releasePlease, který automaticky zkontroluje zprávy commitů, vygeneruje novou verzi a changelog, a následně vytvoří nový release na GitHubu a aktualizuje balíček na `PyPI`.
+
 === CI/CD
 
 CI/CD je technika vývoje softwaru, která automatizuje procesy jako jsou, testování a distribuce. Projekt využívá `GitHub Actions` pro implementaci CI/CD pipeline.
@@ -454,9 +458,14 @@ Pro zajištění jednotnosti formátu kódu a dodržování standardů je použi
 
 Výše zmíněné jednotkové testy jsou také integrovány do CI pipeline, což zajišťuje, že každý push do repozitáře spustí testy a ověří, že nedošlo k zavedení chyb.
 
-@conventionalcommits
+=== Vývojové prostředí
+
+Vzhledem k nutnosti aplikace modifikovat hostitelský systém a pro umožnění vývoje i na systémech `Windows` je použit v projektu technologie `Dev Containers` @microsoft-devcontainers. `Dev Containers` umožňují vývojářům pracovat v konzistentním a izolovaném prostředí, které je definováno pomocí `Docker` kontejnerů. To znamená, že vývojáři mohou mít stejné prostředí bez ohledu na operační systém, na kterém pracují, což zjednodušuje spolupráci a snižuje problémy s kompatibilitou.
+
 
 == Dokumentace
+
+Technická dokumentace je nedílnou součástí projektu a je klíčová pro jeho údržbu a rozvoj v budoucnu.
 
 === Docstringy
 
