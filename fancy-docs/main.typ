@@ -167,9 +167,7 @@
       Kristián Kunc
     ],
   )
-]
-
-#if type == "mp" [
+] else [
 
   #v(2fr)
 
