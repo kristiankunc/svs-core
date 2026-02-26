@@ -67,6 +67,8 @@
   justify: true,
 )
 
+#show link: underline
+
 
 #let type = sys.inputs.at("type", default: "soc")
 
@@ -160,7 +162,7 @@
       [sdělovat dílo veřejnosti v nehmotné podobě, a to především počítačovou nebo obdobnou sítí.],
     )
 
-    Dále prohlašuji, že při tvorbě této práce jsem použil nástroj generativního modelu AI Github Copilot; https://github.com/copilot za účelem [???]. Po použití tohoto nástroje jsem provedl/a kontrolu obsahu a přebírám za něj plnou zodpovědnost.
+    Dále prohlašuji, že při tvorbě této práce jsem použil nástroj generativního modelu AI Github Copilot; #link("github.com/copilot") za účelem [???]. Po použití tohoto nástroje jsem provedl/a kontrolu obsahu a přebírám za něj plnou zodpovědnost.
 
   ]
 
@@ -299,7 +301,7 @@ Projekt je rozdělen do několika hlavních částí:
 + `web` - obsahuje webové rozhraní pro správu a interakci s aplikací.
 + `docs` - obsahuje uživatelskou dokumentaci a další doprovodné materiály.
 
-Jádro aplikace je publikováno jako `pip` balíček (https://pypi.org/project/svs-core/), což umožňuje snadnou distribuci a instalaci. Projekt je open-source a jeho zdrojový kód je dostupný na GitHubu (https://github.com/kristiankunc/svs-core). Projekt je licencován pod licencí `GPL-3.0` @gplv3.
+Jádro aplikace je publikováno jako `pip` balíček (#link("https://pypi.org/project/svs-core/")), což umožňuje snadnou distribuci a instalaci. Projekt je open-source a jeho zdrojový kód je dostupný na GitHubu (#link("https://github.com/kristiankunc/svs-core")). Projekt je licencován pod licencí `GPL-3.0` @gplv3.
 
 Aplikace závisí na `PostgreSQL` databázi pro ukládání dat, `Docker engine` pro správu kontejnerů a `Caddy` pro reverzní proxy a správu SSL certifikátů.
 
@@ -442,7 +444,7 @@ Gyarab zkušební nasazení.
 
 == Distribuce
 
-Aplikace je prirárně distribuovaná jako `pip` balíček, který je dostupný na `PyPI (Python Package Index)` (https://pypi.org/project/svs-core/). Tento způsob distribuce umožňuje snadnou instalaci a aktualizaci aplikace pomocí standardních nástrojů pro správu Python balíčků. Pro omezení konfliktů se systémovou `Python` instalací, je doporučeno používat nástroj `pipx` @pipx1, který umožňuje instalovat a spouštět Python balíčky v izolovaném prostředí.
+Aplikace je prirárně distribuovaná jako `pip` balíček, který je dostupný na `PyPI (Python Package Index)` (#link("https://pypi.org/project/svs-core/")). Tento způsob distribuce umožňuje snadnou instalaci a aktualizaci aplikace pomocí standardních nástrojů pro správu Python balíčků. Pro omezení konfliktů se systémovou `Python` instalací, je doporučeno používat nástroj `pipx` @pipx1, který umožňuje instalovat a spouštět Python balíčky v izolovaném prostředí.
 
 Samotný balíček ale není jediným požadavkem pro správné fungovaní. Aplikace závisí na `Docker engine`, který je potřeba manuálně nainstalovat a nakonfigurovat. Ostatní požadavky jako například systémové skupiny, uživatelé mohou být automaticky vytvořeny pomocí instalačního skriptu.
 
@@ -498,6 +500,8 @@ Pro stavbu uživatelské dokumentace je použit generátor `Zensical` @zensical.
 Hlavní výhodou využití generátorů dokumentace, je automatické generování dokumentace z `docstringů` a dalších zdrojů, což zajišťuje, že dokumentace je vždy aktuální a konzistentní s kódem.
 
 Kromě referenční dokumentace, obsahuje uživatelská dokumentace také instalační instrukce, návody k použití, seznam změn a další důležité informace pro uživatele.
+
+Dokumentace je hostována na `GitHub Pages` a dostupná na adrese #link("https://svs.kristn.co.uk").
 
 
 = Závěr
