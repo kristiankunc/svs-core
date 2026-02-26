@@ -1,3 +1,5 @@
+#import "@preview/oxdraw:0.1.0": *
+
 #set page(
   paper: "a4",
   margin: (left: 3cm, right: 2.5cm, y: 1.5cm),
@@ -357,6 +359,54 @@ Kromě nahrávání zdrojového z `Git` repozitářů, je možné použít také
 
 Každá služba může otevřít libovolné množství portů v nekonfliktním rozsahu, které jsou pak přístupné z vnějšího světa. Pro komunikaci mezi službami, jsou všechny kontejnery stejného uživatele připojeny do společné `Docker` sítě, která umožňuje jejich vzájemnou komunikaci pomocí názvů kontejnerů jako hostnames.
 
+== Vizualizace architektury
+
+#figure(
+  oxdraw(```mermaid
+  graph TD
+  subgraph Internet
+      client["Uživatel / Prohlížeč"]
+      git["Git Repozitáře"]
+  end
+
+  subgraph ControlPlane["Aplikační logika + Databáze"]
+      db_user["Uživatel (DB)"]
+      db_template["Šablona (DB)"]
+      db_service["Služba (DB)"]
+  end
+
+  subgraph Host["Hostitelský systém"]
+      sys_user["Linux uživatel"]
+      sys_volume["Persistenční data (Bind Mount)"]
+  end
+
+  subgraph Docker
+      docker_caddy["Caddy (reverse proxy)"]
+      docker_network["Izolovaná síť"]
+      docker_container["Service kontejner"]
+  end
+
+  %% Aplikace stylů
+  class Internet,ControlPlane,Host,Docker clusterStyle
+  class client,git,db_user,db_template,db_service,sys_user,sys_volume,docker_caddy,docker_network,docker_container transparent
+
+  %% ───────────── FLOW ─────────────
+  client <-->|HTTPS| docker_caddy
+  docker_caddy --> docker_container
+
+  git --> sys_volume
+  sys_volume --> docker_container
+
+  db_user --> db_service
+  db_template --> db_service
+  db_service --> docker_container
+
+  docker_container --- docker_network
+
+  client <-->|SSH/SFTP| sys_user
+  ```),
+)
+
 == Systémové kontejnery
 
 Pro zajištění běhu aplikace jsou použity dva systémové kontejnery, které se inicializují při instalaci. První z nich je `Caddy`, který funguje jako reverzní proxy a zajišťuje bezpečný přístup k uživatelským službám přes `HTTPS`. Druhým kontejnerem je `PostgreSQL` databáze, která slouží pro ukládání dat aplikace. Tyto kontejnery jsou spravovány aplikací a jsou nezbytné pro její správný chod.
@@ -473,21 +523,18 @@ Technická dokumentace je nedílnou součástí projektu a je klíčová pro jeh
 
 V rámci zachování udržitelného a přehledného kódu do budoucna, je kód osazen rozsáhlou dokumentací. Dokumentace je psána přímo v kódu pomocí konvence `docstring` @pep257docstrings. `Docstringy` jsou speciální textové řetězce, které se umisťují na začátek modulů, tříd a metod a slouží k popisu jejich účelu, funkcionality a způsobu použití. Konkrétně jsou použity `Google style docstrings` @googleDocstringStyle.
 
-V ukázce níže se nachází `docstring` pro funkci `get_uid`, která vrací _UID (User ID, uživatelské ID)_ pro zadané uživatelské jméno. `docstring` obsahuje popis funkce, její argumenty, návratovou hodnotu a možné výjimky, které může funkce vyvolat.
+V ukázce níže se nachází `docstring` pro funkci `get_logs`, která je zodpovědná za získávání logů z `Docker` kontejneru. `Docstring` obsahuje popis funkce, její parametry a návratovou hodnotu, což usnadňuje pochopení jejího účelu a způsobu použití pro ostatní vývojáře, kteří s ní budou pracovat v budoucnu.
 
 ```python
-def get_uid(username: str) -> int:
-  """Returns the UID of the specified username.
+def get_logs(self, tail: int = 1000) -> str:
+    """Retrieve the logs of the service's Docker container.
 
-  Args:
-    username (str): The username to look up.
+    Args:
+        tail (int): Number of lines from the end of the logs to retrieve.
 
-  Returns:
-    int: The UID of the user.
-
-  Raises:
-    KeyError: If the user does not exist.
-  """
+    Returns:
+        str: The logs of the container as a string.
+    """
   ...
 ```
 
@@ -503,6 +550,14 @@ Kromě referenční dokumentace, obsahuje uživatelská dokumentace také instal
 
 Dokumentace je hostována na `GitHub Pages` a dostupná na adrese #link("https://svs.kristn.co.uk").
 
+Na obrázku níže je zobrazen příklad zpracování `docstringů` pomocí `Zensical` do přehledné dokumentace, která je snadno přístupná a srozumitelná pro uživatele i vývojáře.
+
+#figure(
+  image("img/get_logs_zensical.png", width: 80%),
+  caption: [
+    Příklad zpracování `docstringů` pomocí `Zensical`.
+  ],
+)
 
 = Závěr
 
