@@ -207,21 +207,26 @@ Fanouškům
 #pagebreak()
 
 #heading(numbering: none, outlined: false)[Anotace]
-Souhrn je pomyslnou vizitkou celé práce. Po jeho přečtení by čtenáři mělo být jasné, čím se práce zabývá a jaké jsou její zásadní výstupy. Souhrn sumarizuje celou práci, tedy včetně cílů, metodiky, nejdůležitějších výsledků a závěrů. Doporučujeme odpovědět na otázky Co? Proč? Jak? a S jakým výsledkem? jste ve své práci dělali. Souhrn pište až na samotném závěru práce v rozsahu 5 až 10 vět.
+
+SVS je aplikace pro snadné nasazení a správu aplikací v `Docker` kontejnerech. Umožňuje uživatelům bez hlubších znalostí `Dockeru` spravovat své služby pomocí jednoduchého webového rozhraní nebo příkazové řádky. Projekt je implementován v `Pythonu` a využívá `Django` pro vývoj webového rozhraní. SVS je navržen jako alternativa k tradičním hostingovým řešením, která nabízí větší kontrolu nad prostředím a konfigurací, ale zároveň zjednodušuje proces nasazení a správy aplikací.
 
 #heading(numbering: none, outlined: false)[Klíčová slova]
-3-5 klíčových slov oddělených středníkem v abecedním pořadí. Klíčová slova více definují zaměření práce, a proto není vhodné, aby byla totožná se slovy, která se vyskytují v názvu práce.
+
+Docker; kontenjerizace; selfhosting; python
 
 #heading(numbering: none, outlined: false)[Abstract]
-#lorem(50)
+SVS is an application for easy deployment and management of applications in `Docker` containers. It allows users without deep knowledge of `Docker` to manage their services using a simple web interface or command line. The project is implemented in `Python` and uses `Django` for web interface development. SVS is designed as an alternative to traditional hosting solutions, offering greater control over the environment and configuration while simplifying the deployment and management process.
 
 #heading(numbering: none, outlined: false)[Keywords]
-#lorem(5)
+Docker; containerization; selfhosting; python
 
 
 #pagebreak()
 
-#outline(title: "Obsah")
+#[
+  #set par(leading: 1em)
+  #outline(title: "Obsah")
+]
 
 #pagebreak()
 
@@ -453,7 +458,9 @@ def test_create_user_success(
 
 === Zkušební nasazení
 
-Gyarab zkušební nasazení.
+V rámci testování byla aplikace také nasazena na testovací server pro potřeby ročnníkových a maturitních prací _Gymnázia Arabská_. V rámci tohoto testování byla žákům zpřístupněná uživatelská dokumentace a webové rozhraní.
+
+Vzhledem k nedostatku testovacích prací zatím není možné dělat závěry o stabilitě a funkčnosti aplikace. Ze zpětné vazby od uživatelů ale jasně vyplívá, že aplikace je funkční a splňuje svůj účel, ale je potřeba do jisté míry zjednodušit webové rozhraní a rozšířit návody v uživatelské dokumentaci.
 
 == Distribuce
 
@@ -524,18 +531,17 @@ Na obrázku níže je zobrazen příklad zpracování `docstringů` pomocí `Zen
 
 = Závěr
 
-== Dosažené výsledky
+Aplikace nabízí alternativní způsob nasazování aplikací do produkčního prostředí. Rozhodně není určena pro profesionální použítí, ale je spíše zaměřena na méně náročné projekty s nízkými nároky na výkon a stabilitu, jako jsou například osobní projekty. Pokud uživatel potřebuje rychle a jednoduše nasadit svou aplikaci pro potřeby ukázky, testování nebo pro osobní použití, může být tato aplikace ideálním řešením. Pro profesionální nasazení a správu produkčních aplikací by ale bylo vhodnější použít robustnější a komplexnější řešení, které nabízí větší kontrolu a možnosti konfigurace.
 
 == Porování s existujícími řešeními
 
+Při porovnání finální aplikace s existujícími řešeními, jako je například `Portainer`, je zřejmé, že naše aplikace nabízí výrazně jednodušší a přístup. To ale znamená že uživatel nemá přímou kontrolu nad `Dockerem` a jeho funkcemi, což může být pro některé pokročilé uživatele limitující. Na druhou stranu, pro méně zkušené uživatele je tento přístup výhodný, protože jim umožňuje spravovat své služby bez nutnosti hluboké znalosti `Dockeru` a jeho konceptů.
+
 == Budoucí vývoj
 
+Aplikace bude dále rozvíjena a vylepšována na základě zpětné vazby od uživatelů a testování. Plánuje se přidání dalších funkcí, jako jsou například pokročilejší možnosti konfigurace služeb, podpora pro více uživatelů a skupin, vylepšení webového rozhraní a další.
+
 #pagebreak()
-
-
-#lorem(100)
-@Madje_Typst
-#lorem(30)
 
 
 #bibliography("main.bib", style: "iso690-numeric-brackets-cs.csl")
