@@ -82,7 +82,7 @@
 
     #v(0.5fr)
 
-    #text(size: 20pt, weight: "bold")[Studentsý Vývojový Server] \
+    #text(size: 20pt, weight: "bold")[Studentský Vývojový Server] \
     #v(10pt)
     #text(size: 20pt, weight: "bold")[Selfhosted Virtual Stack]
   ]
@@ -116,7 +116,7 @@
 
   align(center)[
     #text(size: 20pt, weight: "bold")[
-      Studentsý Vývojový Server \
+      Studentský Vývojový Server \
     ]
   ]
 
@@ -240,7 +240,7 @@ Teoretická část je zaměřena na vysvětlení problematiky a konceptů, kter�
 
 == Hosting a selfhosting
 
-Při vývoji jakékoliv aplikace je potřeba zvážit způsob distribuce a nasazení. Typicky lze zvolit mezi lokálním spuštěním na zařízení uživatele nebo nasazením na server. Právě při nasazení na server se často setkáváme s pojmem "hosting". Hosting je služba, která umožňuje umístit proces aplikace na server, který je stále připojen k internetu, a tím k ní umožnit přístup odkudkoliv. Exstují různé typy hostingu:
+Při vývoji jakékoliv aplikace je potřeba zvážit způsob distribuce a nasazení. Typicky lze zvolit mezi lokálním spuštěním na zařízení uživatele nebo nasazením na server. Právě při nasazení na server se často setkáváme s pojmem "hosting". Hosting je služba, která umožňuje umístit proces aplikace na server, který je stále připojen k internetu, a tím k ní umožnit přístup odkudkoliv. Existují různé typy hostingu:
 
 + `VPS (Virtual Private Server, virtuální privátní server)` - poskytuje virtuální server, který je izolovaný od ostatních uživatelů, ale sdílí fyzický hardware s ostatními `VPS`. Uživatel má plnou kontrolu nad svým systémem a může instalovat vlastní software. Je to flexibilní řešení, ale vyžaduje určité technické znalosti.
 
@@ -292,9 +292,9 @@ Postavený _image_ lze spustit jako kontejner, který představuje jeho instanci
 
 == Existující řešení
 
-Uživatelských rozrhaní pro správu `Dockeru` existuje nespočet. Mezi nejznámější patří `Portainer` @portainerDocs, který nabízí webové rozhraní pro správu celého systému a je schopen zastopit příkazovou řádku ve většině případů.
+Uživatelských rozhraní pro správu `Dockeru` existuje nespočet. Mezi nejznámější patří `Portainer` @portainerDocs, který nabízí webové rozhraní pro správu celého systému a je schopen zastopit příkazovou řádku ve většině případů.
 
-Nicméně, většina těchto řešení je navržena pro profesionální a neimplementují žádnou abstrakci nad `Dockerem`, což může být pro méně zkušené uživatele komplikované, protože stále vyžadují kompletní znalost `Dockeru` a jeho konceptů.
+Nicméně, většina těchto řešení je navržena pro profesionální použití a neimplementují žádnou abstrakci nad `Dockerem`, což může být pro méně zkušené uživatele komplikované, protože stále vyžadují kompletní znalost `Dockeru` a jeho konceptů.
 
 = Implementace
 
@@ -313,7 +313,7 @@ Aplikace závisí na `PostgreSQL` databázi pro ukládání dat, `Docker engine`
 
 == Uživatelé a oprávnění
 
-Každý uživatel aplikace je identifikován svým uživatelským jménem v databázi. Na tento účet je pak navázán systémový uživatel se stejným jménem. Tento uživatelský učet je použit pro připojení přes `SSH (Secure Shell)` a nastavování oprávnění.
+Každý uživatel aplikace je identifikován svým uživatelským jménem v databázi. Na tento účet je pak navázán systémový uživatel se stejným jménem. Tento uživatelský účet je použit pro připojení přes `SSH (Secure Shell)` a nastavování oprávnění.
 
 Uživatelé jsou rozděleni do dvou hlavních skupin: `admin` a `user`. `Admin` má plný přístup ke všem funkcím a nastavením aplikace, zatímco `user` má omezený přístup pouze k funkcím, které jsou nezbytné pro běžné používání.
 
@@ -322,11 +322,11 @@ Uživatelé jsou rozděleni do dvou hlavních skupin: `admin` a `user`. `Admin` 
 Běžný systémový uživatel nemá přímý přístup k
 _Docker engine_, ten je zabezpečený pomocí systémové skupiny `docker`. Tento přístup by totiž umožnil uživateli prakticky získat `root` oprávnění na celém systému @dockerdAttackSurface. Proto je na vykonávání citlivých operací používan systémový uživatel `svs`, který má všechna potřebná oprávnění. Tento uživatel vytváří a spravuje kontejnery, sítě, soubory a další zdroje potřebné pro běh aplikace.
 
-Na tohoto uživatele aplikace interně přepíná pomocí `sudo` a spouští všechny citlivé operace pod jeho účtem. Běžní uživatelé ale nemají k tomuto uživateli přímý přístpup a nemohou se k němu přihlásit, což zajišťuje bezpečnost systému.
+Na tohoto uživatele aplikace interně přepíná pomocí `sudo` a spouští všechny citlivé operace pod jeho účtem. Běžní uživatelé ale nemají k tomuto uživateli přímý přístup a nemohou se k němu přihlásit, což zajišťuje bezpečnost systému.
 
 == Docker abstrakce
 
-Pro zjednodušení práce s `Dockerem` a skrytí jeho komplexity před uživatelem, je vytvořena vlastní vrstva abstrakce, která schová mnohé komplexní koncepty `Dockeru` a poskytuje jednodušší pro jeho správu.
+Pro zjednodušení práce s `Dockerem` a skrytí jeho komplexity před uživatelem, je vytvořena vlastní vrstva abstrakce, která schová mnohé komplexní koncepty `Dockeru` a poskytuje jednodušší rozhraní pro jeho správu.
 
 === Šablony
 
@@ -340,7 +340,7 @@ Tyto šablony se dělí na dvě kategorie
 
 ==== Statické šablony
 
-Statické šablony nezávisí na zdrojovém kódu dodaným uživatelem. Jsou předem definované a používají již existujicí _Docker images_. Jsou vhodné pro běh služeb, které nevyžadují žádnou specifickou konfiguraci nebo přizpůsobení, jako jsou například databáze, webové servery nebo jiné běžné služby.
+Statické šablony nezávisí na zdrojovém kódu dodaným uživatelem. Jsou předem definované a používají již existující _Docker images_. Jsou vhodné pro běh služeb, které nevyžadují žádnou specifickou konfiguraci nebo přizpůsobení, jako jsou například databáze, webové servery nebo jiné běžné služby.
 
 ==== Dynamické šablony
 
@@ -353,7 +353,7 @@ Služba představuje konkrétní instanci šablony ze které si přebírá konfi
 === Soubory
 
 Vzhledem k tomu, že `Docker` kontejnery jsou izolované a nemají přímý přístup k souborům na hostitelském systému a všechny změny provedené uvnitř kontejneru by byly ztraceny po jeho zastavení, je potřeba použít _volumes_ pro sdílení souborů mezi hostitelským systémem a kontejnery.
-Každá služba může vytvořit několik složek na hostitelském systému, které jsou pak připojeny na specifické místo v kontejneru pomocí _Bind mounts_ @dockerBindMounts. Tyto složky jsou pak přístupné jak pro uživatele, tak pro kontejner, což umožňuje snadnou správu přetrvávajících dat jako jsou například data dataábází.
+Každá služba může vytvořit několik složek na hostitelském systému, které jsou pak připojeny na specifické místo v kontejneru pomocí _Bind mounts_ @dockerBindMounts. Tyto složky jsou pak přístupné jak pro uživatele, tak pro kontejner, což umožňuje snadnou správu přetrvávajících dat jako jsou například data databází.
 
 === Nahrávání zdrojového kódu
 
@@ -372,12 +372,12 @@ Pro zajištění běhu aplikace jsou použity dva systémové kontejnery, které
 
 == Vizualizace architektury
 
-Na diagramu níže je zjednodušená vizuaizace architektury celé aplikace a jejích vrstev.
+Na diagramu níže je zjednodušená vizualizace architektury celé aplikace a jejích vrstev.
 
 #figure(
   image("img/app_chart.png", width: 80%),
   caption: [
-    Zjednušená vizualizace architektury aplikace.
+    Zjednodušená vizualizace architektury aplikace.
   ],
 )
 
@@ -387,7 +387,7 @@ Uživatel mám možnost s aplikací komunikovat dvěma způsoby, a to pomocí p�
 
 === Příkazová řádka
 
-Příkazová řádka je uživatel§m přístupná po připojení přes `SSH` a poskytuje širokou škálu příkazů pro správu a konfiguraci aplikace. Implementována je pomocí knihovny `Typer` @ramirez_typer, která nabízí snadnou implementaci a formátování příkazá a pomocných zpráv. Pro zjednodušení práce s objekty aplikace, jako jsou služby, šablony a uživatelé, je implementován systém automatického dokončování, který umožňuje rychlé a intuitivní zadávání příkazů. V příkazové řádce je pak spustitelný pomocí tabulátoru, který nabízí návrhy na základě aktuálního kontextu a dostupných objektů. Na příkladu níže je ukázáno, jak funguje automatické dokončování při zadávání příkazu pro resetování hesla uživatele. Po stisknutí tabulátoru se automaticky nabídnou možnosti dokončení na základě existujících uživatelů v systému.
+Příkazová řádka je uživatelům přístupná po připojení přes `SSH` a poskytuje širokou škálu příkazů pro správu a konfiguraci aplikace. Implementována je pomocí knihovny `Typer` @ramirez_typer, která nabízí snadnou implementaci a formátování příkazů a pomocných zpráv. Pro zjednodušení práce s objekty aplikace, jako jsou služby, šablony a uživatelé, je implementován systém automatického dokončování, který umožňuje rychlé a intuitivní zadávání příkazů. V příkazové řádce je pak spustitelný pomocí tabulátoru, který nabízí návrhy na základě aktuálního kontextu a dostupných objektů. Na příkladu níže je ukázáno, jak funguje automatické dokončování při zadávání příkazu pro resetování hesla uživatele. Po stisknutí tabulátoru se automaticky nabídnou možnosti dokončení na základě existujících uživatelů v systému.
 
 ```sh
 $ svs user reset-password te<tab>
@@ -396,7 +396,7 @@ testuser
 testuser2
 ```
 
-Vzhledem k tomu, že proces aplikace musí být schopen spouštět příkazy s `sudo` oprávněními a interně přepínat na systémového uživatele `svs`, je potřeba zajistit, aby příkazová řádka byla spustitelná pomocí `sudo` a zároveň aby byla přístupná pro běžné uživatele. Toho je dosaženo pomocí upravení souboru `/etc/sudoers` @runCommandsWithSudo. Konkrétně prídáním následujícího řádku, který umožňuje všem uživatelům spouštět příkaz `svs` s `sudo` bez zadávání hesla.
+Vzhledem k tomu, že proces aplikace musí být schopen spouštět příkazy s `sudo` oprávněními a interně přepínat na systémového uživatele `svs`, je potřeba zajistit, aby příkazová řádka byla spustitelná pomocí `sudo` a zároveň aby byla přístupná pro běžné uživatele. Toho je dosaženo pomocí upravení souboru `/etc/sudoers` @runCommandsWithSudo. Konkrétně přidáním následujícího řádku, který umožňuje všem uživatelům spouštět příkaz `svs` s `sudo` bez zadávání hesla.
 
 ```txt
 ALL ALL=NOPASSWD: /usr/local/bin/svs"
@@ -419,7 +419,7 @@ Webové rozhraní umožnuje uživatelům snadno spravovat své služby, šablony
 
 Na obrázku výše je zobrazeno webové rozhraní pro správu služby umožnující kompletní ovládání a úpravu konfigurace služby.
 
-Podobně jako jako proces příkazové řádky, i webové rozhraní musí mít přístup k `sudo` oprávněním. To je ale s ohledem na bezpečnostní rizika ještě problematičtější než u příkazové řádky, protože webové rozhraní je přístupné z vnějšího světa a může být cílem útoků. Vzhledem k tomu, že proces je spuštěn pod administrátorským učtem a má přístup k `sudo`, je webové rozhaní nebezpečné a může být zneužito k eskalaci oprávnění. Proto je doporučeno webové rozhraní používat pouze v interní sítí a znepřístupnit ho z vnějšího světa. Pro připojení mimo sít je pak možné použit `SSH tunel` nebo `VPN (Virtual Private Network)`.
+Podobně jako jako proces příkazové řádky, i webové rozhraní musí mít přístup k `sudo` oprávněním. To je ale s ohledem na bezpečnostní rizika ještě problematičtější než u příkazové řádky, protože webové rozhraní je přístupné z vnějšího světa a může být cílem útoků. Vzhledem k tomu, že proces je spuštěn pod administrátorským účtem a má přístup k `sudo`, je webové rozhraní nebezpečné a může být zneužito k eskalaci oprávnění. Proto je doporučeno webové rozhraní používat pouze v interní síti a znepřístupnit ho z vnějšího světa. Pro připojení mimo síť je pak možné použít `SSH tunel` nebo `VPN (Virtual Private Network)`.
 
 == Testování
 
@@ -427,7 +427,7 @@ Vzhledem k tomu, že aplikace běží na systémech hostitelů, vývojář nemá
 
 === jednotkové testy
 
-Zdrojový kód obsahuje množství jedntkových testů, které ověřují správnou funkčnost jednotlivých funkcí a metod. Tyto testy jsou navrženy tak, aby pokryly co největší část kódu a odhalily případné chyby v logice.
+Zdrojový kód obsahuje množství jednotkových testů, které ověřují správnou funkčnost jednotlivých funkcí a metod. Tyto testy jsou navrženy tak, aby pokryly co největší část kódu a odhalily případné chyby v logice.
 
 Testy jsou zajištěny knihovnou `Pytest` @pytest. Jednotkové testy jsou organizovány do samostatných souborů a adresářů, které odpovídají struktuře projektu. Každý test kontroluje konkrétní aspekt funkcionality, například správné zpracování vstupů, očekávané výstupy nebo chování v případě chyb.
 
@@ -459,17 +459,17 @@ def test_create_user_success(
 
 === Zkušební nasazení
 
-V rámci testování byla aplikace také nasazena na testovací server pro potřeby ročnníkových a maturitních prací _Gymnázia Arabská_. V rámci tohoto testování byla žákům zpřístupněná uživatelská dokumentace a webové rozhraní.
+V rámci testování byla aplikace také nasazena na testovací server pro potřeby ročníkových a maturitních prací _Gymnázia, Praha 6, Arabská 14_. V rámci tohoto testování byla žákům zpřístupněna uživatelská dokumentace a webové rozhraní.
 
-Vzhledem k nedostatku testovacích prací zatím není možné dělat závěry o stabilitě a funkčnosti aplikace. Ze zpětné vazby od uživatelů ale jasně vyplívá, že aplikace je funkční a splňuje svůj účel, ale je potřeba do jisté míry zjednodušit webové rozhraní a rozšířit návody v uživatelské dokumentaci.
+Vzhledem k nedostatku testovacích prací zatím není možné dělat závěry o stabilitě a funkčnosti aplikace. Ze zpětné vazby od uživatelů ale jasně vyplývá, že aplikace je funkční a splňuje svůj účel, ale je potřeba do jisté míry zjednodušit webové rozhraní a rozšířit návody v uživatelské dokumentaci.
 
 == Distribuce
 
-Aplikace je prirárně distribuovaná jako `pip` balíček, který je dostupný na `PyPI (Python Package Index)` (#link("https://pypi.org/project/svs-core/")). Tento způsob distribuce umožňuje snadnou instalaci a aktualizaci aplikace pomocí standardních nástrojů pro správu Python balíčků. Pro omezení konfliktů se systémovou `Python` instalací, je doporučeno používat nástroj `pipx` @pipx1, který umožňuje instalovat a spouštět Python balíčky v izolovaném prostředí.
+Aplikace je primárně distribuovaná jako `pip` balíček, který je dostupný na `PyPI (Python Package Index)` (#link("https://pypi.org/project/svs-core/")). Tento způsob distribuce umožňuje snadnou instalaci a aktualizaci aplikace pomocí standardních nástrojů pro správu Python balíčků. Pro omezení konfliktů se systémovou `Python` instalací, je doporučeno používat nástroj `pipx` @pipx1, který umožňuje instalovat a spouštět Python balíčky v izolovaném prostředí.
 
-Samotný balíček ale není jediným požadavkem pro správné fungovaní. Aplikace závisí na `Docker engine`, který je potřeba manuálně nainstalovat a nakonfigurovat. Ostatní požadavky jako například systémové skupiny, uživatelé mohou být automaticky vytvořeny pomocí instalačního skriptu.
+Samotný balíček ale není jediným požadavkem pro správné fungování. Aplikace závisí na `Docker engine`, který je potřeba manuálně nainstalovat a nakonfigurovat. Ostatní požadavky jako například systémové skupiny, uživatelé mohou být automaticky vytvořeny pomocí instalačního skriptu.
 
-Pro verzování se používá technika sematického verzování, které umožňuje jasně komunikovat změny a kompatibilitu mezi různými verzemi aplikace. Každá verze je označena třemi čísly ve formátu `MAJOR.MINOR.PATCH`, kde `MAJOR` označuje nekompatibilní změny, `MINOR` přidává nové funkce zpětně kompatibilní a `PATCH` obsahuje opravy chyb a drobné vylepšení. Toho lze automaticky docílit pomocí techniky semantických commitů @conventionalcommits, které umožňují automatické generování verzí a changelogů na základě zpráv commitů.
+Pro verzování se používá technika semantického verzování, které umožňuje jasně komunikovat změny a kompatibilitu mezi různými verzemi aplikace. Každá verze je označena třemi čísly ve formátu `MAJOR.MINOR.PATCH`, kde `MAJOR` označuje nekompatibilní změny, `MINOR` přidává nové funkce zpětně kompatibilní a `PATCH` obsahuje opravy chyb a drobné vylepšení. Toho lze automaticky docílit pomocí techniky semantických commitů @conventionalcommits, které umožňují automatické generování verzí a changelogů na základě zpráv commitů.
 
 Kdykoliv je projekt připraven na novou verzi, je spuštěn proces `Release Please` @releasePlease, který automaticky zkontroluje zprávy commitů, vygeneruje novou verzi a changelog, a následně vytvoří nový release na GitHubu a aktualizuje balíček na `PyPI`.
 
@@ -513,7 +513,7 @@ Tento typ dokumentace je rozšířený a zjednodušuje pochopení kódu pro jeho
 
 === Zensical
 
-Pro stavbu uživatelské dokumentace je použit generátor `Zensical` @zensical. Ten umožňuje psát dokumentaci v jazyku `Markdown`, který je následně zpracován do přehledné a strukturované formy na statcikém webu.
+Pro stavbu uživatelské dokumentace je použit generátor `Zensical` @zensical. Ten umožňuje psát dokumentaci v jazyku `Markdown`, který je následně zpracován do přehledné a strukturované formy na statickém webu.
 
 Hlavní výhodou využití generátorů dokumentace, je automatické generování dokumentace z `docstringů` a dalších zdrojů, což zajišťuje, že dokumentace je vždy aktuální a konzistentní s kódem.
 
@@ -532,11 +532,11 @@ Na obrázku níže je zobrazen příklad zpracování `docstringů` pomocí `Zen
 
 = Závěr
 
-Aplikace nabízí alternativní způsob nasazování aplikací do produkčního prostředí. Rozhodně není určena pro profesionální použítí, ale je spíše zaměřena na méně náročné projekty s nízkými nároky na výkon a stabilitu, jako jsou například osobní projekty. Pokud uživatel potřebuje rychle a jednoduše nasadit svou aplikaci pro potřeby ukázky, testování nebo pro osobní použití, může být tato aplikace ideálním řešením. Pro profesionální nasazení a správu produkčních aplikací by ale bylo vhodnější použít robustnější a komplexnější řešení, které nabízí větší kontrolu a možnosti konfigurace.
+Aplikace nabízí alternativní způsob nasazování aplikací do produkčního prostředí. Rozhodně není určena pro profesionální použití, ale je spíše zaměřena na méně náročné projekty s nízkými nároky na výkon a stabilitu, jako jsou například osobní projekty. Pokud uživatel potřebuje rychle a jednoduše nasadit svou aplikaci pro potřeby ukázky, testování nebo pro osobní použití, může být tato aplikace ideálním řešením. Pro profesionální nasazení a správu produkčních aplikací by ale bylo vhodnější použít robustnější a komplexnější řešení, které nabízí větší kontrolu a možnosti konfigurace.
 
-== Porování s existujícími řešeními
+== Porovnání s existujícími řešeními
 
-Při porovnání finální aplikace s existujícími řešeními, jako je například `Portainer`, je zřejmé, že naše aplikace nabízí výrazně jednodušší a přístup. To ale znamená že uživatel nemá přímou kontrolu nad `Dockerem` a jeho funkcemi, což může být pro některé pokročilé uživatele limitující. Na druhou stranu, pro méně zkušené uživatele je tento přístup výhodný, protože jim umožňuje spravovat své služby bez nutnosti hluboké znalosti `Dockeru` a jeho konceptů.
+Při porovnání finální aplikace s existujícími řešeními, jako je například `Portainer`, je zřejmé, že naše aplikace nabízí výrazně jednodušší přístup. To ale znamená, že uživatel nemá přímou kontrolu nad `Dockerem` a jeho funkcemi, což může být pro některé pokročilé uživatele limitující. Na druhou stranu, pro méně zkušené uživatele je tento přístup výhodný, protože jim umožňuje spravovat své služby bez nutnosti hluboké znalosti `Dockeru` a jeho konceptů.
 
 == Budoucí vývoj
 
