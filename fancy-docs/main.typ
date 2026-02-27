@@ -231,11 +231,12 @@ Docker; containerization; selfhosting; python
 #pagebreak()
 
 = Úvod
-#lorem(20)
+
+Studentský Vývojový Server (SVS; dále jen "aplikace“) je navržen jako nástroj pro snadné nasazení a správu aplikací pomocí technologie `Docker`. Cílem tohoto projektu je poskytnout uživatelům jednoduché a intuitivní rozhraní pro správu svých služeb, aniž by museli mít hlubší znalosti o `Dockeru` a jeho komplexních konceptech. Aplikace je implementována v programovacím jazyce `Python` a využívá framework `Django` pro vývoj webového rozhraní.
 
 = Teoretická část
 
-TODO: intro
+Teoretická část je zaměřena na vysvětlení problematiky a konceptů, které jsou klíčové pro pochopení a správné využití aplikace SVS. Tato část poskytuje teoretický základ pro implementaci a použití aplikace, a zároveň vysvětluje důležité pojmy a technologie, které jsou s ní spojeny.
 
 == Hosting a selfhosting
 
@@ -289,8 +290,6 @@ _Docker image_ funguje na principu vrstev. Každá instrukce v souboru _Dockerfi
 
 Postavený _image_ lze spustit jako kontejner, který představuje jeho instanci. Kontejnery jsou izolované, ale mohou komunikovat s ostatními kontejnery a hostitelským systémem prostřednictvím _volumes_ a síťí. _Volumes_ umožňují sdílet data mezi kontejnery a hostitelským systémem, což je užitečné pro uchovávání dat nebo konfigurace mimo kontejner. Síťové možnosti Dockeru umožňují kontejnerům komunikovat mezi sebou a hostitelským adaptérem.
 
-TODO: extend?
-
 == Existující řešení
 
 Uživatelských rozrhaní pro správu `Dockeru` existuje nespočet. Mezi nejznámější patří `Portainer` @portainerDocs, který nabízí webové rozhraní pro správu celého systému a je schopen zastopit příkazovou řádku ve většině případů.
@@ -334,6 +333,8 @@ Pro zjednodušení práce s `Dockerem` a skrytí jeho komplexity před uživatel
 Vzhledem k tomu, že každá uživatelská služba, která by měla být spuštěná v `Dockeru`, by potřebovala vlastní _Dockerfile_, která není vždy jednoduchá na vytvoření, je použit systém šablon, které umožňují definovat různé typy služeb a jejich konfigurace. Tyto šablony jsou definovány pomocí `JSON` souborů, které obsahují všechny potřebné informace pro sestavení a spuštění kontejneru, včetně konfigurace sítě, portů a dalších parametrů.
 
 Šablony jsou navrženy tak, aby byly snadno rozšiřitelné a přizpůsobitelné pro různé typy služeb. Uživatelé mohou vytvářet vlastní šablony nebo upravovat stávající, což umožňuje velkou flexibilitu při správě svých služeb.
+
+Aplikace nabízi vestavěné šablony pro několik základních typů služeb, jako jsou například webové servery, databáze a a různé webové frameworky.
 
 Tyto šablony se dělí na dvě kategorie
 
