@@ -359,58 +359,21 @@ Kromě nahrávání zdrojového z `Git` repozitářů, je možné použít také
 
 Každá služba může otevřít libovolné množství portů v nekonfliktním rozsahu, které jsou pak přístupné z vnějšího světa. Pro komunikaci mezi službami, jsou všechny kontejnery stejného uživatele připojeny do společné `Docker` sítě, která umožňuje jejich vzájemnou komunikaci pomocí názvů kontejnerů jako hostnames.
 
-== Vizualizace architektury
-
-#figure(
-  oxdraw(```mermaid
-  graph TD
-  subgraph Internet
-      client["Uživatel / Prohlížeč"]
-      git["Git Repozitáře"]
-  end
-
-  subgraph ControlPlane["Aplikační logika + Databáze"]
-      db_user["Uživatel (DB)"]
-      db_template["Šablona (DB)"]
-      db_service["Služba (DB)"]
-  end
-
-  subgraph Host["Hostitelský systém"]
-      sys_user["Linux uživatel"]
-      sys_volume["Persistenční data (Bind Mount)"]
-  end
-
-  subgraph Docker
-      docker_caddy["Caddy (reverse proxy)"]
-      docker_network["Izolovaná síť"]
-      docker_container["Service kontejner"]
-  end
-
-  %% Aplikace stylů
-  class Internet,ControlPlane,Host,Docker clusterStyle
-  class client,git,db_user,db_template,db_service,sys_user,sys_volume,docker_caddy,docker_network,docker_container transparent
-
-  %% ───────────── FLOW ─────────────
-  client <-->|HTTPS| docker_caddy
-  docker_caddy --> docker_container
-
-  git --> sys_volume
-  sys_volume --> docker_container
-
-  db_user --> db_service
-  db_template --> db_service
-  db_service --> docker_container
-
-  docker_container --- docker_network
-
-  client <-->|SSH/SFTP| sys_user
-  ```),
-)
 
 == Systémové kontejnery
 
 Pro zajištění běhu aplikace jsou použity dva systémové kontejnery, které se inicializují při instalaci. První z nich je `Caddy`, který funguje jako reverzní proxy a zajišťuje bezpečný přístup k uživatelským službám přes `HTTPS`. Druhým kontejnerem je `PostgreSQL` databáze, která slouží pro ukládání dat aplikace. Tyto kontejnery jsou spravovány aplikací a jsou nezbytné pro její správný chod.
 
+== Vizualizace architektury
+
+Na diagramu níže je zjednodušená vizuaizace architektury celé aplikace a jejích vrstev.
+
+#figure(
+  image("img/app_chart.png", width: 80%),
+  caption: [
+    Zjednušená vizualizace architektury aplikace.
+  ],
+)
 
 == Uživatelské rozhraní
 
