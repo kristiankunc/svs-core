@@ -544,5 +544,81 @@ Aplikace bude dále rozvíjena a vylepšována na základě zpětné vazby od u�
 
 #pagebreak()
 
+= Poznámky k doplnění
+
+Tato část shrnuje aspekty, které v současné podobě práce chybí nebo nejsou dostatečně pokryty. Každý bod obsahuje popis aktuálního stavu a návrh, jak jej doplnit.
+
+== Cíle práce a požadavky
+
+- *Aktuální stav:* Práce nezahrnuje explicitně formulované cíle ani seznam funkčních a nefunkčních požadavků.
+- *Návrh:* Přidat úvodní kapitolu „Cíle práce", která bude obsahovat stručně formulované cíle projektu, seznam funkčních požadavků (např. správa uživatelů, nasazení služeb přes šablony, webové rozhraní) a seznam nefunkčních požadavků (např. bezpečnost, výkon, přenositelnost).
+- *TODO:* Formulovat měřitelné cíle a propojit je se závěrečným hodnocením splnění.
+
+== Metodika
+
+- *Aktuální stav:* Práce nepopisuje, jakým způsobem byl projekt navrhován a vyvíjen — chybí kapitola věnovaná metodice vývoje.
+- *Návrh:* Doplnit podkapitolu „Metodika", která popíše zvolenou vývojovou metodiku (např. iterativní vývoj, test-driven development), způsob plánování, volbu technologií a důvody těchto voleb.
+- *TODO:* Krátce zdůvodnit, proč byl zvolen Python a Django místo alternativ.
+
+== Hodnocení a výsledky
+
+- *Aktuální stav:* Sekce testování popisuje přístupy ke kvalitě kódu, ale neobsahuje měřitelné výsledky — chybí konkrétní metriky (např. počet testů, pokrytí kódu, výsledky zátěžových testů).
+- *Návrh:* Doplnit tabulku nebo přehled s metrikami: počet jednotkových a integračních testů, aktuální pokrytí kódu (`coverage`), výsledky zkušebního nasazení.
+- *TODO:* Exportovat výsledky z CI pipeline (např. `pytest --cov`) a zahrnout je do textu.
+
+== Bezpečnost: model hrozeb a omezení
+
+- *Aktuální stav:* Bezpečnostní aspekty jsou zmíněny lokálně (sudo, webové rozhraní), ale chybí systematický přehled předpokladů, hrozeb a zmírnění rizik.
+- *Návrh:* Přidat podkapitolu „Bezpečnostní model", která bude obsahovat:
+  - předpoklady nasazení (důvěryhodná interní síť, fyzický přístup k serveru),
+  - identifikované hrozby (eskalace oprávnění, kompromitace webového rozhraní),
+  - implementovaná zmírnění (izolace uživatelů, doporučení pro nasazení za VPN / SSH tunel),
+  - známá omezení a přijatá rizika.
+- *TODO:* Propojit s existujícím textem o `sudo` a webovém rozhraní.
+
+=== Potenciální překlep v ukázce sudoers
+
+- *Aktuální stav:* Řádek v ukázce souboru `/etc/sudoers` obsahuje na konci nadbytečný uvozovkový znak:
+  ```txt
+  ALL ALL=NOPASSWD: /usr/local/bin/svs"
+  ```
+- *Návrh:* Ověřit, zda se jedná o překlep (pravděpodobně ano — koncová uvozovka by způsobila syntaktickou chybu v `sudoers`), a opravit ukázku na:
+  ```txt
+  ALL ALL=NOPASSWD: /usr/local/bin/svs
+  ```
+- *TODO:* Opravit ukázku a doplnit komentář o tom, jak `visudo` ověřuje syntaxi souboru.
+
+== Reprodukovatelnost a instalační souhrn
+
+- *Aktuální stav:* Postup instalace je popsán v uživatelské dokumentaci na externím webu, ale v samotné práci chybí stručný instalační souhrn.
+- *Návrh:* Přidat do sekce „Distribuce" krátký instalační souhrn (krok za krokem), aby byla práce samostatně reprodukovatelná bez nutnosti navštívit externí dokumentaci.
+- *TODO:* Uvést minimální příkazy pro instalaci (`pipx install svs-core`), konfiguraci (`sudoers`, skupiny) a první spuštění.
+
+== Prohlášení o použití AI nástrojů
+
+- *Aktuální stav:* Text prohlášení obsahuje zástupný text `[???]`, který nebyl doplněn:
+  #quote[„... jsem použil nástroj generativního modelu AI GitHub Copilot ... za účelem [???]."]
+- *Návrh:* Nahradit `[???]` konkrétním popisem způsobu použití, například:
+  - generování boilerplate kódu a doplňování opakujících se vzorů,
+  - návrhy pro refaktoring a kontrola typových anotací,
+  - asistence při psaní docstringů a komentářů.
+- *TODO:* Doplnit text před odevzdáním; prohlášení s prázdným polem není přijatelné.
+
+== Struktura kapitoly o implementaci
+
+- *Aktuální stav:* Kapitola o implementaci mísí popis samotného kódu s popisem vývojového procesu (CI/CD, vývojové prostředí, distribuce).
+- *Návrh:* Zvážit rozdělení do dvou samostatných kapitol:
+  - „Implementace" — architektura, moduly, klíčové algoritmy a datové struktury,
+  - „Vývojový proces a zajištění kvality" — CI/CD pipeline, verzování, vývojové prostředí, distribuce.
+- *TODO:* Toto rozdělení by zpřehlednilo strukturu a usnadnilo orientaci v textu.
+
+== Porovnání s existujícími řešeními
+
+- *Aktuální stav:* Porovnání v úvodu obsahuje tabulku existujících řešení, ale závěrečná sekce „Porovnání s existujícími řešeními" tuto tabulku nerozvíjí ani na ni neodkazuje.
+- *Návrh:* Propojit závěrečné porovnání s úvodní tabulkou, doplnit konkrétní funkce, ve kterých SVS zaostává nebo vyniká, a uvést, které mezery jsou plánovaným předmětem budoucího vývoje.
+- *TODO:* Přidat odkaz na tabulku v úvodu (`@tbl-comparison` nebo podobně) a rozšířit analýzu.
+
+#pagebreak()
+
 
 #bibliography("main.bib", style: "iso690-numeric-brackets-cs.csl")
