@@ -219,7 +219,7 @@ SVS je aplikace pro snadné nasazení a správu aplikací v `Docker` kontejnerec
 
 #heading(numbering: none, outlined: false)[Klíčová slova]
 
-Docker; kontenjerizace; selfhosting; python
+Docker; kontejnerizace; selfhosting; python
 
 #heading(numbering: none, outlined: false)[Abstract]
 SVS is an application for easy deployment and management of applications in `Docker` containers. It allows users without deep knowledge of `Docker` to manage their services using a simple web interface or command line. The project is implemented in `Python` and uses `Django` for web interface development. SVS is designed as an alternative to traditional hosting solutions, offering greater control over the environment and configuration while simplifying the deployment and management process.
@@ -295,11 +295,11 @@ CMD ["python3", "app.py"]
 
 _Docker image_ funguje na principu vrstev. Každá instrukce v souboru _Dockerfile_ vytváří novou vrstvu, která je uložena a může být znovu použita při dalším sestavení. Tento mechanismus zvyšuje efektivitu sestavování. Vrstvení probíhá také při použití základního _image_. Pokud více _Docker images_ sdílí stejné vrstvy, Docker je neukládá duplicitně, ale znovu je využije. Tím dochází ke zrychlení sestavení a snížení velikosti výsledné _Docker image_
 
-Postavený _image_ lze spustit jako kontejner, který představuje jeho instanci. Kontejnery jsou izolované, ale mohou komunikovat s ostatními kontejnery a hostitelským systémem prostřednictvím _volumes_ a síťí. _Volumes_ umožňují sdílet data mezi kontejnery a hostitelským systémem, což je užitečné pro uchovávání dat nebo konfigurace mimo kontejner. Síťové možnosti Dockeru umožňují kontejnerům komunikovat mezi sebou a hostitelským adaptérem.
+Postavený _image_ lze spustit jako kontejner, který představuje jeho instanci. Kontejnery jsou izolované, ale mohou komunikovat s ostatními kontejnery a hostitelským systémem prostřednictvím _volumes_ a sítí. _Volumes_ umožňují sdílet data mezi kontejnery a hostitelským systémem, což je užitečné pro uchovávání dat nebo konfigurace mimo kontejner. Síťové možnosti Dockeru umožňují kontejnerům komunikovat mezi sebou a hostitelským adaptérem.
 
 == Existující řešení
 
-Uživatelských rozhraní pro správu `Dockeru` existuje nespočet. Mezi nejznámější patří `Portainer` @portainerDocs, který nabízí webové rozhraní pro správu celého systému a je schopen zastopit příkazovou řádku ve většině případů.
+Uživatelských rozhraní pro správu `Dockeru` existuje nespočet. Mezi nejznámější patří `Portainer` @portainerDocs, který nabízí webové rozhraní pro správu celého systému a je schopen zastoupit příkazovou řádku ve většině případů.
 
 Nicméně, většina těchto řešení je navržena pro profesionální použití a neimplementují žádnou abstrakci nad `Dockerem`, což může být pro méně zkušené uživatele komplikované, protože stále vyžadují kompletní znalost `Dockeru` a jeho konceptů.
 
@@ -327,7 +327,7 @@ Uživatelé jsou rozděleni do dvou hlavních skupin: `admin` a `user`. `Admin` 
 === Linux oprávnění
 
 Běžný systémový uživatel nemá přímý přístup k
-_Docker engine_, ten je zabezpečený pomocí systémové skupiny `docker`. Tento přístup by totiž umožnil uživateli prakticky získat `root` oprávnění na celém systému @dockerdAttackSurface. Proto je na vykonávání citlivých operací používan systémový uživatel `svs`, který má všechna potřebná oprávnění. Tento uživatel vytváří a spravuje kontejnery, sítě, soubory a další zdroje potřebné pro běh aplikace.
+_Docker engine_, ten je zabezpečený pomocí systémové skupiny `docker`. Tento přístup by totiž umožnil uživateli prakticky získat `root` oprávnění na celém systému @dockerdAttackSurface. Proto je na vykonávání citlivých operací používán systémový uživatel `svs`, který má všechna potřebná oprávnění. Tento uživatel vytváří a spravuje kontejnery, sítě, soubory a další zdroje potřebné pro běh aplikace.
 
 Na tohoto uživatele aplikace interně přepíná pomocí `sudo` a spouští všechny citlivé operace pod jeho účtem. Běžní uživatelé ale nemají k tomuto uživateli přímý přístup a nemohou se k němu přihlásit, což zajišťuje bezpečnost systému.
 
@@ -366,7 +366,7 @@ Každá služba může vytvořit několik složek na hostitelském systému, kte
 
 Pro usnadnění práce s vlastním zdrojovým kódem, který je potřeba pro běh služby, je implementována funkce nahrávání zdrojového kódu z `Git` platforem jako jsou například `GitHub` nebo `GitLab`. Uživatel může zadat URL repozitáře a aplikace automaticky stáhne zdrojový kód do vybráného adresáře na hostitelském systému a připojí ho do kontejneru pomocí výše zmíněných _Bind mounts_. Tímto způsobem může uživatel snadno spravovat svůj zdrojový kód a mít ho vždy aktuální bez nutnosti manuálního nahrávání souborů.
 
-Kromě nahrávání zdrojového z `Git` repozitářů, je možné použít také standartní nástroje jako `scp`  nebo `sftp` pro přenos souborů mezi systémem uživatele a hostitelským systémem.
+Kromě nahrávání zdrojového kódu z `Git` repozitářů, je možné použít také standardní nástroje jako `scp`  nebo `sftp` pro přenos souborů mezi systémem uživatele a hostitelským systémem.
 
 === Síťová architektura
 
@@ -415,7 +415,7 @@ Tento přístup se jeví jako nebezpečný, ale aplikace si sama kontroluje, zda
 
 Jako alternativa k příkazové řádce je k dispozici webové rozhraní, které poskytuje uživatelsky přívětivější způsob správy a interakce s aplikací a je orientováno spíše na méně zkušené uživatele. Webové rozhraní je implementováno pomocí `Django` @django6 a `Bootstrap`.
 
-Webové rozhraní umožnuje uživatelům snadno spravovat své služby, šablony a další aspekty aplikace pomocí intuitivního grafického rozhraní. Uživatelé mohou vytvářet, upravovat a mazat služby, prohlížet stav svých služeb, spravovat soubory a přistupovat k dalším funkcím aplikace bez nutnosti používat příkazovou řádku.
+Webové rozhraní umožňuje uživatelům snadno spravovat své služby, šablony a další aspekty aplikace pomocí intuitivního grafického rozhraní. Uživatelé mohou vytvářet, upravovat a mazat služby, prohlížet stav svých služeb, spravovat soubory a přistupovat k dalším funkcím aplikace bez nutnosti používat příkazovou řádku.
 
 #figure(
   image("img/web_service.png", width: 80%),
