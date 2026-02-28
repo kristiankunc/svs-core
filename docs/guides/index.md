@@ -2,40 +2,42 @@
 
 This section contains various guides aimed at helping you configure and deploy your projects.
 
-**Available Guides:**
+## Support and troubleshooting
 
-- [Static website (NGINX)](./nginx.md) - NGINX is used to deploy static (HTML, CSS, JS) websites.
-- [MySQL database](./mysql.md) - MySQL is a widely used open-source relational database management system.
-- [Adminer database management](./adminer.md) - Adminer is a full-featured database management tool written in PHP.
+If you encounter any issues or have questions while using SVS, use QnA section on [GitHub Discussions](https://github.com/kristiankunc/svs-core/discussions/categories/q-a).
 
-## Terminology
+## What do you want to deploy?
 
-- **Docker**: Docker is a platform that balances the ease of application deployment with the need for isolation and resource control. It uses containerization technology to package applications and their dependencies into lightweight, portable containers that can run consistently across different environments.
-- **Template**: A template is a predefined configuration that outlines how to build and run a specific type of service. It includes settings such as the base image, environment variables, ports, and volumes. Templates simplify the process of deploying services by providing a standardized setup.
-- **Service**: A service is an instance of a running application or process that is managed by SVS. Services are created based on templates and can be started, stopped, and configured as needed.
-- **Environment Variables**: Environment variables are dynamic values that can be used to configure the behavior of applications and services. They are often used to store sensitive information, such as database credentials or API keys, and can be accessed by the application at runtime.
-- **Port**: A port is a communication endpoint used by networked applications to send and receive data. In the context of SVS, ports are used to expose services to the outside world, allowing users to access web applications, databases, and other services running within containers.
-- **Domain**: A domain is a human-readable address used to access websites and services on the internet. In SVS, domains can be associated with services to provide easy access via web browsers. Otherwise, services can be accessed using the server's IP address and the assigned port.
+Be that a static website, a database, a web application, or something else - consult the [available templates](/api-reference/official-templates/index.md)
+
+Further, continue on the respective guide for the type of service you want to deploy.
+
+---
+
+## Key concepts
+
+Before deploying anything, it is important to understand some key concepts:
+
+### Docker
+
+SVS uses Docker to run services in isolated containers - essentially each service you deploy is an isolated Linux system. This is great for isolation but comes with some caveats.
 
 ### Volumes
 
-Because services run inside Docker containers, any data stored within the container is ephemeral and will be lost when the container is stopped or removed. To persist data beyond the lifecycle of a container, SVS uses Docker volumes (bind mounts) to map directories from the host system into the container.
+One of the most important things to remember is that once a service gets shut down or deleted, all the changes made on the system are lost, including any files.
 
-To think of it simply, an SVS volume defines a mapping between a directory on the host machine and a directory inside the container. This allows data to be stored on the host system, ensuring that it remains intact even if the container is recreated or updated. Containers can both read and write data to these volumes.
+This is why SVS supports volumes - they are special folders on the host machine that are mounted into the service container. Anything stored in those folders will persist even if the service is deleted.
+
+When you create a service, a volume is automatically created for it. You can also create additional volumes and mount them to the service if needed. Each volume has a host path (e.g., `/var/svs/volumes/1/abc123`) and a container path (e.g., `/app`). The container path is where the volume is mounted inside the service container, and the host path is where the data is stored on the server.
 
 ```mermaid
 graph LR
-    A[Host System<br/>/var/svs/volumes/foo/bar] <-->|Bind Mount| B[Docker Container<br/>/container/data]
+    A["/var/svs/volumes/1/abc123<br/><sub>Host machine</sub>"] <-->|Volume mount| B["/app/data<br/><sub>Service</sub>"]
 ```
 
-Volumes can be examined using the [detailed service view](#detailed-view).
 
-### DNS
 
-All services owned by a single user are connected to the same network. This means that services can communicate with each other using their service names as hostnames. For example, if you have a database service named `my-database`, other services can connect to it using the hostname `my-database`.
----
-
-## Generic stepts
+## Generic steps
 
 The section below outlines the generic steps to follow when using any of the guides provided.
 
@@ -185,3 +187,163 @@ More details about these commands can be found in the [CLI documentation](../cli
 Navigate to the _Services_ section. There you will find a list of all services. On the service card, click on _View_ to see more details about the service. From there, you can start, stop, restart, or delete the service using the respective buttons.
 
 [![Service management](./images/service-management.png)](./images/service-management.png)
+
+### Domains
+
+To access your service via a custom domain name, you need to add a domain to it. **You can do this during the service creation.**
+
+Generally, SVS tends to be hosted under one domain, for example, `example.com`. In that case, you can access your service via a subdomain like `my-service.example.com` by adding `my-service.example.com` as a domain to your service. If you add a domain that is not a subdomain of the main domain, for example, `anotherdomain.com`, you will need to configure the DNS records for that domain to point to your server's IP address.
+
+---
+
+### DNS
+
+SVS automatically configures Docker DNS for inter-service communication. Each service can communicate with other services using Docker's internal DNS resolution.
+
+#### Container naming
+
+All service containers are named using the pattern `svs-{id}`, where `{id}` is the service ID. For example, if your service has ID `5`, its container will be named `svs-5`.
+
+#### Connecting services
+
+To connect one service to another (e.g., connecting a web application to a database), use the container name `svs-{id}`:
+
+**Example: Connecting to a database service**
+
+If you have a PostgreSQL database service with ID `3`, you can connect to it from other services using:
+
+```
+Host: svs-3
+Port: 5432 (the container port, not the host port)
+```
+
+For example, in a Django `settings.py`:
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mydatabase',
+        'USER': 'myuser',
+        'PASSWORD': 'mypassword',
+        'HOST': 'svs-3',  # Use the service container name
+        'PORT': '5432',   # Use the container port
+    }
+}
+```
+
+**Important notes:**
+
+- Always use the **container port**, not the host port, for inter-service communication
+- Services must be in the same Docker network (by default, services owned by the same user share a network)
+- External access to services uses the host port and server IP address
+
+---
+
+### Uploading files
+
+???+ note
+
+    Uploading files is currently only supported via GIT and SSH (scp, sftp). Support for direct file uploads via the Web UI is planned for a future release.
+
+
+#### GIT
+
+##### CLI
+
+Each service can have multiple GIT sources configured. This allows you to deploy your code directly from a GIT repository. You can use any GIT provider (GitHub, GitLab, Bitbucket, etc.).
+
+**Adding a git source:**
+
+Use the [`svs service add-git-source`](../cli-documentation/service.md#svs-service-add-git-source).
+
+```bash
+sudo svs service add-git-source <service_id> <git_url> <destination_path> --branch <branch_name>
+```
+
+Example:
+```bash
+sudo svs service add-git-source 7 https://github.com/user/my-app.git /var/svs/volumes/1/randomid --branch main
+```
+
+**Downloading/updating from git:**
+
+Use the [`svs service download-git-source`](../cli-documentation/service.md#svs-service-download-git-source).
+
+```bash
+sudo svs service download-git-source <git_source_id>
+```
+
+This clones or pulls the latest code from the repository to the configured destination path.
+
+**Deleting a git source:**
+
+Use the [`svs service delete-git-source`](../cli-documentation/service.md#svs-service-delete-git-source).
+
+```bash
+sudo svs service delete-git-source <git_source_id>
+```
+
+To see all git sources for a service, use `svs service get <service_id>` and look at the `git_sources` field.
+
+##### Web
+
+After creating a service, scroll down to the git sources section. Click on _Add Git Source_ and fill in the form with the repository URL, destination path, and branch name. After adding the git source, you can click _Download Git Source_ to clone or pull the latest code to the specified destination path.
+
+---
+
+### Building services
+
+SVS supports two types of templates:
+
+1. **Image templates** - Use pre-built Docker images from registries (e.g., NGINX, PostgreSQL, MySQL)
+2. **Build templates** - Build Docker images on-demand from your source code (e.g., Django, Python, PHP, SvelteKit)
+
+#### Build process
+
+For build templates, you need to:
+
+1. Create a service from a build template
+2. Upload your source code to the service's volume
+3. Build the Docker image: `sudo svs service build <service_id> <volume_path>`
+4. Start the service
+
+The volume's host path becomes the build context. All files in the volume are available during the Docker build. **Build context should usually be set to your project's root directory inside the volume.**
+
+**If the build fails**, a detailed error log is written to `docker_build_error.log` in your volume directory (the build context).
+
+##### CLI
+
+**Example:**
+
+```bash
+# 1. Create service
+sudo svs service create my-app 5 --env APP_NAME=myproject
+
+# 2. Get volume path
+sudo svs service get 7
+# Shows: volumes=['Volume(/app=/var/svs/volumes/1/abc123)']
+
+# 3. Upload code via GIT
+sudo svs service add-git-source 7 https://github.com/user/my-app.git /var/svs/volumes/1/abc123 --branch main
+sudo svs service download-git-source 1
+
+# Or upload via SSH
+scp -r ./my-app/* user@server:/var/svs/volumes/1/abc123/
+
+# 4. Build
+sudo svs service build 7 /var/svs/volumes/1/abc123
+
+# 5. Start
+sudo svs service start 7
+```
+
+To rebuild after code updates, re-download the git source or re-upload via SSH, then run the build command again.
+
+##### Web
+
+You can use the same process as the CLI, upload your files to the volume via GIT or SSH, then click the _Build_ button on the service's detailed view page.
+
+Set the build context to the volume path (e.g., `/var/svs/volumes/1/abc123`) and start the build. If the build fails, check the `docker_build_error.log` file in your volume directory for detailed error logs.
+
+[![Build service](./images/service-build.png)](./images/service-build.png)

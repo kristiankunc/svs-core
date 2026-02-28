@@ -136,8 +136,11 @@ def main() -> None:  # noqa: D103
 
         sys.exit(1)
 
+    is_completion = os.environ.get("_SVS_COMPLETE") is not None
+
     if (
-        not os.environ.get("SUDO_USER")
+        not is_completion
+        and not os.environ.get("SUDO_USER")
         and EnvManager.get_runtime_environment()
         == EnvManager.RuntimeEnvironment.PRODUCTION
     ):

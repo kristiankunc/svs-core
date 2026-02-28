@@ -9,53 +9,162 @@
             <a href="{% url 'list_templates' %}" class="btn btn-primary">Create New Service</a>
         </div>
     </div>
-    {% if services %}
-        <div class="row">
-            {% for service in services %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ service.name }}</h5>
-                            <p class="card-text text-muted">
-                                <span class="badge bg-info">{{ service.status }}</span>
-                            </p>
-                            {% with template=service.proxy_template.first %}
-                                {% if template %}
-                                    <p class="card-text">
-                                        <small><strong>Template:</strong> <a href="{% url 'detail_template' template.id %}">{{ template.name }}</a></small>
+    {% if is_admin %}
+        <!-- Admin view: split owned and other services -->
+        {% if owned_services or other_services %}
+            {% if owned_services %}
+                <h3 class="mt-4 mb-3">Your Services</h3>
+                <div class="row">
+                    {% for service in owned_services %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ service.name }}</h5>
+                                    <p class="card-text text-muted">
+                                        <span class="badge bg-info">{{ service.status }}</span>
                                     </p>
-                                {% endif %}
-                            {% endwith %}
-                            {% if service.domain %}
-                                <p class="card-text">
-                                    <small><strong>Domain:</strong> {{ service.domain }}</small>
-                                </p>
-                            {% endif %}
+                                    {% with template=service.proxy_template.first %}
+                                        {% if template %}
+                                            <p class="card-text">
+                                                <small><strong>Template:</strong> <a href="{% url 'detail_template' template.id %}">{{ template.name }}</a></small>
+                                            </p>
+                                        {% endif %}
+                                    {% endwith %}
+                                    {% if service.domain %}
+                                        <p class="card-text">
+                                            <small><strong>Domain:</strong> <a href="https://{{ service.domain }}"
+    target="_blank"
+    rel="noopener noreferrer">{{ service.domain }}</a></small>
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer bg-body-tertiary border-top">
+                                    <div class="d-grid gap-2">
+                                        {% with template=service.proxy_template.first %}
+                                            {% if template and template.docs_url %}
+                                                <a href="{{ template.docs_url }}"
+                                                   target="_blank"
+                                                   rel="noopener noreferrer"
+                                                   class="btn btn-sm btn-outline-secondary">📖 Template Docs</a>
+                                            {% endif %}
+                                        {% endwith %}
+                                        <a href="{% url 'detail_service' service.id %}"
+                                           class="btn btn-sm btn-outline-primary">View</a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-footer bg-body-tertiary border-top">
-                            <div class="d-grid gap-2">
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% if other_services %}
+                <h3 class="mt-4 mb-3">Other Users' Services</h3>
+                <div class="row">
+                    {% for service in other_services %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ service.name }}</h5>
+                                    <p class="card-text text-muted">
+                                        <span class="badge bg-info">{{ service.status }}</span>
+                                    </p>
+                                    {% with template=service.proxy_template.first %}
+                                        {% if template %}
+                                            <p class="card-text">
+                                                <small><strong>Template:</strong> <a href="{% url 'detail_template' template.id %}">{{ template.name }}</a></small>
+                                            </p>
+                                        {% endif %}
+                                    {% endwith %}
+                                    {% if service.domain %}
+                                        <p class="card-text">
+                                            <small><strong>Domain:</strong> <a href="https://{{ service.domain }}"
+    target="_blank"
+    rel="noopener noreferrer">{{ service.domain }}</a></small>
+                                        </p>
+                                    {% endif %}
+                                    <p class="card-text">
+                                        <small><strong>Owner:</strong> {{ service.user.name }}</small>
+                                    </p>
+                                </div>
+                                <div class="card-footer bg-body-tertiary border-top">
+                                    <div class="d-grid gap-2">
+                                        {% with template=service.proxy_template.first %}
+                                            {% if template and template.docs_url %}
+                                                <a href="{{ template.docs_url }}"
+                                                   target="_blank"
+                                                   rel="noopener noreferrer"
+                                                   class="btn btn-sm btn-outline-secondary">📖 Template Docs</a>
+                                            {% endif %}
+                                        {% endwith %}
+                                        <a href="{% url 'detail_service' service.id %}"
+                                           class="btn btn-sm btn-outline-primary">View</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                <h4 class="alert-heading">No Services</h4>
+                <p>
+                    There are no services yet. <a href="{% url 'list_templates' %}" class="alert-link">Create one from a template</a>.
+                </p>
+            </div>
+        {% endif %}
+    {% else %}
+        <!-- Regular user view -->
+        {% if services %}
+            <div class="row">
+                {% for service in services %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ service.name }}</h5>
+                                <p class="card-text text-muted">
+                                    <span class="badge bg-info">{{ service.status }}</span>
+                                </p>
                                 {% with template=service.proxy_template.first %}
-                                    {% if template and template.docs_url %}
-                                        <a href="{{ template.docs_url }}"
-                                           target="_blank"
-                                           rel="noopener noreferrer"
-                                           class="btn btn-sm btn-outline-secondary">📖 Template Docs</a>
+                                    {% if template %}
+                                        <p class="card-text">
+                                            <small><strong>Template:</strong> <a href="{% url 'detail_template' template.id %}">{{ template.name }}</a></small>
+                                        </p>
                                     {% endif %}
                                 {% endwith %}
-                                <a href="{% url 'detail_service' service.id %}"
-                                   class="btn btn-sm btn-outline-primary">View</a>
+                                {% if service.domain %}
+                                    <p class="card-text">
+                                        <small><strong>Domain:</strong> <a href="https://{{ service.domain }}"
+    target="_blank"
+    rel="noopener noreferrer">{{ service.domain }}</a></small>
+                                    </p>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer bg-body-tertiary border-top">
+                                <div class="d-grid gap-2">
+                                    {% with template=service.proxy_template.first %}
+                                        {% if template and template.docs_url %}
+                                            <a href="{{ template.docs_url }}"
+                                               target="_blank"
+                                               rel="noopener noreferrer"
+                                               class="btn btn-sm btn-outline-secondary">📖 Template Docs</a>
+                                        {% endif %}
+                                    {% endwith %}
+                                    <a href="{% url 'detail_service' service.id %}"
+                                       class="btn btn-sm btn-outline-primary">View</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="alert alert-info" role="alert">
-            <h4 class="alert-heading">No Services</h4>
-            <p>
-                You don't have any services yet. <a href="{% url 'list_templates' %}" class="alert-link">Create one from a template</a>.
-            </p>
-        </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                <h4 class="alert-heading">No Services</h4>
+                <p>
+                    You don't have any services yet. <a href="{% url 'list_templates' %}" class="alert-link">Create one from a template</a>.
+                </p>
+            </div>
+        {% endif %}
     {% endif %}
 {% endblock %}

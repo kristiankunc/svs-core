@@ -1,6 +1,6 @@
 [project]
 name = "svs_core"
-version = "0.12.0"
+version = "0.12.7"
 description = "Core library for SVS"
 authors = [{ name = "Kristián Kunc", email = "diist7i4c@mozmail.com" }]
 readme = "README.md"
@@ -9,16 +9,16 @@ dependencies = [
     "bcrypt==5.0.0",
     "docker==7.1.0",
     "httpx==0.28.1",
-    "typer==0.21.1",
-    "Django==6.0.1",
-    "dj_database_url==3.1.0",
-    "psycopg2==2.9.11",
+    "typer==0.24.1",
+    "Django==6.0.2",
+    "dj_database_url==3.1.2",
+    "psycopg[binary]==3.3.3",
 ]
 
 [project.optional-dependencies]
 dev = [
     "black==26.1.0",
-    "isort==7.0.0",
+    "isort==8.0.1",
     "mypy==1.19.1",
     "pre-commit==4.5.1",
     "pytest==9.0.2",
@@ -26,13 +26,14 @@ dev = [
     "pytest-cov==7.0.0",
     "pytest-dotenv==0.5.2",
     "pytest_mock==3.15.1",
-    "ruff==0.14.14",
+    "ruff==0.15.4",
     "twine==6.2.0",
-    "pytest-django==4.11.1",
+    "pytest-django==4.12.0",
+    "pytest-xdist==3.8.0",
 ]
 docs = [
-    "zensical==0.0.20",
-    "mkdocstrings[python]==1.0.2",
+    "zensical==0.0.24",
+    "mkdocstrings[python]==1.0.3",
     "mkdocs-awesome-nav==3.3.0",
     "mkdocs-pdf==0.1.2",
 ]

@@ -3,49 +3,44 @@
 	"args": [],
 	"default_env": [
 		{
-			"key": "MYSQL_ROOT_PASSWORD",
+			"key": "POSTGRES_USER",
 			"value": ""
 		},
 		{
-			"key": "MYSQL_DATABASE",
+			"key": "POSTGRES_PASSWORD",
 			"value": ""
 		},
 		{
-			"key": "MYSQL_USER",
-			"value": ""
-		},
-		{
-			"key": "MYSQL_PASSWORD",
+			"key": "POSTGRES_DB",
 			"value": ""
 		}
 	],
 	"default_ports": [
 		{
-			"container": 3306,
+			"container": 5432,
 			"host": null
 		}
 	],
 	"default_volumes": [
 		{
-			"container": "/var/lib/mysql",
+			"container": "/var/lib/postgresql",
 			"host": null
 		}
 	],
-	"description": "MySQL database",
-	"docs_url": "https://svs.kristn.co.uk/api-reference/official-templates/databases/mysql/",
+	"description": "PostgreSQL database",
+	"docs_url": "https://svs.kristn.co.uk/api-reference/official-templates/databases/postgres/",
 	"healthcheck": {
 		"interval": 30,
 		"retries": 5,
 		"start_period": 20,
 		"test": [
-			"CMD",
-			"mysqladmin",
-			"ping"
+			"CMD-SHELL",
+			"pg_isready -U $$POSTGRES_USER"
 		],
 		"timeout": 10
 	},
-	"image": "mysql:9",
-	"name": "mysql-database",
+	"image": "postgres:17",
+	"name": "postgres-database",
 	"start_cmd": null,
 	"type": "image"
 }

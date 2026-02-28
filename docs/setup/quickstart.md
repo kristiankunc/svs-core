@@ -21,19 +21,6 @@ docker compose version
 Otherwise uou can install it by following the official [Docker Compose installation guide](https://docs.docker.com/compose/install/).
 
 
-### Build packages
-
-Depending on your distribution, you may need the following build packages:
-
-- libpq-dev
-- python3-dev
-- build-essential
-
-Install via
-```bash
-apt install -y libpq-dev python3-dev build-essential
-```
-
 ## Application setup
 
 ### Install pipx
@@ -82,6 +69,14 @@ This script will
 3. Create an in-place svs user to simplify permission management
 4. Run database migrations
 5. Prompt you to create an initial user (**This will also create a new system user, so you must not supply an existing one**)
+
+### Install completions
+
+Due to the `sudo` requirements of the CLI, you need to install the completions manually. Run the following command to install bash completions for svs for all users.
+
+```bash
+sudo svs --show-completion | sudo tee /usr/share/bash-completion/completions/svs > /dev/null
+```
 
 ### Test
 

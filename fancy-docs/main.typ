@@ -239,6 +239,7 @@ Docker; containerization; selfhosting; python
 
 = Úvod
 
+
 Studentský Vývojový Server (SVS; dále jen "aplikace“) je navržen jako nástroj pro snadné nasazení a správu aplikací pomocí technologie `Docker`. Cílem tohoto projektu je poskytnout uživatelům jednoduché a intuitivní rozhraní pro správu svých služeb, aniž by museli mít hlubší znalosti o `Dockeru` a jeho komplexních konceptech. Aplikace je implementována v programovacím jazyce `Python` a využívá framework `Django` pro vývoj webového rozhraní.
 
 = Teoretická část

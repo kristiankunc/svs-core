@@ -1,6 +1,6 @@
-# MySQL Template
+# PostgreSQL Template
 
-A template for the [MySQL](https://www.mysql.com/) database server.
+A template for the [PostgreSQL](https://www.postgresql.org/) database server.
 
 ## Usage
 
@@ -12,45 +12,43 @@ A template for the [MySQL](https://www.mysql.com/) database server.
 
 When creating the service, configure these environment variables:
 
-- `MYSQL_ROOT_PASSWORD` - Password for root user
-- `MYSQL_DATABASE` - Database name to create on startup
-- `MYSQL_USER` - Username to create
-- `MYSQL_PASSWORD` - Password for the user
+- `POSTGRES_USER` - Username for PostgreSQL user
+- `POSTGRES_PASSWORD` - Password for the user
+- `POSTGRES_DB` - Database name to create on startup
 
 **Example:**
 ```bash
 sudo svs service create my-db <template_id> \
-  --env MYSQL_ROOT_PASSWORD=rootpass \
-  --env MYSQL_DATABASE=mydb \
-  --env MYSQL_USER=myuser \
-  --env MYSQL_PASSWORD=mypass
+  --env POSTGRES_USER=myuser \
+  --env POSTGRES_PASSWORD=mypass \
+  --env POSTGRES_DB=mydb
 ```
 
 ## Connecting to Your Database
 
 **From another service:** Use [Docker DNS](../../../guides/index.md#dns) with the service container name:
 ```
-mysql://svs-{database_service_id}:3306/mydb
+postgresql://svs-{database_service_id}:5432/mydb
 ```
 
-For example, if your MySQL service has ID `4`:
+For example, if your PostgreSQL service has ID `3`:
 ```
-mysql://svs-4:3306/mydb
+postgresql://svs-3:5432/mydb
 ```
 
 **From external clients:** Find the assigned host port in [service details](../../../guides/index.md#detailed-view) and use:
 ```bash
-mysql -h server-ip -P <host_port> -u myuser -p
+psql -h server-ip -p <host_port> -U myuser -d mydb
 ```
 
 ## Configuration
 
-- **Port:** Container port 3306 (MySQL default)
-- **Volume:** `/var/lib/mysql` - Database files (persistent)
+- **Port:** Container port 5432 (PostgreSQL default)
+- **Volume:** `/var/lib/postgresql/data` - Database files (persistent)
 
 ## Definition
 
 ??? note "Source"
     ```json
-    --8<-- "service_templates/mysql.json"
+    --8<-- "service_templates/postgres.json"
     ```

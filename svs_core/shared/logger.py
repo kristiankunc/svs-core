@@ -57,10 +57,7 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
         else logging.StreamHandler(sys.stdout)
     )
 
-    if EnvManager.get_runtime_environment() == EnvManager.RuntimeEnvironment.PRODUCTION:
-        handler.setLevel(logging.INFO)
-    else:
-        handler.setLevel(logging.DEBUG)
+    handler.setLevel(EnvManager.get_log_level())
 
     handler.setFormatter(formatter)
     logger.addHandler(handler)

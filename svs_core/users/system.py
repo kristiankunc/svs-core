@@ -213,3 +213,24 @@ class SystemUserManager:
             raise KeyError(f"Group '{groupname}' does not exist.")
 
         return int(gid.stdout.strip())
+
+    @staticmethod
+    def change_user_password(username: str, new_password: str) -> None:
+        """Changes the password of the specified user.
+
+        Args:
+            username (str): The username of the user whose password is to be changed.
+            new_password (str): The new password for the user.
+        """
+        get_logger(__name__).info(f"Changing password for user '{username}'")
+
+        try:
+            run_command(f"echo '{username}:{new_password}' | sudo chpasswd", check=True)
+            get_logger(__name__).info(
+                f"Successfully changed password for user: {username}"
+            )
+        except Exception as e:
+            get_logger(__name__).error(
+                f"Failed to change password for user '{username}': {str(e)}"
+            )
+            raise

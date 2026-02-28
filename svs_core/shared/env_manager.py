@@ -28,6 +28,7 @@ class EnvManager:
 
         ENVIRONMENT = "ENVIRONMENT"
         DATABASE_URL = "DATABASE_URL"
+        LOG_LEVEL = "LOG_LEVEL"
 
     @staticmethod
     def load_env_file() -> None:
@@ -112,3 +113,26 @@ class EnvManager:
             logger.error("DATABASE_URL environment variable not set.")
             raise EnvironmentError("DATABASE_URL environment variable not set.")
         return db_url
+
+    @staticmethod
+    def get_log_level() -> int:
+        """Retrieves the log level from environment variables.
+
+        If the LOG_LEVEL environment variable is set, it is used directly.
+        Otherwise, defaults to DEBUG in development/testing and INFO in production.
+
+        Returns:
+            int: The logging level (e.g., logging.DEBUG, logging.INFO).
+        """
+        log_level_str = EnvManager._get(EnvManager.EnvVariables.LOG_LEVEL)
+        if log_level_str:
+            level = logging.getLevelName(log_level_str.upper())
+            if isinstance(level, int):
+                return level
+
+        if (
+            EnvManager.get_runtime_environment()
+            == EnvManager.RuntimeEnvironment.PRODUCTION
+        ):
+            return logging.INFO
+        return logging.DEBUG

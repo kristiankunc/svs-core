@@ -805,3 +805,89 @@ class TestTemplate:
 
         # DockerImageManager.remove should not be called for build templates
         mock_remove.assert_not_called()
+
+    @pytest.mark.integration
+    def test_postgres_template_json_is_valid(self) -> None:
+        """Test that the postgres.json template has valid JSON structure."""
+        import json
+
+        from pathlib import Path
+
+        # Load the postgres template
+        template_path = (
+            Path(__file__).parent.parent.parent.parent
+            / "service_templates"
+            / "postgres.json"
+        )
+        assert template_path.exists(), "postgres.json template file not found"
+
+        with open(template_path) as f:
+            template_data = json.load(f)
+
+        # Verify required fields exist
+        assert template_data["name"] == "postgres-database"
+        assert template_data["image"] == "postgres:17"
+        assert template_data["type"] == "image"
+        assert template_data["description"] == "PostgreSQL database"
+
+        # Verify environment variables
+        assert len(template_data["default_env"]) == 3
+        env_keys = {env["key"] for env in template_data["default_env"]}
+        assert "POSTGRES_USER" in env_keys
+        assert "POSTGRES_PASSWORD" in env_keys
+        assert "POSTGRES_DB" in env_keys
+
+        # Verify ports
+        assert len(template_data["default_ports"]) == 1
+        assert template_data["default_ports"][0]["container"] == 5432
+
+        # Verify volumes
+        assert len(template_data["default_volumes"]) == 1
+        assert template_data["default_volumes"][0]["container"] == "/var/lib/postgresql"
+
+        # Verify healthcheck
+        assert template_data["healthcheck"] is not None
+        assert "pg_isready" in " ".join(template_data["healthcheck"]["test"])
+        assert template_data["healthcheck"]["interval"] == 30
+        assert template_data["healthcheck"]["timeout"] == 10
+        assert template_data["healthcheck"]["retries"] == 5
+        assert template_data["healthcheck"]["start_period"] == 20
+
+    @pytest.mark.integration
+    def test_django_dockerfile_includes_migration_command(self) -> None:
+        """Test that Django service configuration includes migrate command."""
+        # Mock Dockerfile content with migration command
+        mock_dockerfile_content = """FROM python:3.13-slim
+ENV PYTHONDONTWRITEBYTECODE=1
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt gunicorn
+COPY . .
+RUN python manage.py collectstatic --noinput || true
+EXPOSE 8000
+CMD ["sh", "-c", "python manage.py migrate && gunicorn myapp.wsgi --bind 0.0.0.0:8000"]
+"""
+
+        # Verify the CMD includes migrate command
+        assert (
+            "python manage.py migrate" in mock_dockerfile_content
+        ), "Dockerfile should include 'python manage.py migrate' in CMD"
+
+        # Verify it's in the CMD line (not just a comment)
+        cmd_lines = [
+            line
+            for line in mock_dockerfile_content.split("\n")
+            if line.startswith("CMD")
+        ]
+        assert len(cmd_lines) > 0, "No CMD instruction found in Dockerfile"
+
+        # Check that migrate is part of the CMD
+        cmd_line = cmd_lines[0]
+        assert (
+            "migrate" in cmd_line
+        ), "CMD should include migrate command for auto-migration on startup"
+
+        # Verify it runs before gunicorn
+        assert (
+            "python manage.py migrate &&" in mock_dockerfile_content
+        ), "migrate command should run before the application server"

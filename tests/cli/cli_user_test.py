@@ -23,7 +23,8 @@ class TestUserCommands:
 
         result = self.runner.invoke(
             app,
-            ["user", "create", "new_user", "password123"],
+            ["user", "create", "new_user"],
+            input="password123\npassword123\n",
         )
 
         assert mock_admin_check.called
@@ -36,7 +37,8 @@ class TestUserCommands:
 
         result = self.runner.invoke(
             app,
-            ["user", "create", "new_user", "password123"],
+            ["user", "create", "new_user"],
+            input="password123\npassword123\n",
         )
 
         assert mock_admin_check.called
@@ -50,7 +52,8 @@ class TestUserCommands:
 
         result = self.runner.invoke(
             app,
-            ["user", "create", "invalid", "password123"],
+            ["user", "create", "invalid"],
+            input="password123\npassword123\n",
         )
 
         assert result.exit_code == 1
@@ -59,11 +62,12 @@ class TestUserCommands:
     def test_create_user_invalid_password(self, mocker: MockerFixture) -> None:
         mocker.patch("svs_core.cli.user.reject_if_not_admin")
         mock_create = mocker.patch("svs_core.users.user.User.create")
-        mock_create.side_effect = InvalidPasswordException("Password is too weak")
+        mock_create.side_effect = InvalidPasswordException()
 
         result = self.runner.invoke(
             app,
-            ["user", "create", "new_user", "weak"],
+            ["user", "create", "new_user"],
+            input="weak\nweak\n",
         )
 
         assert result.exit_code == 1
@@ -76,7 +80,8 @@ class TestUserCommands:
 
         result = self.runner.invoke(
             app,
-            ["user", "create", "existing_user", "password123"],
+            ["user", "create", "existing_user"],
+            input="password123\npassword123\n",
         )
 
         assert result.exit_code == 1
@@ -619,6 +624,60 @@ class TestUserCommands:
         )
         mock_group.remove_member.assert_called_once_with(mock_user)
 
+    # Reset password command tests
+    def test_reset_password_success(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "testuser"
+        mock_user.change_password = mocker.MagicMock()
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            ["user", "reset-password", "testuser"],
+            input="newpassword123\nnewpassword123\n",
+        )
+
+        assert result.exit_code == 0
+        assert "Password for user 'testuser' reset successfully." in result.output
+        mock_user.change_password.assert_called_once_with("newpassword123")
+
+    def test_reset_password_user_not_found(self, mocker: MockerFixture) -> None:
+        from django.core.exceptions import ObjectDoesNotExist
+
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_get.side_effect = ObjectDoesNotExist()
+
+        result = self.runner.invoke(
+            app,
+            ["user", "reset-password", "non_existing_user"],
+            input="newpassword\nnewpassword\n",
+        )
+
+        assert result.exit_code == 1
+        assert "not found" in result.output
+
+    def test_reset_password_invalid_password(self, mocker: MockerFixture) -> None:
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "testuser"
+        mock_user.change_password = mocker.MagicMock(
+            side_effect=InvalidPasswordException()
+        )
+        mock_get.return_value = mock_user
+
+        result = self.runner.invoke(
+            app,
+            ["user", "reset-password", "testuser"],
+            input="weak\nweak\n",
+        )
+
+        assert result.exit_code == 1
+        assert "Error resetting password" in result.output
+
     def test_list_users_with_group_filter(self, mocker: MockerFixture) -> None:
         # Patch UserGroup.objects.get and its proxy_members
         mock_get_group = mocker.patch("svs_core.users.user_group.UserGroup.objects.get")
@@ -637,3 +696,151 @@ class TestUserCommands:
 
         assert result.exit_code == 0
         assert "guser1" in result.output
+
+
+@pytest.mark.cli
+class TestUserPasswordFeatures:
+    """Test password prompting and validation in CLI."""
+
+    runner: CliRunner
+
+    def setup_method(self) -> None:
+        self.runner = CliRunner()
+
+    def test_create_user_with_password_prompt_success(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test user creation with password prompt (happy path)."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_create = mocker.patch("svs_core.users.user.User.create")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "newuser"
+        mock_create.return_value = mock_user
+
+        # Simulate password input: password + confirmation
+        result = self.runner.invoke(
+            app,
+            ["user", "create", "newuser"],
+            input="password123\npassword123\n",
+        )
+
+        assert result.exit_code == 0
+        assert "User 'newuser' created successfully." in result.output
+        mock_create.assert_called_once_with("newuser", "password123")
+
+    def test_create_user_with_password_prompt_mismatch(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test user creation when password confirmation doesn't match."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_create = mocker.patch("svs_core.users.user.User.create")
+
+        # Simulate mismatched passwords
+        result = self.runner.invoke(
+            app,
+            ["user", "create", "newuser"],
+            input="password123\nwrongpassword\n",
+        )
+
+        # typer.prompt with confirmation_prompt=True will show error and abort
+        assert result.exit_code == 1
+        assert "Error: The two entered values do not match." in result.output
+        mock_create.assert_not_called()
+
+    def test_create_user_with_invalid_password_via_prompt(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test user creation with invalid password (too short) via prompt."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_create = mocker.patch("svs_core.users.user.User.create")
+        mock_create.side_effect = InvalidPasswordException()
+
+        result = self.runner.invoke(
+            app,
+            ["user", "create", "newuser"],
+            input="short\nshort\n",
+        )
+
+        assert result.exit_code == 1
+        assert "Error creating user" in result.output
+        assert "Invalid password" in result.output
+
+    def test_create_user_with_special_characters_in_password(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test user creation with special characters in password."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_create = mocker.patch("svs_core.users.user.User.create")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "specialuser"
+        mock_create.return_value = mock_user
+
+        special_password = "P@ssw0rd!#$%"
+        result = self.runner.invoke(
+            app,
+            ["user", "create", "specialuser"],
+            input=f"{special_password}\n{special_password}\n",
+        )
+
+        assert result.exit_code == 0
+        assert "User 'specialuser' created successfully." in result.output
+        mock_create.assert_called_once_with("specialuser", special_password)
+
+    def test_create_user_with_unicode_password(self, mocker: MockerFixture) -> None:
+        """Test user creation with unicode characters in password."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_create = mocker.patch("svs_core.users.user.User.create")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "unicodeuser"
+        mock_create.return_value = mock_user
+
+        unicode_password = "pässwörd123"
+        result = self.runner.invoke(
+            app,
+            ["user", "create", "unicodeuser"],
+            input=f"{unicode_password}\n{unicode_password}\n",
+        )
+
+        assert result.exit_code == 0
+        assert "User 'unicodeuser' created successfully." in result.output
+        mock_create.assert_called_once_with("unicodeuser", unicode_password)
+
+    def test_create_user_with_minimum_length_password(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test user creation with exactly 8 character password (minimum)."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_create = mocker.patch("svs_core.users.user.User.create")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "minuser"
+        mock_create.return_value = mock_user
+
+        min_password = "12345678"  # Exactly 8 characters
+        result = self.runner.invoke(
+            app,
+            ["user", "create", "minuser"],
+            input=f"{min_password}\n{min_password}\n",
+        )
+
+        assert result.exit_code == 0
+        assert "User 'minuser' created successfully." in result.output
+        mock_create.assert_called_once_with("minuser", min_password)
+
+    def test_create_user_with_spaces_in_password(self, mocker: MockerFixture) -> None:
+        """Test user creation with spaces in password."""
+        mocker.patch("svs_core.cli.user.reject_if_not_admin")
+        mock_create = mocker.patch("svs_core.users.user.User.create")
+        mock_user = mocker.MagicMock()
+        mock_user.name = "spaceuser"
+        mock_create.return_value = mock_user
+
+        password_with_spaces = "my password 123"
+        result = self.runner.invoke(
+            app,
+            ["user", "create", "spaceuser"],
+            input=f"{password_with_spaces}\n{password_with_spaces}\n",
+        )
+
+        assert result.exit_code == 0
+        assert "User 'spaceuser' created successfully." in result.output
+        mock_create.assert_called_once_with("spaceuser", password_with_spaces)

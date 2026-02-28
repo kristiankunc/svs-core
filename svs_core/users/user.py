@@ -33,11 +33,10 @@ class InvalidUsernameException(SVSException):
 class InvalidPasswordException(SVSException):
     """Exception raised when the provided password is invalid."""
 
-    def __init__(self, password: str):
+    def __init__(self) -> None:
         super().__init__(
-            f"Invalid password: '{password}'. Password must be at least 8 characters long."
+            f"Invalid password. Password must be at least 8 characters long."
         )
-        self.password = password
 
 
 class User(UserModel):
@@ -65,7 +64,7 @@ class User(UserModel):
         if not cls.is_username_valid(name):
             raise InvalidUsernameException(name)
         if not cls.is_password_valid(password):
-            raise InvalidPasswordException(password)
+            raise InvalidPasswordException()
         if cls.username_exists(name):
             raise AlreadyExistsException(entity="User", identifier=name)
 
@@ -209,6 +208,34 @@ class User(UserModel):
         except Exception as e:
             get_logger(__name__).error(
                 f"Failed to remove SSH key for user '{self.name}': {str(e)}"
+            )
+            raise
+
+    def change_password(self, new_password: str) -> None:
+        """Changes the user's password.
+
+        Args:
+            new_password (str): The new password to set for the user.
+        """
+        get_logger(__name__).info(f"Changing password for user '{self.name}'")
+
+        if not self.is_password_valid(new_password):
+            get_logger(__name__).warning(
+                f"Invalid password provided for user '{self.name}'"
+            )
+            raise InvalidPasswordException()
+
+        try:
+            hashed_password = hash_password(new_password).decode("utf-8")
+            self.password = hashed_password
+            SystemUserManager.change_user_password(self.name, new_password)
+            get_logger(__name__).debug(
+                f"Successfully changed password for user '{self.name}'"
+            )
+            self.save()
+        except Exception as e:
+            get_logger(__name__).error(
+                f"Failed to change password for user '{self.name}': {str(e)}"
             )
             raise
 

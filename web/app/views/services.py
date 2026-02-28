@@ -61,11 +61,6 @@ def create_from_template(request: HttpRequest, template_id: int):
                 Volume(host_path=host if host else None, container_path=container)
             )
 
-        # Parse git sources
-        git_source_urls = request.POST.getlist("git_source_url[]")
-        git_source_branches = request.POST.getlist("git_source_branch[]")
-        git_source_paths = request.POST.getlist("git_source_path[]")
-
         try:
             service = Service.create_from_template(
                 name=service_name,
@@ -76,18 +71,6 @@ def create_from_template(request: HttpRequest, template_id: int):
                 override_ports=override_ports if override_ports else None,
                 override_volumes=override_volumes if override_volumes else None,
             )
-
-            # Create git sources after service creation
-            for url, branch, path in zip(
-                git_source_urls, git_source_branches, git_source_paths
-            ):
-                if url and path:  # Only create if both URL and path are provided
-                    GitSource.create(
-                        service_id=service.id,
-                        repository_url=url,
-                        destination_path=Path(path),
-                        branch=branch if branch else "main",
-                    )
 
             return redirect("detail_service", service_id=service.id)
         except Exception as e:
@@ -137,7 +120,18 @@ def list_services(request: HttpRequest):
         return redirect("login")
 
     if is_admin:
-        services = Service.objects.all()
+        owned_services = Service.objects.filter(user_id=user_id)
+        other_services = Service.objects.exclude(user_id=user_id)
+        return render(
+            request,
+            "services/list.html",
+            {
+                "services": None,
+                "owned_services": owned_services,
+                "other_services": other_services,
+                "is_admin": True,
+            },
+        )
     else:
         try:
             user = User.objects.get(id=user_id)
@@ -145,7 +139,7 @@ def list_services(request: HttpRequest):
         except User.DoesNotExist:
             services = []
 
-    return render(request, "services/list.html", {"services": services})
+        return render(request, "services/list.html", {"services": services})
 
 
 def start(request: HttpRequest, service_id: int):

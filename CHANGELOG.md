@@ -1,5 +1,59 @@
 # Changelog
 
+## [0.12.7](https://github.com/kristiankunc/svs-core/compare/v0.12.6...v0.12.7) (2026-02-22)
+
+
+### Bug Fixes
+
+* **web:** Split service view on ownership ([6f322d1](https://github.com/kristiankunc/svs-core/commit/6f322d1cfd661468991a0ae2160cf01ba0c8904e))
+
+## [0.12.6](https://github.com/kristiankunc/svs-core/compare/v0.12.5...v0.12.6) (2026-02-20)
+
+
+### Bug Fixes
+
+* **core:** Add LOG_LEVEL env var to override log verbosity at runtime ([#311](https://github.com/kristiankunc/svs-core/issues/311)) ([7c1864d](https://github.com/kristiankunc/svs-core/commit/7c1864d0f7539fa5c6a4fb07e3f6f2c7622fbe04))
+* **core:** Fix initial volume creation ([#309](https://github.com/kristiankunc/svs-core/issues/309)) ([b353d7e](https://github.com/kristiankunc/svs-core/commit/b353d7e06cfd26e89684cacf276239d93d20ec8a))
+* **web:** Simplify git source creation ([ae162ea](https://github.com/kristiankunc/svs-core/commit/ae162ea4d93cf39628750115f95aaa36c569ced9))
+
+## [0.12.5](https://github.com/kristiankunc/svs-core/compare/v0.12.4...v0.12.5) (2026-02-19)
+
+
+### Bug Fixes
+
+* **cli:** Fix sudo error for autocompletion ([61486a4](https://github.com/kristiankunc/svs-core/commit/61486a4354a91fe96c64700621ae899b401a68a0))
+
+## [0.12.4](https://github.com/kristiankunc/svs-core/compare/v0.12.3...v0.12.4) (2026-02-16)
+
+
+### Bug Fixes
+
+* **core:** Improve password security ([#295](https://github.com/kristiankunc/svs-core/issues/295)) ([09ee654](https://github.com/kristiankunc/svs-core/commit/09ee654e30e542fe012128050c3cbc90f931de9a))
+* **docs:** Add web building refrence ([48f8bb6](https://github.com/kristiankunc/svs-core/commit/48f8bb65b6bc21f34002bccf5144c4b55ad03af8))
+
+## [0.12.3](https://github.com/kristiankunc/svs-core/compare/v0.12.2...v0.12.3) (2026-02-12)
+
+
+### Bug Fixes
+
+* **core:** Fix variable names in config change detection ([#292](https://github.com/kristiankunc/svs-core/issues/292)) ([945fbcf](https://github.com/kristiankunc/svs-core/commit/945fbcffb7b58cd931e55d4354d77a0b541e1f98))
+* **docs:** Update guide + nginx docs ([4f7c415](https://github.com/kristiankunc/svs-core/commit/4f7c4150020c877fc416e8144abb96e0f3d5fbf1))
+
+## [0.12.2](https://github.com/kristiankunc/svs-core/compare/v0.12.1...v0.12.2) (2026-02-11)
+
+
+### Bug Fixes
+
+* **web:** Fix example env ([6a64e4d](https://github.com/kristiankunc/svs-core/commit/6a64e4d317a87d18a9ec330156d2c915cf8d75a3))
+
+## [0.12.1](https://github.com/kristiankunc/svs-core/compare/v0.12.0...v0.12.1) (2026-02-05)
+
+
+### Bug Fixes
+
+* **core:** Make django prod ready ([#277](https://github.com/kristiankunc/svs-core/issues/277)) ([ec8bd0a](https://github.com/kristiankunc/svs-core/commit/ec8bd0ac283f617af934e10df7db4b286d4b37f1))
+* **docs:** Add MySQL and Adminer template guides ([#275](https://github.com/kristiankunc/svs-core/issues/275)) ([77e20b3](https://github.com/kristiankunc/svs-core/commit/77e20b32912c9e13512e7a702dd6dc4c39aa0e8c))
+
 ## [0.12.0](https://github.com/kristiankunc/svs-core/compare/v0.11.2...v0.12.0) (2026-01-31)
 
 
