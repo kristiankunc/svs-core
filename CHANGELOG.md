@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.8](https://github.com/kristiankunc/svs-core/compare/v0.12.7...v0.12.8) (2026-02-28)
+
+
+### Bug Fixes
+
+* **core:** Add password reset functionality ([#320](https://github.com/kristiankunc/svs-core/issues/320)) ([7eaef0c](https://github.com/kristiankunc/svs-core/commit/7eaef0cb1239fa3de1d231fb0a3d98349b900ce7))
+* **web:** Change domain renders to anchors ([6280e6e](https://github.com/kristiankunc/svs-core/commit/6280e6e48e90d79dd50a4c6885c89f3fd8a22f63))
+
 ## [0.12.7](https://github.com/kristiankunc/svs-core/compare/v0.12.6...v0.12.7) (2026-02-22)
 
 
