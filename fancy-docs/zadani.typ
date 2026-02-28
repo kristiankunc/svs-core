@@ -2,51 +2,55 @@
   stroke: none,
   columns: (2fr, 3fr),
   image("img/gyarab_logo.png", width: 40%),
-  align(right)[#heading(outlined: false)[Gymnázium, Praha 6, Arabská 14]
-    tel.: 235 351 708 \
-    fax.: 222 262 066 \
-    e-mail: ga\@gyarab.cz\
-    www.gyarab.cz],
+  align(
+    right,
+  )[#heading(outlined: false)[Gymnázium, Praha 6, Arabská 14] tel.: 235 351 708 \ fax.: 222 262 066 \ e-mail: ga\@gyarab.cz\ www.gyarab.cz],
 )
 
 #line(stroke: 0.15em + rgb("#808080"), length: 100%)
 
-#heading(outlined: false)[Zadání ročníkového projektu]
+#heading(outlined: false)[Zadání maturitní práce]
 #v(0.25cm)
 #grid(
-  columns: (1fr, 3fr),
-  row-gutter: 0.5cm,
-  heading(level: 2, outlined: false)[Název:],
-  heading(level: 2, outlined: false)[Adess -- umělecky dirigovaný syntetizér zvuků motorů],
+  columns: (1.4fr, 3fr),
+  row-gutter: 0.4cm,
+  heading(level: 2, outlined: false)[Téma maturitní práce:],
+  heading(level: 2, outlined: false)[Modernizace SVS pomocí kontejnerizace a Dockeru],
 
-  heading(level: 2, outlined: false)[Řešitel:], heading(level: 2, outlined: false)[Kubota Leon, 4.E],
-
+  heading(level: 2, outlined: false)[Zadavatel:], heading(level: 2, outlined: false)[RNDr. Zdeňka Hamhalterová],
+  heading(level: 2, outlined: false)[Řešitel:], heading(level: 2, outlined: false)[ Kunc Kristián, 4.E],
   heading(level: 2, outlined: false)[Vedoucí práce:], heading(level: 2, outlined: false)[Ing. Daniel Kahoun],
-
-  heading(level: 2, outlined: false)[Datum odevzdání:], heading(level: 2, outlined: false)[28. 2. 2026],
+  heading(level: 2, outlined: false)[Oponent:], heading(level: 2, outlined: false)[Ing. Zdeněk Murikář, CSc.],
+  heading(level: 2, outlined: false)[Datum odevzdání:], heading(level: 2, outlined: false)[31. 3. 2026],
 )
 
+#set par(leading: 0.3em)
 #heading(level: 2, outlined: false)[Způsob zpracování a kritéria hodnocení:]
-Zpracování v požadovaném rozsahu se řídí obecně závaznými pokyny zpracování ročníkových projektů. Řešitel elektronicky odevzdáve stanoveném termínu dokumentaci, prezentaci, poster a další vyžádané přílohy (např. zdrojové kódy, ukázková data). Před obhajobou řešitel odevzdá jeden výtisk stejné dokumentace s podepsaným prohlášením o autorství a jeden poster, neurčí-li vedoucí jinak. Hodnotí se odborné zpracování úlohy, použití návrhových vzorů, prezentace při obhajobě a funkcionalita produktu.
+Zpracování se řídí obecně závaznými pokyny pro zpracování maturitních prací v požadovaném rozsahu. Řešitel odevzdá na studijním oddělení určenému zástupci vedení školy ve stanoveném termínu dva svázané výtisky projektové dokumentace s podepsaným prohlášením o autorství a jeden poster. Přílohu s dokumentací ve stejném znění, posterem, zdrojovými kódy a dalšími podklady řešitel odevzdá podle pokynů vedoucího práce také elektronicky. Hodnotí se odborné zpracování, užití návrhových vzorů, prezentace při obhajobě a funkcionalita produktu. Posudek vedoucího a oponenta hodnotící samotnou práci získá řešitel k nahlédnutí před obhajobou.
 
 #heading(level: 2, outlined: false)[Popis (povinná část):]
-Vytvořte konzolovou aplikaci pro procedurální syntézu zvuků motorů určenou pro film a animaci. Program generuje zvukové vzorky na základě uživatelské konfigurace a klíčových snímků definovaných ve vlastním datovém formátu _DST_.
+Navrhněte a realizujte novou architekturu Studentského Vývojového Serveru (SVS) postavenou na technologii Docker. Cilem je vytvořit izolované, snadno spravovatelné a reprodukovatelné prostředí pro běh studentských projektů a služeb.
 
 #heading(level: 2, outlined: false)[Upřesnění zadání:]
-- Implementace parseru konfiguračních souborů _adess_
-- Procedurální generování pole vzorků zvuku motoru
-- Práce s klíčovými snímky pro změnu zvuku v čase
-- Export _audia_ do standardního formátu _WAV_
-- Ovládání aplikace pomocí příkazové řádky (_CLI_)
+- Návrh a konfigurace hostitelského systému Linux
+- Kontejnerizace klíčových služeb
+- Implementace webového rozhraní pro správu kontejnerů
+- Zajištění perzistence dat a síťové izolace projektů
+- Automatizace nasazení pomocí Docker Compose či skriptů
 
 #heading(level: 2, outlined: false)[Bonus (nepovinná část):]
-- Podpora pro různé typy motorů (vrtulové, spalovací)
-- Přidání zvukových efektů (např. ozvěna, zkreslení)
-- Grafické znázornění generované zvukové vlny v _CLI_
-- Možnost reálného náhledu (přehřání) před uložením
+- Monitorování stavu serveru a zdrojů (např. Grafana)
+- Implementace CI/CD procesů pro automatický deployment
+- Zabezpečení pomocí reverzní proxy a SSL certifikátů
+- Systém automatického zálohování konfiguraci a dat
 
 #heading(level: 2, outlined: false)[Platforma:]
-- C
+- CSS
+- Django
+- HTML
+- Linux
+- Python
+- SQL
 
 #v(1fr)
 
@@ -55,10 +59,9 @@ Vytvořte konzolovou aplikaci pro procedurální syntézu zvuků motorů určeno
   align: center,
   stroke: none,
   row-gutter: -0.4em,
-
-  [],
   [#line(stroke: (dash: "dashed", paint: rgb("#808080")), length: 92%)],
   [#line(stroke: (dash: "dashed", paint: rgb("#808080")), length: 92%)],
+  [#line(stroke: (dash: "dashed", paint: rgb("#808080")), length: 92%)],
 
-  [], [datum podpisu], [podpis řešitele],
+  [podpis zadavatele], [datum podpisu], [podpis řešitele],
 )
