@@ -202,7 +202,13 @@
 #pagebreak()
 
 #heading(numbering: none, outlined: false)[Poděkování]
-Fanouškům
+Mé poděkování patří vedoucímu práce Ing. Danielu Kahounovi a Kamilu Foltinovi, kteří mi poskytli cenné rady a konzultace během vývoje projektu. Dále děkuji všem studentům, kteří mi poskytli zpětnou vazbu a pomohli s testováním aplikace. V neposlední řadě děkuji všem open-source vývojářům, jejichž nástroje a knihovny jsem použil při vývoji tohoto projektu.
+
+#if type != "soc" [
+  #pagebreak()
+
+  #include "zadani.typ"
+]
 
 #pagebreak()
 
