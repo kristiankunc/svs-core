@@ -207,7 +207,8 @@ Mé poděkování patří vedoucímu práce Ing. Danielu Kahounovi a Kamilu Folt
 #if type != "soc" [
   #pagebreak()
 
-  #include "zadani.typ"
+  #set page(margin: 0pt)
+  #image("zadani.svg", width: 100%, height: 100%, fit: "stretch")
 ]
 
 #pagebreak()
@@ -304,7 +305,7 @@ Nicméně, většina těchto řešení je navržena pro profesionální použit�
 
 = Implementace
 
-Projekt je implementován v programovacím jazyce `Python 3.13` a využivá framework `Django 6` @django6 pro vývoj webováho rozhraní.
+Projekt je implementován v programovacím jazyce `Python 3.13` a využívá framework `Django 6` @django6 pro vývoj webového rozhraní.
 
 == Struktura projektu
 
@@ -340,7 +341,7 @@ Vzhledem k tomu, že každá uživatelská služba, která by měla být spušt�
 
 Šablony jsou navrženy tak, aby byly snadno rozšiřitelné a přizpůsobitelné pro různé typy služeb. Uživatelé mohou vytvářet vlastní šablony nebo upravovat stávající, což umožňuje velkou flexibilitu při správě svých služeb.
 
-Aplikace nabízi vestavěné šablony pro několik základních typů služeb, jako jsou například webové servery, databáze a a různé webové frameworky.
+Aplikace nabízí vestavěné šablony pro několik základních typů služeb, jako jsou například webové servery, databáze a různé webové frameworky.
 
 Tyto šablony se dělí na dvě kategorie
 
@@ -389,7 +390,7 @@ Na diagramu níže je zjednodušená vizualizace architektury celé aplikace a j
 
 == Uživatelské rozhraní
 
-Uživatel mám možnost s aplikací komunikovat dvěma způsoby, a to pomocí příkazové řádky nebo přes webové rozhraní. Obě rozhraní poskytují různý stupeň kontroly nad aplikací a jsou navrženy tak, aby byly přístupné pro různé typy uživatelů.
+Uživatel má možnost s aplikací komunikovat dvěma způsoby, a to pomocí příkazové řádky nebo přes webové rozhraní. Obě rozhraní poskytují různý stupeň kontroly nad aplikací a jsou navrženy tak, aby byly přístupné pro různé typy uživatelů.
 
 === Příkazová řádka
 
@@ -425,13 +426,13 @@ Webové rozhraní umožnuje uživatelům snadno spravovat své služby, šablony
 
 Na obrázku výše je zobrazeno webové rozhraní pro správu služby umožnující kompletní ovládání a úpravu konfigurace služby.
 
-Podobně jako jako proces příkazové řádky, i webové rozhraní musí mít přístup k `sudo` oprávněním. To je ale s ohledem na bezpečnostní rizika ještě problematičtější než u příkazové řádky, protože webové rozhraní je přístupné z vnějšího světa a může být cílem útoků. Vzhledem k tomu, že proces je spuštěn pod administrátorským účtem a má přístup k `sudo`, je webové rozhraní nebezpečné a může být zneužito k eskalaci oprávnění. Proto je doporučeno webové rozhraní používat pouze v interní síti a znepřístupnit ho z vnějšího světa. Pro připojení mimo síť je pak možné použít `SSH tunel` nebo `VPN (Virtual Private Network)`.
+Podobně jako proces příkazové řádky, i webové rozhraní musí mít přístup k `sudo` oprávněním. To je ale s ohledem na bezpečnostní rizika ještě problematičtější než u příkazové řádky, protože webové rozhraní je přístupné z vnějšího světa a může být cílem útoků. Vzhledem k tomu, že proces je spuštěn pod administrátorským účtem a má přístup k `sudo`, je webové rozhraní nebezpečné a může být zneužito k eskalaci oprávnění. Proto je doporučeno webové rozhraní používat pouze v interní síti a znepřístupnit ho z vnějšího světa. Pro připojení mimo síť je pak možné použít `SSH tunel` nebo `VPN (Virtual Private Network)`.
 
 == Testování
 
 Vzhledem k tomu, že aplikace běží na systémech hostitelů, vývojář nemá přímou kontrolu nad prostředím a proto je diagnostika chyb náročnější. Pro zajištění správné funkčnosti a stability aplikace je potřeba implementovat rozsáhlé testování.
 
-=== jednotkové testy
+=== Jednotkové testy
 
 Zdrojový kód obsahuje množství jednotkových testů, které ověřují správnou funkčnost jednotlivých funkcí a metod. Tyto testy jsou navrženy tak, aby pokryly co největší část kódu a odhalily případné chyby v logice.
 
