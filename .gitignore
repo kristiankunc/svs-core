@@ -2,6 +2,7 @@
 tests/_playground.py
 docs/cli.md
 fancy-docs/*.pdf
+fancy-docs/*.svg
 docs/main.pdf
 docs/cli-documentation/
 
