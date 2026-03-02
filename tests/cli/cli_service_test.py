@@ -1346,7 +1346,8 @@ class TestServiceCommands:
         mock_service.update.assert_not_called()
 
     def test_update_service_validation_exception(self, mocker: MockerFixture) -> None:
-        """Test that a ValidationException during update is handled gracefully."""
+        """Test that a ValidationException during update is handled
+        gracefully."""
         from svs_core.shared.exceptions import ValidationException
 
         mock_service = mocker.MagicMock()
@@ -1372,7 +1373,8 @@ class TestServiceCommands:
     def test_update_service_service_operation_exception(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that a ServiceOperationException during update is handled gracefully."""
+        """Test that a ServiceOperationException during update is handled
+        gracefully."""
         from svs_core.shared.exceptions import ServiceOperationException
 
         mock_service = mocker.MagicMock()
@@ -1428,7 +1430,8 @@ class TestServiceCommands:
     def test_update_service_env_with_equals_in_value(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that env variables with '=' in the value are handled correctly."""
+        """Test that env variables with '=' in the value are handled
+        correctly."""
         mock_service = mocker.MagicMock()
         mock_service.id = 1
         mock_service.name = "test_service"
