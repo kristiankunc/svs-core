@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.1](https://github.com/kristiankunc/svs-core/compare/v0.13.0...v0.13.1) (2026-03-02)
+
+
+### Bug Fixes
+
+* **core:** Remove nested sudo in scripts ([f3e1ec8](https://github.com/kristiankunc/svs-core/commit/f3e1ec8cc3436a0d6ba9d9c3bd5e3fcafccb0379))
+
 ## [0.13.0](https://github.com/kristiankunc/svs-core/compare/v0.12.8...v0.13.0) (2026-03-02)
 
 
