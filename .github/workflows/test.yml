@@ -51,6 +51,47 @@ jobs:
           source .venv/bin/activate
           pre-commit run --all-files
 
+  web-test:
+    needs: lint-format
+    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'release-please-')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check if web/ path changed
+        id: web-changes
+        run: |
+          if git diff --name-only origin/main...HEAD | grep -q "^web/"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set up NPM
+        if: steps.web-changes.outputs.changed == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: 25
+
+      - name: Cache NPM dependencies
+        if: steps.web-changes.outputs.changed == 'true'
+        uses: actions/cache@v5
+        with:
+          path: web/frontend/node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('web/frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install NPM dependencies
+        if: steps.web-changes.outputs.changed == 'true'
+        run: npm ci --prefix web/frontend
+
+      - name: Run npm build
+        if: steps.web-changes.outputs.changed == 'true'
+        run: npm run build --prefix web/frontend
+
   test:
     needs: lint-format
     if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'release-please-')
