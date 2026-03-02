@@ -6,7 +6,6 @@ updates:
       interval: "weekly"
     allow:
       - dependency-type: "all"
-    open-pull-requests-limit: 10
     commit-message:
       prefix: "chore"
       include: "scope"
@@ -15,7 +14,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
     commit-message:
       prefix: "chore"
       include: "scope"
@@ -26,7 +24,6 @@ updates:
       interval: "weekly"
     allow:
       - dependency-type: "all"
-    open-pull-requests-limit: 10
     commit-message:
       prefix: "chore"
       include: "scope"
