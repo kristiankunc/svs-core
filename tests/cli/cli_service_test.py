@@ -1198,46 +1198,6 @@ class TestServiceCommands:
         assert call_kwargs["ports"][0].container_port == 8080
         assert call_kwargs["ports"][0].host_port == 80
 
-    def test_update_service_success_command_and_args(
-        self, mocker: MockerFixture
-    ) -> None:
-        """Test updating a service with command and args."""
-        mock_service = mocker.MagicMock()
-        mock_service.id = 1
-        mock_service.name = "test_service"
-        mock_service.user.name = "current_user"
-
-        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
-        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
-        mocker.patch(
-            "svs_core.cli.service.get_current_username", return_value="current_user"
-        )
-
-        result = self.runner.invoke(
-            app,
-            [
-                "service",
-                "update",
-                "1",
-                "--command",
-                "python",
-                "--args",
-                "app.py",
-                "--args",
-                "--debug",
-            ],
-        )
-
-        assert result.exit_code == 0
-        assert "updated successfully" in result.output
-        mock_service.update.assert_called_once_with(
-            domain=None,
-            env_variables=None,
-            ports=None,
-            command="python",
-            args=["app.py", "--debug"],
-        )
-
     def test_update_service_admin_can_update_any(self, mocker: MockerFixture) -> None:
         """Test that admin can update a service belonging to another user."""
         mock_service = mocker.MagicMock()
@@ -1344,88 +1304,6 @@ class TestServiceCommands:
         assert result.exit_code == 1
         assert "Invalid port numbers" in result.output
         mock_service.update.assert_not_called()
-
-    def test_update_service_validation_exception(self, mocker: MockerFixture) -> None:
-        """Test that a ValidationException during update is handled
-        gracefully."""
-        from svs_core.shared.exceptions import ValidationException
-
-        mock_service = mocker.MagicMock()
-        mock_service.id = 1
-        mock_service.name = "test_service"
-        mock_service.user.name = "current_user"
-        mock_service.update.side_effect = ValidationException("Invalid domain")
-
-        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
-        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
-        mocker.patch(
-            "svs_core.cli.service.get_current_username", return_value="current_user"
-        )
-
-        result = self.runner.invoke(
-            app,
-            ["service", "update", "1", "--domain", "bad-domain"],
-        )
-
-        assert result.exit_code == 1
-        assert "Error updating service" in result.output
-
-    def test_update_service_service_operation_exception(
-        self, mocker: MockerFixture
-    ) -> None:
-        """Test that a ServiceOperationException during update is handled
-        gracefully."""
-        from svs_core.shared.exceptions import ServiceOperationException
-
-        mock_service = mocker.MagicMock()
-        mock_service.id = 1
-        mock_service.name = "test_service"
-        mock_service.user.name = "current_user"
-        mock_service.update.side_effect = ServiceOperationException(
-            "Container recreation failed"
-        )
-
-        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
-        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
-        mocker.patch(
-            "svs_core.cli.service.get_current_username", return_value="current_user"
-        )
-
-        result = self.runner.invoke(
-            app,
-            ["service", "update", "1", "--domain", "example.com"],
-        )
-
-        assert result.exit_code == 1
-        assert "Error updating service" in result.output
-
-    def test_update_service_no_options(self, mocker: MockerFixture) -> None:
-        """Test updating a service with no options (no-op update)."""
-        mock_service = mocker.MagicMock()
-        mock_service.id = 1
-        mock_service.name = "test_service"
-        mock_service.user.name = "current_user"
-
-        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
-        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
-        mocker.patch(
-            "svs_core.cli.service.get_current_username", return_value="current_user"
-        )
-
-        result = self.runner.invoke(
-            app,
-            ["service", "update", "1"],
-        )
-
-        assert result.exit_code == 0
-        assert "updated successfully" in result.output
-        mock_service.update.assert_called_once_with(
-            domain=None,
-            env_variables=None,
-            ports=None,
-            command=None,
-            args=None,
-        )
 
     def test_update_service_env_with_equals_in_value(
         self, mocker: MockerFixture

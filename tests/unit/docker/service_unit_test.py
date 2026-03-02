@@ -307,3 +307,191 @@ class TestServiceUnit:
         assert mock_connect.call_count == 2
         mock_connect.assert_any_call(mock_new_container, "testuser")
         mock_connect.assert_any_call(mock_new_container, "caddy")
+
+    # --- update() tests ---
+
+    @pytest.mark.unit
+    def test_update_sets_domain(self, mocker: MockerFixture) -> None:
+        """Test that update sets domain and calls save/recreate."""
+        mock_service = mocker.MagicMock(spec=Service)
+        mock_service.domain = "old.example.com"
+        mocker.patch.object(Service, "save")
+        mocker.patch.object(Service, "recreate")
+
+        Service.update(mock_service, domain="new.example.com")
+
+        assert mock_service.domain == "new.example.com"
+        mock_service.save.assert_called_once()
+        mock_service.recreate.assert_called_once()
+
+    @pytest.mark.unit
+    def test_update_sets_env_variables(self, mocker: MockerFixture) -> None:
+        """Test that update replaces env variables."""
+        mock_service = mocker.MagicMock(spec=Service)
+        mock_service.env = []
+        mocker.patch.object(Service, "save")
+        mocker.patch.object(Service, "recreate")
+
+        new_env = [EnvVariable(key="KEY", value="VALUE")]
+        Service.update(mock_service, env_variables=new_env)
+
+        assert mock_service.env == new_env
+        mock_service.save.assert_called_once()
+
+    @pytest.mark.unit
+    def test_update_sets_ports(self, mocker: MockerFixture) -> None:
+        """Test that update replaces exposed ports."""
+        mock_service = mocker.MagicMock(spec=Service)
+        mock_service.exposed_ports = []
+        mocker.patch.object(Service, "save")
+        mocker.patch.object(Service, "recreate")
+
+        new_ports = [ExposedPort(container_port=80, host_port=8080)]
+        Service.update(mock_service, ports=new_ports)
+
+        assert mock_service.exposed_ports == new_ports
+        mock_service.save.assert_called_once()
+
+    @pytest.mark.unit
+    def test_update_sets_command(self, mocker: MockerFixture) -> None:
+        """Test that update sets command."""
+        mock_service = mocker.MagicMock(spec=Service)
+        mock_service.command = None
+        mocker.patch.object(Service, "save")
+        mocker.patch.object(Service, "recreate")
+
+        Service.update(mock_service, command="python app.py")
+
+        assert mock_service.command == "python app.py"
+
+    @pytest.mark.unit
+    def test_update_sets_args(self, mocker: MockerFixture) -> None:
+        """Test that update sets args."""
+        mock_service = mocker.MagicMock(spec=Service)
+        mock_service.args = []
+        mocker.patch.object(Service, "save")
+        mocker.patch.object(Service, "recreate")
+
+        Service.update(mock_service, args=["--debug", "--reload"])
+
+        assert mock_service.args == ["--debug", "--reload"]
+
+    @pytest.mark.unit
+    def test_update_noop_calls_save_and_recreate(self, mocker: MockerFixture) -> None:
+        """Test that update with no arguments still calls save and recreate."""
+        mock_service = mocker.MagicMock(spec=Service)
+        mocker.patch.object(Service, "save")
+        mocker.patch.object(Service, "recreate")
+
+        Service.update(mock_service)
+
+        mock_service.save.assert_called_once()
+        mock_service.recreate.assert_called_once()
+
+    @pytest.mark.unit
+    def test_update_invalid_domain_type(self, mocker: MockerFixture) -> None:
+        """Test that update raises ValidationException for non-string
+        domain."""
+        mock_service = mocker.MagicMock(spec=Service)
+
+        with pytest.raises(ValidationException, match="Domain must be a string"):
+            Service.update(mock_service, domain=123)  # type: ignore[arg-type]
+
+    @pytest.mark.unit
+    def test_update_invalid_env_variables_type(self, mocker: MockerFixture) -> None:
+        """Test that update raises ValidationException when env_variables is
+        not a list."""
+        mock_service = mocker.MagicMock(spec=Service)
+
+        with pytest.raises(
+            ValidationException, match="Environment variables must be a list"
+        ):
+            Service.update(mock_service, env_variables="not-a-list")  # type: ignore[arg-type]
+
+    @pytest.mark.unit
+    def test_update_invalid_env_variable_item(self, mocker: MockerFixture) -> None:
+        """Test that update raises ValidationException for non-EnvVariable
+        items."""
+        mock_service = mocker.MagicMock(spec=Service)
+
+        with pytest.raises(
+            ValidationException,
+            match="Each environment variable must be an EnvVariable instance",
+        ):
+            Service.update(mock_service, env_variables=["not-an-env-var"])  # type: ignore[list-item]
+
+    @pytest.mark.unit
+    def test_update_invalid_ports_type(self, mocker: MockerFixture) -> None:
+        """Test that update raises ValidationException when ports is not a
+        list."""
+        mock_service = mocker.MagicMock(spec=Service)
+
+        with pytest.raises(ValidationException, match="Ports must be a list"):
+            Service.update(mock_service, ports="not-a-list")  # type: ignore[arg-type]
+
+    @pytest.mark.unit
+    def test_update_invalid_port_item(self, mocker: MockerFixture) -> None:
+        """Test that update raises ValidationException for non-ExposedPort
+        items."""
+        mock_service = mocker.MagicMock(spec=Service)
+
+        with pytest.raises(
+            ValidationException, match="Each port must be an ExposedPort instance"
+        ):
+            Service.update(mock_service, ports=["not-a-port"])  # type: ignore[list-item]
+
+    @pytest.mark.unit
+    def test_update_invalid_port_container_port(self, mocker: MockerFixture) -> None:
+        """Test that update raises ValidationException for non-positive
+        container port."""
+        mock_service = mocker.MagicMock(spec=Service)
+
+        with pytest.raises(
+            ValidationException, match="Container port must be a positive integer"
+        ):
+            Service.update(
+                mock_service,
+                ports=[ExposedPort(container_port=-1, host_port=8080)],
+            )
+
+    @pytest.mark.unit
+    def test_update_invalid_command_type(self, mocker: MockerFixture) -> None:
+        """Test that update raises ValidationException for non-string
+        command."""
+        mock_service = mocker.MagicMock(spec=Service)
+
+        with pytest.raises(ValidationException, match="Command must be a string"):
+            Service.update(mock_service, command=123)  # type: ignore[arg-type]
+
+    @pytest.mark.unit
+    def test_update_invalid_args_type(self, mocker: MockerFixture) -> None:
+        """Test that update raises ValidationException when args is not a
+        list."""
+        mock_service = mocker.MagicMock(spec=Service)
+
+        with pytest.raises(ValidationException, match="Arguments must be a list"):
+            Service.update(mock_service, args="not-a-list")  # type: ignore[arg-type]
+
+    @pytest.mark.unit
+    def test_update_invalid_arg_item(self, mocker: MockerFixture) -> None:
+        """Test that update raises ValidationException for non-string arg
+        items."""
+        mock_service = mocker.MagicMock(spec=Service)
+
+        with pytest.raises(ValidationException, match="Each argument must be a string"):
+            Service.update(mock_service, args=[123])  # type: ignore[list-item]
+
+    @pytest.mark.unit
+    def test_update_none_values_preserve_existing(self, mocker: MockerFixture) -> None:
+        """Test that None values leave existing fields unchanged."""
+        original_env = [EnvVariable(key="ORIGINAL", value="yes")]
+        mock_service = mocker.MagicMock(spec=Service)
+        mock_service.domain = "original.com"
+        mock_service.env = original_env
+        mocker.patch.object(Service, "save")
+        mocker.patch.object(Service, "recreate")
+
+        Service.update(mock_service, domain=None, env_variables=None)
+
+        assert mock_service.domain == "original.com"
+        assert mock_service.env is original_env

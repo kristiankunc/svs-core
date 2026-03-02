@@ -2072,3 +2072,135 @@ CMD cat /version.txt
             assert (
                 len(network_calls) == 1
             ), f"Network {network_name} should be connected exactly once"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_update_domain(
+        self,
+        mocker: MockerFixture,
+        test_service: Service,
+    ) -> None:
+        """Test that update persists a new domain to the database."""
+        mock_old_container = mocker.MagicMock()
+        mock_old_container.id = test_service.container_id
+        mock_old_container.status = "exited"
+        mock_new_container = mocker.MagicMock()
+        mock_new_container.id = "updated-container-id"
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_old_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.recreate_container",
+            return_value=mock_new_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        test_service.update(domain="updated.example.com")
+
+        refreshed = Service.objects.get(id=test_service.id)
+        assert refreshed.domain == "updated.example.com"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_update_env_variables(
+        self,
+        mocker: MockerFixture,
+        test_service: Service,
+    ) -> None:
+        """Test that update replaces env variables and persists to the
+        database."""
+        mock_old_container = mocker.MagicMock()
+        mock_old_container.id = test_service.container_id
+        mock_old_container.status = "exited"
+        mock_new_container = mocker.MagicMock()
+        mock_new_container.id = "updated-container-id"
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_old_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.recreate_container",
+            return_value=mock_new_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        new_env = [EnvVariable(key="NEW_KEY", value="new_value")]
+        test_service.update(env_variables=new_env)
+
+        refreshed = Service.objects.get(id=test_service.id)
+        assert len(refreshed.env) == 1
+        assert refreshed.env[0].key == "NEW_KEY"
+        assert refreshed.env[0].value == "new_value"
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_update_ports(
+        self,
+        mocker: MockerFixture,
+        test_service: Service,
+    ) -> None:
+        """Test that update replaces exposed ports and persists to the
+        database."""
+        mock_old_container = mocker.MagicMock()
+        mock_old_container.id = test_service.container_id
+        mock_old_container.status = "exited"
+        mock_new_container = mocker.MagicMock()
+        mock_new_container.id = "updated-container-id"
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_old_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.recreate_container",
+            return_value=mock_new_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        new_ports = [ExposedPort(container_port=443, host_port=9443)]
+        test_service.update(ports=new_ports)
+
+        refreshed = Service.objects.get(id=test_service.id)
+        assert len(refreshed.exposed_ports) == 1
+        assert refreshed.exposed_ports[0].container_port == 443
+        assert refreshed.exposed_ports[0].host_port == 9443
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
+    def test_service_update_triggers_recreate(
+        self,
+        mocker: MockerFixture,
+        test_service: Service,
+    ) -> None:
+        """Test that update triggers container recreation."""
+        mock_old_container = mocker.MagicMock()
+        mock_old_container.id = test_service.container_id
+        mock_old_container.status = "exited"
+        mock_new_container = mocker.MagicMock()
+        mock_new_container.id = "recreated-container-id"
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_old_container,
+        )
+        mock_recreate = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.recreate_container",
+            return_value=mock_new_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        test_service.update(domain="new.example.com")
+
+        mock_recreate.assert_called_once()
+        assert test_service.container_id == "recreated-container-id"
