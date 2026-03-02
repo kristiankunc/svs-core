@@ -1,5 +1,3 @@
-#import "@preview/oxdraw:0.1.0": *
-
 #set page(
   paper: "a4",
   margin: (left: 3cm, right: 2.5cm, y: 1.5cm),
@@ -94,8 +92,8 @@
     #text(size: 16pt)[
       Autor: Kristián Kunc \
       Škola: Gymnázium, Praha 6, Arabská 14 \
-      Kraj: N \
-      Konzultant: N \
+      Kraj: Praha \
+      Konzultant: Ing. Daniel Kahoun \
       Rok: 2026
     ]
   ]
