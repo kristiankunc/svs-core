@@ -2,7 +2,7 @@
 
 set -e
 
-SVS_VERSION=$(sudo svs --version | awk '{print $3}')
+SVS_VERSION=$(svs --version | awk '{print $3}')
 
 RUN_INITIAL_SETUP=false
 
