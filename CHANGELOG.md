@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.13.0](https://github.com/kristiankunc/svs-core/compare/v0.12.8...v0.13.0) (2026-03-02)
+
+
+### Features
+
+* **core:** Add service editing functionality ([#330](https://github.com/kristiankunc/svs-core/issues/330)) ([04db7e1](https://github.com/kristiankunc/svs-core/commit/04db7e1d3c258602a57015edc0833b8d36fe08e6))
+* **web:** Add service editing functionality ([#330](https://github.com/kristiankunc/svs-core/issues/330)) ([04db7e1](https://github.com/kristiankunc/svs-core/commit/04db7e1d3c258602a57015edc0833b8d36fe08e6))
+
+
+### Bug Fixes
+
+* **web:** Add web update scripts ([#344](https://github.com/kristiankunc/svs-core/issues/344)) ([8630e20](https://github.com/kristiankunc/svs-core/commit/8630e201940013b8a59af5f662e5b4a56481ed7a))
+
 ## [0.12.8](https://github.com/kristiankunc/svs-core/compare/v0.12.7...v0.12.8) (2026-02-28)
 
 
