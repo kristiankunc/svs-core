@@ -12,6 +12,9 @@ A web UI is provided for controlling SVS and provides a more user-friendly way t
     - Always use HTTPS with a reverse proxy
     - Enable all security features by setting `DEBUG=False`
 
+**Keep in mind that the web interface is strictly tied to the core library and missmatching versions may cause issues. Always use the same repository at the tag as your
+installed version. Use the [svs --version](../cli-documentation/index.md#svs) command to check your installed version.**
+
 ## Prerequisites
 
 The web interface requires the core SVS library to be installed. Please follow the [quickstart guide](../setup/quickstart.md) to install the core library first.
@@ -30,50 +33,20 @@ The web interface is provided in the root repository under the `web/` directory.
 
 ### Clone the repository
 
-Clone the latest release of the repository and navigate to the `web/` directory/the one corresponding to the version you have installed:
-
-Get the latest release tag from the [releases page](https://github.com/kristiankunc/svs-core/releases/latest) and pull the latest changes. _Ensure this release tag matches the version of `svs-core` you have installed to avoid compatibility issues._
+Clone the latest release of the repository and navigate to the `web/` directory:
 
 
 ```bash
 git clone https://github.com/kristiankunc/svs-core
-git checkout <latest_tag>
+cd svs-core/web
 ```
 
-### Create virtual environment
+### Install script
 
-It is recommended to create a virtual environment for the web interface to avoid dependency conflicts.
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### Install dependencies
+The web directory includes an update/install script called `update.sh` that can be used to install the web interface. It will pull the latest changes from the repository, install dependencies, and build the frontend.
 
 ```bash
-pip install -r requirements.txt
-```
-
-In addition, you also need to install `svs-core` library in the virtual environment. It is excluded from the requirements as installing the same version as the one used system-wide is recommended.
-Mixing different versions may lead to unexpected behaviour.
-
-Check your current version of `svs-core` using:
-
-```bash
-sudo svs --version
-```
-
-Then install the same version in the virtual environment:
-
-```bash
-pip install svs-core==<your_version_here>
-```
-
-Install and build frontend dependencies:
-
-```bash
-(cd frontend && npm ci && npm run build)
+sudo bash update.sh
 ```
 
 ## Configuration
@@ -90,12 +63,6 @@ All the required environment variables are documented in the `.env.example` file
 
 ## Running
 
-Create the logs directory for security audit logging:
-
-```bash
-mkdir -p logs
-```
-
 To start the web interface, simply run:
 
 ```bash
@@ -106,15 +73,10 @@ After starting, you can access the web interface in your browser at `http://<you
 
 ## Updating
 
-???+ warning "Updating the web interface"
-  SVS currently does not have a built-in update mechanism for the web interface. To update, you will need to pull the latest changes from the repository and repeat the installation steps (installing dependencies, building frontend, etc.).
-
-For updating manually, refer to the installation steps above. The main difference is that you will need to pull the latest changes from the repository instead of cloning it.
-
-Additionally, if there are any database migrations, you will need to run the migrations after pulling the latest changes:
+Use the same `update.sh` script to update the web interface to the latest version. It will pull the latest changes from the repository, install any new dependencies, and rebuild the frontend.
 
 ```bash
-sudo svs utils django-shell migrate
+sudo bash update.sh
 ```
 
 
