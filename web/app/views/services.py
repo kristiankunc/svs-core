@@ -368,6 +368,69 @@ def delete_git_source(request: HttpRequest, service_id: int, git_source_id: int)
     return redirect("detail_service", service_id=service.id)
 
 
+def update(request: HttpRequest, service_id: int):
+    """Update a service configuration - only owners or admins."""
+    user_id = request.session.get("user_id")
+    if not user_id:
+        return redirect("login")
+
+    service = get_object_or_404(Service, id=service_id)
+
+    if not is_owner_or_admin(request, service):
+        return redirect("detail_service", service_id=service.id)
+
+    if request.method == "POST":
+        # Get form data
+        domain = request.POST.get("domain", "").strip()
+        command = request.POST.get("command", "").strip()
+
+        # Parse environment variables
+        env_keys = request.POST.getlist("env_key[]")
+        env_values = request.POST.getlist("env_value[]")
+        env_variables = []
+        for key, value in zip(env_keys, env_values):
+            if key:  # Only add if key is not empty
+                env_variables.append(EnvVariable(key=key, value=value))
+
+        # Parse ports
+        port_host = request.POST.getlist("port_host[]")
+        port_container = request.POST.getlist("port_container[]")
+        ports = []
+        for host, container in zip(port_host, port_container):
+            if container:  # Container port is required
+                ports.append(
+                    ExposedPort(
+                        host_port=int(host) if host else None,
+                        container_port=int(container) if container else None,
+                    )
+                )
+
+        # Parse args
+        args_input = request.POST.get("args", "").strip()
+        args = args_input.split() if args_input else None
+
+        try:
+            service.update(
+                domain=domain if domain else None,
+                env_variables=env_variables if env_variables else None,
+                ports=ports if ports else None,
+                command=command if command else None,
+                args=args,
+            )
+            return redirect("detail_service", service_id=service.id)
+        except Exception as e:
+            get_logger(__name__).error(
+                f"Failed to update service {service_id}: {str(e)}"
+            )
+            return render(
+                request,
+                "services/detail.html",
+                {"service": service, "error": f"Failed to update service: {str(e)}"},
+            )
+
+    return redirect("detail_service", service_id=service.id)
+
+
 urlpatterns = [
     path("services/", list_services, name="list_services"),
     path(
@@ -380,6 +443,7 @@ urlpatterns = [
     path("services/<int:service_id>/stop/", stop, name="stop_service"),
     path("services/<int:service_id>/restart/", restart, name="restart_service"),
     path("services/<int:service_id>/build/", build, name="build_service"),
+    path("services/<int:service_id>/update/", update, name="update_service"),
     path("services/<int:service_id>/delete/", delete, name="delete_service"),
     path("services/<int:service_id>/logs/", view_logs, name="view_service_logs"),
     path(
