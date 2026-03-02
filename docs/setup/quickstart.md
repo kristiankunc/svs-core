@@ -89,6 +89,15 @@ sudo svs user list
 
 This should output your user.
 
+## Updating
+
+A quick updater script is availiable.
+
+```bash
+curl https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/scripts/update.sh -o update.sh
+sudo bash update.sh
+```
+
 
 That's it. Head over to the [cli documentation](../cli-documentation/index.md) to get started with using the SVS CLI.
 
