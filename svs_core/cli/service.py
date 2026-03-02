@@ -499,3 +499,117 @@ def open_service_shell(
     except Exception as e:
         print(f"Error opening shell in service: {e}", file=sys.stderr)
         raise typer.Exit(code=1)
+
+
+@app.command("update")
+def update_service(
+    service_id: int = typer.Argument(
+        ...,
+        help="ID of the service to update",
+        autocompletion=service_id_autocomplete,
+    ),
+    domain: str | None = typer.Option(
+        None, "--domain", "-d", help="Domain for the service"
+    ),
+    env: list[str] | None = typer.Option(
+        None,
+        "--env",
+        "-e",
+        help="Environment variables in KEY=VALUE format (can be used multiple times)",
+    ),
+    port: list[str] | None = typer.Option(
+        None,
+        "--port",
+        "-p",
+        help="Port mappings in container_port:host_port format (can be used multiple times)",
+    ),
+    command: str | None = typer.Option(
+        None, "--command", "-c", help="Command to run in the container"
+    ),
+    args: list[str] | None = typer.Option(
+        None,
+        "--args",
+        "-a",
+        help="Command arguments (can be used multiple times)",
+    ),
+) -> None:
+    """Update a service's configuration.
+
+    Supports updating:
+    - Domain: --domain example.com
+    - Environment variables: --env KEY=VALUE
+    - Ports: --port container_port:host_port
+    - Command: --command "command"
+    - Arguments: --args "arg1" --args "arg2"
+
+    The container will be recreated to apply the changes.
+    """
+
+    service = get_or_exit(Service, id=service_id)
+
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        print("You do not have permission to update this service.", file=sys.stderr)
+        raise typer.Exit(1)
+
+    # Parse environment variables
+    override_env = None
+    if env:
+        override_env = []
+        for env_var in env:
+            if "=" not in env_var:
+                print(
+                    f"Invalid environment variable format: {env_var}. Use KEY=VALUE",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+            key, value = env_var.split("=", 1)
+            override_env.append(EnvVariable(key=key, value=value))
+
+    # Parse ports
+    override_ports = None
+    if port:
+        override_ports = []
+        for port_mapping in port:
+            if ":" not in port_mapping:
+                print(
+                    f"Invalid port format: {port_mapping}. Use container_port:host_port",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+            try:
+                container_port_str, host_port_str = port_mapping.split(":", 1)
+                container_port = int(container_port_str)
+                host_port = int(host_port_str)
+                override_ports.append(
+                    ExposedPort(container_port=container_port, host_port=host_port)
+                )
+            except ValueError:
+                print(
+                    f"Invalid port numbers: {port_mapping}. Ports must be integers",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+
+    try:
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+        ) as progress:
+            progress.add_task(description="Updating service...", total=None)
+            service.update(
+                domain=domain,
+                env_variables=override_env,
+                ports=override_ports,
+                command=command,
+                args=args,
+            )
+        print(
+            f"Service '{service.name}' updated successfully. Container has been recreated."
+        )
+    except (
+        ValidationException,
+        ConfigurationException,
+        ServiceOperationException,
+    ) as e:
+        print(f"Error updating service: {e}", file=sys.stderr)
+        raise typer.Exit(code=1)
