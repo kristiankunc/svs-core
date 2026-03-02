@@ -68,7 +68,7 @@ To start the devcontainer, open the repository in Visual Studio Code and select 
 
 After attaching to the devcontainer, the dependencies will be automatically installed. After that's done, you can launch a new terminal which will have the virtual environment activated automatically.
 
-You also need to run the [`install-dev.sh`](./install-dev.sh) script to configure your system for development. This script will create the required directories and configure permissions. It is a subset of the production install script.
+You also need to run the [`install-dev.sh`](./scripts/install-dev.sh) script to configure your system for development. This script will create the required directories and configure permissions. It is a subset of the production install script.
 
 After running the install script, switch to the `svs-admins` group by running
 
