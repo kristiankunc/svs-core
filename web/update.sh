@@ -35,7 +35,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 pip install svs_core==$SVS_VERSION
 
-npm install --prefix frontend
+npm ci --prefix frontend
 npm run build --prefix frontend
 
 python manage.py collectstatic --noinput --clear
