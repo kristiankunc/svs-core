@@ -162,7 +162,7 @@
       [sdělovat dílo veřejnosti v nehmotné podobě, a to především počítačovou nebo obdobnou sítí.],
     )
 
-    Dále prohlašuji, že při tvorbě této práce jsem použil nástroj generativního modelu AI Github Copilot; #link("github.com/copilot") za účelem [???]. Po použití tohoto nástroje jsem provedl/a kontrolu obsahu a přebírám za něj plnou zodpovědnost.
+    Dále prohlašuji, že při tvorbě této práce jsem použil nástroj generativního modelu AI Github Copilot (Claude Sonnet 4.6, Claude Haiku 4.5); #link("github.com/copilot") za účelem posuzování zdrojového kódu. Po použití tohoto nástroje jsem provedl/a kontrolu obsahu a přebírám za něj plnou zodpovědnost.
 
   ]
 
