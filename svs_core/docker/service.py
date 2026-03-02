@@ -886,3 +886,87 @@ Miscelanous:
         """
         git_source = GitSource.objects.get(id=git_source_id, service_id=self.id)
         git_source.delete()
+
+    def update(
+        self,
+        domain: str | None = None,
+        env_variables: list[EnvVariable] | None = None,
+        ports: list[ExposedPort] | None = None,
+        command: str | None = None,
+        healthcheck: Healthcheck | None = None,
+        args: list[str] | None = None,
+    ) -> None:
+        """Update the service's configuration and apply changes.
+
+        If None is provided for any arguments, the current value will be retained.
+
+        Args:
+            domain (str | None, optional): _description_. Defaults to None.
+            env_variables (list[EnvVariable] | None, optional): _description_. Defaults to None.
+            ports (list[ExposedPort] | None, optional): _description_. Defaults to None.
+            command (str | None, optional): _description_. Defaults to None.
+            healthcheck (Healthcheck | None, optional): _description_. Defaults to None.
+            args (list[str] | None, optional): _description_. Defaults to None.
+        """
+
+        if domain is not None:
+            if not isinstance(domain, str):
+                raise ValidationException(f"Domain must be a string: {domain}")
+            self.domain = domain
+
+        if env_variables is not None:
+            if not isinstance(env_variables, list):
+                raise ValidationException(
+                    f"Environment variables must be a list: {env_variables}"
+                )
+            for var in env_variables:
+                if not isinstance(var, EnvVariable):
+                    raise ValidationException(
+                        f"Each environment variable must be an EnvVariable instance: {var}"
+                    )
+                if not var.key or not isinstance(var.key, str):
+                    raise ValidationException(
+                        f"Environment variable key must be a non-empty string: {var.key}"
+                    )
+                if not isinstance(var.value, str):
+                    raise ValidationException(
+                        f"Environment variable value must be a string: {var.value}"
+                    )
+            self.env = env_variables
+
+        if ports is not None:
+            if not isinstance(ports, list):
+                raise ValidationException(f"Ports must be a list: {ports}")
+            for port in ports:
+                if not isinstance(port, ExposedPort):
+                    raise ValidationException(
+                        f"Each port must be an ExposedPort instance: {port}"
+                    )
+                if not isinstance(port.container_port, int) or port.container_port <= 0:
+                    raise ValidationException(
+                        f"Container port must be a positive integer: {port.container_port}"
+                    )
+            self.exposed_ports = ports
+
+        if command is not None:
+            if not isinstance(command, str):
+                raise ValidationException(f"Command must be a string: {command}")
+            self.command = command
+
+        if healthcheck is not None:
+            if not isinstance(healthcheck, Healthcheck):
+                raise ValidationException(
+                    f"Healthcheck must be a Healthcheck instance: {healthcheck}"
+                )
+            self.healthcheck = healthcheck
+
+        if args is not None:
+            if not isinstance(args, list):
+                raise ValidationException(f"Arguments must be a list: {args}")
+            for arg in args:
+                if not isinstance(arg, str):
+                    raise ValidationException(f"Each argument must be a string: {arg}")
+            self.args = args
+
+        self.save()
+        self.recreate()

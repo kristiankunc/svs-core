@@ -1117,3 +1117,216 @@ class TestServiceCommands:
             "downloaded" in result.output.lower() or "updated" in result.output.lower()
         )
         mock_git_source.download.assert_called_once()
+
+    def test_update_service_success_domain(self, mocker: MockerFixture) -> None:
+        """Test updating a service's domain."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "update", "1", "--domain", "example.com"],
+        )
+
+        assert result.exit_code == 0
+        assert "updated successfully" in result.output
+        mock_service.update.assert_called_once_with(
+            domain="example.com",
+            env_variables=None,
+            ports=None,
+            command=None,
+            args=None,
+        )
+
+    def test_update_service_success_env(self, mocker: MockerFixture) -> None:
+        """Test updating a service with environment variables."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "update", "1", "--env", "KEY=VALUE", "--env", "FOO=BAR"],
+        )
+
+        assert result.exit_code == 0
+        assert "updated successfully" in result.output
+        call_kwargs = mock_service.update.call_args[1]
+        assert len(call_kwargs["env_variables"]) == 2
+        assert call_kwargs["env_variables"][0].key == "KEY"
+        assert call_kwargs["env_variables"][0].value == "VALUE"
+        assert call_kwargs["env_variables"][1].key == "FOO"
+        assert call_kwargs["env_variables"][1].value == "BAR"
+
+    def test_update_service_success_port(self, mocker: MockerFixture) -> None:
+        """Test updating a service with port mappings."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "update", "1", "--port", "8080:80"],
+        )
+
+        assert result.exit_code == 0
+        assert "updated successfully" in result.output
+        call_kwargs = mock_service.update.call_args[1]
+        assert len(call_kwargs["ports"]) == 1
+        assert call_kwargs["ports"][0].container_port == 8080
+        assert call_kwargs["ports"][0].host_port == 80
+
+    def test_update_service_admin_can_update_any(self, mocker: MockerFixture) -> None:
+        """Test that admin can update a service belonging to another user."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "other_service"
+        mock_service.user.name = "other_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=True)
+
+        result = self.runner.invoke(
+            app,
+            ["service", "update", "1", "--domain", "admin-updated.com"],
+        )
+
+        assert result.exit_code == 0
+        assert "updated successfully" in result.output
+        mock_service.update.assert_called_once()
+
+    def test_update_service_permission_denied(self, mocker: MockerFixture) -> None:
+        """Test that non-admin cannot update another user's service."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "other_service"
+        mock_service.user.name = "other_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "update", "1", "--domain", "example.com"],
+        )
+
+        assert result.exit_code == 1
+        assert "permission" in result.output.lower()
+        mock_service.update.assert_not_called()
+
+    def test_update_service_invalid_env_format(self, mocker: MockerFixture) -> None:
+        """Test that an invalid env variable format causes an error."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "update", "1", "--env", "INVALID_FORMAT"],
+        )
+
+        assert result.exit_code == 1
+        assert "Invalid environment variable format" in result.output
+        mock_service.update.assert_not_called()
+
+    def test_update_service_invalid_port_format(self, mocker: MockerFixture) -> None:
+        """Test that an invalid port format causes an error."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "update", "1", "--port", "8080"],
+        )
+
+        assert result.exit_code == 1
+        assert "Invalid port format" in result.output
+        mock_service.update.assert_not_called()
+
+    def test_update_service_invalid_port_numbers(self, mocker: MockerFixture) -> None:
+        """Test that non-integer port numbers cause an error."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "update", "1", "--port", "abc:xyz"],
+        )
+
+        assert result.exit_code == 1
+        assert "Invalid port numbers" in result.output
+        mock_service.update.assert_not_called()
+
+    def test_update_service_env_with_equals_in_value(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that env variables with '=' in the value are handled
+        correctly."""
+        mock_service = mocker.MagicMock()
+        mock_service.id = 1
+        mock_service.name = "test_service"
+        mock_service.user.name = "current_user"
+
+        mocker.patch("svs_core.cli.service.get_or_exit", return_value=mock_service)
+        mocker.patch("svs_core.cli.service.is_current_user_admin", return_value=False)
+        mocker.patch(
+            "svs_core.cli.service.get_current_username", return_value="current_user"
+        )
+
+        result = self.runner.invoke(
+            app,
+            ["service", "update", "1", "--env", "KEY=value=with=equals"],
+        )
+
+        assert result.exit_code == 0
+        call_kwargs = mock_service.update.call_args[1]
+        assert call_kwargs["env_variables"][0].key == "KEY"
+        assert call_kwargs["env_variables"][0].value == "value=with=equals"

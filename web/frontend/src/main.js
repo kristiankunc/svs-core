@@ -1,4 +1,5 @@
 import Alpine from 'alpinejs';
+import * as bootstrap from 'bootstrap';
 import hljs from 'highlight.js/lib/core';
 import dockerfile from 'highlight.js/lib/languages/dockerfile';
 import json from 'highlight.js/lib/languages/json';
@@ -73,6 +74,7 @@ Alpine.data('themeSwitcher', () => ({
     }
 }));
 
+window.bootstrap = bootstrap;
 window.hljs = hljs;
 window.Alpine = Alpine;
 Alpine.start();

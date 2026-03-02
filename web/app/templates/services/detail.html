@@ -538,6 +538,10 @@
                     </form>
                     <a href="{% url 'view_service_logs' service.id %}"
                        class="btn btn-info w-100">View Logs</a>
+                    <button type="button"
+                            class="btn btn-secondary w-100"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editServiceModal">Edit Configuration</button>
                     <form action="{% url 'delete_service' service.id %}"
                           method="post"
                           onsubmit="return confirm('Are you sure you want to delete the service {{ service.name }}? This action cannot be undone.');">
@@ -549,6 +553,161 @@
                         </button>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+    <!-- Edit Service Modal -->
+    <div class="modal fade"
+         id="editServiceModal"
+         tabindex="-1"
+         aria-labelledby="editServiceModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editServiceModalLabel">Edit Service Configuration</h5>
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <form action="{% url 'update_service' service.id %}" method="post">
+                    <div class="modal-body">
+                        {% csrf_token %}
+                        <!-- Domain -->
+                        <div class="mb-3">
+                            <label for="edit_domain" class="form-label">Domain</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="edit_domain"
+                                   name="domain"
+                                   value="{{ service.domain|default:'' }}"
+                                   placeholder="example.com">
+                            <small class="form-text text-muted">Optional: Domain for accessing the service</small>
+                        </div>
+                        <!-- Environment Variables -->
+                        <div class="mb-3">
+                            <label class="form-label">Environment Variables</label>
+                            <div class="mb-2" id="env-container">
+                                {% for var in service.env %}
+                                    <div class="input-group mb-2">
+                                        <input type="text"
+                                               class="form-control"
+                                               name="env_key[]"
+                                               placeholder="KEY"
+                                               value="{{ var.key }}">
+                                        <input type="text"
+                                               class="form-control"
+                                               name="env_value[]"
+                                               placeholder="VALUE"
+                                               value="{{ var.value }}">
+                                        <button type="button"
+                                                class="btn btn-outline-danger"
+                                                onclick="this.closest('.input-group').remove()">
+                                            <span aria-hidden="true">x</span>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                                <div class="input-group mb-2" id="env-template" style="display: none;">
+                                    <input type="text" class="form-control" name="env_key[]" placeholder="KEY">
+                                    <input type="text"
+                                           class="form-control"
+                                           name="env_value[]"
+                                           placeholder="VALUE">
+                                    <button type="button"
+                                            class="btn btn-outline-danger"
+                                            onclick="this.closest('.input-group').remove()">
+                                        <span aria-hidden="true">x</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary"
+                                    onclick="const template = document.getElementById('env-template'); const clone = template.cloneNode(true); clone.style.display = ''; clone.id = ''; document.getElementById('env-container').appendChild(clone);">
+                                + Add Environment Variable
+                            </button>
+                        </div>
+                        <!-- Exposed Ports -->
+                        <div class="mb-3">
+                            <label class="form-label">Exposed Ports</label>
+                            <div class="mb-2" id="port-container">
+                                {% for port in service.exposed_ports %}
+                                    <div class="input-group mb-2">
+                                        <span class="input-group-text">Host</span>
+                                        <input type="number"
+                                               class="form-control"
+                                               name="port_host[]"
+                                               placeholder="8080"
+                                               value="{{ port.host_port|default:'' }}">
+                                        <span class="input-group-text">Container</span>
+                                        <input type="number"
+                                               class="form-control"
+                                               name="port_container[]"
+                                               placeholder="80"
+                                               value="{{ port.container_port }}"
+                                               required>
+                                        <button type="button"
+                                                class="btn btn-outline-danger"
+                                                onclick="this.closest('.input-group').remove()">
+                                            <span aria-hidden="true">x</span>
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                                <div class="input-group mb-2" id="port-template" style="display: none;">
+                                    <span class="input-group-text">Host</span>
+                                    <input type="number"
+                                           class="form-control"
+                                           name="port_host[]"
+                                           placeholder="8080">
+                                    <span class="input-group-text">Container</span>
+                                    <input type="number"
+                                           class="form-control"
+                                           name="port_container[]"
+                                           placeholder="80">
+                                    <button type="button"
+                                            class="btn btn-outline-danger"
+                                            onclick="this.closest('.input-group').remove()">
+                                        <span aria-hidden="true">x</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary"
+                                    onclick="const template = document.getElementById('port-template'); const clone = template.cloneNode(true); clone.style.display = ''; clone.id = ''; document.getElementById('port-container').appendChild(clone);">
+                                + Add Port Mapping
+                            </button>
+                        </div>
+                        <!-- Command -->
+                        <div class="mb-3">
+                            <label for="edit_command" class="form-label">Command</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="edit_command"
+                                   name="command"
+                                   value="{{ service.command|default:'' }}"
+                                   placeholder="/bin/bash">
+                            <small class="form-text text-muted">Optional: Command to run in the container</small>
+                        </div>
+                        <!-- Arguments -->
+                        <div class="mb-3">
+                            <label for="edit_args" class="form-label">Arguments</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="edit_args"
+                                   name="args"
+                                   value="{% if service.args %}{{ service.args|join:' ' }}{% endif %}"
+                                   placeholder="-c 'echo hello'">
+                            <small class="form-text text-muted">Optional: Space-separated arguments for the command</small>
+                        </div>
+                        <div class="alert alert-warning mb-0">
+                            <strong>Note:</strong> Updating the service will recreate the container. The service will be restarted if it was running.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
