@@ -353,7 +353,21 @@ class DockerContainerManager:
                 f"Failed to remove container {container.id}: {str(e)}"
             ) from e
 
-        # Create a new container with the updated configuration
+        domain = getattr(service, "domain", None)
+        if isinstance(domain, str) and domain.strip():
+            labels = [
+                label for label in service.labels if not label.key.startswith("caddy")
+            ]
+            labels.append(Label(key="caddy", value=domain))
+            labels.append(Label(key="caddy.reverse_proxy", value="{{upstreams 80}}"))
+            service.labels = labels
+
+            exposed_ports = list(service.exposed_ports)
+            if not any(port.container_port == 80 for port in exposed_ports):
+                exposed_ports.append(ExposedPort(container_port=80, host_port=None))
+                service.exposed_ports = exposed_ports
+
+            service.save()
         try:
             new_container = DockerContainerManager.create_container(
                 name=container.name,

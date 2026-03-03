@@ -1,9 +1,11 @@
+from typing import Any
+
 import pytest
 
 from pytest_mock import MockerFixture
 
 from svs_core.docker.container import DockerContainerManager
-from svs_core.docker.json_properties import EnvVariable, ExposedPort, Volume
+from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
 from svs_core.shared.exceptions import ServiceOperationException
 
 
@@ -273,6 +275,79 @@ class TestDockerContainerManagerUnit:
         # Verify new container was created
         mock_create.assert_called_once()
         assert result == mock_new_container
+
+    @pytest.mark.unit
+    def test_recreate_container_adds_domain_labels_with_property_lists(
+        self, mocker: MockerFixture
+    ) -> None:
+        mock_container = mocker.MagicMock()
+        mock_container.name = "test-container"
+        mock_container.id = "old-container-id"
+        mock_container.status = "exited"
+        mock_container.remove = mocker.MagicMock()
+
+        class ServiceWithPropertyLists:
+            def __init__(self) -> None:
+                self.image = "nginx:latest"
+                self.command = "nginx"
+                self.args: list[str] = []
+                self._labels = [
+                    Label(key="service_id", value="13"),
+                    Label(key="svs_user", value="vscode"),
+                ]
+                self._exposed_ports: list[ExposedPort] = []
+                self.volumes: list[Volume] = []
+                self.env: list[EnvVariable] = []
+                self.domain = "g.local"
+                self.user = mocker.MagicMock()
+                self.user.name = "vscode"
+                self.save = mocker.MagicMock()
+
+            @property
+            def labels(self) -> list[Label]:
+                return list(self._labels)
+
+            @labels.setter
+            def labels(self, labels: list[Label]) -> None:
+                self._labels = list(labels)
+
+            @property
+            def exposed_ports(self) -> list[ExposedPort]:
+                return list(self._exposed_ports)
+
+            @exposed_ports.setter
+            def exposed_ports(self, ports: list[ExposedPort]) -> None:
+                self._exposed_ports = list(ports)
+
+        mock_service: Any = ServiceWithPropertyLists()
+
+        mock_new_container = mocker.MagicMock()
+        mock_create = mocker.patch(
+            "svs_core.docker.container.DockerContainerManager.create_container",
+            return_value=mock_new_container,
+        )
+
+        DockerContainerManager.recreate_container(mock_container, mock_service)
+
+        labels_by_key = {label.key: label.value for label in mock_service.labels}
+        assert labels_by_key["service_id"] == "13"
+        assert labels_by_key["svs_user"] == "vscode"
+        assert labels_by_key["caddy"] == "g.local"
+        assert labels_by_key["caddy.reverse_proxy"] == "{{upstreams 80}}"
+        assert any(port.container_port == 80 for port in mock_service.exposed_ports)
+        mock_service.save.assert_called_once()
+
+        mock_create.assert_called_once_with(
+            name="test-container",
+            image="nginx:latest",
+            owner="vscode",
+            command="nginx",
+            args=[],
+            labels=mock_service.labels,
+            ports=mock_service.exposed_ports,
+            volumes=[],
+            environment_variables=[],
+        )
 
     @pytest.mark.unit
     def test_recreate_container_raises_on_stop_failure(
