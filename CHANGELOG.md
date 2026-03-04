@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.2](https://github.com/kristiankunc/svs-core/compare/v0.13.1...v0.13.2) (2026-03-03)
+
+
+### Bug Fixes
+
+* **core:** Fix updating domain ([b7e6808](https://github.com/kristiankunc/svs-core/commit/b7e68080d8940b1b1aac7bd959cb86dcbd88d10d))
+* **core:** Use npm ci ([b4c211c](https://github.com/kristiankunc/svs-core/commit/b4c211c386a76713eb3a53b15ebaad23498b886a))
+
 ## [0.13.1](https://github.com/kristiankunc/svs-core/compare/v0.13.0...v0.13.1) (2026-03-02)
 
 
