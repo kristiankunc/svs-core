@@ -16,6 +16,7 @@ fi
 
 cd ..
 git reset --hard HEAD
+git fetch origin
 git pull origin main
 git checkout v$SVS_VERSION
 
