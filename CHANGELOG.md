@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.13.3](https://github.com/kristiankunc/svs-core/compare/v0.13.2...v0.13.3) (2026-03-07)
+
+
+### Bug Fixes
+
+* **cli:** Modify password reset functionality to be tied to user ([2473dc6](https://github.com/kristiankunc/svs-core/commit/2473dc651ab8313ed697222b4ef780349518dbad))
+* **web:** Change page titles ([3391987](https://github.com/kristiankunc/svs-core/commit/339198764c6b3f7564cb7d22e8d79a83ec53ca42))
+
 ## [0.13.2](https://github.com/kristiankunc/svs-core/compare/v0.13.1...v0.13.2) (2026-03-03)
 
 
