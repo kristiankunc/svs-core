@@ -626,7 +626,6 @@ class TestUserCommands:
 
     # Reset password command tests
     def test_reset_password_success(self, mocker: MockerFixture) -> None:
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_user = mocker.MagicMock()
         mock_user.name = "testuser"
@@ -635,7 +634,7 @@ class TestUserCommands:
 
         result = self.runner.invoke(
             app,
-            ["user", "reset-password", "testuser"],
+            ["user", "reset-password"],
             input="newpassword123\nnewpassword123\n",
         )
 
@@ -643,24 +642,7 @@ class TestUserCommands:
         assert "Password for user 'testuser' reset successfully." in result.output
         mock_user.change_password.assert_called_once_with("newpassword123")
 
-    def test_reset_password_user_not_found(self, mocker: MockerFixture) -> None:
-        from django.core.exceptions import ObjectDoesNotExist
-
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
-        mock_get = mocker.patch("svs_core.users.user.User.objects.get")
-        mock_get.side_effect = ObjectDoesNotExist()
-
-        result = self.runner.invoke(
-            app,
-            ["user", "reset-password", "non_existing_user"],
-            input="newpassword\nnewpassword\n",
-        )
-
-        assert result.exit_code == 1
-        assert "not found" in result.output
-
     def test_reset_password_invalid_password(self, mocker: MockerFixture) -> None:
-        mocker.patch("svs_core.cli.user.reject_if_not_admin")
         mock_get = mocker.patch("svs_core.users.user.User.objects.get")
         mock_user = mocker.MagicMock()
         mock_user.name = "testuser"
@@ -671,7 +653,7 @@ class TestUserCommands:
 
         result = self.runner.invoke(
             app,
-            ["user", "reset-password", "testuser"],
+            ["user", "reset-password"],
             input="weak\nweak\n",
         )
 
