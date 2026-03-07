@@ -1,10 +1,12 @@
 [project]
 name = "svs_core"
 version = "0.13.3"
-description = "Core library for SVS"
+description = "Core library for SVS (https://svs.kristn.co.uk/)"
 authors = [{ name = "Kristián Kunc", email = "diist7i4c@mozmail.com" }]
 readme = "README.md"
 requires-python = ">=3.13"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
 dependencies = [
     "bcrypt==5.0.0",
     "docker==7.1.0",
@@ -14,6 +16,12 @@ dependencies = [
     "dj_database_url==3.1.2",
     "psycopg[binary]==3.3.3",
 ]
+
+[project.urls]
+Homepage = "https://svs.kristn.co.uk"
+Repository = "https://github.com/kristiankunc/svs-core"
+Issues = "https://github.com/kristiankunc/svs-core/issues"
+Changelog = "https://github.com/kristiankunc/svs-core/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
