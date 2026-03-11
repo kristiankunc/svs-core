@@ -9,6 +9,7 @@ from django.core import management
 from rich import print as rprint
 
 from svs_core.cli.state import reject_if_not_admin
+from svs_core.migrations.migrator import Migrator, PackageVersion
 
 app = typer.Typer(help="Utility commands")
 
@@ -70,3 +71,29 @@ def django_shell(
         err = result.stderr or f"Process exited with code {result.returncode}"
         rprint(f"Error executing Django shell commands: {err}", file=sys.stderr)
         raise typer.Exit(code=1)
+
+
+@app.command("migrate")
+def migrate(
+    original_version: str = typer.Argument(
+        ..., help="Original version which you've upgraded from (e.g. 0.15.0)"
+    )
+) -> None:
+    """Runs necessary migrations based on the original version provided."""
+
+    reject_if_not_admin()
+
+    try:
+        parsed_version = PackageVersion(original_version)
+    except ValueError as e:
+        rprint(f"Error: {e}", file=sys.stderr)
+        raise typer.Exit(code=1)
+
+    if parsed_version >= Migrator.get_current_package_version():
+        rprint(
+            "No migrations needed. The original version is the same or newer than the current version."
+        )
+        raise typer.Exit(code=0)
+
+    Migrator.run(parsed_version)
+    rprint("Migrations completed successfully.")

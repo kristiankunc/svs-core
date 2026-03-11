@@ -89,6 +89,11 @@ sudo svs user list
 
 This should output your user.
 
+
+That's it. Head over to the [cli documentation](../cli-documentation/index.md) to get started with using the SVS CLI.
+
+Or, you can follow the [hello-world guide](hello-world.md) to start your first service.
+
 ## Updating
 
 A quick updater script is availiable.
@@ -98,7 +103,4 @@ curl https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/scr
 sudo bash update.sh
 ```
 
-
-That's it. Head over to the [cli documentation](../cli-documentation/index.md) to get started with using the SVS CLI.
-
-Or, you can follow the [hello-world guide](hello-world.md) to start your first service.
+This script runs the django database migrations and the [system migrations](../cli-documentation/utils.md#svs-utils-migrate) to ensure your system is up to date.
