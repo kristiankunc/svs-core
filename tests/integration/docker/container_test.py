@@ -120,7 +120,7 @@ class TestDockerContainerManager:
         DockerContainerManager.start_container(container)
 
         container.reload()
-        assert container.status in ["running", "exited", "created"]
+        assert container.status in ["running", "exited", "created", "restarting"]
 
     @pytest.mark.integration
     def test_create_container_with_labels(self) -> None:
@@ -389,6 +389,21 @@ class TestDockerContainerManager:
         container_labels = container.labels
         assert container_labels.get("caddy") == "multi-port.example.com"
         assert container_labels.get("caddy.reverse_proxy") == "{{upstreams 80}}"
+
+    @pytest.mark.integration
+    def test_create_container_sets_restart_policy(self, mocker: MockerFixture) -> None:
+        """Test that containers are created with proper restart policy."""
+        container = DockerContainerManager.create_container(
+            name=self.TEST_CONTAINER_NAME,
+            image=self.TEST_IMAGE,
+            owner=self.TEST_OWNER,
+        )
+
+        assert container is not None
+        # Verify restart policy is set to "unless-stopped"
+        assert (
+            container.attrs["HostConfig"]["RestartPolicy"]["Name"] == "unless-stopped"
+        )
 
     @pytest.mark.integration
     def test_create_container_sets_user_for_regular_images(

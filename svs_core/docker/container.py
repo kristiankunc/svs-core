@@ -118,6 +118,7 @@ class DockerContainerManager:
                 "ports": docker_ports or {},
                 "volumes": volume_mounts or [],
                 "environment": docker_env_vars or {},
+                "restart_policy": {"Name": "unless-stopped"},
             }
         )
 
