@@ -107,14 +107,16 @@ class Migrator:
             last_known_version: A PackageVersion instance of the last known version.
         """
         current_version = Migrator.get_current_package_version()
-        logger = get_logger(__name__)
+        get_logger(__name__).debug(
+            f"Running migrations - current package version: {current_version.string}, Last known version: {last_known_version.string}"
+        )
 
         for migration in Migrator.migrations:
             if (
                 current_version >= migration.version
                 and migration.version > last_known_version
             ):
-                logger.info(f"Running migration: {migration.name}")
+                get_logger(__name__).info(f"Running migration: {migration.name}")
                 migration.run()
 
     @staticmethod
