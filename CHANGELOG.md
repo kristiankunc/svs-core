@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.14.0](https://github.com/kristiankunc/svs-core/compare/v0.13.3...v0.14.0) (2026-03-11)
+
+
+### Features
+
+* Add migrator ([#362](https://github.com/kristiankunc/svs-core/issues/362)) ([261b937](https://github.com/kristiankunc/svs-core/commit/261b93748ef03260e3fe37f86f5ebf07f7af2519))
+
+
+### Bug Fixes
+
+* Add migrations to updater script ([261b937](https://github.com/kristiankunc/svs-core/commit/261b93748ef03260e3fe37f86f5ebf07f7af2519))
+* Add unless-stopped restart policy to all containers ([#361](https://github.com/kristiankunc/svs-core/issues/361)) ([11c67c5](https://github.com/kristiankunc/svs-core/commit/11c67c5b4cb08d9afda9ae3933d20df6a6f8fd1e))
+* **web:** Run git fetch during update script ([5db633c](https://github.com/kristiankunc/svs-core/commit/5db633c0fa74cd3f6d5d867289e12f28f42ca134))
+
+
+### Documentation
+
+* Update package updating page ([261b937](https://github.com/kristiankunc/svs-core/commit/261b93748ef03260e3fe37f86f5ebf07f7af2519))
+
 ## [0.13.3](https://github.com/kristiankunc/svs-core/compare/v0.13.2...v0.13.3) (2026-03-07)
 
 
