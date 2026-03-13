@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.1](https://github.com/kristiankunc/svs-core/compare/v0.14.0...v0.14.1) (2026-03-13)
+
+
+### Documentation
+
+* Add git source help for nginx ([4321622](https://github.com/kristiankunc/svs-core/commit/43216223ec05d5d9d03962f8a35325cf625ea451))
+* Add template writing reference ([41bd0f7](https://github.com/kristiankunc/svs-core/commit/41bd0f72e28b8446023cc888dc2ba2f2ab442a98))
+
 ## [0.14.0](https://github.com/kristiankunc/svs-core/compare/v0.13.3...v0.14.0) (2026-03-11)
 
 
