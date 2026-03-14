@@ -20,7 +20,7 @@ def index(request):
 def login(request: HttpRequest):
 
     if not request.method == "POST":
-        return render(request, "base/login.html")
+        return render(request, "auth/login.html")
 
     username = request.POST.get("username")
     password = request.POST.get("password")
@@ -44,7 +44,7 @@ def login(request: HttpRequest):
     security_logger.warning(
         f"Failed login attempt from IP {ip_address} (username attempt: {username[:3] + '***' if username and len(username) > 3 else '***'})"
     )
-    return render(request, "base/login.html", {"error": "Invalid credentials"})
+    return render(request, "auth/login.html", {"error": "Invalid credentials"})
 
 
 def logout(request: HttpRequest):
