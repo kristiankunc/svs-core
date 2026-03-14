@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.14.2](https://github.com/kristiankunc/svs-core/compare/v0.14.1...v0.14.2) (2026-03-14)
+
+
+### Bug Fixes
+
+* **core:** Add more docker container states ([e7eae59](https://github.com/kristiankunc/svs-core/commit/e7eae5983dc73550bb32931e38f82ce2c7b77c10))
+* **core:** Fix healthcheck configuration ([#365](https://github.com/kristiankunc/svs-core/issues/365)) ([d45c663](https://github.com/kristiankunc/svs-core/commit/d45c663a94ab53ded93ea5514478ac3944b07db3))
+* **core:** Use a rotating logfile to cap size ([5eac5d6](https://github.com/kristiankunc/svs-core/commit/5eac5d67517d9933a1bff0973d83be8046653941))
+* **web:** Improve login page design ([b402a4a](https://github.com/kristiankunc/svs-core/commit/b402a4a9619a82d9d7c03c6d1383360fe43167f0))
+
 ## [0.14.1](https://github.com/kristiankunc/svs-core/compare/v0.14.0...v0.14.1) (2026-03-13)
 
 
