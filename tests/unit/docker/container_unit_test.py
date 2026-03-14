@@ -5,7 +5,13 @@ import pytest
 from pytest_mock import MockerFixture
 
 from svs_core.docker.container import DockerContainerManager
-from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
+from svs_core.docker.json_properties import (
+    EnvVariable,
+    ExposedPort,
+    Healthcheck,
+    Label,
+    Volume,
+)
 from svs_core.shared.exceptions import ServiceOperationException
 
 
@@ -202,6 +208,7 @@ class TestDockerContainerManagerUnit:
         mock_service.volumes = []
         mock_service.env = []
         mock_service.user.name = "testuser"
+        mock_service.healthcheck = None
 
         # Mock new container creation
         mock_new_container = mocker.MagicMock()
@@ -228,6 +235,7 @@ class TestDockerContainerManagerUnit:
             ports=[],
             volumes=[],
             environment_variables=[],
+            healthcheck=None,
         )
 
         # Verify new container is returned
@@ -302,6 +310,7 @@ class TestDockerContainerManagerUnit:
                 self.user = mocker.MagicMock()
                 self.user.name = "vscode"
                 self.save = mocker.MagicMock()
+                self.healthcheck = None
 
             @property
             def labels(self) -> list[Label]:
@@ -347,6 +356,7 @@ class TestDockerContainerManagerUnit:
             ports=mock_service.exposed_ports,
             volumes=[],
             environment_variables=[],
+            healthcheck=None,
         )
 
     @pytest.mark.unit
@@ -415,3 +425,49 @@ class TestDockerContainerManagerUnit:
             ServiceOperationException, match="Failed to recreate container"
         ):
             DockerContainerManager.recreate_container(mock_container, mock_service)
+
+    @pytest.mark.unit
+    def test_recreate_container_passes_healthcheck(self, mocker: MockerFixture) -> None:
+        """Test recreate_container passes the service healthcheck to
+        create_container."""
+        mock_container = mocker.MagicMock()
+        mock_container.name = "test-container"
+        mock_container.id = "old-container-id"
+        mock_container.status = "exited"
+        mock_container.remove = mocker.MagicMock()
+
+        healthcheck = Healthcheck(
+            test=["CMD", "curl", "-f", "http://localhost"], interval=30
+        )
+
+        mock_service = mocker.MagicMock()
+        mock_service.image = "nginx:latest"
+        mock_service.command = "nginx"
+        mock_service.args = []
+        mock_service.labels = []
+        mock_service.exposed_ports = []
+        mock_service.volumes = []
+        mock_service.env = []
+        mock_service.user.name = "testuser"
+        mock_service.healthcheck = healthcheck
+
+        mock_new_container = mocker.MagicMock()
+        mock_create = mocker.patch(
+            "svs_core.docker.container.DockerContainerManager.create_container",
+            return_value=mock_new_container,
+        )
+
+        DockerContainerManager.recreate_container(mock_container, mock_service)
+
+        mock_create.assert_called_once_with(
+            name="test-container",
+            image="nginx:latest",
+            owner="testuser",
+            command="nginx",
+            args=[],
+            labels=[],
+            ports=[],
+            volumes=[],
+            environment_variables=[],
+            healthcheck=healthcheck,
+        )

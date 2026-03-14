@@ -639,6 +639,7 @@ class TestDockerContainerManager:
         mock_service.volumes = []
         mock_service.env = [EnvVariable(key="NEW_VAR", value="new_value")]
         mock_service.user.name = self.TEST_OWNER
+        mock_service.healthcheck = None
 
         # Recreate the container
         new_container = DockerContainerManager.recreate_container(
