@@ -3,7 +3,13 @@ from typing import TYPE_CHECKING, Optional
 from docker.models.containers import Container
 
 from svs_core.docker.base import get_docker_client
-from svs_core.docker.json_properties import EnvVariable, ExposedPort, Label, Volume
+from svs_core.docker.json_properties import (
+    EnvVariable,
+    ExposedPort,
+    Healthcheck,
+    Label,
+    Volume,
+)
 from svs_core.shared.logger import get_logger
 from svs_core.shared.volumes import SystemVolumeManager
 from svs_core.users.system import SystemUserManager
@@ -27,6 +33,7 @@ class DockerContainerManager:
         ports: list[ExposedPort] | None = None,
         volumes: list[Volume] | None = None,
         environment_variables: list[EnvVariable] | None = None,
+        healthcheck: Healthcheck | None = None,
     ) -> Container:
         """Create a Docker container.
 
@@ -40,6 +47,7 @@ class DockerContainerManager:
             ports (list[ExposedPort] | None): List of ports to expose.
             volumes (list[Volume] | None): List of volumes to mount.
             environment_variables (list[EnvVariable] | None): List of environment variables to set.
+            healthcheck (Healthcheck | None): Healthcheck configuration for the container.
 
         Returns:
             Container: The created Docker container instance.
@@ -109,6 +117,10 @@ class DockerContainerManager:
                 f"{str(SystemUserManager.get_system_uid_gid(owner)[0])}:{str(SystemUserManager.get_gid('svs-admins'))}"
             )
 
+        healthcheck_config = {}
+        if healthcheck is not None:
+            healthcheck_config = healthcheck.to_docker_api_format()
+
         create_kwargs.update(
             {
                 "image": image,
@@ -119,6 +131,7 @@ class DockerContainerManager:
                 "volumes": volume_mounts or [],
                 "environment": docker_env_vars or {},
                 "restart_policy": {"Name": "unless-stopped"},
+                "healthcheck": healthcheck_config or None,
             }
         )
 
@@ -276,10 +289,14 @@ class DockerContainerManager:
         if container_command != service_command:
             return True
 
-        # Check environment variables
+        # Check environment variables (excluding PUID/PGID which are added for LinuxServer.io images)
         container_env = set(container_attrs["Config"]["Env"] or [])
         service_env = set(f"{env_var.key}={env_var.value}" for env_var in service.env)
-        if container_env != service_env:
+        # Remove PUID and PGID from container_env for comparison if they were added for LinuxServer.io images
+        container_env_filtered = {
+            e for e in container_env if not e.startswith(("PUID=", "PGID="))
+        }
+        if container_env_filtered != service_env:
             return True
 
         # Check exposed ports
@@ -380,6 +397,7 @@ class DockerContainerManager:
                 ports=service.exposed_ports,
                 volumes=service.volumes,
                 environment_variables=service.env,
+                healthcheck=service.healthcheck,
             )
 
             get_logger(__name__).info(

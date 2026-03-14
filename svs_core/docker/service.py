@@ -528,6 +528,7 @@ Miscelanous:
                 ports=service_instance.exposed_ports,
                 volumes=service_instance.volumes,
                 environment_variables=service_instance.env,
+                healthcheck=service_instance.healthcheck,
             )
 
             service_instance.container_id = container.id
@@ -753,6 +754,7 @@ Miscelanous:
                 ports=self.exposed_ports,
                 volumes=self.volumes,
                 environment_variables=self.env,
+                healthcheck=self.healthcheck,
             )
 
             self.container_id = container.id
@@ -834,6 +836,8 @@ Miscelanous:
                 labels=self.labels,
                 ports=self.exposed_ports,
                 volumes=self.volumes,
+                environment_variables=self.env,
+                healthcheck=self.healthcheck,
             )
 
             self.container_id = new_container.id

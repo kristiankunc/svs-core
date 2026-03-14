@@ -295,7 +295,7 @@ class Healthcheck:
 
     def __init__(
         self,
-        test: list[str],
+        test: list[str] | str,
         interval: int | None = None,
         timeout: int | None = None,
         retries: int | None = None,
@@ -304,14 +304,19 @@ class Healthcheck:
         """Initializes a Healthcheck instance.
 
         Args:
-            test (list[str]): The command to run to check the health of the container.
-            interval (int | None): The time between running the check. Defaults to None.
-            timeout (int | None): The time to wait before considering the check to have failed. Defaults to None.
+            test (list[str] | str): The command to run to check the health of the container.
+                If a string is provided, it will be used as a CMD-SHELL command.
+                Can be an empty list (inherit from parent), ["NONE"] (disable), ["CMD", args...], or ["CMD-SHELL", command].
+            interval (int | None): The time between running the check in seconds. Defaults to None.
+            timeout (int | None): The time to wait before considering the check to have failed in seconds. Defaults to None.
             retries (int | None): The number of consecutive failures needed to consider the container unhealthy. Defaults to None.
-            start_period (int | None): The initialization time before starting health checks. Defaults to None.
+            start_period (int | None): The initialization time before starting health checks in seconds. Defaults to None.
         """
-
-        self.test = test
+        # Convert string test to CMD-SHELL format
+        if isinstance(test, str):
+            self.test = ["CMD-SHELL", test]
+        else:
+            self.test = test
         self.interval = interval
         self.timeout = timeout
         self.retries = retries
@@ -340,10 +345,14 @@ class Healthcheck:
             raise ValueError("'test' key is required in healthcheck_dict")
 
         test_value = healthcheck_dict.get("test")
-        if not isinstance(test_value, list) or not all(
-            isinstance(cmd, str) for cmd in test_value
-        ):
-            raise TypeError("'test' must be a list of strings")
+        if isinstance(test_value, str):
+            # String will be converted to CMD-SHELL format in __init__
+            pass
+        elif isinstance(test_value, list):
+            if not all(isinstance(cmd, str) for cmd in test_value):
+                raise TypeError("'test' must be a list of strings or a string")
+        else:
+            raise TypeError("'test' must be a list of strings or a string")
 
         interval = healthcheck_dict.get("interval")
         if interval is not None and not isinstance(interval, int):
@@ -384,6 +393,29 @@ class Healthcheck:
             result["retries"] = self.retries
         if self.start_period is not None:
             result["start_period"] = int(self.start_period)
+        return result
+
+    def to_docker_api_format(self) -> dict[str, list[str] | int | None]:
+        """Converts the Healthcheck instance to Docker API format.
+
+        The Docker API expects times in nanoseconds (seconds * 10^9).
+
+        Returns:
+            dict[str, list[str] | int | None]: A dictionary with Docker API format.
+                Keys are: Test, Interval, Timeout, Retries, StartPeriod.
+        """
+        result: dict[str, list[str] | int | None] = {"Test": self.test}
+
+        # Convert seconds to nanoseconds for Docker API
+        if self.interval is not None:
+            result["Interval"] = int(self.interval * 1_000_000_000)
+        if self.timeout is not None:
+            result["Timeout"] = int(self.timeout * 1_000_000_000)
+        if self.retries is not None:
+            result["Retries"] = self.retries
+        if self.start_period is not None:
+            result["StartPeriod"] = int(self.start_period * 1_000_000_000)
+
         return result
 
     def __str__(self) -> str:
