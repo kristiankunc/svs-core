@@ -21,10 +21,10 @@ export default defineConfig({
   build: {
     outDir: "../static/vite",
     manifest: true,
-    rollupOptions: {
+    rolldownOptions: {
       input: "src/main.js",
     },
-    minify: 'esbuild',
+    minify: 'oxc',
     sourcemap: false,
   },
   optimizeDeps: {
