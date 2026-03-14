@@ -24,10 +24,5 @@ export default defineConfig({
     rolldownOptions: {
       input: "src/main.js",
     },
-    minify: 'oxc',
-    sourcemap: false,
-  },
-  optimizeDeps: {
-    include: ['alpinejs', 'bootstrap', 'highlight.js'],
   },
 })
