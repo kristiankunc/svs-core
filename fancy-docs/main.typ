@@ -217,13 +217,13 @@ SVS je aplikace pro snadné nasazení a správu aplikací v `Docker` kontejnerec
 
 #heading(numbering: none, outlined: false)[Klíčová slova]
 
-Docker; kontejnerizace; selfhosting; python
+Docker; kontejnerizace; selfhosting; Python
 
 #heading(numbering: none, outlined: false)[Abstract]
 SVS is an application for easy deployment and management of applications in `Docker` containers. It allows users without deep knowledge of `Docker` to manage their services using a simple web interface or command line. The project is implemented in `Python` and uses `Django` for web interface development. SVS is designed as an alternative to traditional hosting solutions, offering greater control over the environment and configuration while simplifying the deployment and management process.
 
 #heading(numbering: none, outlined: false)[Keywords]
-Docker; containerization; selfhosting; python
+Docker; containerization; selfhosting; Python
 
 
 #pagebreak()
