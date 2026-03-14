@@ -2,6 +2,7 @@ import logging
 import sys
 import time
 
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Optional
 
@@ -49,10 +50,12 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
 
     formatter = UTCFormatter("%(asctime)s: [%(levelname)s] %(name)s %(message)s")
 
-    # Try to use file handler if log file exists, otherwise use stream handler
+    # Try to use rotating file handler if log file exists, otherwise use stream handler
     LOG_FILE = Path("/etc/svs/svs.log")
     handler: logging.Handler = (
-        logging.FileHandler(LOG_FILE.as_posix())
+        RotatingFileHandler(
+            LOG_FILE.as_posix(), maxBytes=5 * 1024 * 1024, backupCount=1
+        )
         if LOG_FILE.exists()
         else logging.StreamHandler(sys.stdout)
     )
