@@ -200,9 +200,11 @@ class ServiceStatus(str, Enum):
 
     CREATED = "created"
     RUNNING = "running"
-    STOPPED = "stopped"
+    PAUSED = "paused"
+    RESTARTING = "restarting"
+    REMOVING = "removing"
     EXITED = "exited"
-    ERROR = "error"
+    DEAD = "dead"
 
     @classmethod
     def choices(cls) -> list[tuple[str, str]]:  # noqa: D102
