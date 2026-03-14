@@ -441,13 +441,13 @@ class TestService:
         mocker.patch.object(
             mock_container,
             "stop",
-            side_effect=lambda: setattr(mock_container, "status", "stopped"),
+            side_effect=lambda: setattr(mock_container, "status", "exited"),
         )
         service.stop()
 
         # Verify container.stop() was called
         mock_container.stop.assert_called_once()
-        assert service.status == ServiceStatus.STOPPED
+        assert service.status == ServiceStatus.EXITED
 
     @pytest.mark.integration
     @pytest.mark.django_db
