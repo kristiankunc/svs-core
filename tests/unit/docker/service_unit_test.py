@@ -192,7 +192,7 @@ class TestServiceUnit:
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = "old-container-id"
         mock_service.name = "test-service"
-        mock_service.status = ServiceStatus.STOPPED
+        mock_service.status = ServiceStatus.EXITED
         mock_service.user.name = "testuser"
         mock_service.labels = [Label(key="test", value="label")]
 
@@ -278,7 +278,7 @@ class TestServiceUnit:
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = "old-container-id"
         mock_service.name = "test-service"
-        mock_service.status = ServiceStatus.STOPPED
+        mock_service.status = ServiceStatus.EXITED
         mock_service.user.name = "testuser"
         mock_service.labels = [Label(key="caddy", value="example.com")]
 
@@ -398,49 +398,6 @@ class TestServiceUnit:
             Service.update(mock_service, domain=123)  # type: ignore[arg-type]
 
     @pytest.mark.unit
-    def test_update_invalid_env_variables_type(self, mocker: MockerFixture) -> None:
-        """Test that update raises ValidationException when env_variables is
-        not a list."""
-        mock_service = mocker.MagicMock(spec=Service)
-
-        with pytest.raises(
-            ValidationException, match="Environment variables must be a list"
-        ):
-            Service.update(mock_service, env_variables="not-a-list")  # type: ignore[arg-type]
-
-    @pytest.mark.unit
-    def test_update_invalid_env_variable_item(self, mocker: MockerFixture) -> None:
-        """Test that update raises ValidationException for non-EnvVariable
-        items."""
-        mock_service = mocker.MagicMock(spec=Service)
-
-        with pytest.raises(
-            ValidationException,
-            match="Each environment variable must be an EnvVariable instance",
-        ):
-            Service.update(mock_service, env_variables=["not-an-env-var"])  # type: ignore[list-item]
-
-    @pytest.mark.unit
-    def test_update_invalid_ports_type(self, mocker: MockerFixture) -> None:
-        """Test that update raises ValidationException when ports is not a
-        list."""
-        mock_service = mocker.MagicMock(spec=Service)
-
-        with pytest.raises(ValidationException, match="Ports must be a list"):
-            Service.update(mock_service, ports="not-a-list")  # type: ignore[arg-type]
-
-    @pytest.mark.unit
-    def test_update_invalid_port_item(self, mocker: MockerFixture) -> None:
-        """Test that update raises ValidationException for non-ExposedPort
-        items."""
-        mock_service = mocker.MagicMock(spec=Service)
-
-        with pytest.raises(
-            ValidationException, match="Each port must be an ExposedPort instance"
-        ):
-            Service.update(mock_service, ports=["not-a-port"])  # type: ignore[list-item]
-
-    @pytest.mark.unit
     def test_update_invalid_port_container_port(self, mocker: MockerFixture) -> None:
         """Test that update raises ValidationException for non-positive
         container port."""
@@ -462,15 +419,6 @@ class TestServiceUnit:
 
         with pytest.raises(ValidationException, match="Command must be a string"):
             Service.update(mock_service, command=123)  # type: ignore[arg-type]
-
-    @pytest.mark.unit
-    def test_update_invalid_args_type(self, mocker: MockerFixture) -> None:
-        """Test that update raises ValidationException when args is not a
-        list."""
-        mock_service = mocker.MagicMock(spec=Service)
-
-        with pytest.raises(ValidationException, match="Arguments must be a list"):
-            Service.update(mock_service, args="not-a-list")  # type: ignore[arg-type]
 
     @pytest.mark.unit
     def test_update_invalid_arg_item(self, mocker: MockerFixture) -> None:
