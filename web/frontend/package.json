@@ -8,7 +8,7 @@
 	},
 	"description": "",
 	"devDependencies": {
-		"sass-embedded": "^1.97.3"
+		"sass-embedded": "^1.98.0"
 	},
 	"engines": {
 		"node": ">=25.0.0",
