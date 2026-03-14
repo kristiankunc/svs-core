@@ -132,4 +132,9 @@ Migrator.migrations = [
         PackageVersion("0.14.0"),
         Migrator._restart_policy_change,
     ),
+    Migration(
+        "healthcheck-config-fix",
+        PackageVersion("0.14.2"),
+        Migrator._restart_policy_change,
+    ),
 ]
