@@ -5,7 +5,13 @@ import pytest
 from pytest_mock import MockerFixture
 
 from svs_core.docker.container import DockerContainerManager
-from svs_core.docker.json_properties import EnvVariable, ExposedPort, Healthcheck, Label, Volume
+from svs_core.docker.json_properties import (
+    EnvVariable,
+    ExposedPort,
+    Healthcheck,
+    Label,
+    Volume,
+)
 from svs_core.shared.exceptions import ServiceOperationException
 
 
@@ -421,17 +427,18 @@ class TestDockerContainerManagerUnit:
             DockerContainerManager.recreate_container(mock_container, mock_service)
 
     @pytest.mark.unit
-    def test_recreate_container_passes_healthcheck(
-        self, mocker: MockerFixture
-    ) -> None:
-        """Test recreate_container passes the service healthcheck to create_container."""
+    def test_recreate_container_passes_healthcheck(self, mocker: MockerFixture) -> None:
+        """Test recreate_container passes the service healthcheck to
+        create_container."""
         mock_container = mocker.MagicMock()
         mock_container.name = "test-container"
         mock_container.id = "old-container-id"
         mock_container.status = "exited"
         mock_container.remove = mocker.MagicMock()
 
-        healthcheck = Healthcheck(test=["CMD", "curl", "-f", "http://localhost"], interval=30)
+        healthcheck = Healthcheck(
+            test=["CMD", "curl", "-f", "http://localhost"], interval=30
+        )
 
         mock_service = mocker.MagicMock()
         mock_service.image = "nginx:latest"
