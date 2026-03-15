@@ -41,9 +41,8 @@
 #show raw.where(block: true): it => {
   set text(size: 9pt)
   block(
-    fill: luma(245),
+    stroke: 1pt + luma(150),
     inset: 1em,
-    radius: 0.5em,
     width: 100%,
   )[
     #let lines = it.text.split("\n")
@@ -302,6 +301,8 @@ Uživatelských rozhraní pro správu `Dockeru` existuje nespočet. Mezi nejzná
 
 Nicméně, většina těchto řešení je navržena pro profesionální použití a neimplementují žádnou abstrakci nad `Dockerem`, což může být pro méně zkušené uživatele komplikované, protože stále vyžadují kompletní znalost `Dockeru` a jeho konceptů.
 
+#pagebreak()
+
 = Implementace
 
 Projekt je implementován v programovacím jazyce `Python 3.13` a využívá framework `Django 6` @django6 pro vývoj webového rozhraní.
@@ -344,11 +345,11 @@ Aplikace nabízí vestavěné šablony pro několik základních typů služeb, 
 
 Tyto šablony se dělí na dvě kategorie
 
-==== Statické šablony
+#heading(outlined: false, level: 4)[Statické šablony]
 
 Statické šablony nezávisí na zdrojovém kódu dodaným uživatelem. Jsou předem definované a používají již existující _Docker images_. Jsou vhodné pro běh služeb, které nevyžadují žádnou specifickou konfiguraci nebo přizpůsobení, jako jsou například databáze, webové servery nebo jiné běžné služby.
 
-==== Dynamické šablony
+#heading(outlined: false, level: 4)[Dynamické šablony]
 
 Dynamické šablony jsou navrženy tak, aby umožňovaly větší flexibilitu a přizpůsobení. Tyto šablony typicky závisí na zdrojovém kódu a výsledný _Docker image_ je sestaven pro každou uživatelskou službu individuálně. Jsou vhodné pro běh vlastních aplikací, které vyžadují specifickou konfiguraci nebo závislosti, které nejsou pokryty statickými šablonami.
 
@@ -381,7 +382,7 @@ Pro zajištění běhu aplikace jsou použity dva systémové kontejnery, které
 Na diagramu níže je zjednodušená vizualizace architektury celé aplikace a jejích vrstev.
 
 #figure(
-  image("img/app_chart.png", width: 80%),
+  image("img/app_chart.png", width: 100%),
   caption: [
     Zjednodušená vizualizace architektury aplikace.
   ],
@@ -438,6 +439,8 @@ Zdrojový kód obsahuje množství jednotkových testů, které ověřují sprá
 Testy jsou zajištěny knihovnou `Pytest` @pytest. Jednotkové testy jsou organizovány do samostatných souborů a adresářů, které odpovídají struktuře projektu. Každý test kontroluje konkrétní aspekt funkcionality, například správné zpracování vstupů, očekávané výstupy nebo chování v případě chyb.
 
 Jednotkové testování funguje na principu izolace, což znamená, že každý test by měl být nezávislý na ostatních testech a neměl by ovlivňovat stav systému. Proto se často používá maskování externích závislostí, jako jsou databáze, síťové služby nebo systémové volání. U těchto závislostí se pak ověří, zda jsou volány s očekávanými parametry, což zajišťuje, že testovaná funkce správně interaguje s okolním systémem.
+
+#pagebreak()
 
 V ukázce níže se nachází test pro funkci `create_user`, která je zodpovědná za vytvoření nového uživatele v systému. Test ověřuje, že uživatel je správně vytvořen a uložen do databáze, a také kontroluje, že jsou volány správné funkce pro vytvoření `Docker` sítě a systémového uživatele.
 
