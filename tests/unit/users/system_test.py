@@ -202,6 +202,7 @@ class TestSystemUser:
         mock_pwd_struct = mocker.MagicMock()
         mock_pwd_struct.pw_dir = "/home/testuser"
         mocker.patch("svs_core.users.system.pwd.getpwnam", return_value=mock_pwd_struct)
+        mocker.patch("svs_core.users.system.get_logger")
         mock_open = mocker.patch("builtins.open", mocker.mock_open())
 
         username = "testuser"
