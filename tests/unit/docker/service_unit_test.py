@@ -450,7 +450,8 @@ class TestServiceUnit:
     def test_healthcheck_status_returns_none_when_container_not_found(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that healthcheck_status returns None when container is not found."""
+        """Test that healthcheck_status returns None when container is not
+        found."""
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = "missing-container-id"
 
@@ -459,13 +460,16 @@ class TestServiceUnit:
             return_value=None,
         )
 
-        result = Service.healthcheck_status.fget(mock_service)  # type: ignore[union-attr]
+        result = Service.healthcheck_status.fget(  # type: ignore[attr-defined]
+            mock_service
+        )
 
         assert result is None
 
     @pytest.mark.unit
     def test_healthcheck_status_returns_healthy(self, mocker: MockerFixture) -> None:
-        """Test that healthcheck_status returns 'healthy' for a healthy container."""
+        """Test that healthcheck_status returns 'healthy' for a healthy
+        container."""
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = "container-id"
 
@@ -477,13 +481,16 @@ class TestServiceUnit:
             return_value=mock_container,
         )
 
-        result = Service.healthcheck_status.fget(mock_service)  # type: ignore[union-attr]
+        result = Service.healthcheck_status.fget(  # type: ignore[attr-defined]
+            mock_service
+        )
 
         assert result == "healthy"
 
     @pytest.mark.unit
     def test_healthcheck_status_returns_unhealthy(self, mocker: MockerFixture) -> None:
-        """Test that healthcheck_status returns 'unhealthy' for an unhealthy container."""
+        """Test that healthcheck_status returns 'unhealthy' for an unhealthy
+        container."""
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = "container-id"
 
@@ -495,13 +502,16 @@ class TestServiceUnit:
             return_value=mock_container,
         )
 
-        result = Service.healthcheck_status.fget(mock_service)  # type: ignore[union-attr]
+        result = Service.healthcheck_status.fget(  # type: ignore[attr-defined]
+            mock_service
+        )
 
         assert result == "unhealthy"
 
     @pytest.mark.unit
     def test_healthcheck_status_returns_starting(self, mocker: MockerFixture) -> None:
-        """Test that healthcheck_status returns 'starting' for a starting container."""
+        """Test that healthcheck_status returns 'starting' for a starting
+        container."""
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = "container-id"
 
@@ -513,7 +523,9 @@ class TestServiceUnit:
             return_value=mock_container,
         )
 
-        result = Service.healthcheck_status.fget(mock_service)  # type: ignore[union-attr]
+        result = Service.healthcheck_status.fget(  # type: ignore[attr-defined]
+            mock_service
+        )
 
         assert result == "starting"
 
@@ -521,7 +533,8 @@ class TestServiceUnit:
     def test_healthcheck_status_raises_for_unknown_status(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that healthcheck_status raises ValueError for an unknown/missing health status."""
+        """Test that healthcheck_status raises ValueError for an
+        unknown/missing health status."""
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = "container-id"
 
@@ -535,4 +548,4 @@ class TestServiceUnit:
         )
 
         with pytest.raises(ValueError, match="Invalid health status"):
-            Service.healthcheck_status.fget(mock_service)  # type: ignore[union-attr]
+            Service.healthcheck_status.fget(mock_service)  # type: ignore[attr-defined]
