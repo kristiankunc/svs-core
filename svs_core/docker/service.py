@@ -61,6 +61,22 @@ class Service(ServiceModel):
 
         return ServiceStatus.from_str(container.status)
 
+    @property
+    def healthcheck_status(self) -> str | None:
+        """Returns the health status of the service's container.
+
+        Returns:
+            str: The health status (e.g., "healthy", "unhealthy", "starting") if available, or None if no healthcheck is configured or the container is not found.
+        """
+
+        container = DockerContainerManager.get_container(self.container_id)
+        if container is None:
+            return None
+
+        return Healthcheck.HealthStatus.from_str(
+            container.attrs.get("State", {}).get("Health", {}).get("Status", "unknown")
+        )
+
     def __str__(self) -> str:  # noqa: D105
         return (
             f"name={self.name}\n"
