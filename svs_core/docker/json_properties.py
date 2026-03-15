@@ -302,11 +302,11 @@ class Healthcheck:
         STARTING = "starting"
 
         @staticmethod
-        def from_str(status: str) -> str:
+        def from_str(status: str) -> str | None:
             """Converts a string to a HealthStatus enum value.
 
             Args:
-                status (str): The health status as a string.
+                status (str | None): The health status as a string.
 
             Returns:
                 str: The corresponding health status string.
@@ -321,6 +321,8 @@ class Healthcheck:
                 return Healthcheck.HealthStatus.UNHEALTHY
             elif status == "starting":
                 return Healthcheck.HealthStatus.STARTING
+            elif status == "unknown":
+                return None
             else:
                 get_logger(__name__).error(f"Invalid health status: {status}")
                 raise ValueError(
