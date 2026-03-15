@@ -539,7 +539,7 @@ class TestServiceUnit:
         mock_service.container_id = "container-id"
 
         mock_container = mocker.MagicMock()
-        # No Health key — falls back to "unknown"
+        # No Health key — falls back to "None"
         mock_container.attrs = {"State": {}}
 
         mocker.patch(
@@ -547,5 +547,8 @@ class TestServiceUnit:
             return_value=mock_container,
         )
 
-        with pytest.raises(ValueError, match="Invalid health status"):
-            Service.healthcheck_status.fget(mock_service)  # type: ignore[attr-defined]
+        res = Service.healthcheck_status.fget(  # type: ignore[attr-defined]
+            mock_service
+        )
+
+        assert res is None
