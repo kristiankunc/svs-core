@@ -443,3 +443,109 @@ class TestServiceUnit:
 
         assert mock_service.domain == "original.com"
         assert mock_service.env is original_env
+
+    # --- healthcheck_status property tests ---
+
+    @pytest.mark.unit
+    def test_healthcheck_status_returns_none_when_container_not_found(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that healthcheck_status returns None when container is not
+        found."""
+        mock_service = mocker.MagicMock(spec=Service)
+        mock_service.container_id = "missing-container-id"
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=None,
+        )
+
+        result = Service.healthcheck_status.fget(  # type: ignore[attr-defined]
+            mock_service
+        )
+
+        assert result is None
+
+    @pytest.mark.unit
+    def test_healthcheck_status_returns_healthy(self, mocker: MockerFixture) -> None:
+        """Test that healthcheck_status returns 'healthy' for a healthy
+        container."""
+        mock_service = mocker.MagicMock(spec=Service)
+        mock_service.container_id = "container-id"
+
+        mock_container = mocker.MagicMock()
+        mock_container.attrs = {"State": {"Health": {"Status": "healthy"}}}
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
+
+        result = Service.healthcheck_status.fget(  # type: ignore[attr-defined]
+            mock_service
+        )
+
+        assert result == "healthy"
+
+    @pytest.mark.unit
+    def test_healthcheck_status_returns_unhealthy(self, mocker: MockerFixture) -> None:
+        """Test that healthcheck_status returns 'unhealthy' for an unhealthy
+        container."""
+        mock_service = mocker.MagicMock(spec=Service)
+        mock_service.container_id = "container-id"
+
+        mock_container = mocker.MagicMock()
+        mock_container.attrs = {"State": {"Health": {"Status": "unhealthy"}}}
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
+
+        result = Service.healthcheck_status.fget(  # type: ignore[attr-defined]
+            mock_service
+        )
+
+        assert result == "unhealthy"
+
+    @pytest.mark.unit
+    def test_healthcheck_status_returns_starting(self, mocker: MockerFixture) -> None:
+        """Test that healthcheck_status returns 'starting' for a starting
+        container."""
+        mock_service = mocker.MagicMock(spec=Service)
+        mock_service.container_id = "container-id"
+
+        mock_container = mocker.MagicMock()
+        mock_container.attrs = {"State": {"Health": {"Status": "starting"}}}
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
+
+        result = Service.healthcheck_status.fget(  # type: ignore[attr-defined]
+            mock_service
+        )
+
+        assert result == "starting"
+
+    @pytest.mark.unit
+    def test_healthcheck_status_raises_for_unknown_status(
+        self, mocker: MockerFixture
+    ) -> None:
+        """Test that healthcheck_status raises ValueError for an
+        unknown/missing health status."""
+        mock_service = mocker.MagicMock(spec=Service)
+        mock_service.container_id = "container-id"
+
+        mock_container = mocker.MagicMock()
+        # No Health key — falls back to "unknown"
+        mock_container.attrs = {"State": {}}
+
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
+
+        with pytest.raises(ValueError, match="Invalid health status"):
+            Service.healthcheck_status.fget(mock_service)  # type: ignore[attr-defined]
