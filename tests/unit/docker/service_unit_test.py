@@ -530,11 +530,11 @@ class TestServiceUnit:
         assert result == "starting"
 
     @pytest.mark.unit
-    def test_healthcheck_status_raises_for_unknown_status(
+    def test_healthcheck_status_returns_none_for_unknown_status(
         self, mocker: MockerFixture
     ) -> None:
-        """Test that healthcheck_status raises ValueError for an
-        unknown/missing health status."""
+        """Test that healthcheck_status returns None for an unknown/missing
+        health status."""
         mock_service = mocker.MagicMock(spec=Service)
         mock_service.container_id = "container-id"
 
