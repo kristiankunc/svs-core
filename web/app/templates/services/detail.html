@@ -14,7 +14,9 @@
                class="btn btn-outline-secondary mb-3">← Back to Services</a>
             <h1>{{ service.name }}</h1>
             <p class="text-muted">
-                <span class="badge bg-info">{{ service.status }}</span>
+                <span class="badge {% if service.status.value == 'running' %}bg-success{% elif service.status.value == 'paused' %}bg-warning{% elif service.status.value == 'stopped' %}bg-danger{% else %}bg-secondary{% endif %}">{{ service.status }}
+                    {% if service.healthcheck_status %}({{ service.healthcheck_status }}){% endif %}
+                </span>
             </p>
         </div>
     </div>
@@ -36,7 +38,9 @@
                         <div class="col-md-6">
                             <p class="text-muted mb-1">Status</p>
                             <p class="h6">
-                                <span class="badge bg-info">{{ service.status }}</span>
+                                <span class="badge {% if service.status.value == 'running' %}bg-success{% elif service.status.value == 'paused' %}bg-warning{% elif service.status.value == 'stopped' %}bg-danger{% else %}bg-secondary{% endif %}">{{ service.status }}
+                                    {% if service.healthcheck_status %}({{ service.healthcheck_status }}){% endif %}
+                                </span>
                             </p>
                         </div>
                     </div>

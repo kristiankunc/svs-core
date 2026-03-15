@@ -21,7 +21,9 @@
                                 <div class="card-body">
                                     <h5 class="card-title">{{ service.name }}</h5>
                                     <p class="card-text text-muted">
-                                        <span class="badge bg-info">{{ service.status }}</span>
+                                        <span class="badge {% if service.status.value == 'running' %}bg-success{% elif service.status.value == 'paused' %}bg-warning{% elif service.status.value == 'stopped' %}bg-danger{% else %}bg-secondary{% endif %}">{{ service.status }}
+                                            {% if service.healthcheck_status %}({{ service.healthcheck_status }}){% endif %}
+                                        </span>
                                     </p>
                                     {% with template=service.proxy_template.first %}
                                         {% if template %}
@@ -66,7 +68,9 @@
                                 <div class="card-body">
                                     <h5 class="card-title">{{ service.name }}</h5>
                                     <p class="card-text text-muted">
-                                        <span class="badge bg-info">{{ service.status }}</span>
+                                        <span class="badge {% if service.status.value == 'running' %}bg-success{% elif service.status.value == 'paused' %}bg-warning{% elif service.status.value == 'stopped' %}bg-danger{% else %}bg-secondary{% endif %}">{{ service.status }}
+                                            {% if service.healthcheck_status %}({{ service.healthcheck_status }}){% endif %}
+                                        </span>
                                     </p>
                                     {% with template=service.proxy_template.first %}
                                         {% if template %}
@@ -123,7 +127,7 @@
                             <div class="card-body">
                                 <h5 class="card-title">{{ service.name }}</h5>
                                 <p class="card-text text-muted">
-                                    <span class="badge bg-info">{{ service.status }}</span>
+                                    <span class="badge {% if service.status.value == 'running' %}bg-success{% elif service.status.value == 'paused' %}bg-warning{% elif service.status.value == 'stopped' %}bg-danger{% else %}bg-secondary{% endif %}">{{ service.status }}</span>
                                 </p>
                                 {% with template=service.proxy_template.first %}
                                     {% if template %}

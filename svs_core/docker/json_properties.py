@@ -2,6 +2,7 @@ import os
 
 from typing import Generic, Self, TypeVar
 
+from svs_core.shared.logger import get_logger
 from svs_core.shared.shell import create_directory, run_command
 
 K = TypeVar("K")
@@ -292,6 +293,41 @@ class Healthcheck:
         retries: Number of consecutive failures needed to consider unhealthy.
         start_period: Initialization time before starting health checks (in seconds).
     """
+
+    class HealthStatus:
+        """Represents the health status of a container."""
+
+        HEALTHY = "healthy"
+        UNHEALTHY = "unhealthy"
+        STARTING = "starting"
+
+        @staticmethod
+        def from_str(status: str) -> str | None:
+            """Converts a string to a HealthStatus enum value.
+
+            Args:
+                status (str | None): The health status as a string.
+
+            Returns:
+                str: The corresponding health status string.
+
+            Raises:
+                ValueError: If the input string does not match any valid health status.
+            """
+            status = status.lower()
+            if status == "healthy":
+                return Healthcheck.HealthStatus.HEALTHY
+            elif status == "unhealthy":
+                return Healthcheck.HealthStatus.UNHEALTHY
+            elif status == "starting":
+                return Healthcheck.HealthStatus.STARTING
+            elif status == "unknown":
+                return None
+            else:
+                get_logger(__name__).error(f"Invalid health status: {status}")
+                raise ValueError(
+                    f"Invalid health status: {status}. Expected 'healthy', 'unhealthy', or 'starting'."
+                )
 
     def __init__(
         self,

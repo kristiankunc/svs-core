@@ -215,6 +215,10 @@ class ServiceStatus(str, Enum):
         """
         return [(key.value, key.name) for key in cls]
 
+    def __str__(self) -> str:
+        """Return the string representation of the ServiceStatus."""
+        return self.value.upper()
+
     @classmethod
     def from_str(cls, status_str: str) -> "ServiceStatus":
         """Convert string to ServiceStatus enum."""
