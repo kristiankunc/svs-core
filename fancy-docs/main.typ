@@ -473,8 +473,6 @@ def test_create_user_success(
 
 V rámci testování byla aplikace také nasazena na testovací server pro potřeby ročníkových a maturitních prací _Gymnázia, Praha 6, Arabská 14_. V rámci tohoto testování byla žákům zpřístupněna uživatelská dokumentace a webové rozhraní.
 
-ale je potřeba do jisté míry zjednodušit webové rozhraní a rozšířit návody v uživatelské dokumentaci.
-
 V tomto nasazení byla také sledována stabilita systému. Sledované metriky zahrnovaly:
 - Obecné chybové výpisy a výjimky v logu aplikace.
 - Zátěž na systémové prostředky.
@@ -485,6 +483,9 @@ Pochopitelně se při testování objevily různé chyby a problémy, které byl
 Zátěž na systémové prostředky byla v normě se standardní zátěží `Docker` kontejnerů, které často vyžadují více operační paměti. Toto je však omezené všech virtualizačních řešení, protože všechny jednotky, v tomto případě kontejnery, mají své vlastní prostředí, které je duplicitní.
 
 Integrita databáze a fyzického systému je pravděpodobně nejdůležitější metrikou. Data v aplikaci jsou někdy uloženy na více místech zároveň a vzájemně na sobě závisí. Například informace o uživateli jsou uloženy jak v databázi, tak v systému jako systémový uživatel. Jakmile se jeden z těchto záznamů změní nebo ztratí, může to způsobit nekonzistenci a problémy s funkčností aplikace. Paradoxně ale takovýchto problémů bylo poměrně málo, hlavně díky tomu, že aplikace se mnoho z nich snaží automaticky opravit při svých operacích.
+
+Ze zpěné vazby studentů a uživatelů také vyplynulo, že je potřeba do jisté míry zjednodušit webové rozhraní a rozšířit návody v uživatelské dokumentaci.
+
 
 == Distribuce
 
