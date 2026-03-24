@@ -17,6 +17,7 @@
   font: "New Computer Modern",
   size: 12pt,
   lang: "cs",
+  hyphenate: false,
 )
 #set heading(numbering: "1.")
 
@@ -66,7 +67,9 @@
   justify: true,
 )
 
-#show link: underline
+#show link: it => {
+  box(underline(it))
+}
 
 
 #let type = sys.inputs.at("type", default: "soc")
@@ -470,7 +473,18 @@ def test_create_user_success(
 
 V rámci testování byla aplikace také nasazena na testovací server pro potřeby ročníkových a maturitních prací _Gymnázia, Praha 6, Arabská 14_. V rámci tohoto testování byla žákům zpřístupněna uživatelská dokumentace a webové rozhraní.
 
-Vzhledem k nedostatku testovacích prací zatím není možné dělat závěry o stabilitě a funkčnosti aplikace. Ze zpětné vazby od uživatelů ale jasně vyplývá, že aplikace je funkční a splňuje svůj účel, ale je potřeba do jisté míry zjednodušit webové rozhraní a rozšířit návody v uživatelské dokumentaci.
+ale je potřeba do jisté míry zjednodušit webové rozhraní a rozšířit návody v uživatelské dokumentaci.
+
+V tomto nasazení byla také sledována stabilita systému. Sledované metriky zahrnovaly:
+- Obecné chybové výpisy a výjimky v logu aplikace.
+- Zátěž na systémové prostředky.
+- Integrita databáze a fyzického systému.
+
+Pochopitelně se při testování objevily různé chyby a problémy, které byly následně opraveny. To vycházi z problému, že i přes přítomnost jednotkových testů, které pokrývají většinu kódu, není možné předvídat všechny možné scénáře a stavy aplikace, které mohou nastat v reálném provozu.
+
+Zátěž na systémové prostředky byla v normě se standardní zátěží `Docker` kontejnerů, které často vyžadují více operační paměti. Toto je však omezené všech virtualizačních řešení, protože všechny jednotky, v tomto případě kontejnery, mají své vlastní prostředí, které je duplicitní.
+
+Integrita databáze a fyzického systému je pravděpodobně nejdůležitější metrikou. Data v aplikaci jsou někdy uloženy na více místech zároveň a vzájemně na sobě závisí. Například informace o uživateli jsou uloženy jak v databázi, tak v systému jako systémový uživatel. Jakmile se jeden z těchto záznamů změní nebo ztratí, může to způsobit nekonzistenci a problémy s funkčností aplikace. Paradoxně ale takovýchto problémů bylo poměrně málo, hlavně díky tomu, že aplikace se mnoho z nich snaží automaticky opravit při svých operacích.
 
 == Distribuce
 
@@ -542,6 +556,8 @@ Na obrázku níže je zobrazen příklad zpracování `docstringů` pomocí `Zen
 = Závěr
 
 Aplikace nabízí alternativní způsob nasazování aplikací do produkčního prostředí. Rozhodně není určena pro profesionální použití, ale je spíše zaměřena na méně náročné projekty s nízkými nároky na výkon a stabilitu, jako jsou například osobní projekty. Pokud uživatel potřebuje rychle a jednoduše nasadit svou aplikaci pro potřeby ukázky, testování nebo pro osobní použití, může být tato aplikace ideálním řešením. Pro profesionální nasazení a správu produkčních aplikací by ale bylo vhodnější použít robustnější a komplexnější řešení, které nabízí větší kontrolu a možnosti konfigurace.
+
+
 
 == Porovnání s existujícími řešeními
 
