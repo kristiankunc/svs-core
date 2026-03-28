@@ -1,6 +1,6 @@
 [project]
 name = "svs_core"
-version = "0.14.2"
+version = "0.14.3"
 description = "Core library for SVS (https://svs.kristn.co.uk/)"
 authors = [{ name = "Kristián Kunc", email = "diist7i4c@mozmail.com" }]
 readme = "README.md"
@@ -31,7 +31,7 @@ dev = [
     "pre-commit==4.5.1",
     "pytest==9.0.2",
     "pytest-asyncio==1.3.0",
-    "pytest-cov==7.1.0",
+    "pytest-cov==7.0.0",
     "pytest-dotenv==0.5.2",
     "pytest_mock==3.15.1",
     "ruff==0.15.8",
