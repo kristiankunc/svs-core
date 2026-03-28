@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.3](https://github.com/kristiankunc/svs-core/compare/v0.14.2...v0.14.3) (2026-03-28)
+
+
+### Bug Fixes
+
+* **core:** Add healthcheck status service property ([#373](https://github.com/kristiankunc/svs-core/issues/373)) ([6049c8a](https://github.com/kristiankunc/svs-core/commit/6049c8a2e80ddc542e82d98a8e571ceb9ab54cb7))
+
 ## [0.14.2](https://github.com/kristiankunc/svs-core/compare/v0.14.1...v0.14.2) (2026-03-14)
 
 
