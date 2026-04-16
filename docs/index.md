@@ -8,7 +8,6 @@
 - [Installation Quickstart guide](setup/quickstart.md)
 - [CLI documentation](cli.md)
 - [API documentation](api/index.md)
-- [Changelog](#changelog)
 - [Paper](#paper)
 
 ## Introduction
@@ -107,7 +106,3 @@ All container data (bind mounts) are stored in `/var/svs/volumes` directory on t
 [View raw](main.pdf){target="_blank"}
 
 ![PDF paper](main.pdf){ type=application/pdf style="min-height:100vh;width:100%"}
-
-## Changelog
-
---8<-- "CHANGELOG.md:2"
