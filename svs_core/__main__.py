@@ -5,7 +5,7 @@ import sys
 
 from getpass import getpass
 from importlib.metadata import version
-from typing import Optional, cast
+from typing import cast
 
 import django
 import typer
@@ -41,7 +41,7 @@ from svs_core.cli.utils import app as utils_app  # noqa: E402
 
 
 def cli_first_user_setup(
-    username: Optional[str] = None, password: Optional[str] = None
+    username: str | None = None, password: str | None = None
 ) -> None:
     """Function prompting user to create in-place, used by the setup script."""
     from svs_core.users.user import User

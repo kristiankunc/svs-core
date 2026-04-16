@@ -1,7 +1,5 @@
 import re
 
-from typing import Optional
-
 import httpx
 
 from svs_core.shared.logger import get_logger
@@ -10,10 +8,10 @@ from svs_core.shared.logger import get_logger
 def send_http_request(
     method: str,
     url: str,
-    headers: Optional[dict[str, str]] = None,
-    params: Optional[dict[str, str]] = None,
-    data: Optional[dict[str, str]] = None,
-    json: Optional[dict[str, object]] = None,
+    headers: dict[str, str] | None = None,
+    params: dict[str, str] | None = None,
+    data: dict[str, str] | None = None,
+    json: dict[str, object] | None = None,
 ) -> httpx.Response:
     """Sends an HTTP request and returns the response.
 

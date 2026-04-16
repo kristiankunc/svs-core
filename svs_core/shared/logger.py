@@ -4,7 +4,6 @@ import time
 
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Optional
 
 from svs_core.shared.env_manager import EnvManager
 
@@ -19,14 +18,14 @@ def _is_verbose_mode() -> bool:
     return is_verbose()
 
 
-def get_logger(name: Optional[str] = None) -> logging.Logger:
+def get_logger(name: str | None = None) -> logging.Logger:
     """Returns a logger instance with the specified name.
 
     If a logger with the same name already exists, it returns the existing instance.
     The logger is configured to log messages in UTC format.
 
     Args:
-        name (Optional[str]): The name of the logger. If None, defaults to "unknown".
+        name (str | None): The name of the logger. If None, defaults to "unknown".
 
     Returns:
         logging.Logger: The logger instance.

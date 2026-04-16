@@ -2,11 +2,11 @@ import logging
 import subprocess
 
 from pathlib import Path
-from typing import Mapping, Optional
+from typing import Mapping
 
 
 def create_directory(
-    path: str, logger: Optional[logging.Logger] = None, user: str = "svs"
+    path: str, logger: logging.Logger | None = None, user: str = "svs"
 ) -> None:
     """Creates a directory at the specified path if it does not exist.
 
@@ -16,7 +16,7 @@ def create_directory(
 
     Args:
         path (str): The directory path to create.
-        logger (Optional[logging.Logger]): custom log handler.
+        logger (logging.Logger | None): custom log handler.
         user (str): The user to create the directory as.
     """
     if not logger:
@@ -35,13 +35,13 @@ def create_directory(
 
 
 def remove_directory(
-    path: str, logger: Optional[logging.Logger] = None, user: str = "svs"
+    path: str, logger: logging.Logger | None = None, user: str = "svs"
 ) -> None:
     """Removes a directory at the specified path if it exists.
 
     Args:
         path (str): The directory path to remove.
-        logger (Optional[logging.Logger]): custom log handler.
+        logger (logging.Logger | None): custom log handler.
         user (str): The user to remove the directory as.
     """
     if not logger:
@@ -53,12 +53,12 @@ def remove_directory(
     run_command(command, logger=logger, user=user)
 
 
-def read_file(path: Path, logger: Optional[logging.Logger] = None) -> str:
+def read_file(path: Path, logger: logging.Logger | None = None) -> str:
     """Reads the content of a file at the specified path.
 
     Args:
         path (Path): The file path to read.
-        logger (Optional[logging.Logger]): custom log handler.
+        logger (logging.Logger | None): custom log handler.
 
     Returns:
         str: The content of the file.
@@ -81,10 +81,10 @@ def read_file(path: Path, logger: Optional[logging.Logger] = None) -> str:
 
 def run_command(
     command: str,
-    env: Optional[Mapping[str, str]] = None,
+    env: Mapping[str, str] | None = None,
     check: bool = True,
     user: str = "svs",
-    logger: Optional[logging.Logger] = None,
+    logger: logging.Logger | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Executes a shell command with optional environment variables.
 
@@ -92,10 +92,10 @@ def run_command(
 
     Args:
         command (str): The shell command to execute.
-        env (Optional[Mapping[str, str]]): Environment variables to use.
+        env (Mapping[str, str] | None): Environment variables to use.
         check (bool): If True, raises CalledProcessError on non-zero exit.
         user (str): The user to run the command as.
-        logger (Optional[logging.Logger]): custom log handler.
+        logger (logging.Logger | None): custom log handler.
 
     Returns:
         subprocess.CompletedProcess: The result of the executed command.

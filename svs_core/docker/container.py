@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from docker.models.containers import Container
 
@@ -177,14 +177,14 @@ class DockerContainerManager:
             raise
 
     @staticmethod
-    def get_container(container_id: str) -> Optional[Container]:
+    def get_container(container_id: str) -> Container | None:
         """Retrieve a Docker container by its ID.
 
         Args:
             container_id (str): The ID of the container to retrieve.
 
         Returns:
-            Optional[Container]: The Docker container instance if found, otherwise None.
+            Container | None: The Docker container instance if found, otherwise None.
         """
         get_logger(__name__).debug(f"Retrieving container with ID: {container_id}")
 
