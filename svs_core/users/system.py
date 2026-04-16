@@ -19,8 +19,8 @@ class SystemUserManager:
         Args:
             username (str): The username for the new system user.
             password (str): The password for the new system user.
-            admin (bool, optional): Whether to add the user to the admin group. Defaults to False.
-            shell_path (str, optional): The login shell for the new user. Defaults to "/bin/bash".
+            admin (bool): Whether to add the user to the admin group. Defaults to False.
+            shell_path (str): The login shell for the new user. Defaults to "/bin/bash".
         """
         get_logger(__name__).info(f"Creating system user '{username}' (admin: {admin})")
 

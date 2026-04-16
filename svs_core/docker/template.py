@@ -114,19 +114,19 @@ Miscellaneous:
 
         Args:
             name (str): The name of the template.
-            type (TemplateType, optional): The type of the template (image or build). Defaults to TemplateType.IMAGE.
-            image (str | None, optional): The Docker image name (if type is image). Defaults to None.
-            dockerfile (str | None, optional): The Dockerfile content (if type is build). Defaults to None.
-            description (str | None, optional): A description of the template. Defaults to None.
-            default_env (list[EnvVariable] | None, optional): Default environment variables. Defaults to None.
-            default_ports (list[ExposedPort] | None, optional): Default exposed ports. Defaults to None.
-            default_volumes (list[Volume] | None, optional): Default volume bindings. Defaults to None.
-            default_contents (list[DefaultContent] | None, optional): Default file contents to create in the container. Defaults to None.
-            start_cmd (str | None, optional): The default start command. Defaults to None.
-            healthcheck (Healthcheck | None, optional): The healthcheck configuration. Defaults to None.
-            labels (list[Label] | None, optional): Default Docker labels. Defaults to None.
-            args (list[str] | None, optional): Default arguments for the container. Defaults to None.
-            docs_url (str | None, optional): URL to documentation for this template. Defaults to None.
+            type (TemplateType): The type of the template (image or build). Defaults to TemplateType.IMAGE.
+            image (str | None): The Docker image name (if type is image). Defaults to None.
+            dockerfile (str | None): The Dockerfile content (if type is build). Defaults to None.
+            description (str | None): A description of the template. Defaults to None.
+            default_env (list[EnvVariable] | None): Default environment variables. Defaults to None.
+            default_ports (list[ExposedPort] | None): Default exposed ports. Defaults to None.
+            default_volumes (list[Volume] | None): Default volume bindings. Defaults to None.
+            default_contents (list[DefaultContent] | None): Default file contents to create in the container. Defaults to None.
+            start_cmd (str | None): The default start command. Defaults to None.
+            healthcheck (Healthcheck | None): The healthcheck configuration. Defaults to None.
+            labels (list[Label] | None): Default Docker labels. Defaults to None.
+            args (list[str] | None): Default arguments for the container. Defaults to None.
+            docs_url (str | None): URL to documentation for this template. Defaults to None.
 
         Returns:
             Template: A new Template instance.
