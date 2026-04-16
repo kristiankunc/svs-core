@@ -31,7 +31,7 @@ class GitSource(GitSourceModel):
         Args:
             repository_url (str): The URL of the Git repository.
             destination_path (Path): The destination path where the repository will be cloned.
-            branch (str, optional): The branch to checkout. Defaults to "main".
+            branch (str): The branch to checkout. Defaults to "main".
 
         Returns:
             GitSource: The created GitSource instance.

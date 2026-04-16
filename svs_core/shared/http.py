@@ -18,10 +18,10 @@ def send_http_request(
     Args:
         method (str): HTTP method (GET, POST, PUT, DELETE).
         url (str): The URL to send the request to.
-        headers (dict, optional): Headers to include in the request.
-        params (dict, optional): Query parameters for the request.
-        data (dict, optional): Form data to include in the request.
-        json (dict, optional): JSON data to include in the request.
+        headers (dict[str, str] | None): Headers to include in the request.
+        params (dict[str, str] | None): Query parameters for the request.
+        data (dict[str, str] | None): Form data to include in the request.
+        json (dict[str, object] | None): JSON data to include in the request.
 
     Returns:
         httpx.Response: The response object containing the server's response.

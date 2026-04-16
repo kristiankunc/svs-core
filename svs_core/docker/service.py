@@ -200,15 +200,15 @@ Miscelanous:
             name (str): The name of the service.
             template_id (int): The ID of the template to use.
             user (User): The user who owns this service.
-            domain (str, optional): The domain for this service.
-            override_env (list[EnvVariable], optional): Environment variables to override.
-            override_ports (list[ExposedPort], optional): Exposed ports to override.
-            override_volumes (list[Volume], optional): Volumes to override.
-            override_command (str, optional): Command to run in the container.
-            override_healthcheck (Healthcheck, optional): Healthcheck configuration.
-            override_labels (list[Label], optional): Container labels to override.
-            override_args (list[str], optional): Command arguments to override.
-            networks (list[str], optional): Networks to connect to.
+            domain (str | None): The domain for this service.
+            override_env (list[EnvVariable] | None): Environment variables to override.
+            override_ports (list[ExposedPort] | None): Exposed ports to override.
+            override_volumes (list[Volume] | None): Volumes to override.
+            override_command (str | None): Command to run in the container.
+            override_healthcheck (Healthcheck | None): Healthcheck configuration.
+            override_labels (list[Label] | None): Container labels to override.
+            override_args (list[str] | None): Command arguments to override.
+            networks (list[str] | None): Networks to connect to.
 
         Returns:
             Service: The created service instance.
@@ -300,17 +300,17 @@ Miscelanous:
             name (str): The name of the service.
             template_id (int): The ID of the template to use.
             user (User): The user who owns this service.
-            domain (str, optional): The domain for this service.
-            container_id (str, optional): The ID of an existing container.
-            image (str, optional): Docker image to use, defaults to template.image if not provided.
-            exposed_ports (list[ExposedPort], optional): Exposed ports, defaults to template.default_ports if not provided.
-            env (list[EnvVariable], optional): Environment variables, defaults to template.default_env if not provided.
-            volumes (list[Volume], optional): Volume mappings, defaults to template.default_volumes if not provided.
-            command (str, optional): Command to run in the container, defaults to template.start_cmd if not provided.
-            healthcheck (Healthcheck, optional): Healthcheck configuration, defaults to template.healthcheck if not provided.
-            labels (list[Label], optional): Container labels, defaults to template.labels if not provided.
-            args (list[str], optional): Command arguments, defaults to template.args if not provided.
-            networks (list[str], optional): Networks to connect to.
+            domain (str | None): The domain for this service.
+            container_id (str | None): The ID of an existing container.
+            image (str | None): Docker image to use, defaults to template.image if not provided.
+            exposed_ports (list[ExposedPort] | None): Exposed ports, defaults to template.default_ports if not provided.
+            env (list[EnvVariable] | None): Environment variables, defaults to template.default_env if not provided.
+            volumes (list[Volume] | None): Volume mappings, defaults to template.default_volumes if not provided.
+            command (str | None): Command to run in the container, defaults to template.start_cmd if not provided.
+            healthcheck (Healthcheck | None): Healthcheck configuration, defaults to template.healthcheck if not provided.
+            labels (list[Label] | None): Container labels, defaults to template.labels if not provided.
+            args (list[str] | None): Command arguments, defaults to template.args if not provided.
+            networks (list[str] | None): Networks to connect to.
 
         Returns:
             Service: The created service instance.
@@ -921,12 +921,12 @@ Miscelanous:
         If None is provided for any arguments, the current value will be retained.
 
         Args:
-            domain (str | None, optional): _description_. Defaults to None.
-            env_variables (list[EnvVariable] | None, optional): _description_. Defaults to None.
-            ports (list[ExposedPort] | None, optional): _description_. Defaults to None.
-            command (str | None, optional): _description_. Defaults to None.
-            healthcheck (Healthcheck | None, optional): _description_. Defaults to None.
-            args (list[str] | None, optional): _description_. Defaults to None.
+            domain (str | None): _description_. Defaults to None.
+            env_variables (list[EnvVariable] | None): _description_. Defaults to None.
+            ports (list[ExposedPort] | None): _description_. Defaults to None.
+            command (str | None): _description_. Defaults to None.
+            healthcheck (Healthcheck | None): _description_. Defaults to None.
+            args (list[str] | None): _description_. Defaults to None.
         """
 
         if domain is not None:
