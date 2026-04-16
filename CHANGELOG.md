@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.4](https://github.com/kristiankunc/svs-core/compare/v0.14.3...v0.14.4) (2026-04-16)
+
+
+### Documentation
+
+* Move changelog to separate tab ([bdd2640](https://github.com/kristiankunc/svs-core/commit/bdd26402073cf2d4c82586488b513de5d30ea12a))
+
 ## [0.14.3](https://github.com/kristiankunc/svs-core/compare/v0.14.2...v0.14.3) (2026-03-28)
 
 
