@@ -29,6 +29,6 @@ jobs:
         run: npm install -g release-please
 
       - name: Generate Release PR
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@v5
         with:
           token: ${{ secrets.RELEASE_PLEASE_PAT }}
