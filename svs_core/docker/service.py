@@ -114,17 +114,17 @@ Template: {self.template.name} (ID: {self.template_id})
 Domain: {self.domain}
 Image: {self.image if self.template.type == TemplateType.IMAGE else 'Built on-demand'}
 
-Exposed Ports (Host->Container):
+Exposed Ports (Host -> Container):
     {'\n    '.join([f'{port.host_port} -> {port.container_port}' for port in self.exposed_ports]) if self.exposed_ports else 'None'}
 
-Volumes (Host->Container):
+Volumes (Host -> Container):
     {'\n    '.join([f'{vol.host_path} -> {vol.container_path}' for vol in self.volumes]) if self.volumes else 'None'}
 
 Environment Variables:
     {'\n    '.join([f'{var.key}={var.value}' for var in self.env]) if self.env else 'None'}
 
 Git Sources:
-{('\n    '.join([gs.pprint(1) for gs in self.proxy_git_sources])) if self.proxy_git_sources else 'None'}
+{('\n'.join([gs.pprint(1) for gs in self.proxy_git_sources])) if self.proxy_git_sources else '    None'}
 
 Miscelanous:
     Container ID: {self.container_id}

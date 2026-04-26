@@ -73,10 +73,10 @@ Documentation: {self.docs_url if self.docs_url else 'None'}
 Default Environment Variables:
     {'\n    '.join([f'{var.key}={var.value}' for var in self.default_env]) if self.default_env else 'None'}
 
-Default Ports (Host->Container):
+Default Ports (Host -> Container):
     {'\n    '.join([f'{port.host_port} -> {port.container_port}' for port in self.default_ports]) if self.default_ports else 'None'}
 
-Default Volumes (Host->Container):
+Default Volumes (Host -> Container):
     {'\n    '.join([f'{vol.host_path} -> {vol.container_path}' for vol in self.default_volumes]) if self.default_volumes else 'None'}
 
 Default Contents:
