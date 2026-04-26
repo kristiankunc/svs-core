@@ -8,7 +8,7 @@ If you encounter any issues or have questions while using SVS, use QnA section o
 
 ## What do you want to deploy?
 
-Be that a static website, a database, a web application, or something else - consult the [available templates](/api-reference/official-templates/index.md)
+Be that a static website, a database, a web application, or something else - consult the [available templates](/api-reference/official-templates/)
 
 Further, continue on the respective guide for the type of service you want to deploy.
 
@@ -51,7 +51,7 @@ Templates and services are keyed by their `IDs`. You will need to know the `ID` 
 
 #### Reference
 
-All the official SVS templates have their respective documentation on the [Template Reference](../api-reference/official-templates/index.md) page.
+All the official SVS templates have their respective documentation on the [Template Reference](../api-reference/official-templates/) page.
 
 #### CLI
 

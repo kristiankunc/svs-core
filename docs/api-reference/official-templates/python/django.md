@@ -5,11 +5,11 @@ A template for the [Django](https://www.djangoproject.com/) web framework. This 
 ## Usage
 
 1. Prepare your Django project (see below)
-2. [Create a service](../../../guides/index.md#create-a-service) with required environment variables
-3. [Upload your code](../../../guides/index.md#uploading-files) via GIT or SSH to the service volume
-4. [Build and start](../../../guides/index.md#building-services) the service
+2. [Create a service](../../../guides/#create-a-service) with required environment variables
+3. [Upload your code](../../../guides/#uploading-files) via GIT or SSH to the service volume
+4. [Build and start](../../../guides/#building-services) the service
 
-For detailed information about the build process, see [Building services](../../../guides/index.md#building-services).
+For detailed information about the build process, see [Building services](../../../guides/#building-services).
 
 ## Preparation
 
@@ -57,7 +57,7 @@ For PostgreSQL, add these environment variables and configure `settings.py`:
 --env DB_PASSWORD=mypass
 ```
 
-Replace `{postgres_service_id}` with your database service's ID. See [DNS](../../../guides/index.md#dns) for more details on service naming.
+Replace `{postgres_service_id}` with your database service's ID. See [DNS](../../../guides/#dns) for more details on service naming.
 
 ## Definition
 

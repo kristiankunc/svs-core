@@ -4,9 +4,9 @@ A template for the [MySQL](https://www.mysql.com/) database server.
 
 ## Usage
 
-1. [Create a service](../../../guides/index.md#create-a-service) with required environment variables (see below)
-2. [Start the service](../../../guides/index.md#control)
-3. Connect from other services using the container name `svs-{service_id}` (see [DNS](../../../guides/index.md#dns))
+1. [Create a service](../../../guides/#create-a-service) with required environment variables (see below)
+2. [Start the service](../../../guides/#control)
+3. Connect from other services using the container name `svs-{service_id}` (see [DNS](../../../guides/#dns))
 
 ## Required Environment Variables
 
@@ -28,7 +28,7 @@ sudo svs service create my-db <template_id> \
 
 ## Connecting to Your Database
 
-**From another service:** Use [Docker DNS](../../../guides/index.md#dns) with the service container name:
+**From another service:** Use [Docker DNS](../../../guides/#dns) with the service container name:
 ```
 mysql://svs-{database_service_id}:3306/mydb
 ```
@@ -38,7 +38,7 @@ For example, if your MySQL service has ID `4`:
 mysql://svs-4:3306/mydb
 ```
 
-**From external clients:** Find the assigned host port in [service details](../../../guides/index.md#detailed-view) and use:
+**From external clients:** Find the assigned host port in [service details](../../../guides/#detailed-view) and use:
 ```bash
 mysql -h server-ip -P <host_port> -u myuser -p
 ```

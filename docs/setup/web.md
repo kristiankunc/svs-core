@@ -13,7 +13,7 @@ A web UI is provided for controlling SVS and provides a more user-friendly way t
     - Enable all security features by setting `DEBUG=False`
 
 **Keep in mind that the web interface is strictly tied to the core library and missmatching versions may cause issues. Always use the same repository at the tag as your
-installed version. Use the [svs --version](../cli-documentation/index.md#svs) command to check your installed version.**
+installed version. Use the [svs --version](../cli-documentation/#svs) command to check your installed version.**
 
 ## Prerequisites
 

@@ -45,7 +45,7 @@ When reading info about the service using [`svs service get <id>`](../cli-docume
 
     What exactly this affects is specific to each service, but in this case, anything in the container `/config/www` will be served by nginx.
 
-    You can read more info about volumes [here](../index.md#data-storage)
+    You can read more info about volumes [here](../#data-storage)
 
 
 To add a custom `index.html` page, create a file `/var/svs/volumes/<user_id>/<volume_id>/www/index.html` with your content. A Default one is already preconfigured to verify the service is working.

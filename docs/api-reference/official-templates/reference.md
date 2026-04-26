@@ -5,7 +5,7 @@ Templates are defined using `JSON` files and can be imported via the [cli](../..
 
 The JSON schema is specified at https://github.com/kristiankunc/svs-core/blob/main/service_templates/schema.json.
 
-You can also refer to the [official templates](./index.md) for examples of 1st party templates.
+You can also refer to the [official templates](./) for examples of 1st party templates.
 
 Generally, the schema should explain itself, but here are some notes on the fields:
 

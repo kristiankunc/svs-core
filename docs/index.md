@@ -6,8 +6,8 @@
 ---
 
 - [Installation Quickstart guide](setup/quickstart.md)
-- [CLI documentation](cli.md)
-- [API documentation](api/index.md)
+- [CLI documentation](cli-documentation)
+- [API documentation](api-reference)
 - [Paper](#paper)
 
 ## Introduction
@@ -22,7 +22,7 @@ Support is offered through the QnA section on [GitHub Discussions](https://githu
 
 ## Looking to deploy a service?
 
-Head over to the [Guide for users](guides/index.md) to learn how to deploy your first service with SVS.
+Head over to the [Guide for users](guides/) to learn how to deploy your first service with SVS.
 
 ## How does it work?
 

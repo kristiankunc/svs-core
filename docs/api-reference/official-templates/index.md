@@ -1,8 +1,8 @@
 # Official Templates
 
-SVS provides a set of official [templates](../../index.md#template) that can be used to create common services.
+SVS provides a set of official [templates](../../#template) that can be used to create common services.
 
-All templates follow the deployment workflow described in the **[Guides](../../guides/index.md)** section. Each template page provides specific configuration details for that technology.
+All templates follow the deployment workflow described in the **[Guides](../../guides/)** section. Each template page provides specific configuration details for that technology.
 
 As a system administrator, you can create your own templates. Head over to [template reference](./reference.md) to learn how to create custom templates.
 

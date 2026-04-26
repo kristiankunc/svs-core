@@ -4,8 +4,8 @@ A template for the [Adminer](https://www.adminer.org/) database management tool 
 
 ## Usage
 
-1. [Create a service](../../../guides/index.md#create-a-service) using the Adminer template
-2. [Start the service](../../../guides/index.md#control)
+1. [Create a service](../../../guides/#create-a-service) using the Adminer template
+2. [Start the service](../../../guides/#control)
 3. Access the web interface via your configured domain or assigned port
 4. Connect to your database services using their service names
 
@@ -23,7 +23,7 @@ For example, to connect to a PostgreSQL service with ID `3`:
 - Password: `mypassword`
 - Database: `mydatabase`
 
-For more on service naming, see [Docker DNS](../../../guides/index.md#dns).
+For more on service naming, see [Docker DNS](../../../guides/#dns).
 
 ## Configuration
 
