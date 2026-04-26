@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.5](https://github.com/kristiankunc/svs-core/compare/v0.14.4...v0.14.5) (2026-04-26)
+
+
+### Bug Fixes
+
+* **cli:** Fix indentation and formatting in get commands ([31d2fe8](https://github.com/kristiankunc/svs-core/commit/31d2fe8a63e310bfd39a20905291970382a61b21))
+* **docs:** Update relative links ([9c91222](https://github.com/kristiankunc/svs-core/commit/9c9122243add6e0d743a1c926aef4cdf7f4c91bc))
+
 ## [0.14.4](https://github.com/kristiankunc/svs-core/compare/v0.14.3...v0.14.4) (2026-04-16)
 
 
