@@ -253,7 +253,10 @@ def view_logs(request: HttpRequest, service_id: int):
     try:
         logs = service.get_logs()
     except Exception as e:
-        logs = f"Error fetching logs: {str(e)}"
+        get_logger(__name__).error(
+            f"Failed to fetch logs for service {service_id}: {str(e)}"
+        )
+        logs = "Error fetching logs. Please try again later."
 
     # Check if client wants JSON
     accept_header = request.headers.get("Accept", "")
