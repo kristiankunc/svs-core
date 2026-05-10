@@ -113,7 +113,14 @@ def run_command(
 
         logger = get_logger(__name__)
 
-    logger.log(logging.DEBUG, f"Executing command: {command} with env: {exec_env}")
+    logger.log(
+        logging.DEBUG,
+        "Executing shell command (details redacted): user=%s, check=%s, has_env=%s, command_length=%s",
+        user,
+        check,
+        bool(exec_env),
+        len(command),
+    )
 
     result = subprocess.run(
         command, env=exec_env, check=check, capture_output=True, text=True, shell=True
