@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.6](https://github.com/kristiankunc/svs-core/compare/v0.14.5...v0.14.6) (2026-05-10)
+
+
+### Bug Fixes
+
+* Stop logging ENV variables ([#441](https://github.com/kristiankunc/svs-core/issues/441)) ([491cefe](https://github.com/kristiankunc/svs-core/commit/491cefe8290d8038580e988131919c85e69731b7))
+* **web:** Do not populate log retrieval error to the user ([52b3b0a](https://github.com/kristiankunc/svs-core/commit/52b3b0a1b500b20f3fa55efcc16d625689491da2))
+
 ## [0.14.5](https://github.com/kristiankunc/svs-core/compare/v0.14.4...v0.14.5) (2026-04-26)
 
 
