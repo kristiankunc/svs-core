@@ -2,8 +2,8 @@ import sys
 
 import pytest
 
-from click.exceptions import Exit
 from pytest_mock import MockerFixture
+from typer import Exit
 
 from svs_core.__main__ import global_options, version_callback
 
