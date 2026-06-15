@@ -60,14 +60,11 @@ export DJANGO_SETTINGS_MODULE=svs_core.db.settings
 
 ### Linting & Formatting
 
-**ALWAYS run linting before committing.** The project uses pre-commit hooks that MUST pass.
+**ALWAYS run linting before committing.** The project uses prek hooks that MUST pass.
 
 ```bash
-# Install pre-commit hooks (one-time setup)
-pre-commit install
-
-# Run all pre-commit hooks (REQUIRED before committing)
-pre-commit run --all-files
+# Run all prek hooks (REQUIRED before committing)
+prek run --all-files
 
 # This runs: black, isort, ruff, mypy, djlint, and other checks
 # Expected time: 30-60 seconds for full run
@@ -241,7 +238,7 @@ web/                 - Django web interface
 - **pytest.ini** - Test configuration, markers (unit, integration, django_db)
 - **mypy.ini** - Type checking configuration
 - **.isort.cfg** - Import sorting configuration
-- **.pre-commit-config.yaml** - Pre-commit hook definitions
+- **.pre-commit-config.yaml** - Hook definitions (shared with prek/pre-commit)
 - **mkdocs.yml** - Documentation configuration
 
 ## Continuous Integration Pipeline
@@ -253,7 +250,7 @@ The CI pipeline runs on every push and pull request with two jobs:
 **1. lint-format job:**
 - Sets up Python 3.13
 - Creates venv and installs dev dependencies
-- Runs `pre-commit run --all-files`
+- Runs `prek run --all-files`
 - Must pass before tests run
 
 **2. test job:**
@@ -275,7 +272,7 @@ To replicate CI checks locally before pushing:
 ```bash
 # 1. Run linting (matches lint-format job)
 source .venv/bin/activate
-pre-commit run --all-files
+prek run --all-files
 
 # 2. Start database and run tests (matches test job)
 cd .github/extra && docker compose up -d && cd ../..
@@ -345,11 +342,11 @@ python manage.py migrate
   docker exec extra-db-1 pg_isready -U ci
   ```
 
-### Pre-commit Hook Failures
-- **Problem:** Pre-commit hooks fail on first run
-- **Solution:** Pre-commit installs environments on first use. Takes 2-3 minutes.
+### Prek Hook Failures
+- **Problem:** Prek hooks fail on first run
+- **Solution:** Prek installs environments on first use. Takes 2-3 minutes.
   ```bash
-  pre-commit run --all-files  # Will install environments
+  prek run --all-files  # Will install environments
   ```
 
 ### Import Errors During Testing
@@ -396,10 +393,10 @@ python manage.py migrate
 1. **Setup environment:** Create venv, install dependencies
 2. **Start database:** Run docker compose in `.github/extra/`
 3. **Make code changes**
-4. **Run linting:** `pre-commit run --all-files` (or specific tools)
+4. **Run linting:** `prek run --all-files` (or specific tools)
 5. **Run tests:** `pytest -m unit` first, then `pytest` for full suite
 6. **Build package:** `python -m build` to verify packaging
-7. **Commit changes:** Pre-commit hooks run automatically
+7. **Commit changes:** prek hooks run automatically
 
 ### Web Development Workflow
 
@@ -454,7 +451,7 @@ When working on the web interface:
 pytest
 
 # 2. Ensure linting passes
-pre-commit run --all-files
+prek run --all-files
 
 # 3. Verify build works
 python -m build
