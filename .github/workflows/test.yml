@@ -39,6 +39,7 @@ jobs:
           source .venv/bin/activate
           python -m pip install --upgrade pip
           python -m pip install ".[dev]"
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
       - name: Run Prek
         uses: j178/prek-action@v2
