@@ -60,10 +60,10 @@ export DJANGO_SETTINGS_MODULE=svs_core.db.settings
 
 ### Linting & Formatting
 
-**ALWAYS run linting before committing.** The project uses prek hooks that MUST pass.
+**ALWAYS run linting before committing.** The project uses prek hooks that MUST pass — CI runs `prek run --all-files` as a required gate and will reject any PR that fails it.
 
 ```bash
-# Run all prek hooks (REQUIRED before committing)
+# Run all prek hooks (MANDATORY before every commit)
 prek run --all-files
 
 # This runs: black, isort, ruff, mypy, djlint, and other checks
@@ -247,11 +247,11 @@ web/                 - Django web interface
 
 The CI pipeline runs on every push and pull request with two jobs:
 
-**1. lint-format job:**
+**1. lint-format job (REQUIRED — gates all other jobs):**
 - Sets up Python 3.13
 - Creates venv and installs dev dependencies
 - Runs `prek run --all-files`
-- Must pass before tests run
+- **Must pass** before tests or any other job runs — if this fails, the PR is blocked
 
 **2. test job:**
 - Sets up Python 3.13 and Docker
@@ -259,7 +259,7 @@ The CI pipeline runs on every push and pull request with two jobs:
 - Installs dependencies with `pip install -e ".[dev]"`
 - Runs `pytest --cov=. --cov-branch --cov-report=xml:coverage.xml`
 - Uploads coverage to Codecov
-- Must pass before merge
+- **Must pass** before merge — PRs with failing tests are blocked
 
 **3. build job (PR only):**
 - Runs after tests pass
@@ -393,10 +393,10 @@ python manage.py migrate
 1. **Setup environment:** Create venv, install dependencies
 2. **Start database:** Run docker compose in `.github/extra/`
 3. **Make code changes**
-4. **Run linting:** `prek run --all-files` (or specific tools)
+4. **Run linting (MANDATORY):** `prek run --all-files` — CI will reject any PR that skips this
 5. **Run tests:** `pytest -m unit` first, then `pytest` for full suite
 6. **Build package:** `python -m build` to verify packaging
-7. **Commit changes:** prek hooks run automatically
+7. **Commit changes:** prek hooks run automatically in CI too
 
 ### Web Development Workflow
 
@@ -446,11 +446,14 @@ When working on the web interface:
    ```
 
 ### Before Submitting PR
+
+**CRITICAL:** CI runs `prek run --all-files` as a required gate. If linting fails in CI, the PR will be blocked. Always run these checks locally first.
+
 ```bash
 # 1. Ensure all tests pass
 pytest
 
-# 2. Ensure linting passes
+# 2. Run prek (MANDATORY — CI enforces this, PR will be rejected if it fails)
 prek run --all-files
 
 # 3. Verify build works
