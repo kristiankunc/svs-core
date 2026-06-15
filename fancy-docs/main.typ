@@ -443,8 +443,6 @@ Testy jsou zajištěny knihovnou `Pytest` @pytest. Jednotkové testy jsou organi
 
 Jednotkové testování funguje na principu izolace, což znamená, že každý test by měl být nezávislý na ostatních testech a neměl by ovlivňovat stav systému. Proto se často používá maskování externích závislostí, jako jsou databáze, síťové služby nebo systémové volání. U těchto závislostí se pak ověří, zda jsou volány s očekávanými parametry, což zajišťuje, že testovaná funkce správně interaguje s okolním systémem.
 
-#pagebreak()
-
 V ukázce níže se nachází test pro funkci `create_user`, která je zodpovědná za vytvoření nového uživatele v systému. Test ověřuje, že uživatel je správně vytvořen a uložen do databáze, a také kontroluje, že jsou volány správné funkce pro vytvoření `Docker` sítě a systémového uživatele.
 
 ```python
@@ -518,6 +516,8 @@ Technická dokumentace je nedílnou součástí projektu a je klíčová pro jeh
 
 V rámci zachování udržitelného a přehledného kódu do budoucna, je kód osazen rozsáhlou dokumentací. Dokumentace je psána přímo v kódu pomocí konvence `docstring` @pep257docstrings. `Docstringy` jsou speciální textové řetězce, které se umisťují na začátek modulů, tříd a metod a slouží k popisu jejich účelu, funkcionality a způsobu použití. Konkrétně jsou použity `Google style docstrings` @googleDocstringStyle.
 
+#pagebreak()
+
 V ukázce níže se nachází `docstring` pro funkci `get_logs`, která je zodpovědná za získávání logů z `Docker` kontejneru. `Docstring` obsahuje popis funkce, její parametry a návratovou hodnotu, což usnadňuje pochopení jejího účelu a způsobu použití pro ostatní vývojáře, kteří s ní budou pracovat v budoucnu.
 
 ```python
@@ -545,6 +545,8 @@ Kromě referenční dokumentace, obsahuje uživatelská dokumentace také instal
 
 Dokumentace je hostována na `GitHub Pages` a dostupná na adrese #link("https://svs.kristn.co.uk").
 
+#pagebreak()
+
 Na obrázku níže je zobrazen příklad zpracování `docstringů` pomocí `Zensical` do přehledné dokumentace, která je snadno přístupná a srozumitelná pro uživatele i vývojáře.
 
 #figure(
@@ -554,6 +556,7 @@ Na obrázku níže je zobrazen příklad zpracování `docstringů` pomocí `Zen
   ],
 )
 
+#pagebreak()
 = Závěr
 
 Aplikace nabízí alternativní způsob nasazování aplikací do produkčního prostředí. Rozhodně není určena pro profesionální použití, ale je spíše zaměřena na méně náročné projekty s nízkými nároky na výkon a stabilitu, jako jsou například osobní projekty. Pokud uživatel potřebuje rychle a jednoduše nasadit svou aplikaci pro potřeby ukázky, testování nebo pro osobní použití, může být tato aplikace ideálním řešením. Pro profesionální nasazení a správu produkčních aplikací by ale bylo vhodnější použít robustnější a komplexnější řešení, které nabízí větší kontrolu a možnosti konfigurace.
