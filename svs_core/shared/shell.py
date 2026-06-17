@@ -1,4 +1,10 @@
+import grp
 import logging
+import os
+import pwd
+import shlex
+import shutil
+import stat
 import subprocess
 
 from pathlib import Path
@@ -11,8 +17,8 @@ def create_directory(
     """Creates a directory at the specified path if it does not exist.
 
     Sets ownership to user:svs-admins and permissions to 770 (rwxrwx---) for the
-    final directory in the path. When using mkdir -p, parent directories are created
-    with default permissions, and only the final directory gets the specified permissions.
+    final directory in the path. Parent directories are created with default
+    permissions, and only the final directory gets the specified permissions.
 
     Args:
         path (str): The directory path to create.
@@ -24,14 +30,19 @@ def create_directory(
 
         logger = get_logger(__name__)
 
-    command = f"mkdir -p {path}"
+    os.makedirs(path, exist_ok=True)
 
-    run_command(command, user=user, logger=logger)
+    try:
+        os.chmod(path, stat.S_IRWXU | stat.S_IRWXG)
+    except OSError:
+        logger.warning("Could not set permissions for %s", path)
 
-    # Set ownership to user:svs-admins and permissions to 770
-    # This applies to the final directory and all parent directories created by mkdir -p
-    run_command(f"sudo chown {user}:svs-admins {path}", check=True, logger=logger)
-    run_command(f"sudo chmod 770 {path}", check=True, logger=logger)
+    try:
+        uid = pwd.getpwnam(user).pw_uid
+        gid = grp.getgrnam("svs-admins").gr_gid
+        os.chown(path, uid, gid)
+    except (KeyError, OSError):
+        logger.warning("Could not set ownership for %s", path)
 
 
 def remove_directory(
@@ -42,15 +53,14 @@ def remove_directory(
     Args:
         path (str): The directory path to remove.
         logger (logging.Logger | None): custom log handler.
-        user (str): The user to remove the directory as.
+        user (str): Unused, retained for backward compatibility.
     """
     if not logger:
         from svs_core.shared.logger import get_logger
 
         logger = get_logger(__name__)
 
-    command = f"rm -rf {path}"
-    run_command(command, logger=logger, user=user)
+    shutil.rmtree(path, ignore_errors=True)
 
 
 def read_file(path: Path, logger: logging.Logger | None = None) -> str:
@@ -69,14 +79,9 @@ def read_file(path: Path, logger: logging.Logger | None = None) -> str:
 
         logger = get_logger(__name__)
 
-    command = f"cat {path.as_posix()}"
-    logger.log(logging.DEBUG, f"Reading file at path: {path.as_posix()}")
+    logger.log(logging.DEBUG, "Reading file at path: %s", path.as_posix())
 
-    result = subprocess.run(
-        command, shell=True, check=True, capture_output=True, text=True
-    )
-
-    return result.stdout
+    return path.read_text()
 
 
 def run_command(
@@ -104,7 +109,11 @@ def run_command(
     exec_env = dict(env) if env else {}
     exec_env.update({"DJANGO_SETTINGS_MODULE": "svs_core.db.settings"})
 
-    base = f"sudo -u {user} " if not command.strip().startswith("sudo") else ""
+    base = (
+        f"sudo -u {shlex.quote(user)} "
+        if not command.strip().startswith("sudo")
+        else ""
+    )
 
     command = f"{base}{command}"
 

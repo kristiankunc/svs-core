@@ -1,5 +1,6 @@
 import subprocess
 
+from pathlib import Path
 from typing import Dict
 
 import pytest
@@ -16,118 +17,103 @@ from svs_core.shared.shell import (
 
 class TestDirectoryManagement:
     @pytest.mark.unit
-    def test_create_directory_basic(self, mocker: MockerFixture) -> None:
-        mock_run = mocker.patch("subprocess.run")
-        mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
-        mock_run.return_value = mock_process
+    def test_create_directory_basic(
+        self, mocker: MockerFixture, tmp_path: Path
+    ) -> None:
+        mock_makedirs = mocker.patch("os.makedirs")
+        mock_chmod = mocker.patch("os.chmod")
+        mock_chown = mocker.patch("os.chown")
+        mock_getpwnam = mocker.patch("pwd.getpwnam")
+        mock_getgrnam = mocker.patch("grp.getgrnam")
+        mock_getpwnam.return_value.pw_uid = 1000
+        mock_getgrnam.return_value.gr_gid = 2000
 
-        create_directory("/tmp/test_dir")
+        test_dir = tmp_path / "test_dir"
+        create_directory(str(test_dir))
 
-        # create_directory now makes 3 calls: mkdir, chown, chmod
-        assert mock_run.call_count == 3
-
-        # First call should be mkdir
-        args, kwargs = mock_run.call_args_list[0]
-        assert "sudo -u svs mkdir -p /tmp/test_dir" == args[0]
-        assert kwargs.get("shell", False)
-        assert kwargs.get("check", False)
-
-        # Second call should be chown
-        args, kwargs = mock_run.call_args_list[1]
-        assert "sudo chown svs:svs-admins /tmp/test_dir" == args[0]
-
-        # Third call should be chmod
-        args, kwargs = mock_run.call_args_list[2]
-        assert "sudo chmod 770 /tmp/test_dir" == args[0]
+        mock_makedirs.assert_called_once_with(str(test_dir), exist_ok=True)
+        mock_chmod.assert_called_once()
+        mock_getpwnam.assert_called_once_with("svs")
+        mock_getgrnam.assert_called_once_with("svs-admins")
+        mock_chown.assert_called_once_with(str(test_dir), 1000, 2000)
 
     @pytest.mark.unit
-    def test_create_directory_with_logger(self, mocker: MockerFixture) -> None:
-        mock_run = mocker.patch("subprocess.run")
+    def test_create_directory_with_logger(
+        self, mocker: MockerFixture, tmp_path: Path
+    ) -> None:
+        mock_makedirs = mocker.patch("os.makedirs")
+        mock_chmod = mocker.patch("os.chmod")
+        mock_chown = mocker.patch("os.chown")
+        mock_getpwnam = mocker.patch("pwd.getpwnam")
+        mock_getgrnam = mocker.patch("grp.getgrnam")
+        mock_getpwnam.return_value.pw_uid = 1000
+        mock_getgrnam.return_value.gr_gid = 2000
         mock_logger = mocker.MagicMock()
-        mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
-        mock_run.return_value = mock_process
 
-        create_directory("/tmp/test_dir", logger=mock_logger)
+        test_dir = tmp_path / "test_dir"
+        create_directory(str(test_dir), logger=mock_logger)
 
-        mock_logger.log.assert_called()
-        # create_directory now makes 3 calls: mkdir, chown, chmod
-        assert mock_run.call_count == 3
+        mock_makedirs.assert_called_once_with(str(test_dir), exist_ok=True)
+        mock_chmod.assert_called_once()
+        mock_getpwnam.assert_called_once_with("svs")
+        mock_getgrnam.assert_called_once_with("svs-admins")
+        mock_chown.assert_called_once_with(str(test_dir), 1000, 2000)
 
     @pytest.mark.unit
-    def test_create_directory_multiple_paths(self, mocker: MockerFixture) -> None:
-        mock_run = mocker.patch("subprocess.run")
-        mock_run.side_effect = subprocess.CalledProcessError(
-            returncode=1,
-            cmd="sudo -u svs mkdir -p /tmp/my test directory",
-            output="",
-            stderr="error",
-        )
+    def test_create_directory_multiple_paths(
+        self, mocker: MockerFixture, tmp_path: Path
+    ) -> None:
+        mock_makedirs = mocker.patch("os.makedirs")
+        mock_chmod = mocker.patch("os.chmod")
+        mock_chown = mocker.patch("os.chown")
+        mock_getpwnam = mocker.patch("pwd.getpwnam")
+        mock_getgrnam = mocker.patch("grp.getgrnam")
+        mock_getpwnam.return_value.pw_uid = 1000
+        mock_getgrnam.return_value.gr_gid = 2000
 
-        with pytest.raises(subprocess.CalledProcessError):
-            create_directory("/tmp/my test directory")
+        test_dir = tmp_path / "my test directory"
+        create_directory(str(test_dir))
 
-        # Should fail on the first call (mkdir)
-        mock_run.assert_called_once()
+        mock_makedirs.assert_called_once_with(str(test_dir), exist_ok=True)
+        mock_chmod.assert_called_once()
+        mock_chown.assert_called_once()
 
     @pytest.mark.unit
     def test_remove_directory_basic(self, mocker: MockerFixture) -> None:
-        mock_run = mocker.patch("subprocess.run")
-        mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
-        mock_run.return_value = mock_process
+        mock_rmtree = mocker.patch("shutil.rmtree")
 
         remove_directory("/tmp/test_dir")
 
-        mock_run.assert_called_once()
-        args, kwargs = mock_run.call_args
-        assert "sudo -u svs rm -rf /tmp/test_dir" == args[0]
-        assert kwargs.get("shell", False)
-        assert kwargs.get("check", False)
+        mock_rmtree.assert_called_once_with("/tmp/test_dir", ignore_errors=True)
 
     @pytest.mark.unit
     def test_remove_directory_with_logger(self, mocker: MockerFixture) -> None:
-        mock_run = mocker.patch("subprocess.run")
+        mock_rmtree = mocker.patch("shutil.rmtree")
         mock_logger = mocker.MagicMock()
-        mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
-        mock_run.return_value = mock_process
 
         remove_directory("/tmp/test_dir", logger=mock_logger)
 
-        mock_logger.log.assert_called()
-        mock_run.assert_called_once()
+        mock_rmtree.assert_called_once_with("/tmp/test_dir", ignore_errors=True)
 
     @pytest.mark.unit
     def test_remove_directory_with_spaces(self, mocker: MockerFixture) -> None:
-        mock_run = mocker.patch("subprocess.run")
-        mock_run.side_effect = subprocess.CalledProcessError(
-            returncode=1,
-            cmd="sudo -u svs rm -rf /tmp/my test directory",
-            output="",
-            stderr="error",
+        mock_rmtree = mocker.patch("shutil.rmtree")
+
+        remove_directory("/tmp/my test directory")
+
+        mock_rmtree.assert_called_once_with(
+            "/tmp/my test directory", ignore_errors=True
         )
-
-        with pytest.raises(subprocess.CalledProcessError):
-            remove_directory("/tmp/my test directory")
-
-        mock_run.assert_called_once()
 
 
 class TestFileReading:
     @pytest.mark.unit
-    def test_read_file_success(self, mocker: MockerFixture) -> None:
-        from pathlib import Path
+    def test_read_file_success(self, mocker: MockerFixture, tmp_path: Path) -> None:
+        test_file = tmp_path / "test.txt"
+        test_file.write_text("file content here\n")
 
-        mock_run = mocker.patch("subprocess.run")
-        mock_process = mocker.MagicMock(spec=subprocess.CompletedProcess)
-        mock_process.stdout = "file content here\n"
-        mock_run.return_value = mock_process
+        result = read_file(test_file)
 
-        result = read_file(Path("/tmp/test.txt"))
-
-        mock_run.assert_called_once()
-        args, kwargs = mock_run.call_args
-        assert "cat /tmp/test.txt" == args[0]
-        assert kwargs.get("shell", False)
-        assert kwargs.get("check", False)
         assert "file content here\n" == result
 
 
