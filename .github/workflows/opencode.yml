@@ -7,7 +7,7 @@ on:
     types: [created]
 
 jobs:
-  opencode:
+  setup:
     if: |
       (
         github.event.comment.author_association == 'OWNER' ||
@@ -20,6 +20,12 @@ jobs:
         contains(github.event.comment.body, ' /opencode') ||
         startsWith(github.event.comment.body, '/opencode')
       )
+    uses: kristiankunc/svs-core/.github/workflows/copilot-setup-steps.yml@main
+    permissions:
+      contents: read
+
+  opencode:
+    needs: setup
     runs-on: ubuntu-latest
     permissions:
       id-token: write
