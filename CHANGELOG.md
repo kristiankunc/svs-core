@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.14.7](https://github.com/kristiankunc/svs-core/compare/v0.14.6...v0.14.7) (2026-06-17)
+
+
+### Bug Fixes
+
+* **core:** Refactor shell commands ([#456](https://github.com/kristiankunc/svs-core/issues/456)) ([0a29d09](https://github.com/kristiankunc/svs-core/commit/0a29d09e2e876d96bfce42911352b35dc904fcde))
+* **web:** Show logs for exited containers  ([#454](https://github.com/kristiankunc/svs-core/issues/454)) ([db25162](https://github.com/kristiankunc/svs-core/commit/db25162d271db32cdf2633cc2e0389a582072f75))
+
 ## [0.14.6](https://github.com/kristiankunc/svs-core/compare/v0.14.5...v0.14.6) (2026-05-10)
 
 
