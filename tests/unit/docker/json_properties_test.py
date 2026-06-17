@@ -158,12 +158,9 @@ class TestDefaultContent:
 
         content.write_to_host(str(host_file), username="testuser")
 
-        # Verify subprocess.run was called 4 times total
-        # 1. mkdir -p (from create_directory)
-        # 2. chown (from create_directory)
-        # 3. chmod (from create_directory)
-        # 4. echo > file (from write_to_host)
-        assert mock_subprocess_run.call_count == 4
+        # Verify subprocess.run was called once for the echo command in write_to_host.
+        # create_directory now uses Python stdlib (os.makedirs, os.chmod, os.chown).
+        assert mock_subprocess_run.call_count == 1
 
         # Check the last call was the echo command for writing content
         last_call = mock_subprocess_run.call_args_list[-1]
