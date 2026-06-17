@@ -654,6 +654,48 @@ class TestService:
 
     @pytest.mark.integration
     @pytest.mark.django_db
+    def test_service_get_logs_exited_container(
+        self,
+        mocker: MockerFixture,
+        test_template: Template,
+        test_user: User,
+    ) -> None:
+        mock_container = mocker.MagicMock()
+        mock_container.id = "exited_container_id"
+        mock_container.status = "exited"
+        mock_create_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.create_container",
+            return_value=mock_container,
+        )
+        mock_get_container = mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.get_container",
+            return_value=mock_container,
+        )
+        mocker.patch(
+            "svs_core.docker.service.DockerContainerManager.connect_to_network"
+        )
+
+        log_content = b"Started\nProcessing...\nExited with code 0\n"
+        mock_container.logs.return_value = log_content
+
+        service = Service.create(
+            name="exited-log-test-service",
+            template_id=test_template.id,
+            user=test_user,
+            image="nginx:alpine",
+        )
+
+        logs = service.get_logs()
+
+        mock_get_container.assert_called_with("exited_container_id")
+        mock_container.logs.assert_called_once_with(tail=1000)
+        assert isinstance(logs, str)
+        assert "Started" in logs
+        assert "Exited with code 0" in logs
+        assert logs == log_content.decode("utf-8")
+
+    @pytest.mark.integration
+    @pytest.mark.django_db
     def test_service_create_writes_default_contents_to_volume(
         self,
         mocker: MockerFixture,

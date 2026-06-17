@@ -38,7 +38,7 @@
                         <div class="col-md-6">
                             <p class="text-muted mb-1">Status</p>
                             <p class="h6">
-                                <span class="badge {% if service.status.value == 'running' %}bg-success{% elif service.status.value == 'paused' %}bg-warning{% elif service.status.value == 'stopped' %}bg-danger{% else %}bg-secondary{% endif %}">{{ service.status }}
+                                <span class="badge {% if service.status.value == 'running' %}bg-success{% elif service.status.value == 'paused' %}bg-warning{% elif service.status.value in ('stopped', 'exited') %}bg-danger{% else %}bg-secondary{% endif %}">{{ service.status }}
                                     {% if service.healthcheck_status %}({{ service.healthcheck_status }}){% endif %}
                                 </span>
                             </p>
