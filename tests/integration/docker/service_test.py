@@ -435,7 +435,7 @@ class TestService:
 
         # Verify container.start() was called
         mock_container.start.assert_called_once()
-        assert service.status == ServiceStatus.RUNNING
+        assert service.status == ServiceStatus.RUNNING  # type: ignore[comparison-overlap]
 
         # Stop the service and update mock status
         mocker.patch.object(
