@@ -34,10 +34,13 @@ if not EnvManager.get_database_url():
         "DATABASE_URL environment variable not set. Running detached from database."
     )
 
+from svs_core.cli.destroy import destroy_cmd  # noqa: E402
+from svs_core.cli.init import init_cmd  # noqa: E402
 from svs_core.cli.service import app as service_app  # noqa: E402
 from svs_core.cli.template import app as template_app  # noqa: E402
 from svs_core.cli.user import app as user_app  # noqa: E402
 from svs_core.cli.utils import app as utils_app  # noqa: E402
+from svs_core.cli.web import app as web_app  # noqa: E402
 
 
 def cli_first_user_setup(
@@ -114,10 +117,14 @@ def global_options(
         set_current_user(user_to_override.name, user_to_override.is_admin())
 
 
+app.command(name="init")(init_cmd)
+app.command(name="destroy")(destroy_cmd)
+
 app.add_typer(user_app, name="user")
 app.add_typer(template_app, name="template")
 app.add_typer(service_app, name="service")
 app.add_typer(utils_app, name="utils")
+app.add_typer(web_app, name="web")
 
 
 def main() -> None:  # noqa: D103

@@ -29,23 +29,34 @@ Alternatively, you can use services like [nodesource](https://deb.nodesource.com
 
 ## Installation
 
-The web interface is provided in the root repository under the `web/` directory.
+### Quick install (recommended)
 
-### Clone the repository
+Use the `svs web init` command to set up the web interface automatically. This will clone the matching release, create a virtual environment, build the frontend, configure a `.env` file, and optionally set up a systemd service.
 
-Clone the latest release of the repository and navigate to the `web/` directory:
+```bash
+sudo svs web init --domain svs.example.com
+```
 
+Or without a domain (will use IP-based access):
+
+```bash
+sudo svs web init
+```
+
+**Flags:**
+- `--dir /opt/svs-web` - Install directory (default: `/opt/svs-web`)
+- `--domain example.com` - Domain for Caddy reverse proxy configuration (creates a `web.Caddyfile` automatically)
+- `--no-systemd` - Skip systemd service creation
+- `--skip-build` - Skip frontend build
+- `-y` - Non-interactive mode
+
+### Manual installation
+
+Alternatively, you can set up the web interface manually:
 
 ```bash
 git clone https://github.com/kristiankunc/svs-core
 cd svs-core/web
-```
-
-### Install script
-
-The web directory includes an update/install script called `update.sh` that can be used to install the web interface. It will pull the latest changes from the repository, install dependencies, and build the frontend.
-
-```bash
 sudo bash update.sh
 ```
 
@@ -63,22 +74,36 @@ All the required environment variables are documented in the `.env.example` file
 
 ## Running
 
-To start the web interface, simply run:
+### Using systemd (recommended)
+
+If you used `sudo svs web init` without `--no-systemd`, a systemd service was created automatically. Start and enable it with:
 
 ```bash
-sudo -E .venv/bin/gunicorn project.wsgi --bind 0.0.0.0:8000 # sudo warning mentioned at the top of this page
+sudo systemctl enable svs-web
+sudo systemctl start svs-web
+```
+
+### Manually
+
+To start the web interface without systemd:
+
+```bash
+sudo -E .venv/bin/python -m gunicorn project.wsgi --bind 0.0.0.0:8000
 ```
 
 After starting, you can access the web interface in your browser at `http://<your-server-ip>:8000`
 
 ## Updating
 
-Use the same `update.sh` script to update the web interface to the latest version. It will pull the latest changes from the repository, install any new dependencies, and rebuild the frontend.
+To update the web interface after upgrading the core library:
 
 ```bash
+# Recommended: re-run svs web init (re-generates systemd service, rebuilds frontend)
+sudo svs web init
+
+# Alternative: use the update script
 sudo bash update.sh
 ```
-
 
 ## Security recommendations
 
@@ -87,27 +112,29 @@ For production use:
 1. Set `DEBUG=False` in your `.env` file
 2. Configure HTTPS using a reverse proxy (Caddy or nginx)
 3. Ensure the `logs/` directory exists and is writable
-4. Review security logs regularly: `tail -f web/logs/security.log`
+4. Review security logs regularly: `tail -f logs/security.log`
 5. Use firewall rules or VPN to restrict access to trusted IPs only
 
-## Background service
+## Systemd service (manual)
 
-Best way to run the web interface in production is to set it up as a systemd service. Create a new file at `/etc/systemd/system/svs-web.service` with the following content:
+If you skipped systemd creation with `--no-systemd` or prefer to configure it yourself, create a file at `/etc/systemd/system/svs-web.service`:
 
 ```ini
 [Unit]
 Description=SVS Web Interface
 After=network.target
+
 [Service]
 User=root
-WorkingDirectory=/path/to/svs-core/web
-ExecStart=/path/to/svs-core/web/.venv/bin/gunicorn project.wsgi --bind 0.0.0.0:8000 --workers 3
+WorkingDirectory=/opt/svs-web
+ExecStart=/opt/svs-web/.venv/bin/python -m gunicorn project.wsgi --bind 0.0.0.0:8000 --workers 3
 Restart=always
+
 [Install]
 WantedBy=multi-user.target
 ```
 
-Replace all the variables and paths with the appropriate values for your system. After creating the service file, reload systemd and start the service:
+Replace the paths with your install directory if you used a custom `--dir`. Then reload systemd and start the service:
 
 ```bash
 sudo systemctl daemon-reload
@@ -117,24 +144,26 @@ sudo systemctl start svs-web
 
 ## Domain configuration
 
-**As mentioned above, exposing publically is not recommended, but is supported**.
+**As mentioned above, exposing publicly is not recommended, but is supported.**
 
-Modify `/etc/svs/docker/docker-compose.yml` and append the following to the `caddy` service definition to mount the Caddyfile and tell Caddy to use it:
+If you used `sudo svs web init --domain example.com`, a `web.Caddyfile` was created automatically in your install directory. You still need to mount it in the Caddy container.
+
+Edit `/etc/svs/docker/docker-compose.yml` and add the following to the `caddy` service:
 
 ```yaml
 caddy:
     ...
     volumes:
       ...
-      - ./web.Caddyfile:/etc/caddy/web.Caddyfile:ro # Mount the Caddyfile
+      - /path/to/your/web.Caddyfile:/etc/caddy/web.Caddyfile:ro
     environment:
       ...
-      - CADDY_DOCKER_CADDYFILE_PATH=/etc/caddy/web.Caddyfile # Tell Caddy to use the mounted Caddyfile
+      - CADDY_DOCKER_CADDYFILE_PATH=/etc/caddy/web.Caddyfile
     extra_hosts:
-      - "host.docker.internal:host-gateway" # Allow Caddy to access the host network
+      - "host.docker.internal:host-gateway"
 ```
 
-Then create the `web.Caddyfile` in the root repository with the following content:
+If you don't have a `web.Caddyfile` yet, create one in your install directory:
 
 ```caddy
 example.com {
@@ -142,9 +171,7 @@ example.com {
 }
 ```
 
-This is a minimal config, you can extend it with additional security features like rate limiting, IP allowlisting, etc. For more details, refer to the [Caddy documentation](https://caddyserver.com/docs/caddyfile).
-
-Restart the SVS services to apply the changes:
+Restart the SVS stack to apply the changes:
 
 ```bash
 (cd /etc/svs/docker && docker compose down && docker compose up -d)

@@ -2,105 +2,101 @@
 
 Before you begin, ensure you meet the following prerequisites:
 
-### Linux distribution
+- **Linux distribution:** A Debian-based distribution (e.g., Debian, Ubuntu) is required.
+- **Docker:** Installed and running. Follow the [official Docker guide](https://docs.docker.com/engine/install/) if needed.
 
-A Debian based distribution (e.g., Debian, Ubuntu, etc.) is required. Other distributions might work, but are not officially supported.
+## One-command setup
 
-### Docker
-
-Ensure Docker is installed on your system. You can install Docker by following the official [Docker installation guide](https://docs.docker.com/engine/install/).
-
-### Docker Compose
-
-If you've followed the Docker installation guide, you might already have Docker Compose installed. Verify with
+Download and run the bootstrap installer. It will handle everything - system users, directories, pipx, and hands off to the `svs init` command for application setup.
 
 ```bash
-docker compose version
+curl -sS https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/scripts/install.sh | sudo bash
 ```
 
-Otherwise uou can install it by following the official [Docker Compose installation guide](https://docs.docker.com/compose/install/).
+??? question "What does the script do?"
+    1. **System setup** - Creates the `svs` system user, `svs-admins` group, storage directories, and sudoers entries.
+    2. **Installation** - Installs `svs-core` via pipx and sets up environment variables.
+    3. **`svs init`** - Creates the Docker Compose stack (PostgreSQL + Caddy), runs database migrations, imports official service templates, installs bash completions, and prompts you to create an admin user.
 
+    The script is **idempotent** - running it multiple times is safe.
 
-## Application setup
+### Automated mode
 
-### Install pipx
-
-Install `pipx` to safely install the CLI globally without affecting system packages. Follow the official [pipx installation guide](https://pipx.pypa.io/stable/) to install pipx.
-
-??? question "Why PIPX?"
-    Pipx allows you to install and run Python applications in isolated environments. This prevents dependency conflicts with other Python packages on your system.
-
-### Install the CLI globally
+For fully non-interactive installation:
 
 ```bash
+curl -sS https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/scripts/install.sh | sudo bash -s -- -y --user admin --password your-password
+```
+
+### System-only setup
+
+If you only want the system user, groups, and directories without installing svs-core itself (useful for development):
+
+```bash
+curl -sS https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/scripts/install.sh | sudo bash -s -- --scope system
+```
+
+## Manual alternative
+
+If you prefer to install step-by-step, or the bootstrap script doesn't cover your case:
+
+```bash
+# 1. Install pipx and svs-core
+sudo apt install pipx
+pipx ensurepath
 sudo PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install svs-core
-```
 
-Following that, you need to force the PIPX_HOME and PIPX_BIN_DIR ENV variables for all users by appendng it to `etc/environment`
-
-```bash
+# 2. Set environment variables
 printf '%s\n' 'PIPX_HOME="/opt/pipx"' 'PIPX_BIN_DIR="/usr/local/bin"' | sudo tee -a /etc/environment
+
+# 3. Bootstrap system setup (user, groups, directories, sudoers)
+#    Downloads and runs only the system portion of the installer
+curl -sS https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/scripts/install.sh \
+  | sudo bash -s -- --scope system
+
+# 4. Initialize the SVS environment (Docker stack, migrations, templates)
+sudo svs init
 ```
 
-To verify the installation, run:
+## Verify
 
-```bash
-which svs
-```
+Check that everything is working:
 
-This should output `/usr/local/bin/svs`.
-
-### Run setup script
-
-Run the setup script to initialze the configuration. Requires sudo privileges to create necessary directories and set permissions.
-
-Download the setup script from [https://github.com/kristiankunc/svs-core/blob/main/scripts/install.sh](https://github.com/kristiankunc/svs-core/blob/main/scripts/install.sh)
-
-
-```bash
-curl https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/scripts/install.sh -o install.sh
-sudo bash install.sh
-```
-
-This script will
-
-1. Create a database + caddy container using Docer Compose
-2. Create necessary directories with correct permissions
-3. Create an in-place svs user to simplify permission management
-4. Run database migrations
-5. Prompt you to create an initial user (**This will also create a new system user, so you must not supply an existing one**)
-
-### Install completions
-
-Due to the `sudo` requirements of the CLI, you need to install the completions manually. Run the following command to install bash completions for svs for all users.
-
-```bash
-sudo svs --show-completion | sudo tee /usr/share/bash-completion/completions/svs > /dev/null
-```
-
-### Test
-
-**As the install script creates a new user, you need to switch to that user to test the installation.** using `su <your_admin_user>` or prefix your commands with `sudo -u <your_admin_user>`
-
-Run
 ```bash
 sudo svs user list
 ```
 
-This should output your user.
+This should display the admin user you created during setup.
 
+## Next steps
 
-That's it. Head over to the [cli documentation](../cli-documentation/) to get started with using the SVS CLI.
-
-Or, you can follow the [hello-world guide](hello-world.md) to start your first service.
+- Follow the [hello-world guide](hello-world.md) to start your first service.
+- Browse the [CLI documentation](../cli-documentation/) for all available commands.
+- Set up the [web interface](web.md) for a graphical management UI.
 
 ## Updating
 
-A quick updater script is availiable.
-
 ```bash
-curl https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/scripts/update.sh -o update.sh
-sudo bash update.sh
+curl -sS https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/scripts/update.sh | sudo bash
 ```
 
-This script runs the django database migrations and the [system migrations](../cli-documentation/utils.md#svs-utils-migrate) to ensure your system is up to date.
+This script upgrades svs-core via pipx, runs Django migrations, and applies any system migration steps.
+
+## Uninstalling
+
+To completely remove SVS from your server:
+
+```bash
+sudo svs destroy
+```
+
+This stops all services, removes Docker containers and volumes, deletes configuration files, cleans up sudoers entries, and removes the `svs` system user.
+
+Add `--yes` for automated removal:
+
+```bash
+sudo svs destroy --yes
+```
+
+!!! warning "Destructive operation"
+    `svs destroy` is irreversible. Use `--keep-volumes` or `--keep-config` if you want to preserve data or configuration.
