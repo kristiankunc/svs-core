@@ -237,7 +237,6 @@ def _find_template_dirs() -> list[Path]:
     """
     discovered: list[Path] = []
 
-    # 1. __file__-relative path (works in both installed and editable installs)
     try:
         rel = Path(__file__).resolve().parent.parent / "data" / "templates"
         if rel.is_dir():
@@ -245,7 +244,6 @@ def _find_template_dirs() -> list[Path]:
     except (NameError, OSError):
         pass
 
-    # 2. importlib.resources (works when installed as a wheel)
     try:
         pkg_dir = pkg_files("svs_core.data.templates")
         if pkg_dir.is_dir():
@@ -255,7 +253,6 @@ def _find_template_dirs() -> list[Path]:
     except (ModuleNotFoundError, TypeError, OSError):
         pass
 
-    # 3. System share fallback
     share = Path("/usr/local/share/service_templates")
     if share.is_dir() and share not in discovered:
         discovered.append(share)
@@ -422,34 +419,24 @@ def init_cmd(
     print("[bold]SVS Environment Initialization[/bold]")
     print("=" * 40)
 
-    # 1. Verify Docker
     _verify_docker()
 
-    # 2-3. Set up Docker Compose stack
     pg_password = _setup_docker_compose(non_interactive)
 
-    # 4. Start stack and wait for PostgreSQL
     _start_stack(pg_password)
-
-    # 5. Write SVS .env
     _write_svs_env(pg_password)
-
-    # 6. Run Django migrations
     from svs_core.shared.env_manager import EnvManager
 
     os.environ["DATABASE_URL"] = EnvManager.get_database_url()
     _run_migrations()
 
-    # 7. Import official templates
     if not skip_templates:
         _import_official_templates()
     else:
         print(f"{INFO} Template import skipped.")
 
-    # 8. Create admin user (username derived from current OS user)
     _create_admin_user(password, non_interactive)
 
-    # 9. Install bash completions
     if not skip_completions:
         _install_completions()
     else:
