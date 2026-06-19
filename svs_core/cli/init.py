@@ -123,6 +123,12 @@ def _setup_docker_compose(non_interactive: bool) -> str:
         print(f"{OK} {COMPOSE_PATH} already exists.")
 
     # Read or generate credentials
+    #
+    # Security note: the password is stored in clear text in the .env file
+    # because Docker Compose requires it to pass to the PostgreSQL container.
+    # The file is created with 0o660 (owner+group read/write) to mitigate
+    # unauthorized access. This is standard practice for Docker Compose
+    # deployments and is an accepted risk in this self-hosted context.
     if STACK_ENV_PATH.exists():
         print(f"{OK} {STACK_ENV_PATH} already exists, reusing credentials.")
         password = _read_stack_password()
@@ -200,6 +206,11 @@ def _start_stack(password: str) -> None:
 
 def _write_svs_env(password: str) -> None:
     """Write the SVS core environment file with DATABASE_URL.
+
+    Security note: the connection URL contains the password in clear text.
+    Django needs it to connect to the database. The file is created with
+    0o640 (owner read/write, group read) to limit exposure. This is an
+    accepted risk in this self-hosted context.
 
     Args:
         password: The PostgreSQL password.

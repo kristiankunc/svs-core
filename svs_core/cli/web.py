@@ -397,12 +397,14 @@ def _configure_env(
         import shutil
 
         shutil.copy2(str(env_example), str(env_path))
+        env_path.chmod(0o600)
         print(f"{OK} Created {env_path} from .env.example.")
         print(f"   {WARN} Please review and update the configuration.")
     else:
         import shutil
 
         shutil.copy2(str(env_example), str(env_path))
+        env_path.chmod(0o600)
         print(f"{OK} Created {env_path} from .env.example.")
         print()
         print("Please edit the .env file with your desired configuration:")
@@ -414,6 +416,11 @@ def _configure_env(
 
 def _write_minimal_env(env_path: Path, domain: str | None) -> None:
     """Write a minimal .env file when no example is available.
+
+    Security note: the secret key is stored in clear text because Django
+    reads it from the environment at startup. The file is created with
+    0o600 (owner read/write only) to limit exposure. This is standard
+    practice for Django deployments and an accepted risk.
 
     Args:
         env_path: Path to write the .env file.
@@ -431,6 +438,7 @@ def _write_minimal_env(env_path: Path, domain: str | None) -> None:
     if domain:
         content += f"DJANGO_CSRF_TRUSTED_ORIGINS=https://{domain}\n"
     env_path.write_text(content)
+    env_path.chmod(0o600)
     print(f"{OK} Created minimal {env_path}.")
 
 
