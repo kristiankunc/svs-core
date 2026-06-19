@@ -23,7 +23,6 @@ import docker
 import typer
 
 from rich import print
-from rich.prompt import Prompt
 
 from svs_core.shared.logger import get_logger
 
@@ -302,23 +301,26 @@ def _import_official_templates() -> None:
         print(f"{INFO} No new templates to import.")
 
 
-def _create_admin_user(
-    username: str | None, password: str | None, non_interactive: bool
-) -> None:
+def _create_admin_user(password: str | None, non_interactive: bool) -> None:
     """Create the initial admin user if none exists.
 
+    The admin username is always derived from the current OS user
+    (detected via ``SystemUserManager.get_system_username()``).
+
     Args:
-        username: Pre-set username (auto mode), or None for interactive.
-        password: Pre-set password (auto mode), or None for interactive.
-        non_interactive: Skip interactive prompts.
+        password: Pre-set password (auto mode), or None to prompt / generate.
+        non_interactive: If True, generate a random password when none given.
     """
+    from svs_core.users.system import SystemUserManager
     from svs_core.users.user import User
 
     if User.objects.filter(is_superuser=True).exists():
         print(f"{OK} Admin user already exists, skipping.")
         return
 
-    if username and password:
+    username = SystemUserManager.get_system_username()
+
+    if password:
         try:
             User.create(username, password, True)
             print(f"{OK} Admin user '{username}' created.")
@@ -331,30 +333,33 @@ def _create_admin_user(
             raise typer.Exit(code=1)
 
     if non_interactive:
-        # Auto-generate default admin credentials instead of failing
-        username = "admin"
+        # Generate a random password
         password = secrets.token_urlsafe(12)
         try:
             User.create(username, password, True)
-            print(f"{OK} Default admin user created.")
-            print(f"   Username: {username}")
+            print(f"{OK} Admin user '{username}' created.")
             print(f"   Password: {password}")
             print(f"   {WARN} Please change this password after first login.")
             return
         except Exception as e:
-            print(f"{ERR} Failed to create default admin user: {e}", file=sys.stderr)
+            print(f"{ERR} Failed to create admin user: {e}", file=sys.stderr)
             raise typer.Exit(code=1)
 
-    # Interactive mode
+    # Interactive mode — prompt only for password
     try:
         print()
-        username = Prompt.ask("Type your SVS username").strip()
+        print(f"Creating admin user [bold]{username}[/bold].")
         password = getpass("Type your SVS password: ").strip()
+        if not password:
+            print("Password cannot be empty.", file=sys.stderr)
+            raise typer.Exit(code=1)
         User.create(username, password, True)
         print(f"{OK} Admin user '{username}' created.")
+    except typer.Exit:
+        raise
     except Exception as e:
         print(f"{e}\nFailed to create user, try again")
-        _create_admin_user(None, None, False)
+        _create_admin_user(None, False)
 
 
 def _install_completions() -> None:
@@ -390,9 +395,8 @@ def init_cmd(
     yes: bool = typer.Option(
         False, "--yes", "-y", help="Non-interactive mode with defaults."
     ),
-    user: str | None = typer.Option(None, "--user", help="Admin username (auto mode)."),
     password: str | None = typer.Option(
-        None, "--password", help="Admin password (auto mode)."
+        None, "--password", help="Admin password (non-interactive mode)."
     ),
     skip_templates: bool = typer.Option(
         False, "--skip-templates", help="Skip official template import."
@@ -407,10 +411,13 @@ def init_cmd(
     migrations, imports official templates, creates an admin user, and
     installs bash completions.
 
+    The admin username is derived from the current OS user
+    (handles ``sudo``, ``su``, and direct execution transparently).
+
     This command is idempotent - running it multiple times is safe.
     Requires root privileges for file operations and Docker access.
     """
-    non_interactive = yes or bool(user and password)
+    non_interactive = yes or bool(password)
 
     print("[bold]SVS Environment Initialization[/bold]")
     print("=" * 40)
@@ -439,8 +446,8 @@ def init_cmd(
     else:
         print(f"{INFO} Template import skipped.")
 
-    # 8. Create admin user
-    _create_admin_user(user, password, non_interactive)
+    # 8. Create admin user (username derived from current OS user)
+    _create_admin_user(password, non_interactive)
 
     # 9. Install bash completions
     if not skip_completions:
