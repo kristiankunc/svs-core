@@ -44,12 +44,16 @@ python -m pip install -e ".[dev]"
 **ALWAYS start the database before running tests.** Tests require a running PostgreSQL instance.
 
 ```bash
-# Start test database and Caddy using docker compose
-cd .github/extra
-docker compose up -d
+# Start test PostgreSQL database
+docker run -d --name svs-test-db \
+  -e POSTGRES_USER=ci \
+  -e POSTGRES_PASSWORD=ci \
+  -e POSTGRES_DB=cidb \
+  -p 5432:5432 \
+  postgres:17
 
 # Wait for database to be ready (required step)
-docker exec extra-db-1 pg_isready -U ci
+docker exec svs-test-db pg_isready -U ci
 # Should output: /var/run/postgresql:5432 - accepting connections
 
 # Set required environment variables
@@ -188,9 +192,6 @@ npm run build
     publish.yml       - PyPI publishing (runs on release)
     publish-docs.yml  - Documentation deployment
     release-please.yml - Automated releases
-  extra/
-    .env.ci          - CI environment variables
-    docker-compose.yml - Test database configuration
 .devcontainer/        - VS Code devcontainer configuration
   devcontainer.json  - Container setup with auto-install
   docker-compose.yml - Dev environment compose stack
@@ -255,7 +256,7 @@ The CI pipeline runs on every push and pull request with two jobs:
 
 **2. test job:**
 - Sets up Python 3.13 and Docker
-- Starts PostgreSQL and Caddy containers via docker compose
+- Starts PostgreSQL via GitHub Actions service
 - Installs dependencies with `pip install -e ".[dev]"`
 - Runs `pytest --cov=. --cov-branch --cov-report=xml:coverage.xml`
 - Uploads coverage to Codecov
@@ -275,7 +276,12 @@ source .venv/bin/activate
 prek run --all-files
 
 # 2. Start database and run tests (matches test job)
-cd .github/extra && docker compose up -d && cd ../..
+docker run -d --rm --name svs-test-db \
+  -e POSTGRES_USER=ci \
+  -e POSTGRES_PASSWORD=ci \
+  -e POSTGRES_DB=cidb \
+  -p 5432:5432 \
+  postgres:17
 export DATABASE_URL="postgres://ci:ci@localhost:5432/cidb"
 export ENVIRONMENT=testing
 export DJANGO_SETTINGS_MODULE=svs_core.db.settings
@@ -385,13 +391,13 @@ python manage.py migrate
 - **Solution:** Use correct settings module for the context:
   - For CLI/library: `export DJANGO_SETTINGS_MODULE=svs_core.db.settings`
   - For web app: `export DJANGO_SETTINGS_MODULE=project.settings`
-  - Tests use `svs_core.db.settings` (set in `.github/extra/.env.ci`)
+  - Tests use `svs_core.db.settings`
 
 ## Development Workflow
 
 ### Recommended Order for Changes
 1. **Setup environment:** Create venv, install dependencies
-2. **Start database:** Run docker compose in `.github/extra/`
+2. **Start database:** `docker run postgres:17` (see [Database Setup for Testing](#database-setup-for-testing))
 3. **Make code changes**
 4. **Run linting (MANDATORY):** `prek run --all-files` — CI will reject any PR that skips this
 5. **Run tests:** `pytest -m unit` first, then `pytest` for full suite
