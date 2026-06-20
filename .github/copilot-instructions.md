@@ -19,7 +19,7 @@
 - **Web Framework:** Django 6.0 with Bootstrap 5.3.8 and Alpine.js
 - **Web Proxy:** Caddy (for HTTP routing)
 - **Container Orchestration:** Docker + Docker Compose
-- **Testing:** pytest, pytest-asyncio, pytest-django, pytest-mock
+- **Testing:** pytest, pytest-django, pytest-mock
 - **Linting/Formatting:** ruff, black, isort, mypy, djlint
 - **Documentation:** Zensical (mkdocs-based)
 
