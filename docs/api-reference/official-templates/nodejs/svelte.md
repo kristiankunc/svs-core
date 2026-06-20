@@ -59,10 +59,10 @@ Example:
 
 ??? note "Source"
     ```json
-    --8<-- "service_templates/svelte.json"
+    --8<-- "svs_core/data/templates/svelte.json"
     ```
 
 ??? note "Dockerfile"
     ```dockerfile
-    --8<-- "service_templates/svelte.Dockerfile"
+    --8<-- "svs_core/data/templates/svelte.Dockerfile"
     ```

@@ -3,7 +3,6 @@
 import os
 import sys
 
-from getpass import getpass
 from importlib.metadata import version
 from typing import cast
 
@@ -34,36 +33,13 @@ if not EnvManager.get_database_url():
         "DATABASE_URL environment variable not set. Running detached from database."
     )
 
+from svs_core.cli.destroy import destroy_cmd  # noqa: E402
+from svs_core.cli.init import init_cmd  # noqa: E402
 from svs_core.cli.service import app as service_app  # noqa: E402
 from svs_core.cli.template import app as template_app  # noqa: E402
 from svs_core.cli.user import app as user_app  # noqa: E402
 from svs_core.cli.utils import app as utils_app  # noqa: E402
-
-
-def cli_first_user_setup(
-    username: str | None = None, password: str | None = None
-) -> None:
-    """Function prompting user to create in-place, used by the setup script."""
-    from svs_core.users.user import User
-
-    if username and password:
-        try:
-            User.create(username, password, True)
-            return
-        except Exception as e:
-            print(f"{e}\nFailed to create user with provided credentials.")
-
-    else:
-        try:
-            User.create(
-                input("Type your SVS username: ").strip(),
-                getpass("Type your SVS password: ").strip(),
-                True,
-            )
-            return
-        except Exception as e:
-            print(f"{e}\nFailed to create user, try again")
-            return cli_first_user_setup()
+from svs_core.cli.web import app as web_app  # noqa: E402
 
 
 def version_callback(value: bool) -> None:
@@ -114,10 +90,14 @@ def global_options(
         set_current_user(user_to_override.name, user_to_override.is_admin())
 
 
+app.command(name="init")(init_cmd)
+app.command(name="destroy")(destroy_cmd)
+
 app.add_typer(user_app, name="user")
 app.add_typer(template_app, name="template")
 app.add_typer(service_app, name="service")
 app.add_typer(utils_app, name="utils")
+app.add_typer(web_app, name="web")
 
 
 def main() -> None:  # noqa: D103

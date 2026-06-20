@@ -29,5 +29,5 @@ NGINX configuration files are in `/config/` in your service's volume. Customize 
 
 ??? note "Source"
     ```json
-    --8<-- "service_templates/nginx.json"
+    --8<-- "svs_core/data/templates/nginx.json"
     ```

@@ -1,46 +1,63 @@
 # Testing sandbox
 
-Uninstalling SVS from bare metal can be a little time consuming as no uninstall script is provided _yet_. To facilitate quick testing and evaluation, a pre-configured sandbox environment is provided using [Docker in Docker (DIND)](https://www.docker.com/resources/docker-in-docker-containerized-ci-workflows-dockercon-2023/#what-is-docker-in-docker).
+The SVS sandbox provides a pre-configured [Docker in Docker (DIND)](https://www.docker.com/resources/docker-in-docker-containerized-ci-workflows-dockercon-2023/#what-is-docker-in-docker) environment for quick testing and evaluation - no bare-metal installation required.
 
-It essentially runs a Docker container that has Docker installed within it, allowing you to run SVS inside this isolated environment without affecting your host system.
+It runs a Docker container that has Docker installed within it, allowing you to use SVS inside this isolated environment without affecting your host system.
 
 !!! warning "Not for production use"
     The SVS Sandbox is intended for quick testing and evaluation purposes only. It is not recommended for production environments.
 
 ## Prerequisites
 
-The only requirement is to have Docker daemon installed - [Docker installation guide](https://docs.docker.com/engine/install/).
+- Docker daemon installed and running - [Docker installation guide](https://docs.docker.com/engine/install/)
 
-## Running the sandbox
+## Quick start
 
-1) Start the container in detached mode:
+The sandbox auto-initializes on first boot - just start it and jump in:
 
 ```bash
+# Start the container (auto-initializes SVS)
 docker run -d --privileged --name svs-sandbox ghcr.io/kristiankunc/svs-core-sandbox:latest
-```
 
-2) Access the container's shell:
-
-```bash
+# Access the shell - SVS is ready to use
 docker exec -it svs-sandbox bash
 ```
 
-_You can ignore the `❌ Docker service is not running.` warning as long as running `docker ps` does not return an error._
+The container automatically:
+1. Starts the Docker daemon
+2. Runs `svs init --yes` to set up the PostgreSQL + Caddy stack, run migrations, import templates, and create a default admin user
 
+Default admin credentials: **`admin` / `admin`**
 
-## Setup
-
-After accessing the container shell, you still have to run the standard install script. For further details on the setup script, refer to the [quickstart guide](quickstart.md#run-setup-script).
-
-```bash
-sudo bash /root/install.sh
-```
-
-
-The official templates are provided in `/usr/local/share/service_templates/`. You can import them using the CLI:
+### Verify
 
 ```bash
-sudo svs template import -r /usr/local/share/service_templates/
+svs user list
 ```
 
-After that you're all set to go! You can start creating and running services as usual. **Keep in mind that unless you set up persistent storage, all data will be lost once the container is removed.**
+You're all set! Start creating services or exploring the CLI.
+
+## Building locally
+
+If you want to build the sandbox from source instead of using the pre-built image:
+
+```bash
+# Using the production Dockerfile
+cd sandbox-env
+docker compose build
+
+# Or using the local development Dockerfile (uses your local code checkout)
+docker compose -f docker-compose.yml -f docker-compose.local.yml build
+```
+
+## Data persistence
+
+**Keep in mind that unless you set up persistent storage, all data will be lost once the container is removed.** The sandbox is for evaluation, not long-term use.
+
+## Clean up
+
+To remove the sandbox container and all its data:
+
+```bash
+docker rm -f svs-sandbox
+```

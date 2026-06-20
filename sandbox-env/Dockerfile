@@ -19,7 +19,7 @@ RUN PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install svs-core
 RUN printf '%s\n' 'PIPX_HOME="/opt/pipx"' 'PIPX_BIN_DIR="/usr/local/bin"' | tee -a /etc/environment
 
 COPY scripts/install.sh /root/install.sh
-COPY service_templates/ /usr/local/share/service_templates/
+COPY svs_core/data/templates/ /usr/local/share/service_templates/
 RUN chmod -R 444 /usr/local/share/service_templates/
 
 COPY sandbox-env/entrypoint.sh /usr/local/bin/entrypoint.sh

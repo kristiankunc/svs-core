@@ -52,5 +52,5 @@ mysql -h server-ip -P <host_port> -u myuser -p
 
 ??? note "Source"
     ```json
-    --8<-- "service_templates/mysql.json"
+    --8<-- "svs_core/data/templates/mysql.json"
     ```

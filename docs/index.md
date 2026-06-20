@@ -62,8 +62,8 @@ Think of it like an extended variant of a [Docker compose file](https://docs.doc
 
 There are two types of templates:
 
-- **IMAGE** templates: These templates specify a Docker image to be used for the service. These images are pre-built and can be pulled from a Docker registry directly. A good example of such template is the [NGINX template](https://github.com/kristiankunc/svs-core/blob/main/service_templates/nginx.json)
-- **BUILD** templates: These templates include instructions to build a Docker image from a Dockerfile. When a service is deployed using a BUILD template, SVS will first build the Docker image according to the specified instructions before running the service. A good example of such template is the [Django template](https://github.com/kristiankunc/svs-core/blob/main/service_templates/django.json)
+- **IMAGE** templates: These templates specify a Docker image to be used for the service. These images are pre-built and can be pulled from a Docker registry directly. A good example of such template is the [NGINX template](https://github.com/kristiankunc/svs-core/blob/main/svs_core/data/templates/nginx.json)
+- **BUILD** templates: These templates include instructions to build a Docker image from a Dockerfile. When a service is deployed using a BUILD template, SVS will first build the Docker image according to the specified instructions before running the service. A good example of such template is the [Django template](https://github.com/kristiankunc/svs-core/blob/main/svs_core/data/templates/django.json)
 
 ### Service
 A service is an instance of a deployed application based on a template. Each service runs in its own Docker container, isolated from other services and users.

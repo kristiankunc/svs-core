@@ -7,3 +7,13 @@
     If you do not wish to go through the full setup process, you can try using the pre-configured sandbox environment aimed at quick testing, not for production use. Docs can be found [here](./sandbox.md).
 
 **Additionally**, you may wish to set up a web UI for easier management. See the instructions for [web setup](web.md).
+
+---
+
+### Uninstalling
+
+To completely remove SVS from your server, use the [destroy](../cli-documentation/utils.md#svs-destroy) command:
+
+```bash
+sudo svs destroy
+```

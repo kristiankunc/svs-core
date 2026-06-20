@@ -2,18 +2,19 @@
 
 set -e
 
-# Global variables
+PIPX_HOME="${PIPX_HOME:-/opt/pipx}"
+PIPX_BIN_DIR="${PIPX_BIN_DIR:-/usr/local/bin}"
+
 automated_yes=false
 admin_user=""
 admin_password=""
-python_path="/opt/pipx/venvs/svs-core/bin/python"
 setup_scope="all"
+
 
 confirm() {
     if [ "$automated_yes" = true ]; then
         return
     fi
-
     read -p "Are you sure you want to proceed? (y/n) " answer
     if [ "$answer" != "y" ]; then
         echo "Aborted."
@@ -21,256 +22,183 @@ confirm() {
     fi
 }
 
-verify_prerequisites() {
-    echo "Verifying system prerequisites..."
+BOLD='\033[1m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
-    # Check if system is Debian-based
+info()  { echo -e "${BOLD}${YELLOW}INFO${NC}   $1"; }
+ok()    { echo -e "${BOLD}${GREEN}OK${NC}      $1"; }
+fail()  { echo -e "${BOLD}${RED}FAIL${NC}    $1"; }
+erro()  { echo -e "${BOLD}${RED}ERROR${NC}   $1"; }
+
+
+
+verify_prerequisites() {
+    echo ""
+    info "Verifying system prerequisites..."
+
     if [ -f /etc/debian_version ]; then
-        echo "✅ System is Debian-based."
+        ok "System is Debian-based."
     else
-        echo "❌ This setup script is designed for Debian-based systems."
+        fail "This setup script is designed for Debian-based systems."
         confirm
     fi
 
-    # Check if Docker service is running
-    if command -v systemctl &> /dev/null; then
-        if systemctl is-active --quiet docker; then
-            echo "✅ Docker service is running."
-        else
-            echo "❌ Docker service is not running."
-            confirm
-        fi
+    if command -v systemctl &>/dev/null && systemctl is-active --quiet docker; then
+        ok "Docker service is running."
+    elif docker info &>/dev/null; then
+        ok "Docker service is running."
     else
-        if ps aux | grep -q '[d]ockerd'; then
-            echo "✅ Docker service is running."
-        else
-            echo "❌ Docker service is not running."
-            confirm
-        fi
+        fail "Docker service is not running."
+        confirm
     fi
 }
 
 permissions_setup() {
-    echo "Setting up necessary permissions..."
+    echo ""
+    info "Setting up permissions..."
 
-    # Create svs-admins group
     if getent group svs-admins > /dev/null; then
-        echo "✅ Group 'svs-admins' exists."
+        ok "Group 'svs-admins' exists."
     else
         sudo groupadd svs-admins
-        echo "✅ Group 'svs-admins' created."
+        ok "Group 'svs-admins' created."
     fi
 
-    # Add current user to svs-admins group
     sudo usermod -a -G svs-admins "$(id -u -n)"
-    echo "✅ User '$(id -u -n) added to 'svs-admins' group."
+    ok "User '$(id -u -n)' added to 'svs-admins' group."
 
-    echo "ALL ALL=NOPASSWD: /usr/local/bin/svs" | sudo tee -a /etc/sudoers
-    echo "✅ /usr/local/bin/svs is runnable with sudo for all"
+    if grep -q "ALL ALL=NOPASSWD: /usr/local/bin/svs" /etc/sudoers 2>/dev/null; then
+        ok "sudoers entry for 'svs' already exists."
+    else
+        echo "ALL ALL=NOPASSWD: /usr/local/bin/svs" | sudo tee -a /etc/sudoers >/dev/null
+        ok "Added sudoers entry: ALL NOPASSWD: svs"
+    fi
 
-    # Allow the svs script to switch to svs user internally without password
-    echo "%svs-admins ALL=(svs) NOPASSWD: /usr/local/bin/svs" | sudo tee -a /etc/sudoers
-    echo "✅ svs script can run as svs user without password prompt"
+    if grep -q "%svs-admins ALL=(svs) NOPASSWD: /usr/local/bin/svs" /etc/sudoers 2>/dev/null; then
+        ok "sudoers entry for 'svs-admins' already exists."
+    else
+        echo "%svs-admins ALL=(svs) NOPASSWD: /usr/local/bin/svs" | sudo tee -a /etc/sudoers >/dev/null
+        ok "Added sudoers entry: %svs-admins NOPASSWD: svs"
+    fi
 }
 
 create_svs_user() {
-    echo "Creating svs system user..."
+    echo ""
+    info "Creating svs system user..."
 
-    if id -u svs &> /dev/null; then
-        echo "✅ System user 'svs' already exists."
+    if id -u svs &>/dev/null; then
+        ok "System user 'svs' already exists."
     else
         sudo useradd --system --no-create-home --shell /usr/sbin/nologin svs
-        echo "✅ System user 'svs' created."
+        ok "System user 'svs' created."
     fi
 
     sudo usermod -a -G svs-admins svs
     sudo usermod -a -G docker svs
-    echo "✅ System user 'svs' added to 'svs-admins' and 'docker' groups."
-}
-
-docker_setup() {
-    echo "Setting up Docker environment..."
-
-    sudo mkdir -p /etc/svs/docker
-    sudo chown -R root:svs-admins /etc/svs/docker
-    sudo chmod 2775 /etc/svs/docker
-
-    compose_path="/etc/svs/docker/docker-compose.yml"
-    stack_env_path="/etc/svs/docker/stack.env"
-
-    # Create docker-compose.yml first
-    if [ ! -f "$compose_path" ]; then
-        sudo bash -c 'cat > '"$compose_path"' <<'"'"'EOF'"'"'
-name: "svs-core"
-
-services:
-  db:
-    image: postgres:latest
-    restart: unless-stopped
-    container_name: svs-db
-    ports:
-      - "5432:5432"
-    env_file:
-      - stack.env
-    volumes:
-      - pgdata:/var/lib/postgresql
-
-  caddy:
-    image: lucaslorentz/caddy-docker-proxy:latest
-    container_name: caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - caddy_data:/data
-      - caddy_config:/config
-    environment:
-      - CADDY_INGRESS_NETWORK=caddy
-    networks:
-      - caddy
-
-volumes:
-  pgdata:
-  caddy_data:
-  caddy_config:
-
-networks:
-  caddy:
-    name: caddy
-    driver: bridge
-EOF
-'
-        echo "✅ $compose_path created."
-        sudo chmod 660 "$compose_path"
-    else
-        echo "✅ $compose_path already exists."
-    fi
-
-    POSTGRES_USER=svs
-    POSTGRES_DB=svsdb
-    POSTGRES_HOST=localhost
-
-    # Check if stack.env exists and read existing credentials
-    if [ -f "$stack_env_path" ]; then
-        echo "✅ $stack_env_path already exists."
-        POSTGRES_PASSWORD=$(sudo grep "POSTGRES_PASSWORD=" "$stack_env_path" | cut -d'=' -f2)
-    else
-        # Generate a URL-safe password using only hexadecimal characters
-        POSTGRES_PASSWORD=$(openssl rand -hex 16)
-        sudo bash -c "cat > $stack_env_path <<EOL
-POSTGRES_USER=$POSTGRES_USER
-POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-POSTGRES_DB=$POSTGRES_DB
-POSTGRES_HOST=$POSTGRES_HOST
-EOL"
-        echo "✅ $stack_env_path created."
-        sudo chmod 660 "$stack_env_path"
-    fi
-
-    # start the compose stack as daemon and wait for db to be ready
-    sudo docker compose -f $compose_path --env-file $stack_env_path up -d
-    echo "Waiting for PostgreSQL to be ready..."
-    until sudo docker exec svs-db pg_isready -U $POSTGRES_USER; do
-        sleep 2
-    done
-
-    env_path="/etc/svs/.env"
-    if [ -f "$env_path" ]; then
-        echo "✅ $env_path already exists, removing"
-        sudo rm "$env_path"
-    fi
-
-    sudo touch "$env_path"
-    sudo chmod 640 "$env_path"
-    sudo chown svs:svs-admins "$env_path"
-    sudo bash -c "echo DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST:5432/$POSTGRES_DB > $env_path"
-    echo "✅ $env_path created with DATABASE_URL."
+    ok "System user 'svs' added to 'svs-admins' and 'docker' groups."
 }
 
 storage_setup() {
-    echo "Setting up storage directories..."
+    echo ""
+    info "Setting up storage directories..."
 
-    # Setup /etc/svs directory
     sudo mkdir -p /etc/svs
     sudo chown svs:svs-admins /etc/svs
     sudo chmod 2775 /etc/svs
+    ok "/etc/svs/ created."
 
-    # Setup /var/svs directory
     sudo mkdir -p /var/svs/volumes
     sudo chown -R svs:svs-admins /var/svs
     sudo chmod 2775 /var/svs
     sudo chmod 2775 /var/svs/volumes
+    ok "/var/svs/volumes/ created."
 
-    # Create log file with proper permissions
     sudo touch /etc/svs/svs.log
     sudo chown svs:svs-admins /etc/svs/svs.log
     sudo chmod 660 /etc/svs/svs.log
-
-    echo "✅ Storage directories and permissions set."
+    ok "/etc/svs/svs.log created."
 }
 
-django_migrations() {
-    echo "Running Django migrations..."
+setup_environment() {
+    echo ""
+    info "Setting environment variables..."
 
-    DATABASE_URL=$(sudo cat /etc/svs/.env | grep DATABASE_URL | cut -d '=' -f2-)
+    local env_file="/etc/environment"
 
-    if DATABASE_URL="$DATABASE_URL" $python_path -m django migrate svs_core; then
-        echo "✅ Django migrations completed."
+    if ! grep -q "PIPX_HOME=" "$env_file" 2>/dev/null; then
+        echo "PIPX_HOME=\"$PIPX_HOME\"" | sudo tee -a "$env_file" >/dev/null
+        ok "PIPX_HOME added to $env_file"
     else
-        echo "❌ Failed to run Django migrations."
-        exit 1
+        ok "PIPX_HOME already set in $env_file"
+    fi
+
+    if ! grep -q "PIPX_BIN_DIR=" "$env_file" 2>/dev/null; then
+        echo "PIPX_BIN_DIR=\"$PIPX_BIN_DIR\"" | sudo tee -a "$env_file" >/dev/null
+        ok "PIPX_BIN_DIR added to $env_file"
+    else
+        ok "PIPX_BIN_DIR already set in $env_file"
     fi
 }
 
-create_admin_user() {
-    echo "Creating initial admin user..."
+install_svs() {
+    echo ""
+    info "Installing/upgrading svs-core via pipx..."
 
-    if [ -n "$admin_user" ] && [ -n "$admin_password" ]; then
-        # User and password provided via command line
-
-        DATABASE_URL=$(sudo cat /etc/svs/.env | grep DATABASE_URL | cut -d '=' -f2-)
-
-        if DATABASE_URL="$DATABASE_URL" $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup(username='$admin_user', password='$admin_password')"; then
-            echo "✅ Admin user '$admin_user' created."
-        else
-            echo "❌ Failed to create admin user."
-            exit 1
-        fi
-    else
-        # Interactive mode (original behavior)
-        if DATABASE_URL="$DATABASE_URL" $python_path -c "from svs_core.__main__ import cli_first_user_setup; cli_first_user_setup()"; then
-            echo "✅ Admin user created (or already exists)."
-        else
-            echo "❌ Failed to create admin user."
-            exit 1
-        fi
+    if ! command -v pipx &>/dev/null; then
+        info "pipx not found. Installing..."
+        sudo apt-get update -qq && sudo apt-get install -y -qq pipx
+        pipx ensurepath
+        ok "pipx installed."
     fi
+
+    PIPX_HOME="$PIPX_HOME" PIPX_BIN_DIR="$PIPX_BIN_DIR" pipx install svs-core --force
+    ok "svs-core installed via pipx."
 }
+
+run_svs_init() {
+    echo ""
+    info "Handing off to 'svs init' for application setup..."
+
+    local init_args=""
+    [ "$automated_yes" = true ] && init_args="$init_args --yes"
+    [ -n "$admin_user" ] && init_args="$init_args --user $admin_user"
+    [ -n "$admin_password" ] && init_args="$init_args --password $admin_password"
+
+    PIPX_HOME="$PIPX_HOME" PIPX_BIN_DIR="$PIPX_BIN_DIR" \
+        svs init $init_args
+
+    echo ""
+    ok "SVS bootstrap complete!"
+}
+
 
 init() {
-    echo "Initializing the SVS environment..."
+    echo ""
+    echo "============================================"
+    echo "  SVS Bootstrap Installer"
+    echo "============================================"
+    echo "Scope: $setup_scope"
+    [ "$automated_yes" = true ] && echo "Mode: automated"
 
-    export DJANGO_SETTINGS_MODULE=svs_core.db.settings
-
-    # System setup: user creation and directory setup
     verify_prerequisites
     permissions_setup
     create_svs_user
     storage_setup
+    setup_environment
 
-    # Docker and Django setup (only if scope is "all")
     if [ "$setup_scope" = "all" ]; then
-        docker_setup
-        django_migrations
-        create_admin_user
+        install_svs
+        run_svs_init
+    else
+        echo ""
+        ok "System setup complete. Run 'sudo svs init' to finish configuration."
     fi
-
-    echo "✅ SVS environment initialization complete."
 }
 
-# Parse arguments
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -y|--yes)
@@ -285,14 +213,10 @@ while [[ "$#" -gt 0 ]]; do
             admin_password="$2"
             shift 2
             ;;
-        --python-path)
-            python_path="$2"
-            shift 2
-            ;;
         --scope)
             setup_scope="$2"
             if [ "$setup_scope" != "all" ] && [ "$setup_scope" != "system" ]; then
-                echo "❌ Invalid scope: $setup_scope. Must be 'all' or 'system'."
+                erro "Invalid scope: $setup_scope. Must be 'all' or 'system'."
                 exit 1
             fi
             shift 2
@@ -301,23 +225,20 @@ while [[ "$#" -gt 0 ]]; do
             echo "Usage: install.sh [options]"
             echo ""
             echo "Options:"
-            echo "  -y, --yes                 Run in automated mode, skipping confirmations."
-            echo "  --user USERNAME           Specify admin username."
-            echo "  --password PASSWORD       Specify admin password."
-            echo "  --python-path PATH        Specify the Python interpreter path."
-            echo "  --scope SCOPE             Scope of setup: 'all' (default) or 'system'."
-            echo "                            'system' - User creation and directory setup only"
-            echo "                            'all'    - Full setup including Docker, migrations, and admin user"
+            echo "  -y, --yes                 Non-interactive (automated) mode."
+            echo "  --user USERNAME           Admin username for svs init."
+            echo "  --password PASSWORD       Admin password for svs init."
+            echo "  --scope SCOPE             'all' (default) or 'system'."
+            echo "                            'system' = user+dirs+sudoers only."
             exit 0
             ;;
         *)
-            echo "Unknown option: $1"
+            erro "Unknown option: $1"
             exit 1
             ;;
     esac
 done
 
-# Only run init if not sourced from install-dev.sh
 if [ -z "$SOURCED_FOR_DEV" ]; then
     init
 fi
