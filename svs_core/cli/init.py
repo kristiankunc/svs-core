@@ -238,10 +238,11 @@ def _run_migrations() -> None:
 def _find_template_dirs() -> list[Path]:
     """Locate directories containing official service templates.
 
-    Checks (in order):
-    1. Package-bundled data directory (via __file__ relative path).
-    2. ``importlib.resources`` (modern Python package data API).
-    3. System share path (``/usr/local/share/service_templates/``).
+    Templates are bundled with the package at ``svs_core/data/templates/``.
+    Two resolution strategies are tried:
+
+    1. ``__file__``-relative path (works in editable/dev installs).
+    2. ``importlib.resources`` (works when installed as a wheel).
 
     Returns:
         A list of directory paths to scan, in priority order.
@@ -263,11 +264,6 @@ def _find_template_dirs() -> list[Path]:
                 discovered.append(p)
     except (ModuleNotFoundError, TypeError, OSError):
         pass
-
-    share = Path("/usr/local/share/service_templates")
-    if share.is_dir() and share not in discovered:
-        logger.info("Found templates in deprecated path %s, consider removing.", share)
-        discovered.append(share)
 
     return discovered
 
