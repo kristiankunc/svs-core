@@ -90,9 +90,19 @@ jobs:
     if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'release-please-')
     runs-on: ubuntu-latest
     services:
-      docker:
-        image: docker:28-dind
-        options: --privileged
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: cidb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout code
@@ -111,26 +121,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v4
-
-      - name: Set up Docker Compose
-        uses: docker/setup-qemu-action@v4
-
-      - name: Load environment variables
-        run: |
-          cat .github/extra/.env.ci >> $GITHUB_ENV
-
-      - name: Build & Start Containers
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_HOST: localhost
-          PGPORT: 5432
-        run: |
-          docker compose -f .github/extra/docker-compose.yml up -d --build
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -138,9 +128,9 @@ jobs:
 
       - name: Run tests
         env:
-          DATABASE_URL: postgres://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ env.POSTGRES_HOST }}:${{ env.PGPORT }}/${{ env.POSTGRES_DB }}
-          ENVIRONMENT: ${{ env.ENVIRONMENT }}
-          DJANGO_SETTINGS_MODULE: ${{ env.DJANGO_SETTINGS_MODULE }}
+          DATABASE_URL: postgres://ci:ci@localhost:5432/cidb
+          ENVIRONMENT: testing
+          DJANGO_SETTINGS_MODULE: svs_core.db.settings
         run: |
           pytest -n auto --cov=. --cov-branch --cov-report=xml:coverage.xml -q
 
