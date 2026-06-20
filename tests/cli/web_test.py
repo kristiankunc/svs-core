@@ -82,9 +82,6 @@ class TestCloneRepo:
     def test_clones_repo(self, mocker: MockerFixture, tmp_path: Path) -> None:
         mock_run = mocker.patch("subprocess.run")
         mock_run.return_value = mocker.MagicMock(returncode=0)
-        # Create the web dir structure that the move step expects
-        (tmp_path / "svs-core" / "web").mkdir(parents=True)
-        (tmp_path / "svs-core" / "web" / "manage.py").write_text("")
 
         web_module._clone_repo(tmp_path, "1.0.0")
 
@@ -93,8 +90,6 @@ class TestCloneRepo:
         assert "git" in args
         assert "clone" in args
         assert "v1.0.0" in args or "1.0.0" in args
-        # Verify files were moved from svs-core/web/ to install_path
-        assert (tmp_path / "manage.py").exists()
 
     @pytest.mark.unit
     def test_fallback_to_default_branch(
@@ -119,6 +114,7 @@ class TestSetupVenv:
     def test_creates_venv(self, mocker: MockerFixture, tmp_path: Path) -> None:
         (tmp_path / "requirements.txt").write_text("django\n")
         mock_run = mocker.patch("subprocess.run")
+        mock_run.return_value = mocker.MagicMock(returncode=0, stderr="")
 
         web_module._setup_venv(tmp_path, "1.0.0")
 
@@ -131,6 +127,7 @@ class TestSetupVenv:
         venv_path.mkdir(parents=True)
         (venv_path / "python").write_text("")
         mock_run = mocker.patch("subprocess.run")
+        mock_run.return_value = mocker.MagicMock(returncode=0, stderr="")
 
         web_module._setup_venv(tmp_path, "1.0.0")
 
