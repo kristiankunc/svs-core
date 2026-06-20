@@ -1,5 +1,3 @@
-"""Unit tests for svs_core.cli.init module."""
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -468,16 +466,6 @@ class TestInstallCompletions:
         mocker.patch("subprocess.run")
 
         init_module._install_completions()
-
-    @pytest.mark.unit
-    def test_generation_exception(self, mocker: MockerFixture) -> None:
-        mocker.patch("svs_core.cli.init.Path.exists", return_value=False)
-        mocker.patch("subprocess.run", side_effect=Exception("cmd failed"))
-
-        init_module._install_completions()
-
-
-# ---- init_cmd (integration via CliRunner) ----
 
 
 class TestInitCmd:

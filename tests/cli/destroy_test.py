@@ -1,5 +1,3 @@
-"""Unit tests for svs_core.cli.destroy module."""
-
 from __future__ import annotations
 
 import os
@@ -163,11 +161,11 @@ class TestCleanSudoers:
             "svs_core.cli.destroy.open",
             mocker.mock_open(read_data=sudoers.read_text()),
         )
-        mock_copy2 = mocker.patch("svs_core.cli.destroy.shutil.copy2")
+        mock_move = mocker.patch("svs_core.cli.destroy.shutil.move")
 
         destroy_module._clean_sudoers()
 
-        mock_copy2.assert_called_once()
+        mock_move.assert_called_once()
 
     @pytest.mark.unit
     def test_no_svs_entries(self, mocker: MockerFixture) -> None:

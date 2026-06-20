@@ -1,5 +1,3 @@
-"""Unit tests for svs_core.cli.web module."""
-
 from __future__ import annotations
 
 from pathlib import Path
