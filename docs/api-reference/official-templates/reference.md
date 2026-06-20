@@ -3,7 +3,7 @@
 Templates are defined using `JSON` files and can be imported via the [cli](../../cli-documentation/template.md#svs-template-import) or the web interface.
 
 
-The JSON schema is specified at https://github.com/kristiankunc/svs-core/blob/main/service_templates/schema.json.
+The JSON schema is specified at https://github.com/kristiankunc/svs-core/blob/main/svs_core/data/templates/schema.json.
 
 You can also refer to the [official templates](./) for examples of 1st party templates.
 
@@ -14,7 +14,7 @@ Generally, the schema should explain itself, but here are some notes on the fiel
 This field contains inline dockerfile instructions. To create such format from a regular dockerfile, you can use the [svs utils format-dockerfile](../../cli-documentation/utils.md#svs-utils-format-dockerfile) command.
 
 ```bash
-sudo svs utils format-dockerfile service_templates/python.Dockerfile
+sudo svs utils format-dockerfile svs_core/data/templates/python.Dockerfile
 ```
 
 ## Docker user

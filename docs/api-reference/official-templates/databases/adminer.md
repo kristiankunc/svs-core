@@ -39,5 +39,5 @@ For more on service naming, see [Docker DNS](../../../guides/#dns).
 
 ??? note "Source"
     ```json
-    --8<-- "service_templates/adminer.json"
+    --8<-- "svs_core/data/templates/adminer.json"
     ```

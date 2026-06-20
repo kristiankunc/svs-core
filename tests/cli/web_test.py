@@ -82,6 +82,9 @@ class TestCloneRepo:
     def test_clones_repo(self, mocker: MockerFixture, tmp_path: Path) -> None:
         mock_run = mocker.patch("subprocess.run")
         mock_run.return_value = mocker.MagicMock(returncode=0)
+        # Create the web dir structure that the move step expects
+        (tmp_path / "svs-core" / "web").mkdir(parents=True)
+        (tmp_path / "svs-core" / "web" / "manage.py").write_text("")
 
         web_module._clone_repo(tmp_path, "1.0.0")
 
@@ -90,6 +93,8 @@ class TestCloneRepo:
         assert "git" in args
         assert "clone" in args
         assert "v1.0.0" in args or "1.0.0" in args
+        # Verify files were moved from svs-core/web/ to install_path
+        assert (tmp_path / "manage.py").exists()
 
     @pytest.mark.unit
     def test_fallback_to_default_branch(
@@ -198,7 +203,7 @@ class TestWriteMinimalEnv:
     def test_includes_domain(self, tmp_path: Path) -> None:
         env_path = tmp_path / ".env"
 
-        web_module._write_minimal_env(env_path, domain="example.com")
+        web_module._write_minimal_env(env_path, domain="example.com")  # noqa: SC200
 
         content = env_path.read_text()
         assert "example.com" in content

@@ -266,6 +266,7 @@ def _find_template_dirs() -> list[Path]:
 
     share = Path("/usr/local/share/service_templates")
     if share.is_dir() and share not in discovered:
+        logger.info("Found templates in deprecated path %s, consider removing.", share)
         discovered.append(share)
 
     return discovered
@@ -372,7 +373,7 @@ def _create_admin_user(password: str | None, non_interactive: bool) -> None:
                 print(f"{e}\nFailed to create user, try again")
             else:
                 print(f"{e}\nFailed to create user after 3 attempts.", file=sys.stderr)
-                raise typer.Exit(code=1)
+                raise typer.Exit(code=1) from e
 
 
 def _install_completions() -> None:

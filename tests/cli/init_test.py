@@ -488,8 +488,10 @@ class TestInitCmd:
         assert "Initialize the SVS environment" in result.output
 
     @pytest.mark.unit
-    def test_init_needs_root_for_docker(self, cli_runner: CliRunner) -> None:
-        # This test would need extensive mocking of the entire init
-        # flow. For now, just verify --help works and basic structure
-        # is sound.
-        pass
+    def test_skip_flags(self, cli_runner: CliRunner) -> None:
+        result = cli_runner.invoke(
+            app,
+            ["init", "--skip-templates", "--skip-completions", "--yes"],
+        )
+        assert result.exit_code != 0
+        assert "SVS Environment Initialization" in result.output

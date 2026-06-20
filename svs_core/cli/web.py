@@ -321,10 +321,12 @@ def _setup_venv(install_path: Path, svs_version: str) -> None:
         text=True,
     )
     if result.returncode != 0:
-        print(f"{WARN} svs-core install issue: {result.stderr.strip()}")
-        print("  Continuing with existing installation.")
-    else:
-        print(f"{OK} svs-core installed in web venv.")
+        print(
+            f"{ERR} Failed to install svs-core=={svs_version} in web venv: {result.stderr.strip()}",
+            file=sys.stderr,
+        )
+        raise typer.Exit(code=1)
+    print(f"{OK} svs-core installed in web venv.")
 
     # Create logs directory
     logs_path = install_path / "logs"

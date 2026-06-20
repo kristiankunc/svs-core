@@ -6,10 +6,10 @@ We're gonna run a simple nginx webserver
 
 ### Importing the config
 
-Grab the example template configuration from [https://github.com/kristiankunc/svs-core/blob/main/service_templates/nginx.json](https://github.com/kristiankunc/svs-core/blob/main/service_templates/nginx.json)
+Grab the example template configuration from [https://github.com/kristiankunc/svs-core/blob/main/svs_core/data/templates/nginx.json](https://github.com/kristiankunc/svs-core/blob/main/svs_core/data/templates/nginx.json)
 
 ```bash
-curl https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/service_templates/nginx.json -o nginx.json
+curl https://raw.githubusercontent.com/kristiankunc/svs-core/refs/heads/main/svs_core/data/templates/nginx.json -o nginx.json
 ```
 
 and apply it using the [`svs template import`](../cli-documentation/template.md#svs-template-import) command

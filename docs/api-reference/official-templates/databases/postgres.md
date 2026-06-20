@@ -50,5 +50,5 @@ psql -h server-ip -p <host_port> -U myuser -d mydb
 
 ??? note "Source"
     ```json
-    --8<-- "service_templates/postgres.json"
+    --8<-- "svs_core/data/templates/postgres.json"
     ```

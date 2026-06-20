@@ -63,10 +63,10 @@ RewriteRule ^(.*)$ index.php/$1 [L]
 
 ??? note "Source"
     ```json
-    --8<-- "service_templates/php.json"
+    --8<-- "svs_core/data/templates/php.json"
     ```
 
 ??? note "Dockerfile"
     ```dockerfile
-    --8<-- "service_templates/php.Dockerfile"
+    --8<-- "svs_core/data/templates/php.Dockerfile"
     ```

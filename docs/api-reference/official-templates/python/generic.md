@@ -54,10 +54,10 @@ Configure as needed:
 
 ??? note "Source"
     ```json
-    --8<-- "service_templates/python.json"
+    --8<-- "svs_core/data/templates/python.json"
     ```
 
 ??? note "Dockerfile"
     ```dockerfile
-    --8<-- "service_templates/python.Dockerfile"
+    --8<-- "svs_core/data/templates/python.Dockerfile"
     ```

@@ -63,10 +63,10 @@ Replace `{postgres_service_id}` with your database service's ID. See [DNS](../..
 
 ??? note "Source"
     ```json
-    --8<-- "service_templates/django.json"
+    --8<-- "svs_core/data/templates/django.json"
     ```
 
 ??? note "Dockerfile"
     ```dockerfile
-    --8<-- "service_templates/django.Dockerfile"
+    --8<-- "svs_core/data/templates/django.Dockerfile"
     ```
