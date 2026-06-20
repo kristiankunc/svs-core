@@ -354,20 +354,25 @@ def _create_admin_user(password: str | None, non_interactive: bool) -> None:
             raise typer.Exit(code=1)
 
     # Interactive mode — prompt only for password
-    try:
-        print()
-        print(f"Creating admin user [bold]{username}[/bold].")
-        password = getpass("Type your SVS password: ").strip()
-        if not password:
-            print("Password cannot be empty.", file=sys.stderr)
-            raise typer.Exit(code=1)
-        User.create(username, password, True)
-        print(f"{OK} Admin user '{username}' created.")
-    except typer.Exit:
-        raise
-    except Exception as e:
-        print(f"{e}\nFailed to create user, try again")
-        _create_admin_user(None, False)
+    for attempt in range(3):
+        try:
+            print()
+            print(f"Creating admin user [bold]{username}[/bold].")
+            password = getpass("Type your SVS password: ").strip()
+            if not password:
+                print("Password cannot be empty.", file=sys.stderr)
+                raise typer.Exit(code=1)
+            User.create(username, password, True)
+            print(f"{OK} Admin user '{username}' created.")
+            return
+        except typer.Exit:
+            raise
+        except Exception as e:
+            if attempt < 2:
+                print(f"{e}\nFailed to create user, try again")
+            else:
+                print(f"{e}\nFailed to create user after 3 attempts.", file=sys.stderr)
+                raise typer.Exit(code=1)
 
 
 def _install_completions() -> None:

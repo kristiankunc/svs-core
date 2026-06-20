@@ -3,7 +3,6 @@
 import os
 import sys
 
-from getpass import getpass
 from importlib.metadata import version
 from typing import cast
 
@@ -41,32 +40,6 @@ from svs_core.cli.template import app as template_app  # noqa: E402
 from svs_core.cli.user import app as user_app  # noqa: E402
 from svs_core.cli.utils import app as utils_app  # noqa: E402
 from svs_core.cli.web import app as web_app  # noqa: E402
-
-
-def cli_first_user_setup(
-    username: str | None = None, password: str | None = None
-) -> None:
-    """Function prompting user to create in-place, used by the setup script."""
-    from svs_core.users.user import User
-
-    if username and password:
-        try:
-            User.create(username, password, True)
-            return
-        except Exception as e:
-            print(f"{e}\nFailed to create user with provided credentials.")
-
-    else:
-        try:
-            User.create(
-                input("Type your SVS username: ").strip(),
-                getpass("Type your SVS password: ").strip(),
-                True,
-            )
-            return
-        except Exception as e:
-            print(f"{e}\nFailed to create user, try again")
-            return cli_first_user_setup()
 
 
 def version_callback(value: bool) -> None:

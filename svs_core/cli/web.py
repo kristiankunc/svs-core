@@ -315,11 +315,16 @@ def _setup_venv(install_path: Path, svs_version: str) -> None:
 
     # Install matching svs-core
     print(f"Installing svs-core=={svs_version} into web venv...")
-    subprocess.run(
+    result = subprocess.run(
         [str(venv_python), "-m", "pip", "install", f"svs-core=={svs_version}"],
         capture_output=True,
+        text=True,
     )
-    print(f"{OK} svs-core installed in web venv.")
+    if result.returncode != 0:
+        print(f"{WARN} svs-core install issue: {result.stderr.strip()}")
+        print("  Continuing with existing installation.")
+    else:
+        print(f"{OK} svs-core installed in web venv.")
 
     # Create logs directory
     logs_path = install_path / "logs"
@@ -456,6 +461,13 @@ def _write_caddy_config(install_path: Path, domain: str) -> None:
     print()
     print("To use this Caddyfile, mount it in your Caddy container and")
     print("set CADDY_DOCKER_CADDYFILE_PATH. See web setup docs for details.")
+    print()
+    print(
+        f"{WARN} On Linux, add 'extra_hosts: [\"host.docker.internal:host-gateway\"]'"
+    )
+    print(
+        "  to the caddy service in /etc/svs/docker/docker-compose.yml for this to work."
+    )
 
 
 def _collect_static(install_path: Path) -> None:

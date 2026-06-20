@@ -125,7 +125,8 @@ def _clean_sudoers() -> None:
         return
 
     try:
-        content = open(sudoers_path).read()
+        with open(sudoers_path) as f:
+            content = f.read()
     except PermissionError:
         print(f"{WARN} Cannot read /etc/sudoers -- skipping sudoers cleanup.")
         return
@@ -151,8 +152,7 @@ def _clean_sudoers() -> None:
             fd, tmp_path = tempfile.mkstemp()
             with os.fdopen(fd, "w") as f:
                 f.writelines(new_lines)
-            shutil.copy2(tmp_path, sudoers_path)
-            os.unlink(tmp_path)
+            shutil.move(tmp_path, sudoers_path)
             print(f"{OK} Removed {removed} sudoers entr(ies).")
         except PermissionError:
             print(f"{WARN} Cannot write /etc/sudoers -- sudoers cleanup skipped.")
