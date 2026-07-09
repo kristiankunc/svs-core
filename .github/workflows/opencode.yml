@@ -1,5 +1,4 @@
 name: opencode
-
 on:
   issue_comment:
     types: [created]
@@ -9,16 +8,19 @@ on:
 jobs:
   setup:
     if: |
+      github.event_name == 'pull_request' ||
       (
-        github.event.comment.author_association == 'OWNER' ||
-        github.event.comment.author_association == 'MEMBER' ||
-        github.event.comment.author_association == 'COLLABORATOR'
-      ) &&
-      (
-        contains(github.event.comment.body, ' /oc') ||
-        startsWith(github.event.comment.body, '/oc') ||
-        contains(github.event.comment.body, ' /opencode') ||
-        startsWith(github.event.comment.body, '/opencode')
+        (
+          github.event.comment.author_association == 'OWNER' ||
+          github.event.comment.author_association == 'MEMBER' ||
+          github.event.comment.author_association == 'COLLABORATOR'
+        ) &&
+        (
+          contains(github.event.comment.body, ' /oc') ||
+          startsWith(github.event.comment.body, '/oc') ||
+          contains(github.event.comment.body, ' /opencode') ||
+          startsWith(github.event.comment.body, '/opencode')
+        )
       )
     uses: kristiankunc/svs-core/.github/workflows/copilot-setup-steps.yml@main
     permissions:
@@ -26,6 +28,7 @@ jobs:
 
   opencode:
     needs: setup
+    if: needs.setup.result == 'success' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -36,12 +39,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
+          fetch-depth: 0
           persist-credentials: false
-
       - name: Run opencode
         uses: anomalyco/opencode/github@latest
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           model: opencode-go/deepseek-v4-flash
           share: true
+          prompt: |
+            If — and only if — this request is asking for a code review of the
+            pull request, do NOT post findings as a plain comment. Instead submit
+            a real GitHub PR review with inline comments via the REST API:
+
+            1. Get the head SHA:
+               gh pr view <PR_NUMBER> --json headRefOid -q .headRefOid
+            2. Get the diff so you know real line numbers:
+               gh pr diff <PR_NUMBER>
+            3. For each finding, build: {"path": "<file>", "line": <new-file-line>, "side": "RIGHT", "body": "<comment>"}
+            4. Combine into: {"commit_id": "<sha>", "event": "COMMENT", "body": "Automated review", "comments": [...]}
+            5. Save as review.json and submit as ONE review:
+               gh api repos/${{ github.repository }}/pulls/<PR_NUMBER>/reviews --input review.json
+
+            Only comment on lines that actually appear in the diff. Never invent
+            line numbers. For any other kind of request (fix, explain, implement),
+            ignore this and proceed normally.
+
+            ${{ github.event.comment.body }}
