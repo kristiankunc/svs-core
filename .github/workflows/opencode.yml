@@ -50,9 +50,13 @@ jobs:
           model: opencode-go/deepseek-v4-flash
           share: true
           prompt: |
+            ${{ github.event.comment.body }}
+
             If — and only if — this request is asking for a code review of the
-            pull request, do NOT post findings as a plain comment. Instead submit
-            a real GitHub PR review with inline comments via the REST API:
+            pull request, do NOT post findings as a plain comment, and do NOT
+            create, modify, stage, or commit any file inside this git repository.
+            Instead submit a real GitHub PR review with inline comments via the
+            REST API, doing all scratch work outside the repo:
 
             1. Get the head SHA:
                gh pr view <PR_NUMBER> --json headRefOid -q .headRefOid
@@ -60,11 +64,11 @@ jobs:
                gh pr diff <PR_NUMBER>
             3. For each finding, build: {"path": "<file>", "line": <new-file-line>, "side": "RIGHT", "body": "<comment>"}
             4. Combine into: {"commit_id": "<sha>", "event": "COMMENT", "body": "Automated review", "comments": [...]}
-            5. Save as review.json and submit as ONE review:
-               gh api repos/${{ github.repository }}/pulls/<PR_NUMBER>/reviews --input review.json
+            5. Write this JSON to /tmp/review.json (NOT inside the repo directory)
+               and submit it as ONE review:
+               gh api repos/${{ github.repository }}/pulls/<PR_NUMBER>/reviews --input /tmp/review.json
+            6. Delete /tmp/review.json afterward.
 
             Only comment on lines that actually appear in the diff. Never invent
             line numbers. For any other kind of request (fix, explain, implement),
-            ignore this and proceed normally.
-
-            ${{ github.event.comment.body }}
+            ignore this review instruction and proceed normally.
