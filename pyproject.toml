@@ -28,7 +28,7 @@ dev = [
     "black==26.3.1",
     "isort==8.0.1",
     "mypy==2.1.0",
-    "prek==0.4.5",
+    "prek==0.4.6",
     "pytest==9.0.3",
     "pytest-cov==7.1.0",
     "pytest-dotenv==0.5.2",
