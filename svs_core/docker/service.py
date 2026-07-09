@@ -5,6 +5,8 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, List, TypeVar, Union, cast
 
+from pydantic import ValidationError as PydanticValidationError
+
 from svs_core.db.models import (
     ServiceModel,
     ServiceStatus,
@@ -318,120 +320,12 @@ Miscelanous:
         Raises:
             ValueError: If name is empty or template_id doesn't correspond to an existing template.
         """
-        # Input validation
+        # Input validation (type/value checks delegated to Pydantic models)
         if not name:
             raise ValidationException("Service name cannot be empty")
-
-        if not isinstance(name, str):
-            raise ValidationException(f"Service name must be a string: {name}")
-
-        if not isinstance(template_id, int):
-            raise ValidationException(f"Template ID must be an integer: {template_id}")
-
         if template_id <= 0:
             raise ValidationException(f"Template ID must be positive: {template_id}")
-
-        if domain is not None and not isinstance(domain, str):
-            raise ValidationException(f"Domain must be a string: {domain}")
-
-        if container_id is not None and not isinstance(container_id, str):
-            raise ValidationException(f"Container ID must be a string: {container_id}")
-
-        if image is not None and not isinstance(image, str):
-            raise ValidationException(f"Image must be a string: {image}")
-
-        if command is not None and not isinstance(command, str):
-            raise ValidationException(f"Command must be a string: {command}")
-
-        if networks is not None:
-            if not isinstance(networks, list):
-                raise ValidationException(f"Networks must be a list: {networks}")
-            for net in networks:
-                if not isinstance(net, str):
-                    raise ValidationException(f"Each network must be a string: {net}")
-
-        # Validate exposed_ports
-        if exposed_ports is not None:
-            if not isinstance(exposed_ports, list):
-                raise ValidationException(
-                    f"Exposed ports must be a list: {exposed_ports}"
-                )
-            for port in exposed_ports:
-                if not isinstance(port, ExposedPort):
-                    raise ValidationException(
-                        f"Each port must be an ExposedPort instance: {port}"
-                    )
-                if not isinstance(port.container_port, int) or port.container_port <= 0:
-                    raise ValidationException(
-                        f"Container port must be a positive integer: {port.container_port}"
-                    )
-
-        # Validate env
-        if env is not None:
-            if not isinstance(env, list):
-                raise ValidationException(
-                    f"Environment variables must be a list: {env}"
-                )
-            for var in env:
-                if not isinstance(var, EnvVariable):
-                    raise ValidationException(
-                        f"Each environment variable must be an EnvVariable instance: {var}"
-                    )
-                if not var.key or not isinstance(var.key, str):
-                    raise ValidationException(
-                        f"Environment variable key must be a non-empty string: {var.key}"
-                    )
-                if not isinstance(var.value, str):
-                    raise ValidationException(
-                        f"Environment variable value must be a string: {var.value}"
-                    )
-
-        # Validate volumes
-        if volumes is not None:
-            if not isinstance(volumes, list):
-                raise ValidationException(f"Volumes must be a list: {volumes}")
-            for vol in volumes:
-                if not isinstance(vol, Volume):
-                    raise ValidationException(
-                        f"Each volume must be a Volume instance: {vol}"
-                    )
-                if not vol.container_path or not isinstance(vol.container_path, str):
-                    raise ValidationException(
-                        f"Volume container path must be a non-empty string: {vol.container_path}"
-                    )
-                if vol.host_path is not None and not isinstance(vol.host_path, str):
-                    raise ValidationException(
-                        f"Volume host path must be a string: {vol.host_path}"
-                    )
-
-        # Validate labels
-        if labels is not None:
-            if not isinstance(labels, list):
-                raise ValidationException(f"Labels must be a list: {labels}")
-            for label in labels:
-                if not isinstance(label, Label):
-                    raise ValidationException(
-                        f"Each label must be a Label instance: {label}"
-                    )
-                if not label.key or not isinstance(label.key, str):
-                    raise ValidationException(
-                        f"Label key must be a non-empty string: {label.key}"
-                    )
-                if not isinstance(label.value, str):
-                    raise ValidationException(
-                        f"Label value must be a string: {label.value}"
-                    )
-
-        # Validate healthcheck
-        if healthcheck is not None and not isinstance(healthcheck, Healthcheck):
-            raise ValidationException(
-                f"Healthcheck must be a Healthcheck instance: {healthcheck}"
-            )
-
-        # Validate args
         if args is not None:
-            if not isinstance(args, list):
-                raise ValidationException(f"Arguments must be a list: {args}")
             for arg in args:
                 if not isinstance(arg, str):
                     raise ValidationException(f"Each argument must be a string: {arg}")
@@ -454,25 +348,18 @@ Miscelanous:
         # Use template defaults if not provided
         if image is None:
             image = template.image
-
         if exposed_ports is None:
             exposed_ports = list(template.default_ports)
-
         if env is None:
             env = list(template.default_env)
-
         if volumes is None:
             volumes = list(template.default_volumes)
-
         if command is None:
             command = template.start_cmd
-
         if healthcheck is None:
             healthcheck = template.healthcheck
-
         if labels is None:
             labels = list(template.labels)
-
         if args is None:
             args = list(template.args) if template.args else []
 
@@ -930,62 +817,16 @@ Miscelanous:
         """
 
         if domain is not None:
-            if not isinstance(domain, str):
-                raise ValidationException(f"Domain must be a string: {domain}")
             self.domain = domain
-
         if env_variables is not None:
-            if not isinstance(env_variables, list):
-                raise ValidationException(
-                    f"Environment variables must be a list: {env_variables}"
-                )
-            for var in env_variables:
-                if not isinstance(var, EnvVariable):
-                    raise ValidationException(
-                        f"Each environment variable must be an EnvVariable instance: {var}"
-                    )
-                if not var.key or not isinstance(var.key, str):
-                    raise ValidationException(
-                        f"Environment variable key must be a non-empty string: {var.key}"
-                    )
-                if not isinstance(var.value, str):
-                    raise ValidationException(
-                        f"Environment variable value must be a string: {var.value}"
-                    )
             self.env = env_variables
-
         if ports is not None:
-            if not isinstance(ports, list):
-                raise ValidationException(f"Ports must be a list: {ports}")
-            for port in ports:
-                if not isinstance(port, ExposedPort):
-                    raise ValidationException(
-                        f"Each port must be an ExposedPort instance: {port}"
-                    )
-                if not isinstance(port.container_port, int) or port.container_port <= 0:
-                    raise ValidationException(
-                        f"Container port must be a positive integer: {port.container_port}"
-                    )
             self.exposed_ports = ports
-
         if command is not None:
-            if not isinstance(command, str):
-                raise ValidationException(f"Command must be a string: {command}")
             self.command = command
-
         if healthcheck is not None:
-            if not isinstance(healthcheck, Healthcheck):
-                raise ValidationException(
-                    f"Healthcheck must be a Healthcheck instance: {healthcheck}"
-                )
             self.healthcheck = healthcheck
-
         if args is not None:
-            if not isinstance(args, list):
-                raise ValidationException(f"Arguments must be a list: {args}")
-            for arg in args:
-                if not isinstance(arg, str):
-                    raise ValidationException(f"Each argument must be a string: {arg}")
             self.args = args
 
         self.save()
