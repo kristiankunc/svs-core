@@ -12,6 +12,7 @@ from rich.table import Table
 from svs_core.cli.lib import (
     get_or_exit,
     git_source_id_autocomplete,
+    parse_kv_pair,
     service_id_autocomplete,
     template_id_autocomplete,
 )
@@ -32,6 +33,24 @@ from svs_core.shared.exceptions import (
 )
 from svs_core.shared.git_source import GitSource
 from svs_core.users.user import User
+
+
+def check_service_permission(service: Service) -> None:
+    """Exit if the current user is not the owner and not an admin.
+
+    Args:
+        service: The service to check permission for.
+
+    Raises:
+        typer.Exit: If the user lacks permission.
+    """
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        print(
+            "You do not have permission to access this service.",
+            file=sys.stderr,
+        )
+        raise typer.Exit(1)
+
 
 app = typer.Typer(help="Manage services")
 
@@ -84,9 +103,7 @@ def get_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to view this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service)
 
     if long:
         print(service.__str__())
@@ -150,71 +167,41 @@ def create_service(
 
     user = get_or_exit(User, name=get_current_username())
 
-    # Parse environment variables
-    override_env = None
-    if env:
-        override_env = []
-        for env_var in env:
-            if "=" not in env_var:
-                print(
-                    f"Invalid environment variable format: {env_var}. Use KEY=VALUE",
-                    file=sys.stderr,
-                )
-                raise typer.Exit(code=1)
-            key, value = env_var.split("=", 1)
-            override_env.append(EnvVariable(key=key, value=value))
-
-    # Parse ports
-    override_ports = None
-    if port:
-        override_ports = []
-        for port_mapping in port:
-            if ":" not in port_mapping:
-                print(
-                    f"Invalid port format: {port_mapping}. Use container_port:host_port",
-                    file=sys.stderr,
-                )
-                raise typer.Exit(code=1)
-            try:
-                container_port_str, host_port_str = port_mapping.split(":", 1)
-                container_port = int(container_port_str)
-                host_port = int(host_port_str)
-                override_ports.append(
-                    ExposedPort(container_port=container_port, host_port=host_port)
-                )
-            except ValueError:
-                print(
-                    f"Invalid port numbers: {port_mapping}. Ports must be integers",
-                    file=sys.stderr,
-                )
-                raise typer.Exit(code=1)
-
-    # Parse volumes
+    # Parse CLI options into domain objects
+    override_env = [
+        EnvVariable(key=k, value=v)
+        for k, v in [
+            parse_kv_pair(e, "=", "KEY=VALUE", "environment variable")
+            for e in (env or [])
+        ]
+    ] or None
+    override_labels = [
+        Label(key=k, value=v)
+        for k, v in [parse_kv_pair(l, "=", "KEY=VALUE", "label") for l in (label or [])]
+    ] or None
     override_volumes = None
     if volume:
         override_volumes = []
-        for volume_mapping in volume:
-            if ":" not in volume_mapping:
+        for vm in volume:
+            c_path, h_path = parse_kv_pair(
+                vm, ":", "container_path:host_path", "volume"
+            )
+            override_volumes.append(Volume(container_path=c_path, host_path=h_path))
+    override_ports = None
+    if port:
+        override_ports = []
+        for pm in port:
+            cp_str, hp_str = parse_kv_pair(pm, ":", "container_port:host_port", "port")
+            try:
+                override_ports.append(
+                    ExposedPort(container_port=int(cp_str), host_port=int(hp_str))
+                )
+            except ValueError:
                 print(
-                    f"Invalid volume format: {volume_mapping}. Use container_path:host_path",
+                    f"Invalid port numbers: {pm}. Ports must be integers",
                     file=sys.stderr,
                 )
                 raise typer.Exit(code=1)
-            container_path, host_path = volume_mapping.split(":", 1)
-            override_volumes.append(
-                Volume(container_path=container_path, host_path=host_path)
-            )
-
-    # Parse labels
-    override_labels = None
-    if label:
-        override_labels = []
-        for lbl in label:
-            if "=" not in lbl:
-                print(f"Invalid label format: {lbl}. Use KEY=VALUE", file=sys.stderr)
-                raise typer.Exit(code=1)
-            key, value = lbl.split("=", 1)
-            override_labels.append(Label(key=key, value=value))
 
     try:
         service = Service.create_from_template(
@@ -245,9 +232,7 @@ def start_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to start this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service)
 
     try:
         service.start()
@@ -267,9 +252,7 @@ def stop_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to stop this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service)
 
     try:
         service.stop()
@@ -292,9 +275,7 @@ def build_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to build this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service)
 
     path_obj = Path(path)
 
@@ -318,9 +299,7 @@ def delete_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to delete this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service)
 
     service.delete()
     print(f"Service '{service.name}' deleted successfully.")
@@ -338,11 +317,7 @@ def view_service_logs(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print(
-            "You do not have permission to view this service's logs.", file=sys.stderr
-        )
-        raise typer.Exit(1)
+    check_service_permission(service)
 
     logs = service.get_logs()
     print(logs)
@@ -363,9 +338,7 @@ def add_git_source(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to modify this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service)
 
     destination_path_formatted = Path(destination_path)
 
@@ -403,9 +376,7 @@ def delete_git_source(
     git_source = get_or_exit(GitSource, id=git_source_id)
     service = git_source.service
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to modify this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service)
 
     service.remove_git_source(git_source_id)
     print(
@@ -426,9 +397,7 @@ def download_git_source(
     git_source = get_or_exit(GitSource, id=git_source_id)
     service = git_source.service
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to modify this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service)
 
     with Progress(
         SpinnerColumn(),
@@ -460,9 +429,7 @@ def open_service_shell(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to access this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service)
 
     if not service.status == ServiceStatus.RUNNING:
         print("Service must be running to open a shell.", file=sys.stderr)
@@ -547,45 +514,28 @@ def update_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to update this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service)
 
-    # Parse environment variables
-    override_env = None
-    if env:
-        override_env = []
-        for env_var in env:
-            if "=" not in env_var:
-                print(
-                    f"Invalid environment variable format: {env_var}. Use KEY=VALUE",
-                    file=sys.stderr,
-                )
-                raise typer.Exit(code=1)
-            key, value = env_var.split("=", 1)
-            override_env.append(EnvVariable(key=key, value=value))
-
-    # Parse ports
+    # Parse CLI options into domain objects
+    override_env = [
+        EnvVariable(key=k, value=v)
+        for k, v in [
+            parse_kv_pair(e, "=", "KEY=VALUE", "environment variable")
+            for e in (env or [])
+        ]
+    ] or None
     override_ports = None
     if port:
         override_ports = []
-        for port_mapping in port:
-            if ":" not in port_mapping:
-                print(
-                    f"Invalid port format: {port_mapping}. Use container_port:host_port",
-                    file=sys.stderr,
-                )
-                raise typer.Exit(code=1)
+        for pm in port:
+            cp_str, hp_str = parse_kv_pair(pm, ":", "container_port:host_port", "port")
             try:
-                container_port_str, host_port_str = port_mapping.split(":", 1)
-                container_port = int(container_port_str)
-                host_port = int(host_port_str)
                 override_ports.append(
-                    ExposedPort(container_port=container_port, host_port=host_port)
+                    ExposedPort(container_port=int(cp_str), host_port=int(hp_str))
                 )
             except ValueError:
                 print(
-                    f"Invalid port numbers: {port_mapping}. Ports must be integers",
+                    f"Invalid port numbers: {pm}. Ports must be integers",
                     file=sys.stderr,
                 )
                 raise typer.Exit(code=1)

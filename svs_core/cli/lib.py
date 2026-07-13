@@ -44,6 +44,35 @@ def confirm_action(prompt: str) -> bool:
     return response == "y"
 
 
+def parse_kv_pair(
+    value: str, sep: str, format_name: str, item_name: str = "value"
+) -> tuple[str, str]:
+    """Parse a key=value or key:value formatted CLI argument.
+
+    Prints an error and exits with code 1 if the separator is not found.
+
+    Args:
+        value: The input string (e.g. "KEY=VALUE").
+        sep: The expected separator (e.g. "=" or ":").
+        format_name: Human-readable format description (e.g. "KEY=VALUE").
+        item_name: Human-readable name for the item type (e.g. "environment variable").
+
+    Returns:
+        tuple[str, str]: The parsed (key, value) pair.
+
+    Raises:
+        typer.Exit: If the separator is not found.
+    """
+    if sep not in value:
+        print(
+            f"Invalid {item_name} format: {value}. Use {format_name}",
+            file=sys.stderr,
+        )
+        raise typer.Exit(code=1)
+    parts = value.split(sep, 1)
+    return parts[0], parts[1]
+
+
 def _complete(
     object: Type[Model],
     incomplete: str,

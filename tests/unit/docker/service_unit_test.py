@@ -1,5 +1,6 @@
 import pytest
 
+from pydantic import ValidationError as PydanticValidationError
 from pytest_mock import MockerFixture
 
 from svs_core.db.models import ServiceStatus
@@ -67,27 +68,6 @@ class TestServiceUnit:
         assert result_dict["1"] == "override"
         assert result_dict["2"] == "B"
         assert result_dict["3"] == "B"
-
-    @pytest.mark.unit
-    def test_create_validates_domain_type(self, mocker: MockerFixture) -> None:
-        """Test that Service.create validates domain parameter type."""
-        mock_template = mocker.MagicMock()
-        mock_template.id = 1
-        mocker.patch(
-            "svs_core.docker.service.Template.objects.get", return_value=mock_template
-        )
-
-        mock_user = mocker.MagicMock()
-        mock_user.id = 1
-
-        # Test with non-string domain
-        with pytest.raises(ValidationException, match="Domain must be a string"):
-            Service.create(
-                name="test-service",
-                template_id=1,
-                user=mock_user,
-                domain=123,  # type: ignore[arg-type]
-            )
 
     @pytest.mark.unit
     def test_create_accepts_valid_domain(self, mocker: MockerFixture) -> None:
@@ -389,45 +369,42 @@ class TestServiceUnit:
         mock_service.recreate.assert_called_once()
 
     @pytest.mark.unit
-    def test_update_invalid_domain_type(self, mocker: MockerFixture) -> None:
-        """Test that update raises ValidationException for non-string
-        domain."""
+    def test_update_passes_through_domain(self, mocker: MockerFixture) -> None:
+        """Update no longer validates simple types — Pydantic enforces at
+        construction."""
         mock_service = mocker.MagicMock(spec=Service)
+        mocker.patch.object(Service, "save")
+        mocker.patch.object(Service, "recreate")
 
-        with pytest.raises(ValidationException, match="Domain must be a string"):
-            Service.update(mock_service, domain=123)  # type: ignore[arg-type]
+        # No exception raised — type safety is the caller's responsibility
+        Service.update(mock_service, domain="new.example.com")
+        assert mock_service.domain == "new.example.com"
 
     @pytest.mark.unit
-    def test_update_invalid_port_container_port(self, mocker: MockerFixture) -> None:
-        """Test that update raises ValidationException for non-positive
-        container port."""
-        mock_service = mocker.MagicMock(spec=Service)
-
-        with pytest.raises(
-            ValidationException, match="Container port must be a positive integer"
-        ):
-            Service.update(
-                mock_service,
-                ports=[ExposedPort(container_port=-1, host_port=8080)],
-            )
+    def test_update_port_validation_happens_at_construction(self) -> None:
+        """ExposedPort Pydantic model rejects non-positive container_port."""
+        with pytest.raises(PydanticValidationError):
+            ExposedPort(container_port=-1, host_port=8080)
 
     @pytest.mark.unit
-    def test_update_invalid_command_type(self, mocker: MockerFixture) -> None:
-        """Test that update raises ValidationException for non-string
-        command."""
+    def test_update_passes_through_command(self, mocker: MockerFixture) -> None:
+        """Update no longer validates simple types."""
         mock_service = mocker.MagicMock(spec=Service)
+        mocker.patch.object(Service, "save")
+        mocker.patch.object(Service, "recreate")
 
-        with pytest.raises(ValidationException, match="Command must be a string"):
-            Service.update(mock_service, command=123)  # type: ignore[arg-type]
+        Service.update(mock_service, command="new-command")
+        assert mock_service.command == "new-command"
 
     @pytest.mark.unit
-    def test_update_invalid_arg_item(self, mocker: MockerFixture) -> None:
-        """Test that update raises ValidationException for non-string arg
-        items."""
+    def test_update_passes_through_args(self, mocker: MockerFixture) -> None:
+        """Update no longer validates args individually."""
         mock_service = mocker.MagicMock(spec=Service)
+        mocker.patch.object(Service, "save")
+        mocker.patch.object(Service, "recreate")
 
-        with pytest.raises(ValidationException, match="Each argument must be a string"):
-            Service.update(mock_service, args=[123])  # type: ignore[list-item]
+        Service.update(mock_service, args=["arg1", "arg2"])
+        assert mock_service.args == ["arg1", "arg2"]
 
     @pytest.mark.unit
     def test_update_none_values_preserve_existing(self, mocker: MockerFixture) -> None:
