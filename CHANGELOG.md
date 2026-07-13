@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/kristiankunc/svs-core/compare/v0.14.7...v0.15.0) (2026-07-13)
+
+
+### Features
+
+* Refactor setup scripts ([#457](https://github.com/kristiankunc/svs-core/issues/457)) ([bbb4109](https://github.com/kristiankunc/svs-core/commit/bbb4109c072d33684e78c5e7979df91a65a3757c))
+
 ## [0.14.7](https://github.com/kristiankunc/svs-core/compare/v0.14.6...v0.14.7) (2026-06-17)
 
 
