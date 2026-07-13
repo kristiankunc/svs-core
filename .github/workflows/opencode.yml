@@ -33,4 +33,4 @@ jobs:
           CONFIG__MODEL: "openai/deepseek-v4-flash"
           CONFIG__CUSTOM_MODEL_MAX_TOKENS: "128000"
 
-          github_action_config.auto_review: "true"
+          PR_REVIEWER__INLINE_CODE_COMMENTS: "true"
