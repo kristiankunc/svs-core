@@ -35,11 +35,11 @@ from svs_core.shared.git_source import GitSource
 from svs_core.users.user import User
 
 
-def check_service_permission(service: object) -> None:
+def check_service_permission(service: Service) -> None:
     """Exit if the current user is not the owner and not an admin.
 
     Args:
-        service: A service-like object with a ``user.name`` attribute.
+        service: The service to check permission for.
 
     Raises:
         typer.Exit: If the user lacks permission.

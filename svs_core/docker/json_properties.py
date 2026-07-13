@@ -156,26 +156,32 @@ class ExposedPort(BaseModel):
         return f"ExposedPort({self.host_port}->{self.container_port})"
 
     @classmethod
-    def from_dict(cls, data: dict) -> Self:
+    def from_dict(cls, data: dict[str, int | None]) -> Self:
         """Creates an ExposedPort instance from a dictionary.
 
         Args:
-            data (dict): A dictionary with "key" (host_port) and "value" (container_port) fields.
+            data (dict[str, int | None]): A dictionary with "key" (host_port) and "value" (container_port) fields.
 
         Returns:
             Self: A new ExposedPort instance.
+
+        Raises:
+            ValueError: If container_port is missing or None.
         """
+        container_port = data["value"]
+        if container_port is None:
+            raise ValueError("container_port must not be None")
         return cls(
             host_port=data.get("key"),
-            container_port=data["value"],
+            container_port=container_port,
         )
 
     @classmethod
-    def from_dict_array(cls, data: list[dict]) -> list[Self]:
+    def from_dict_array(cls, data: list[dict[str, int | None]]) -> list[Self]:
         """Creates a list of ExposedPort instances from a list of dictionaries.
 
         Args:
-            data (list[dict]): A list of dictionaries.
+            data (list[dict[str, int | None]]): A list of dictionaries.
 
         Returns:
             list[Self]: A list of ExposedPort instances.
@@ -183,22 +189,22 @@ class ExposedPort(BaseModel):
         return [cls.from_dict(item) for item in data]
 
     @staticmethod
-    def to_dict_array(items: list["ExposedPort"]) -> list[dict]:
+    def to_dict_array(items: list["ExposedPort"]) -> list[dict[str, int | None]]:
         """Converts a list of ExposedPort instances to a list of dictionaries.
 
         Args:
             items (list[ExposedPort]): A list of ExposedPort instances.
 
         Returns:
-            list[dict]: A list of dicts with "key" and "value" fields.
+            list[dict[str, int | None]]: A list of dicts with "key" and "value" fields.
         """
         return [item.to_dict() for item in items or []]
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, int | None]:
         """Converts the ExposedPort instance to a dictionary.
 
         Returns:
-            dict: A dictionary with "key" (host_port) and "value" (container_port).
+            dict[str, int | None]: A dictionary with "key" (host_port) and "value" (container_port).
         """
         return {"key": self.host_port, "value": self.container_port}
 
@@ -223,26 +229,32 @@ class Volume(BaseModel):
         return f"Volume({self.container_path}={self.host_path})"
 
     @classmethod
-    def from_dict(cls, data: dict) -> Self:
+    def from_dict(cls, data: dict[str, str | None]) -> Self:
         """Creates a Volume instance from a dictionary.
 
         Args:
-            data (dict): A dictionary with "key" (host_path) and "value" (container_path) fields.
+            data (dict[str, str | None]): A dictionary with "key" (host_path) and "value" (container_path) fields.
 
         Returns:
             Self: A new Volume instance.
+
+        Raises:
+            ValueError: If container_path is missing or None.
         """
+        container_path = data["value"]
+        if container_path is None:
+            raise ValueError("container_path must not be None")
         return cls(
             host_path=data.get("key"),
-            container_path=data["value"],
+            container_path=container_path,
         )
 
     @classmethod
-    def from_dict_array(cls, data: list[dict]) -> list[Self]:
+    def from_dict_array(cls, data: list[dict[str, str | None]]) -> list[Self]:
         """Creates a list of Volume instances from a list of dictionaries.
 
         Args:
-            data (list[dict]): A list of dictionaries.
+            data (list[dict[str, str | None]]): A list of dictionaries.
 
         Returns:
             list[Self]: A list of Volume instances.
@@ -250,22 +262,22 @@ class Volume(BaseModel):
         return [cls.from_dict(item) for item in data]
 
     @staticmethod
-    def to_dict_array(items: list["Volume"]) -> list[dict]:
+    def to_dict_array(items: list["Volume"]) -> list[dict[str, str | None]]:
         """Converts a list of Volume instances to a list of dictionaries.
 
         Args:
             items (list[Volume]): A list of Volume instances.
 
         Returns:
-            list[dict]: A list of dicts with "key" and "value" fields.
+            list[dict[str, str | None]]: A list of dicts with "key" and "value" fields.
         """
         return [item.to_dict() for item in items or []]
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, str | None]:
         """Converts the Volume instance to a dictionary.
 
         Returns:
-            dict: A dictionary with "key" (host_path) and "value" (container_path).
+            dict[str, str | None]: A dictionary with "key" (host_path) and "value" (container_path).
         """
         return {"key": self.host_path, "value": self.container_path}
 
@@ -291,11 +303,11 @@ class DefaultContent(BaseModel):
         return f"DefaultContent({self.location}={content_preview})"
 
     @classmethod
-    def from_dict(cls, data: dict) -> Self:
+    def from_dict(cls, data: dict[str, str]) -> Self:
         """Creates a DefaultContent instance from a dictionary.
 
         Args:
-            data (dict): A dictionary with "key" (location) and "value" (content) fields.
+            data (dict[str, str]): A dictionary with "key" (location) and "value" (content) fields.
 
         Returns:
             Self: A new DefaultContent instance.
@@ -305,12 +317,13 @@ class DefaultContent(BaseModel):
         return cls(location=data["key"], content=data["value"])
 
     @classmethod
-    def from_dict_array(cls, data: list[dict]) -> list[Self]:
-        """Creates a list of DefaultContent instances from a list of
-        dictionaries.
+    def from_dict_array(cls, data: list[dict[str, str]]) -> list[Self]:
+        """Creates a list of DefaultContent.
+
+        Creates a list of DefaultContent instances from a list of dictionaries.
 
         Args:
-            data (list[dict]): A list of dictionaries.
+            data (list[dict[str, str]]): A list of dictionaries.
 
         Returns:
             list[Self]: A list of DefaultContent instances.
@@ -318,23 +331,24 @@ class DefaultContent(BaseModel):
         return [cls.from_dict(item) for item in data]
 
     @staticmethod
-    def to_dict_array(items: list["DefaultContent"]) -> list[dict]:
-        """Converts a list of DefaultContent instances to a list of
-        dictionaries.
+    def to_dict_array(items: list["DefaultContent"]) -> list[dict[str, str]]:
+        """Converts a list of DefaultContent.
+
+        Converts a list of DefaultContent instances to a list of dictionaries.
 
         Args:
             items (list[DefaultContent]): A list of DefaultContent instances.
 
         Returns:
-            list[dict]: A list of dicts with "key" and "value" fields.
+            list[dict[str, str]]: A list of dicts with "key" and "value" fields.
         """
         return [item.to_dict() for item in items or []]
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, str]:
         """Converts the DefaultContent instance to a dictionary.
 
         Returns:
-            dict: A dictionary with "key" (location) and "value" (content).
+            dict[str, str]: A dictionary with "key" (location) and "value" (content).
         """
         return {"key": self.location, "value": self.content}
 
@@ -444,7 +458,16 @@ class Healthcheck(BaseModel):
         Returns:
             dict[str, str | list[str] | int | None]: A dictionary representation of the healthcheck configuration.
         """
-        return self.model_dump(exclude_none=True)  # type: ignore[return-value]
+        result: dict[str, str | list[str] | int | None] = {"Test": self.test}
+        if self.interval is not None:
+            result["Interval"] = self.interval
+        if self.timeout is not None:
+            result["Timeout"] = self.timeout
+        if self.retries is not None:
+            result["Retries"] = self.retries
+        if self.start_period is not None:
+            result["StartPeriod"] = self.start_period
+        return result
 
     def to_docker_api_format(self) -> dict[str, list[str] | int | None]:
         """Converts the Healthcheck instance to Docker API format.
@@ -455,7 +478,9 @@ class Healthcheck(BaseModel):
             dict[str, list[str] | int | None]: A dictionary with Docker API format.
                 Keys are: Test, Interval, Timeout, Retries, StartPeriod.
         """
-        result: dict[str, list[str] | int | None] = {"Test": self.test}
+        test_cmd = self.test
+        assert isinstance(test_cmd, list), "test must be a list after validation"
+        result: dict[str, list[str] | int | None] = {"Test": test_cmd}
 
         # Convert seconds to nanoseconds for Docker API
         if self.interval is not None:
