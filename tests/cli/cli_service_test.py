@@ -1142,7 +1142,10 @@ class TestServiceCommands:
             domain="example.com",
             env_variables=None,
             ports=None,
+            volumes=None,
+            labels=None,
             command=None,
+            healthcheck=None,
             args=None,
         )
 
