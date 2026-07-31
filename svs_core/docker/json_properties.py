@@ -458,15 +458,15 @@ class Healthcheck(BaseModel):
         Returns:
             dict[str, str | list[str] | int | None]: A dictionary representation of the healthcheck configuration.
         """
-        result: dict[str, str | list[str] | int | None] = {"Test": self.test}
+        result: dict[str, str | list[str] | int | None] = {"test": self.test}
         if self.interval is not None:
-            result["Interval"] = self.interval
+            result["interval"] = self.interval
         if self.timeout is not None:
-            result["Timeout"] = self.timeout
+            result["timeout"] = self.timeout
         if self.retries is not None:
-            result["Retries"] = self.retries
+            result["retries"] = self.retries
         if self.start_period is not None:
-            result["StartPeriod"] = self.start_period
+            result["start_period"] = self.start_period
         return result
 
     def to_docker_api_format(self) -> dict[str, list[str] | int | None]:

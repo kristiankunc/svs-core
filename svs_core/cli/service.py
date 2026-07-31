@@ -35,18 +35,19 @@ from svs_core.shared.git_source import GitSource
 from svs_core.users.user import User
 
 
-def check_service_permission(service: Service) -> None:
+def check_service_permission(service: Service, action: str = "access") -> None:
     """Exit if the current user is not the owner and not an admin.
 
     Args:
         service: The service to check permission for.
+        action: The action being attempted (e.g. "start", "view logs for").
 
     Raises:
         typer.Exit: If the user lacks permission.
     """
     if not is_current_user_admin() and service.user.name != get_current_username():
         print(
-            "You do not have permission to access this service.",
+            f"You do not have permission to {action} this service.",
             file=sys.stderr,
         )
         raise typer.Exit(1)
@@ -103,7 +104,7 @@ def get_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    check_service_permission(service)
+    check_service_permission(service, "view")
 
     if long:
         print(service.__str__())
@@ -232,7 +233,7 @@ def start_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    check_service_permission(service)
+    check_service_permission(service, "start")
 
     try:
         service.start()
@@ -252,7 +253,7 @@ def stop_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    check_service_permission(service)
+    check_service_permission(service, "stop")
 
     try:
         service.stop()
@@ -275,7 +276,7 @@ def build_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    check_service_permission(service)
+    check_service_permission(service, "build")
 
     path_obj = Path(path)
 
@@ -299,7 +300,7 @@ def delete_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    check_service_permission(service)
+    check_service_permission(service, "delete")
 
     service.delete()
     print(f"Service '{service.name}' deleted successfully.")
@@ -317,7 +318,7 @@ def view_service_logs(
 
     service = get_or_exit(Service, id=service_id)
 
-    check_service_permission(service)
+    check_service_permission(service, "view logs for")
 
     logs = service.get_logs()
     print(logs)
@@ -338,7 +339,7 @@ def add_git_source(
 
     service = get_or_exit(Service, id=service_id)
 
-    check_service_permission(service)
+    check_service_permission(service, "modify")
 
     destination_path_formatted = Path(destination_path)
 
@@ -376,7 +377,7 @@ def delete_git_source(
     git_source = get_or_exit(GitSource, id=git_source_id)
     service = git_source.service
 
-    check_service_permission(service)
+    check_service_permission(service, "modify")
 
     service.remove_git_source(git_source_id)
     print(
@@ -397,7 +398,7 @@ def download_git_source(
     git_source = get_or_exit(GitSource, id=git_source_id)
     service = git_source.service
 
-    check_service_permission(service)
+    check_service_permission(service, "modify")
 
     with Progress(
         SpinnerColumn(),
@@ -429,7 +430,7 @@ def open_service_shell(
 
     service = get_or_exit(Service, id=service_id)
 
-    check_service_permission(service)
+    check_service_permission(service, "access")
 
     if not service.status == ServiceStatus.RUNNING:
         print("Service must be running to open a shell.", file=sys.stderr)
@@ -514,7 +515,7 @@ def update_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    check_service_permission(service)
+    check_service_permission(service, "update")
 
     # Parse CLI options into domain objects
     override_env = [

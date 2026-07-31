@@ -691,7 +691,7 @@ class TestServiceCommands:
 
         assert result.exit_code == 1
         assert (
-            "You do not have permission to view this service's logs." in result.output
+            "You do not have permission to view logs for this service." in result.output
         )
 
     def test_logs_empty(self, mocker: MockerFixture) -> None:

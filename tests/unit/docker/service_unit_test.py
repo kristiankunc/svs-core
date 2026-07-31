@@ -87,7 +87,8 @@ class TestServiceUnit:
         mocker.patch(
             "svs_core.docker.service.Template.objects.get", return_value=mock_template
         )
-        mocker.patch("svs_core.docker.service.Service.objects.create")
+        mock_create = mocker.patch("svs_core.docker.service.Service.objects.create")
+        mock_create.return_value = mocker.MagicMock(id=1, domain="example.com")
 
         mock_user = mocker.MagicMock()
         mock_user.id = 1
@@ -119,7 +120,8 @@ class TestServiceUnit:
         mocker.patch(
             "svs_core.docker.service.Template.objects.get", return_value=mock_template
         )
-        mocker.patch("svs_core.docker.service.Service.objects.create")
+        mock_create = mocker.patch("svs_core.docker.service.Service.objects.create")
+        mock_create.return_value = mocker.MagicMock(id=1, domain=None)
 
         mock_user = mocker.MagicMock()
         mock_user.id = 1
