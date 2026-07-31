@@ -363,6 +363,8 @@ Miscelanous:
         if args is None:
             args = list(template.args) if template.args else []
 
+        labels = list(labels)
+
         # Generate free ports and volumes if needed
         for port in exposed_ports:
             if port.host_port is None:
@@ -799,6 +801,8 @@ Miscelanous:
         domain: str | None = None,
         env_variables: list[EnvVariable] | None = None,
         ports: list[ExposedPort] | None = None,
+        volumes: list[Volume] | None = None,
+        labels: list[Label] | None = None,
         command: str | None = None,
         healthcheck: Healthcheck | None = None,
         args: list[str] | None = None,
@@ -808,26 +812,69 @@ Miscelanous:
         If None is provided for any arguments, the current value will be retained.
 
         Args:
-            domain (str | None): _description_. Defaults to None.
-            env_variables (list[EnvVariable] | None): _description_. Defaults to None.
-            ports (list[ExposedPort] | None): _description_. Defaults to None.
-            command (str | None): _description_. Defaults to None.
-            healthcheck (Healthcheck | None): _description_. Defaults to None.
-            args (list[str] | None): _description_. Defaults to None.
+            domain: The domain for the service.
+            env_variables: Environment variables to replace current ones.
+            ports: Port mappings to replace current ones.
+            volumes: Volume mappings to replace current ones.
+            labels: Container labels to replace current ones.
+            command: Command to run in the container.
+            healthcheck: Healthcheck configuration to replace current one.
+            args: Command arguments to replace current ones.
         """
 
-        if domain is not None:
-            self.domain = domain
         if env_variables is not None:
+            if not isinstance(env_variables, list):
+                raise ValidationException(
+                    f"Environment variables must be a list: {env_variables}"
+                )
+            for var in env_variables:
+                if not isinstance(var, EnvVariable):
+                    raise ValidationException(
+                        f"Each environment variable must be an EnvVariable: {var}"
+                    )
             self.env = env_variables
         if ports is not None:
+            if not isinstance(ports, list):
+                raise ValidationException(f"Ports must be a list: {ports}")
+            for port in ports:
+                if not isinstance(port, ExposedPort):
+                    raise ValidationException(
+                        f"Each port must be an ExposedPort: {port}"
+                    )
             self.exposed_ports = ports
+        if volumes is not None:
+            if not isinstance(volumes, list):
+                raise ValidationException(f"Volumes must be a list: {volumes}")
+            for vol in volumes:
+                if not isinstance(vol, Volume):
+                    raise ValidationException(f"Each volume must be a Volume: {vol}")
+            self.volumes = volumes
+        if labels is not None:
+            if not isinstance(labels, list):
+                raise ValidationException(f"Labels must be a list: {labels}")
+            for lbl in labels:
+                if not isinstance(lbl, Label):
+                    raise ValidationException(f"Each label must be a Label: {lbl}")
+            self.labels = labels
         if command is not None:
+            if not isinstance(command, str):
+                raise ValidationException(f"Command must be a string: {command}")
             self.command = command
         if healthcheck is not None:
+            if not isinstance(healthcheck, Healthcheck):
+                raise ValidationException(
+                    f"Healthcheck must be a Healthcheck: {healthcheck}"
+                )
             self.healthcheck = healthcheck
         if args is not None:
+            if not isinstance(args, list):
+                raise ValidationException(f"Arguments must be a list: {args}")
+            for arg in args:
+                if not isinstance(arg, str):
+                    raise ValidationException(f"Each argument must be a string: {arg}")
             self.args = args
+        if domain is not None:
+            self.domain = domain
 
         self.save()
         self.recreate()

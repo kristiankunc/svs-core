@@ -5,6 +5,7 @@ from subprocess import run as subprocess_run
 
 import typer
 
+from pydantic import ValidationError as PydanticValidationError
 from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
@@ -21,6 +22,7 @@ from svs_core.db.models import ServiceStatus
 from svs_core.docker.json_properties import (
     EnvVariable,
     ExposedPort,
+    Healthcheck,
     Label,
     Volume,
 )
@@ -169,25 +171,47 @@ def create_service(
     user = get_or_exit(User, name=get_current_username())
 
     # Parse CLI options into domain objects
-    override_env = [
-        EnvVariable(key=k, value=v)
-        for k, v in [
-            parse_kv_pair(e, "=", "KEY=VALUE", "environment variable")
-            for e in (env or [])
-        ]
-    ] or None
-    override_labels = [
-        Label(key=k, value=v)
-        for k, v in [parse_kv_pair(l, "=", "KEY=VALUE", "label") for l in (label or [])]
-    ] or None
+    override_env = None
+    if env:
+        override_env = []
+        for e in env:
+            try:
+                k, v = parse_kv_pair(e, "=", "KEY=VALUE", "environment variable")
+                override_env.append(EnvVariable(key=k, value=v))
+            except PydanticValidationError:
+                print(
+                    f"Invalid environment variable: {e}. Use KEY=VALUE",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+    override_labels = None
+    if label:
+        override_labels = []
+        for l in label:
+            try:
+                k, v = parse_kv_pair(l, "=", "KEY=VALUE", "label")
+                override_labels.append(Label(key=k, value=v))
+            except PydanticValidationError:
+                print(
+                    f"Invalid label: {l}. Use KEY=VALUE",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
     override_volumes = None
     if volume:
         override_volumes = []
         for vm in volume:
-            c_path, h_path = parse_kv_pair(
-                vm, ":", "container_path:host_path", "volume"
-            )
-            override_volumes.append(Volume(container_path=c_path, host_path=h_path))
+            try:
+                c_path, h_path = parse_kv_pair(
+                    vm, ":", "container_path:host_path", "volume"
+                )
+                override_volumes.append(Volume(container_path=c_path, host_path=h_path))
+            except PydanticValidationError:
+                print(
+                    f"Invalid volume: {vm}. Use container_path:host_path",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
     override_ports = None
     if port:
         override_ports = []
@@ -200,6 +224,12 @@ def create_service(
             except ValueError:
                 print(
                     f"Invalid port numbers: {pm}. Ports must be integers",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+            except PydanticValidationError:
+                print(
+                    f"Invalid port: {pm}. Use container_port:host_port",
                     file=sys.stderr,
                 )
                 raise typer.Exit(code=1)
@@ -491,6 +521,43 @@ def update_service(
         "-p",
         help="Port mappings in container_port:host_port format (can be used multiple times)",
     ),
+    volume: list[str] | None = typer.Option(
+        None,
+        "--volume",
+        "-v",
+        help="Volume mappings in container_path:host_path format (can be used multiple times)",
+    ),
+    label: list[str] | None = typer.Option(
+        None,
+        "--label",
+        "-l",
+        help="Labels in KEY=VALUE format (can be used multiple times)",
+    ),
+    healthcheck_test: str | None = typer.Option(
+        None,
+        "--healthcheck",
+        help="Healthcheck command (e.g. 'CMD curl -f http://localhost')",
+    ),
+    healthcheck_interval: int | None = typer.Option(
+        None,
+        "--healthcheck-interval",
+        help="Healthcheck interval in seconds",
+    ),
+    healthcheck_timeout: int | None = typer.Option(
+        None,
+        "--healthcheck-timeout",
+        help="Healthcheck timeout in seconds",
+    ),
+    healthcheck_retries: int | None = typer.Option(
+        None,
+        "--healthcheck-retries",
+        help="Healthcheck retries count",
+    ),
+    healthcheck_start_period: int | None = typer.Option(
+        None,
+        "--healthcheck-start-period",
+        help="Healthcheck start period in seconds",
+    ),
     command: str | None = typer.Option(
         None, "--command", "-c", help="Command to run in the container"
     ),
@@ -507,6 +574,9 @@ def update_service(
     - Domain: --domain example.com
     - Environment variables: --env KEY=VALUE
     - Ports: --port container_port:host_port
+    - Volumes: --volume container_path:host_path
+    - Labels: --label KEY=VALUE
+    - Healthcheck: --healthcheck "CMD curl -f http://localhost"
     - Command: --command "command"
     - Arguments: --args "arg1" --args "arg2"
 
@@ -518,13 +588,19 @@ def update_service(
     check_service_permission(service, "update")
 
     # Parse CLI options into domain objects
-    override_env = [
-        EnvVariable(key=k, value=v)
-        for k, v in [
-            parse_kv_pair(e, "=", "KEY=VALUE", "environment variable")
-            for e in (env or [])
-        ]
-    ] or None
+    override_env = None
+    if env:
+        override_env = []
+        for e in env:
+            try:
+                k, v = parse_kv_pair(e, "=", "KEY=VALUE", "environment variable")
+                override_env.append(EnvVariable(key=k, value=v))
+            except PydanticValidationError:
+                print(
+                    f"Invalid environment variable: {e}. Use KEY=VALUE",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
     override_ports = None
     if port:
         override_ports = []
@@ -540,6 +616,56 @@ def update_service(
                     file=sys.stderr,
                 )
                 raise typer.Exit(code=1)
+            except PydanticValidationError:
+                print(
+                    f"Invalid port: {pm}. Use container_port:host_port",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+    override_volumes = None
+    if volume:
+        override_volumes = []
+        for vm in volume:
+            try:
+                c_path, h_path = parse_kv_pair(
+                    vm, ":", "container_path:host_path", "volume"
+                )
+                override_volumes.append(Volume(container_path=c_path, host_path=h_path))
+            except PydanticValidationError:
+                print(
+                    f"Invalid volume: {vm}. Use container_path:host_path",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+    override_labels = None
+    if label:
+        override_labels = []
+        for l in label:
+            try:
+                k, v = parse_kv_pair(l, "=", "KEY=VALUE", "label")
+                override_labels.append(Label(key=k, value=v))
+            except PydanticValidationError:
+                print(
+                    f"Invalid label: {l}. Use KEY=VALUE",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+    override_healthcheck = None
+    if healthcheck_test:
+        try:
+            override_healthcheck = Healthcheck(
+                test=healthcheck_test,
+                interval=healthcheck_interval,
+                timeout=healthcheck_timeout,
+                retries=healthcheck_retries,
+                start_period=healthcheck_start_period,
+            )
+        except PydanticValidationError:
+            print(
+                f"Invalid healthcheck: {healthcheck_test}",
+                file=sys.stderr,
+            )
+            raise typer.Exit(code=1)
 
     try:
         with Progress(
@@ -551,7 +677,10 @@ def update_service(
                 domain=domain,
                 env_variables=override_env,
                 ports=override_ports,
+                volumes=override_volumes,
+                labels=override_labels,
                 command=command,
+                healthcheck=override_healthcheck,
                 args=args,
             )
         print(
