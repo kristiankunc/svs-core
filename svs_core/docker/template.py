@@ -135,11 +135,11 @@ Miscellaneous:
             ValidationException: If any of the provided values are invalid.
         """
 
-        # Validate name
+        # Validate name (business rule)
         if not name:
             raise ValidationException("Template name cannot be empty")
 
-        # Validate type-specific requirements
+        # Validate type-specific requirements (business rules)
         if type == TemplateType.IMAGE:
             if not image:
                 raise ValidationException("Image type templates must specify an image")
@@ -149,121 +149,11 @@ Miscellaneous:
                     "Build type templates must specify a dockerfile"
                 )
 
-        # Validate image format if provided
-        if image is not None:
-            if not image:
-                raise ValidationException("Image cannot be empty if provided")
-
-        # Validate dockerfile if provided
-        if dockerfile is not None and not dockerfile.strip():
-            raise ValidationException("Dockerfile cannot be empty if provided")
-
-        # Validate default_env
-        if default_env is not None:
-            for var in default_env:
-                if not isinstance(var.key, str) or not isinstance(var.value, str):
-                    raise ValidationException(
-                        f"Default environment keys and values must be strings: {var.key}={var.value}"
-                    )
-                if not var.key:
-                    raise ValidationException(
-                        "Default environment keys cannot be empty"
-                    )
-
-        # Validate default_ports
-        if default_ports is not None:
-            for port in default_ports:
-                # host_port can be None (meaning any available host port), but container_port must be an int
-                if port.host_port is not None and not isinstance(port.host_port, int):
-                    raise ValidationException(
-                        f"Port host_port must be an integer or None: {port}"
-                    )
-                if not isinstance(port.container_port, int):
-                    raise ValidationException(
-                        f"Port container_port must be an integer: {port}"
-                    )
-                # If host_port is provided, it must be positive
-                if port.host_port is not None and port.host_port <= 0:
-                    raise ValidationException(
-                        f"Port host_port must be a positive integer when provided: {port}"
-                    )
-                if port.container_port <= 0:
-                    raise ValidationException(
-                        f"Port container_port must be a positive integer: {port}"
-                    )
-
-        # Validate default_volumes
-        if default_volumes is not None:
-            for volume in default_volumes:
-                if not isinstance(volume.container_path, str):
-                    raise ValidationException(
-                        f"Volume container path must be a string: {volume}"
-                    )
-                if volume.host_path is not None and not isinstance(
-                    volume.host_path, str
-                ):
-                    raise ValidationException(
-                        f"Volume host path must be a string: {volume}"
-                    )
-                if not volume.container_path:
-                    raise ValidationException("Volume container path cannot be empty")
-
-        # Validate default_contents
-        if default_contents is not None:
-            for content in default_contents:
-                if not isinstance(content.location, str):
-                    raise ValidationException(
-                        f"Default content location must be a string: {content}"
-                    )
-                if not isinstance(content.content, str):
-                    raise ValidationException(
-                        f"Default content must be a string: {content}"
-                    )
-                if not content.location:
-                    raise ValidationException(
-                        "Default content location cannot be empty"
-                    )
-
-        # Validate start_cmd
-        if start_cmd is not None and not isinstance(start_cmd, str):
-            raise ValidationException(f"Start command must be a string: {start_cmd}")
-
-        # Validate healthcheck
+        # Validate healthcheck test (business rule)
         if healthcheck is not None and len(healthcheck.test) == 0:
             raise ValidationException("Healthcheck must contain a 'test' field")
 
-        # Validate labels
-        if labels is not None:
-            for label in labels:
-                if not isinstance(label.key, str) or not isinstance(label.value, str):
-                    raise ValidationException(
-                        f"Label keys and values must be strings: {label.key}={label.value}"
-                    )
-                if not label.key:
-                    raise ValidationException("Label keys cannot be empty")
-
-        # Validate args
-        if args is not None:
-            if not isinstance(args, list):
-                raise ValidationException(
-                    f"Arguments must be a list of strings: {args}"
-                )
-            for arg in args:
-                if not isinstance(arg, str):
-                    raise ValidationException(f"Argument must be a string: {arg}")
-                if not arg:
-                    raise ValidationException("Arguments cannot be empty strings")
-
-        # Validate docs_url
-        if docs_url is not None:
-            if not isinstance(docs_url, str):
-                raise ValidationException(
-                    f"Documentation URL must be a string: {docs_url}"
-                )
-            if not docs_url:
-                raise ValidationException(
-                    "Documentation URL cannot be empty if provided"
-                )
+        # All type/value validation delegated to Pydantic models
 
         get_logger(__name__).info(f"Creating template '{name}' of type '{type}'")
         get_logger(__name__).debug(
@@ -324,17 +214,14 @@ Miscellaneous:
             f"Importing template from JSON: {data.get('name', 'unnamed')}"
         )
 
-        # Validate input
         if not isinstance(data, dict):
             raise TemplateException(
                 f"Template import data must be a dictionary, got {type(data)}"
             )
-
-        # Validate required fields
         if "name" not in data:
             raise TemplateException("Template import data must contain a 'name' field")
 
-        # Validate template type
+        # Validate and parse template type
         template_type = data.get("type", "image")
         try:
             template_type = TemplateType(template_type)
@@ -344,148 +231,52 @@ Miscellaneous:
                 f"Invalid template type: {template_type}. Must be one of: {valid_types}"
             )
 
-        # Validate type-specific fields
+        # Validate type-specific required fields
         if template_type == TemplateType.IMAGE and "image" not in data:
             raise TemplateException(
                 "Image type templates must specify an 'image' field in import data"
             )
-        elif template_type == TemplateType.BUILD and "dockerfile" not in data:
+        if template_type == TemplateType.BUILD and "dockerfile" not in data:
             raise TemplateException(
                 "Build type templates must specify a 'dockerfile' field in import data"
             )
 
-        # Process default_env: should be a list of {"key": ..., "value": ...} dicts
-        default_env_data = data.get("default_env", [])
-        if not isinstance(default_env_data, list):
-            raise TemplateException(
-                f"default_env must be a list, got {type(default_env_data).__name__}"
-            )
-        default_env_list = default_env_data
+        # Parse nested structures — Pydantic validates types/values
+        default_env = [
+            EnvVariable(key=e["key"], value=e["value"])
+            for e in data.get("default_env") or []
+        ]
+        default_ports = [
+            ExposedPort(host_port=p.get("host"), container_port=p["container"])
+            for p in data.get("default_ports") or []
+        ]
+        default_volumes = [
+            Volume(host_path=v.get("host"), container_path=v["container"])
+            for v in data.get("default_volumes") or []
+        ]
+        default_contents = [
+            DefaultContent(location=c["location"], content=c["content"])
+            for c in data.get("default_contents") or []
+        ]
+        labels = [
+            Label(key=l["key"], value=l["value"]) for l in data.get("labels") or []
+        ]
 
-        # Process default_ports: strict parsing according to schema
-        # Schema format: [{"host": 8080, "container": 80}] with "container" required and "host" optional
-        default_ports_data = data.get("default_ports", [])
-        default_ports_list = []
-        for port_data in default_ports_data:
-            if not isinstance(port_data, dict):
-                raise TemplateException(
-                    f"Invalid port specification: {port_data}. Must be a dictionary."
-                )
-
-            if "container" not in port_data:
-                raise TemplateException(
-                    f"Invalid port specification: {port_data}. Must contain 'container' field."
-                )
-
-            container_port = port_data["container"]
-            host_port = port_data.get("host")
-
-            if not isinstance(container_port, int):
-                raise TemplateException(
-                    f"Port container must be an integer, got {type(container_port).__name__}"
-                )
-
-            if host_port is not None and not isinstance(host_port, int):
-                raise TemplateException(
-                    f"Port host must be an integer or null, got {type(host_port).__name__}"
-                )
-
-            default_ports_list.append(
-                ExposedPort(host_port=host_port, container_port=container_port)
-            )
-
-        # Process default_volumes: strict parsing according to schema
-        # Schema format: [{"host": "/path", "container": "/app"}] with "container" required and "host" optional
-        default_volumes_data = data.get("default_volumes", [])
-        default_volumes_list = []
-        for vol_data in default_volumes_data:
-            if not isinstance(vol_data, dict):
-                raise TemplateException(
-                    f"Invalid volume specification: {vol_data}. Must be a dictionary."
-                )
-
-            if "container" not in vol_data:
-                raise TemplateException(
-                    f"Invalid volume specification: {vol_data}. Must contain 'container' field."
-                )
-
-            container_path = vol_data["container"]
-            host_path = vol_data.get("host")
-
-            if not isinstance(container_path, str):
-                raise TemplateException(
-                    f"Volume container must be a string, got {type(container_path).__name__}"
-                )
-
-            if host_path is not None and not isinstance(host_path, str):
-                raise TemplateException(
-                    f"Volume host must be a string or null, got {type(host_path).__name__}"
-                )
-
-            default_volumes_list.append(
-                Volume(host_path=host_path, container_path=container_path)
-            )
-
-        # Process labels: should be a list of {"key": ..., "value": ...} dicts
-        labels_data = data.get("labels", [])
-        if not isinstance(labels_data, list):
-            raise TemplateException(
-                f"labels must be a list, got {type(labels_data).__name__}"
-            )
-        labels_list = labels_data
-
-        # Process default_contents: strict parsing according to schema
-        # Schema format: [{"location": "/path/to/file", "content": "file content"}] with both required
-        default_contents_data = data.get("default_contents", [])
-        default_contents_list = []
-        for content_data in default_contents_data:
-            if not isinstance(content_data, dict):
-                raise TemplateException(
-                    f"Invalid default content specification: {content_data}. Must be a dictionary."
-                )
-
-            if "location" not in content_data:
-                raise TemplateException(
-                    f"Invalid default content specification: {content_data}. Must contain 'location' field."
-                )
-
-            if "content" not in content_data:
-                raise TemplateException(
-                    f"Invalid default content specification: {content_data}. Must contain 'content' field."
-                )
-
-            location = content_data["location"]
-            content = content_data["content"]
-
-            if not isinstance(location, str):
-                raise TemplateException(
-                    f"Default content location must be a string, got {type(location).__name__}"
-                )
-
-            if not isinstance(content, str):
-                raise TemplateException(
-                    f"Default content must be a string, got {type(content).__name__}"
-                )
-
-            default_contents_list.append(
-                DefaultContent(location=location, content=content)
-            )
-
-        # Delegate to create method for further validation
+        # Delegate to create — Pydantic + business rule validation applies
         try:
             template: "Template" = cls.create(
-                name=data.get("name", ""),
+                name=data["name"],
                 type=template_type,
                 image=data.get("image"),
                 dockerfile=data.get("dockerfile"),
                 description=data.get("description"),
-                default_env=EnvVariable.from_dict_array(default_env_list),
-                default_ports=default_ports_list,
-                default_volumes=default_volumes_list,
-                default_contents=default_contents_list,
+                default_env=default_env,
+                default_ports=default_ports,
+                default_volumes=default_volumes,
+                default_contents=default_contents,
                 start_cmd=data.get("start_cmd"),
                 healthcheck=Healthcheck.from_dict(data.get("healthcheck")),
-                labels=Label.from_dict_array(labels_list),
+                labels=labels,
                 args=data.get("args"),
                 docs_url=data.get("docs_url"),
             )

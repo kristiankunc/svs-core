@@ -1,5 +1,6 @@
 import pytest
 
+from pydantic import ValidationError as PydanticValidationError
 from pytest_mock import MockerFixture
 
 from svs_core.db.models import TemplateType
@@ -395,7 +396,7 @@ class TestTemplate:
         assert "string-test" in string_repr
         assert "busybox:latest" in string_repr
         assert "TEST=value" in string_repr
-        assert "80=8080" in string_repr  # Now host_port=key, container_port=value
+        assert "80->8080" in string_repr
         assert "/app=/host/app" in string_repr
         assert "test=['CMD', 'test', '-e', '/tmp/healthy']" in string_repr
 
@@ -680,16 +681,9 @@ class TestTemplate:
                 healthcheck=Healthcheck(test=[]),
             )
 
-        # Test invalid default_contents - empty location
-        with pytest.raises(
-            ValidationException, match="Default content location cannot be empty"
-        ):
-            Template.create(
-                name="test-invalid-content",
-                type=TemplateType.IMAGE,
-                image="alpine",
-                default_contents=[DefaultContent(location="", content="test")],
-            )
+        # Test invalid default_contents — empty location rejected by Pydantic
+        with pytest.raises(PydanticValidationError):
+            DefaultContent(location="", content="test")
 
     @pytest.mark.integration
     @pytest.mark.django_db

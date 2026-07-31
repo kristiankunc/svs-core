@@ -5,32 +5,9 @@ from svs_core.docker.json_properties import (
     EnvVariable,
     ExposedPort,
     Healthcheck,
-    KeyValue,
     Label,
     Volume,
 )
-
-
-@pytest.mark.unit
-class TestKeyValue:
-    """Tests for the KeyValue generic class."""
-
-    def test_init(self):
-        kv = KeyValue("k", "v")
-        assert kv.key == "k" and kv.value == "v"
-
-    def test_from_dict(self):
-        kv = KeyValue.from_dict({"key": "k", "value": "v"})
-        assert kv.to_dict() == {"key": "k", "value": "v"}
-
-    def test_from_dict_invalid(self):
-        with pytest.raises(ValueError):
-            KeyValue.from_dict({"key": "k"})
-
-    def test_array_operations(self):
-        data = [{"key": "k1", "value": "v1"}]
-        result = KeyValue.from_dict_array(data)
-        assert KeyValue.to_dict_array(result) == data
 
 
 @pytest.mark.unit
@@ -46,7 +23,7 @@ class TestEnvVariable:
             EnvVariable.from_dict({"KEY1": "v1", "KEY2": "v2"})
 
     def test_to_dict(self):
-        assert EnvVariable("DEBUG", "true").to_dict() == {
+        assert EnvVariable(key="DEBUG", value="true").to_dict() == {
             "key": "DEBUG",
             "value": "true",
         }
@@ -65,7 +42,7 @@ class TestLabel:
             Label.from_dict({"label1": "v1", "label2": "v2"})
 
     def test_to_dict(self):
-        result = Label("org.opencontainers.image.title", "MyApp").to_dict()
+        result = Label(key="org.opencontainers.image.title", value="MyApp").to_dict()
         assert result == {"key": "org.opencontainers.image.title", "value": "MyApp"}
 
 
@@ -74,14 +51,17 @@ class TestExposedPort:
     """Tests for the ExposedPort class."""
 
     def test_init(self):
-        port = ExposedPort(8000, 8080)
+        port = ExposedPort(host_port=8000, container_port=8080)
         assert port.container_port == 8080 and port.host_port == 8000
 
     def test_to_dict(self):
-        assert ExposedPort(8000, 8080).to_dict() == {"key": 8000, "value": 8080}
+        assert ExposedPort(host_port=8000, container_port=8080).to_dict() == {
+            "key": 8000,
+            "value": 8080,
+        }
 
     def test_setters(self):
-        port = ExposedPort(8000, 8080)
+        port = ExposedPort(host_port=8000, container_port=8080)
         port.host_port = 9000
         port.container_port = 3000
         assert port.host_port == 9000 and port.container_port == 3000
@@ -92,15 +72,15 @@ class TestVolume:
     """Tests for the Volume class."""
 
     def test_init(self):
-        vol = Volume("/host/data", "/container/data")
+        vol = Volume(host_path="/host/data", container_path="/container/data")
         assert vol.container_path == "/container/data" and vol.host_path == "/host/data"
 
     def test_to_dict(self):
-        vol = Volume("/host/data", "/container/data")
+        vol = Volume(host_path="/host/data", container_path="/container/data")
         assert vol.to_dict() == {"key": "/host/data", "value": "/container/data"}
 
     def test_setters(self):
-        vol = Volume("/old/path", "/container/path")
+        vol = Volume(host_path="/old/path", container_path="/container/path")
         vol.host_path = "/new/path"
         vol.container_path = "/new/container"
         assert vol.host_path == "/new/path" and vol.container_path == "/new/container"
@@ -111,11 +91,11 @@ class TestDefaultContent:
     """Tests for the DefaultContent class."""
 
     def test_init(self):
-        content = DefaultContent("/etc/config.conf", "key=value")
+        content = DefaultContent(location="/etc/config.conf", content="key=value")
         assert content.location == "/etc/config.conf" and content.content == "key=value"
 
     def test_to_dict(self):
-        content = DefaultContent("/etc/config.conf", "key=value")
+        content = DefaultContent(location="/etc/config.conf", content="key=value")
         assert content.to_dict() == {
             "key": "/etc/config.conf",
             "value": "key=value",
@@ -127,42 +107,37 @@ class TestDefaultContent:
         assert content.location == "/etc/config.conf" and content.content == "key=value"
 
     def test_setters(self):
-        content = DefaultContent("/old/path", "old content")
+        content = DefaultContent(location="/old/path", content="old content")
         content.location = "/new/path"
         content.content = "new content"
         assert content.location == "/new/path" and content.content == "new content"
 
     def test_str_long_content(self):
         long_content = "x" * 100
-        content = DefaultContent("/etc/file", long_content)
+        content = DefaultContent(location="/etc/file", content=long_content)
         str_repr = str(content)
         assert "..." in str_repr
         assert "/etc/file" in str_repr
 
     def test_str_short_content(self):
-        content = DefaultContent("/etc/file", "short")
+        content = DefaultContent(location="/etc/file", content="short")
         str_repr = str(content)
         assert "short" in str_repr
         assert "..." not in str_repr
 
     def test_write_to_host(self, tmp_path, mocker):
         """Test that write_to_host creates a file with the correct content."""
-        # Mock subprocess.run to avoid requiring actual system user
         mock_subprocess_run = mocker.patch("subprocess.run")
         mock_subprocess_run.return_value = mocker.Mock(
             returncode=0, stdout="", stderr=""
         )
 
-        content = DefaultContent("/etc/config.conf", "key=value")
+        content = DefaultContent(location="/etc/config.conf", content="key=value")
         host_file = tmp_path / "config.conf"
 
         content.write_to_host(str(host_file), username="testuser")
 
-        # Verify subprocess.run was called once for the echo command in write_to_host.
-        # create_directory now uses Python stdlib (os.makedirs, os.chmod, os.chown).
         assert mock_subprocess_run.call_count == 1
-
-        # Check the last call was the echo command for writing content
         last_call = mock_subprocess_run.call_args_list[-1]
         command = last_call[0][0]
         assert "key=value" in command

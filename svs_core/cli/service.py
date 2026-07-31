@@ -5,6 +5,7 @@ from subprocess import run as subprocess_run
 
 import typer
 
+from pydantic import ValidationError as PydanticValidationError
 from rich import print
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
@@ -12,6 +13,7 @@ from rich.table import Table
 from svs_core.cli.lib import (
     get_or_exit,
     git_source_id_autocomplete,
+    parse_kv_pair,
     service_id_autocomplete,
     template_id_autocomplete,
 )
@@ -20,6 +22,7 @@ from svs_core.db.models import ServiceStatus
 from svs_core.docker.json_properties import (
     EnvVariable,
     ExposedPort,
+    Healthcheck,
     Label,
     Volume,
 )
@@ -32,6 +35,25 @@ from svs_core.shared.exceptions import (
 )
 from svs_core.shared.git_source import GitSource
 from svs_core.users.user import User
+
+
+def check_service_permission(service: Service, action: str = "access") -> None:
+    """Exit if the current user is not the owner and not an admin.
+
+    Args:
+        service: The service to check permission for.
+        action: The action being attempted (e.g. "start", "view logs for").
+
+    Raises:
+        typer.Exit: If the user lacks permission.
+    """
+    if not is_current_user_admin() and service.user.name != get_current_username():
+        print(
+            f"You do not have permission to {action} this service.",
+            file=sys.stderr,
+        )
+        raise typer.Exit(1)
+
 
 app = typer.Typer(help="Manage services")
 
@@ -84,9 +106,7 @@ def get_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to view this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service, "view")
 
     if long:
         print(service.__str__())
@@ -150,71 +170,69 @@ def create_service(
 
     user = get_or_exit(User, name=get_current_username())
 
-    # Parse environment variables
+    # Parse CLI options into domain objects
     override_env = None
     if env:
         override_env = []
-        for env_var in env:
-            if "=" not in env_var:
-                print(
-                    f"Invalid environment variable format: {env_var}. Use KEY=VALUE",
-                    file=sys.stderr,
-                )
-                raise typer.Exit(code=1)
-            key, value = env_var.split("=", 1)
-            override_env.append(EnvVariable(key=key, value=value))
-
-    # Parse ports
-    override_ports = None
-    if port:
-        override_ports = []
-        for port_mapping in port:
-            if ":" not in port_mapping:
-                print(
-                    f"Invalid port format: {port_mapping}. Use container_port:host_port",
-                    file=sys.stderr,
-                )
-                raise typer.Exit(code=1)
+        for e in env:
             try:
-                container_port_str, host_port_str = port_mapping.split(":", 1)
-                container_port = int(container_port_str)
-                host_port = int(host_port_str)
-                override_ports.append(
-                    ExposedPort(container_port=container_port, host_port=host_port)
-                )
-            except ValueError:
+                k, v = parse_kv_pair(e, "=", "KEY=VALUE", "environment variable")
+                override_env.append(EnvVariable(key=k, value=v))
+            except PydanticValidationError:
                 print(
-                    f"Invalid port numbers: {port_mapping}. Ports must be integers",
+                    f"Invalid environment variable: {e}. Use KEY=VALUE",
                     file=sys.stderr,
                 )
                 raise typer.Exit(code=1)
-
-    # Parse volumes
-    override_volumes = None
-    if volume:
-        override_volumes = []
-        for volume_mapping in volume:
-            if ":" not in volume_mapping:
-                print(
-                    f"Invalid volume format: {volume_mapping}. Use container_path:host_path",
-                    file=sys.stderr,
-                )
-                raise typer.Exit(code=1)
-            container_path, host_path = volume_mapping.split(":", 1)
-            override_volumes.append(
-                Volume(container_path=container_path, host_path=host_path)
-            )
-
-    # Parse labels
     override_labels = None
     if label:
         override_labels = []
-        for lbl in label:
-            if "=" not in lbl:
-                print(f"Invalid label format: {lbl}. Use KEY=VALUE", file=sys.stderr)
+        for l in label:
+            try:
+                k, v = parse_kv_pair(l, "=", "KEY=VALUE", "label")
+                override_labels.append(Label(key=k, value=v))
+            except PydanticValidationError:
+                print(
+                    f"Invalid label: {l}. Use KEY=VALUE",
+                    file=sys.stderr,
+                )
                 raise typer.Exit(code=1)
-            key, value = lbl.split("=", 1)
-            override_labels.append(Label(key=key, value=value))
+    override_volumes = None
+    if volume:
+        override_volumes = []
+        for vm in volume:
+            try:
+                c_path, h_path = parse_kv_pair(
+                    vm, ":", "container_path:host_path", "volume"
+                )
+                override_volumes.append(Volume(container_path=c_path, host_path=h_path))
+            except PydanticValidationError:
+                print(
+                    f"Invalid volume: {vm}. Use container_path:host_path",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+    override_ports = None
+    if port:
+        override_ports = []
+        for pm in port:
+            cp_str, hp_str = parse_kv_pair(pm, ":", "container_port:host_port", "port")
+            try:
+                override_ports.append(
+                    ExposedPort(container_port=int(cp_str), host_port=int(hp_str))
+                )
+            except ValueError:
+                print(
+                    f"Invalid port numbers: {pm}. Ports must be integers",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+            except PydanticValidationError:
+                print(
+                    f"Invalid port: {pm}. Use container_port:host_port",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
 
     try:
         service = Service.create_from_template(
@@ -245,9 +263,7 @@ def start_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to start this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service, "start")
 
     try:
         service.start()
@@ -267,9 +283,7 @@ def stop_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to stop this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service, "stop")
 
     try:
         service.stop()
@@ -292,9 +306,7 @@ def build_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to build this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service, "build")
 
     path_obj = Path(path)
 
@@ -318,9 +330,7 @@ def delete_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to delete this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service, "delete")
 
     service.delete()
     print(f"Service '{service.name}' deleted successfully.")
@@ -338,11 +348,7 @@ def view_service_logs(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print(
-            "You do not have permission to view this service's logs.", file=sys.stderr
-        )
-        raise typer.Exit(1)
+    check_service_permission(service, "view logs for")
 
     logs = service.get_logs()
     print(logs)
@@ -363,9 +369,7 @@ def add_git_source(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to modify this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service, "modify")
 
     destination_path_formatted = Path(destination_path)
 
@@ -403,9 +407,7 @@ def delete_git_source(
     git_source = get_or_exit(GitSource, id=git_source_id)
     service = git_source.service
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to modify this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service, "modify")
 
     service.remove_git_source(git_source_id)
     print(
@@ -426,9 +428,7 @@ def download_git_source(
     git_source = get_or_exit(GitSource, id=git_source_id)
     service = git_source.service
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to modify this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service, "modify")
 
     with Progress(
         SpinnerColumn(),
@@ -460,9 +460,7 @@ def open_service_shell(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to access this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service, "access")
 
     if not service.status == ServiceStatus.RUNNING:
         print("Service must be running to open a shell.", file=sys.stderr)
@@ -523,6 +521,43 @@ def update_service(
         "-p",
         help="Port mappings in container_port:host_port format (can be used multiple times)",
     ),
+    volume: list[str] | None = typer.Option(
+        None,
+        "--volume",
+        "-v",
+        help="Volume mappings in container_path:host_path format (can be used multiple times)",
+    ),
+    label: list[str] | None = typer.Option(
+        None,
+        "--label",
+        "-l",
+        help="Labels in KEY=VALUE format (can be used multiple times)",
+    ),
+    healthcheck_test: str | None = typer.Option(
+        None,
+        "--healthcheck",
+        help="Healthcheck command (e.g. 'CMD curl -f http://localhost')",
+    ),
+    healthcheck_interval: int | None = typer.Option(
+        None,
+        "--healthcheck-interval",
+        help="Healthcheck interval in seconds",
+    ),
+    healthcheck_timeout: int | None = typer.Option(
+        None,
+        "--healthcheck-timeout",
+        help="Healthcheck timeout in seconds",
+    ),
+    healthcheck_retries: int | None = typer.Option(
+        None,
+        "--healthcheck-retries",
+        help="Healthcheck retries count",
+    ),
+    healthcheck_start_period: int | None = typer.Option(
+        None,
+        "--healthcheck-start-period",
+        help="Healthcheck start period in seconds",
+    ),
     command: str | None = typer.Option(
         None, "--command", "-c", help="Command to run in the container"
     ),
@@ -539,6 +574,9 @@ def update_service(
     - Domain: --domain example.com
     - Environment variables: --env KEY=VALUE
     - Ports: --port container_port:host_port
+    - Volumes: --volume container_path:host_path
+    - Labels: --label KEY=VALUE
+    - Healthcheck: --healthcheck "CMD curl -f http://localhost"
     - Command: --command "command"
     - Arguments: --args "arg1" --args "arg2"
 
@@ -547,48 +585,87 @@ def update_service(
 
     service = get_or_exit(Service, id=service_id)
 
-    if not is_current_user_admin() and service.user.name != get_current_username():
-        print("You do not have permission to update this service.", file=sys.stderr)
-        raise typer.Exit(1)
+    check_service_permission(service, "update")
 
-    # Parse environment variables
+    # Parse CLI options into domain objects
     override_env = None
     if env:
         override_env = []
-        for env_var in env:
-            if "=" not in env_var:
+        for e in env:
+            try:
+                k, v = parse_kv_pair(e, "=", "KEY=VALUE", "environment variable")
+                override_env.append(EnvVariable(key=k, value=v))
+            except PydanticValidationError:
                 print(
-                    f"Invalid environment variable format: {env_var}. Use KEY=VALUE",
+                    f"Invalid environment variable: {e}. Use KEY=VALUE",
                     file=sys.stderr,
                 )
                 raise typer.Exit(code=1)
-            key, value = env_var.split("=", 1)
-            override_env.append(EnvVariable(key=key, value=value))
-
-    # Parse ports
     override_ports = None
     if port:
         override_ports = []
-        for port_mapping in port:
-            if ":" not in port_mapping:
-                print(
-                    f"Invalid port format: {port_mapping}. Use container_port:host_port",
-                    file=sys.stderr,
-                )
-                raise typer.Exit(code=1)
+        for pm in port:
+            cp_str, hp_str = parse_kv_pair(pm, ":", "container_port:host_port", "port")
             try:
-                container_port_str, host_port_str = port_mapping.split(":", 1)
-                container_port = int(container_port_str)
-                host_port = int(host_port_str)
                 override_ports.append(
-                    ExposedPort(container_port=container_port, host_port=host_port)
+                    ExposedPort(container_port=int(cp_str), host_port=int(hp_str))
                 )
             except ValueError:
                 print(
-                    f"Invalid port numbers: {port_mapping}. Ports must be integers",
+                    f"Invalid port numbers: {pm}. Ports must be integers",
                     file=sys.stderr,
                 )
                 raise typer.Exit(code=1)
+            except PydanticValidationError:
+                print(
+                    f"Invalid port: {pm}. Use container_port:host_port",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+    override_volumes = None
+    if volume:
+        override_volumes = []
+        for vm in volume:
+            try:
+                c_path, h_path = parse_kv_pair(
+                    vm, ":", "container_path:host_path", "volume"
+                )
+                override_volumes.append(Volume(container_path=c_path, host_path=h_path))
+            except PydanticValidationError:
+                print(
+                    f"Invalid volume: {vm}. Use container_path:host_path",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+    override_labels = None
+    if label:
+        override_labels = []
+        for l in label:
+            try:
+                k, v = parse_kv_pair(l, "=", "KEY=VALUE", "label")
+                override_labels.append(Label(key=k, value=v))
+            except PydanticValidationError:
+                print(
+                    f"Invalid label: {l}. Use KEY=VALUE",
+                    file=sys.stderr,
+                )
+                raise typer.Exit(code=1)
+    override_healthcheck = None
+    if healthcheck_test:
+        try:
+            override_healthcheck = Healthcheck(
+                test=healthcheck_test,
+                interval=healthcheck_interval,
+                timeout=healthcheck_timeout,
+                retries=healthcheck_retries,
+                start_period=healthcheck_start_period,
+            )
+        except PydanticValidationError:
+            print(
+                f"Invalid healthcheck: {healthcheck_test}",
+                file=sys.stderr,
+            )
+            raise typer.Exit(code=1)
 
     try:
         with Progress(
@@ -600,7 +677,10 @@ def update_service(
                 domain=domain,
                 env_variables=override_env,
                 ports=override_ports,
+                volumes=override_volumes,
+                labels=override_labels,
                 command=command,
+                healthcheck=override_healthcheck,
                 args=args,
             )
         print(
