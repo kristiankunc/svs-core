@@ -64,7 +64,7 @@ jobs:
 
       - name: Set up NPM
         if: steps.web-changes.outputs.changed == 'true'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 25
 
