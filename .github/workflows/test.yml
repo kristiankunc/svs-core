@@ -42,7 +42,7 @@ jobs:
           echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
       - name: Run Prek
-        uses: j178/prek-action@v2
+        uses: j178/prek-action@v2.0.6
 
   web-test:
     needs: lint-format
