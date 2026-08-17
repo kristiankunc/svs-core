@@ -7,6 +7,7 @@
 	"packageRules": [
 		{
 			"automerge": true,
+			"groupName": "patch dependencies",
 			"matchUpdateTypes": [
 				"patch"
 			]
