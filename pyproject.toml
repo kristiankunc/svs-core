@@ -12,7 +12,7 @@ dependencies = [
     "docker==7.2.0",
     "httpx==0.28.1",
     "pydantic==2.13.4",
-    "typer==0.26.8",
+    "typer==0.27.1",
     "Django==6.1",
     "dj_database_url==3.1.2",
     "psycopg[binary]==3.3.4",
