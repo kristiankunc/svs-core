@@ -1,0 +1,24 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": [
+		"config:recommended",
+		"schedule:weekly"
+	],
+	"packageRules": [
+		{
+			"automerge": true,
+			"matchUpdateTypes": [
+				"patch"
+			]
+		},
+		{
+			"commitMessagePrefix": "chore(deps-dev)",
+			"matchDepTypes": [
+				"dev"
+			],
+			"matchManagers": [
+				"pep621"
+			]
+		}
+	]
+}

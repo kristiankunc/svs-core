@@ -11,7 +11,7 @@ permissions:
 jobs:
   post-comment:
     runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.head_ref, 'release-please-') && !startsWith(github.head_ref, 'dependabot/') }}
+    if: ${{ !startsWith(github.head_ref, 'release-please-') && !startsWith(github.head_ref, 'renovate/') }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
