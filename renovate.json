@@ -12,12 +12,23 @@
 			]
 		},
 		{
-			"commitMessagePrefix": "chore(deps-dev)",
+			"commitMessagePrefix": "chore(deps)",
 			"matchDepTypes": [
-				"dev"
+				"project.dependencies"
 			],
 			"matchManagers": [
-				"pep621"
+				"pep621",
+				"poetry"
+			]
+		},
+		{
+			"commitMessagePrefix": "chore(deps-dev)",
+			"matchDepTypes": [
+				"project.optional-dependencies"
+			],
+			"matchManagers": [
+				"pep621",
+				"poetry"
 			]
 		}
 	]
