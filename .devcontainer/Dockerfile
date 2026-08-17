@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/python:3.13-bookworm
+FROM mcr.microsoft.com/devcontainers/python:3.14-bookworm
 
 RUN echo "vscode ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/vscode \
     && chmod 440 /etc/sudoers.d/vscode
