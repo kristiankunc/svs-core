@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node (required for Release Please)
         uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Set up Python
         uses: actions/setup-python@v7
