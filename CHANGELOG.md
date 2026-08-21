@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.15.0](https://github.com/kristiankunc/svs-core/compare/v0.14.7...v0.15.0) (2026-08-21)
+
+
+### Features
+
+* Refactor setup scripts ([#457](https://github.com/kristiankunc/svs-core/issues/457)) ([bbb4109](https://github.com/kristiankunc/svs-core/commit/bbb4109c072d33684e78c5e7979df91a65a3757c))
+
+
+### Bug Fixes
+
+* **deps:** update patch dependencies ([#513](https://github.com/kristiankunc/svs-core/issues/513)) ([d44e66c](https://github.com/kristiankunc/svs-core/commit/d44e66c838257a26b10d1f2626178ef038dfecf4))
+
 ## [0.14.7](https://github.com/kristiankunc/svs-core/compare/v0.14.6...v0.14.7) (2026-06-17)
 
 
