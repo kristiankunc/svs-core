@@ -25,7 +25,7 @@ services:
         restart: "no"
 
     adminer:
-        image: adminer:5
+        image: adminer:6
         env_file:
             - ../.env
         ports:
