@@ -23,9 +23,9 @@ RUN echo 'hello from test' > /message
 
         client = get_docker_client()
         images = client.images.list(name=image_name)
-        assert any(
-            image_name in (img.tags or []) for img in images
-        ), "Built image tag not found locally"
+        assert any(image_name in (img.tags or []) for img in images), (
+            "Built image tag not found locally"
+        )
 
         # Cleanup to avoid polluting local image cache
         client.images.remove(image=image_name, force=True)
@@ -56,9 +56,9 @@ RUN echo 'hello from test' > /message
 
             # Verify error log file was created
             log_file = tmppath / "docker_build_error.log"
-            assert (
-                log_file.exists()
-            ), "Error log file should be created on build failure"
+            assert log_file.exists(), (
+                "Error log file should be created on build failure"
+            )
 
             # Verify log file contains expected information
             log_content = log_file.read_text(encoding="utf-8")
@@ -81,9 +81,9 @@ RUN echo 'hello from test' > /message
                 )
 
             # Verify error log file was created in current directory
-            assert (
-                log_file.exists()
-            ), "Error log file should be created in cwd on build failure"
+            assert log_file.exists(), (
+                "Error log file should be created in cwd on build failure"
+            )
 
             # Verify log file contains expected information
             log_content = log_file.read_text(encoding="utf-8")
@@ -142,9 +142,9 @@ RUN echo "ANOTHER_ARG=${ANOTHER_ARG}" > /another_arg.txt
 
         client = get_docker_client()
         images = client.images.list(name=image_name)
-        assert any(
-            image_name in (img.tags or []) for img in images
-        ), "Built image with build args not found"
+        assert any(image_name in (img.tags or []) for img in images), (
+            "Built image with build args not found"
+        )
 
         # Verify build args were applied by running a container
         container = client.containers.run(
@@ -172,9 +172,9 @@ RUN echo "OPTIONAL_ARG=${OPTIONAL_ARG}" > /optional.txt
 
         client = get_docker_client()
         images = client.images.list(name=image_name)
-        assert any(
-            image_name in (img.tags or []) for img in images
-        ), "Built image without build args not found"
+        assert any(image_name in (img.tags or []) for img in images), (
+            "Built image without build args not found"
+        )
 
         # Verify default value was used
         container = client.containers.run(

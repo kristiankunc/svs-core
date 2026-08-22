@@ -26,8 +26,6 @@ Changelog = "https://github.com/kristiankunc/svs-core/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
-    "black==26.5.1",
-    "isort==8.0.1",
     "mypy==2.3.1",
     "prek==0.4.14",
     "pytest==9.1.1",
@@ -66,7 +64,7 @@ line-length = 88
 target-version = "py313"
 
 [tool.ruff.lint]
-select = ["D"]
+select = ["D", "I"]
 ignore = ["D417", "D100", "D105", "D107", "D104", "D202"]
 per-file-ignores = { "tests/**" = [
     "D",
@@ -76,15 +74,17 @@ per-file-ignores = { "tests/**" = [
     "ALL",
 ] }
 
-[tool.ruff.format]
-docstring-code-format = false
+[tool.ruff.lint.isort]
+known-first-party = ["svs_core", "app", "web"]
+known-third-party = ["pytest", "pytest_mock"]
+combine-as-imports = true
+lines-between-types = 1
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.black]
-line-length = 88
-target-version = ["py311"]
+[tool.ruff.format]
+docstring-code-format = false
 
 [build-system]
 requires = ["setuptools>=61.0"]

@@ -60,6 +60,7 @@ class UserModel(BaseModel):
 
     name = models.CharField(max_length=255, unique=True)
     """Username, tied to the system user's account."""
+
     password = models.CharField(max_length=255, null=True)
     """Hashed password for authentication."""
 
@@ -90,33 +91,45 @@ class TemplateModel(BaseModel):
 
     name = models.CharField(max_length=255)
     """Name of the template."""
+
     type = models.CharField(
         max_length=10, choices=TemplateType.choices(), default=TemplateType.IMAGE
     )
     """Type of template (image or build)"""
+
     image = models.CharField(max_length=255, null=True, blank=True)
     """Docker image name and tag."""
+
     dockerfile = models.TextField(null=True, blank=True)
     """Dockerfile content for build-type templates."""
+
     description = models.TextField(null=True, blank=True)
     """Description of the template."""
+
     start_cmd = models.CharField(max_length=512, null=True, blank=True)
     """Default start command for containers."""
+
     args = models.JSONField(null=True, blank=True, default=list)
     """Default arguments for the start command."""
+
     docs_url = models.CharField(max_length=512, null=True, blank=True)
     """URL to documentation for this template."""
 
     _default_env = models.JSONField(null=True, blank=True, default=list)
     """JSON-serialized default environment variables."""
+
     _default_ports = models.JSONField(null=True, blank=True, default=list)
     """JSON-serialized default exposed ports."""
+
     _default_volumes = models.JSONField(null=True, blank=True, default=list)
     """JSON-serialized default volumes."""
+
     _default_contents = models.JSONField(null=True, blank=True, default=list)
     """JSON-serialized default file contents."""
+
     _healthcheck = models.JSONField(null=True, blank=True, default=dict)
     """JSON-serialized healthcheck configuration."""
+
     _labels = models.JSONField(null=True, blank=True, default=list)
     """JSON-serialized labels."""
 
@@ -236,27 +249,34 @@ class ServiceModel(BaseModel):
 
     name = models.CharField(max_length=255)
     """Name of the service."""
+
     container_id = models.CharField(max_length=255, null=True, blank=True)
     """Docker container ID."""
+
     image = models.CharField(max_length=255, null=True, blank=True)
     """Docker image name and tag."""
+
     domain = models.CharField(max_length=255, null=True, blank=True)
     """Domain name for the service."""
+
     command = models.CharField(max_length=512, null=True, blank=True)
     """Command to execute in the container."""
     args = models.JSONField(null=True, blank=True, default=list)
     """Arguments for the command."""
-
     _env = models.JSONField(null=True, blank=True, default=list)
     """JSON-serialized environment variables."""
     _exposed_ports = models.JSONField(null=True, blank=True, default=list)
     """JSON-serialized exposed ports."""
+
     _volumes = models.JSONField(null=True, blank=True, default=list)
     """JSON-serialized volumes."""
+
     _labels = models.JSONField(null=True, blank=True, default=list)
     """JSON-serialized labels."""
+
     _healthcheck = models.JSONField(null=True, blank=True, default=dict)
     """JSON-serialized healthcheck configuration."""
+
     _networks = models.JSONField(null=True, blank=True, default=list)
     """JSON-serialized networks."""
 
@@ -264,6 +284,7 @@ class ServiceModel(BaseModel):
         TemplateModel, on_delete=models.CASCADE, related_name="services"
     )
     """Reference to the template this service is based on."""
+
     user = models.ForeignKey(
         UserModel, on_delete=models.CASCADE, related_name="services"
     )
@@ -366,10 +387,13 @@ class GitSourceModel(BaseModel):
 
     repository_url = models.CharField(max_length=512)
     """URL of the git repository."""
+
     branch = models.CharField(max_length=255, null=True, blank=True)
     """Branch to checkout."""
+
     destination_path = models.CharField(max_length=512, null=True, blank=True)
     """Destination path inside the service volume on host filesystem."""
+
     service = models.ForeignKey(
         ServiceModel, on_delete=models.CASCADE, related_name="git_sources"
     )
@@ -392,6 +416,7 @@ class UserGroupModel(BaseModel):
 
     name = models.CharField(max_length=255, unique=True)
     """Name of the user group."""
+
     description = models.TextField(null=True, blank=True)
     """Description of the user group."""
 

@@ -275,7 +275,6 @@ class DockerContainerManager:
         Returns:
             bool: True if the configuration has changed.
         """
-
         container.reload()
         container_attrs = container.attrs
 

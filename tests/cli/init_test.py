@@ -120,7 +120,9 @@ class TestReadStackPassword:
     def test_reads_existing_password(
         self, mocker: MockerFixture, mock_paths: dict[str, MagicMock]
     ) -> None:
-        mock_paths["STACK_ENV_PATH"].read_text.return_value = (
+        mock_paths[
+            "STACK_ENV_PATH"
+        ].read_text.return_value = (
             "POSTGRES_USER=svs\nPOSTGRES_PASSWORD=secret123\nPOSTGRES_DB=svsdb\n"
         )
         mocker.patch.object(init_module, "STACK_ENV_PATH", mock_paths["STACK_ENV_PATH"])

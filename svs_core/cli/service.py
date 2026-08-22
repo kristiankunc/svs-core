@@ -62,10 +62,9 @@ app = typer.Typer(help="Manage services")
 def list_services(
     inline: bool = typer.Option(
         False, "-i", "--inline", help="Display services in inline format"
-    )
+    ),
 ) -> None:
     """List all services."""
-
     if not is_current_user_admin():
         services = Service.objects.filter(user__name=get_current_username())
     else:
@@ -103,7 +102,6 @@ def get_service(
     ),
 ) -> None:
     """Get a service by ID."""
-
     service = get_or_exit(Service, id=service_id)
 
     check_service_permission(service, "view")
@@ -167,7 +165,6 @@ def create_service(
     - Command: --command "command"
     - Arguments: --args "arg1" --args "arg2"
     """
-
     user = get_or_exit(User, name=get_current_username())
 
     # Parse CLI options into domain objects
@@ -257,10 +254,9 @@ def create_service(
 def start_service(
     service_id: int = typer.Argument(
         ..., help="ID of the service to start", autocompletion=service_id_autocomplete
-    )
+    ),
 ) -> None:
     """Start a service."""
-
     service = get_or_exit(Service, id=service_id)
 
     check_service_permission(service, "start")
@@ -277,10 +273,9 @@ def start_service(
 def stop_service(
     service_id: int = typer.Argument(
         ..., help="ID of the service to stop", autocompletion=service_id_autocomplete
-    )
+    ),
 ) -> None:
     """Stop a service."""
-
     service = get_or_exit(Service, id=service_id)
 
     check_service_permission(service, "stop")
@@ -303,7 +298,6 @@ def build_service(
     ),
 ) -> None:
     """Build a service's Docker image from source code."""
-
     service = get_or_exit(Service, id=service_id)
 
     check_service_permission(service, "build")
@@ -324,10 +318,9 @@ def build_service(
 def delete_service(
     service_id: int = typer.Argument(
         ..., help="ID of the service to delete", autocompletion=service_id_autocomplete
-    )
+    ),
 ) -> None:
     """Delete a service."""
-
     service = get_or_exit(Service, id=service_id)
 
     check_service_permission(service, "delete")
@@ -342,10 +335,9 @@ def view_service_logs(
         ...,
         help="ID of the service to view logs for",
         autocompletion=service_id_autocomplete,
-    )
+    ),
 ) -> None:
     """View logs for a service."""
-
     service = get_or_exit(Service, id=service_id)
 
     check_service_permission(service, "view logs for")
@@ -366,7 +358,6 @@ def add_git_source(
     branch: str = typer.Option("main", "--branch", "-b", help="Git branch to use"),
 ) -> None:
     """Add a git source to a service."""
-
     service = get_or_exit(Service, id=service_id)
 
     check_service_permission(service, "modify")
@@ -400,10 +391,9 @@ def delete_git_source(
         ...,
         help="ID of the git source to delete",
         autocompletion=git_source_id_autocomplete,
-    )
+    ),
 ) -> None:
     """Delete a git source from a service."""
-
     git_source = get_or_exit(GitSource, id=git_source_id)
     service = git_source.service
 
@@ -421,10 +411,9 @@ def download_git_source(
         ...,
         help="ID of the git source to download",
         autocompletion=git_source_id_autocomplete,
-    )
+    ),
 ) -> None:
     """Download or update a git source for a service."""
-
     git_source = get_or_exit(GitSource, id=git_source_id)
     service = git_source.service
 
@@ -457,7 +446,6 @@ def open_service_shell(
     ),
 ) -> None:
     """Open an interactive shell in the service's container."""
-
     service = get_or_exit(Service, id=service_id)
 
     check_service_permission(service, "access")
@@ -582,7 +570,6 @@ def update_service(
 
     The container will be recreated to apply the changes.
     """
-
     service = get_or_exit(Service, id=service_id)
 
     check_service_permission(service, "update")

@@ -54,9 +54,9 @@ class TestLogger:
         stream_handlers = [
             h for h in logger.handlers if isinstance(h, logging.StreamHandler)
         ]
-        assert (
-            len(stream_handlers) > 0
-        ), "StreamHandler should be created when log file doesn't exist"
+        assert len(stream_handlers) > 0, (
+            "StreamHandler should be created when log file doesn't exist"
+        )
 
         captured = capsys.readouterr()
         assert "[DEBUG] dev_test hello dev" in captured.out
@@ -90,9 +90,9 @@ class TestLogger:
         file_handlers = [
             h for h in logger.handlers if isinstance(h, logging.FileHandler)
         ]
-        assert (
-            len(file_handlers) > 0
-        ), "FileHandler should be created when log file exists"
+        assert len(file_handlers) > 0, (
+            "FileHandler should be created when log file exists"
+        )
 
         for handler in file_handlers:
             handler.flush()

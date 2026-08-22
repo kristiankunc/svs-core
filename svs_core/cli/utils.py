@@ -16,10 +16,11 @@ app = typer.Typer(help="Utility commands")
 
 @app.command("format-dockerfile")
 def format_dockerfile(
-    dockerfile_path: Path = typer.Argument(..., help="Path to the Dockerfile to format")
+    dockerfile_path: Path = typer.Argument(
+        ..., help="Path to the Dockerfile to format"
+    ),
 ) -> None:
     """Formats Dockerfile into a single line string for embedding in JSON."""
-
     if not dockerfile_path.exists() or not dockerfile_path.is_file():
         rprint(
             "The specified Dockerfile does not exist or is not a file.", file=sys.stderr
@@ -45,10 +46,9 @@ def format_dockerfile(
 def django_shell(
     commands: list[str] = typer.Argument(
         ..., help="Django management commands and arguments"
-    )
+    ),
 ) -> None:
     """Executes Django management commands in a shell environment."""
-
     reject_if_not_admin()
 
     if not commands:
@@ -77,10 +77,9 @@ def django_shell(
 def migrate(
     original_version: str = typer.Argument(
         ..., help="Original version which you've upgraded from (e.g. 0.15.0)"
-    )
+    ),
 ) -> None:
     """Runs necessary migrations based on the original version provided."""
-
     reject_if_not_admin()
 
     try:

@@ -1204,50 +1204,50 @@ RUN echo "APP_VERSION=${APP_VERSION}" >> /app_info.txt
                 "name": "django-app",
                 "type": "build",
                 "description": "Django application container built on-demand from source",
-                "dockerfile": """FROM python:3.13-slim AS builder
+                "dockerfile": """FROM python:3.13-slim AS builder.
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+                              ENV PYTHONDONTWRITEBYTECODE=1
+                              ENV PYTHONUNBUFFERED=1
 
-WORKDIR /app
+                              WORKDIR /app
 
-COPY requirements.txt .
+                              COPY requirements.txt .
 
-RUN apt-get update && apt-get install -y --no-install-recommends \\
-    build-essential \\
-    && rm -rf /var/lib/apt/lists/*
+                              RUN apt-get update && apt-get install -y --no-install-recommends \\
+                                  build-essential \\
+                                  && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip \\
-    && pip install -r requirements.txt gunicorn
+                              RUN pip install --upgrade pip \\
+                                  && pip install -r requirements.txt gunicorn
 
-FROM python:3.13-slim
+                              FROM python:3.13-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-ENV HOME=/tmp
+                              ENV PYTHONDONTWRITEBYTECODE=1
+                              ENV PYTHONUNBUFFERED=1
+                              ENV HOME=/tmp
 
-ARG APP_NAME=
-ENV APP_NAME=${APP_NAME}
+                              ARG APP_NAME=
+                              ENV APP_NAME=${APP_NAME}
 
-RUN if [ -z "$APP_NAME" ]; then echo "APP_NAME argument is required" >&2; exit 1; fi
+                              RUN if [ -z "$APP_NAME" ]; then echo "APP_NAME argument is required" >&2; exit 1; fi
 
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+                              RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
-COPY --from=builder /usr/local/bin/ /usr/local/bin/
+                              COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
+                              COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
-WORKDIR /app
-COPY . .
+                              WORKDIR /app
+                              COPY . .
 
-RUN mkdir -p /app && chmod -R 777 /app \\
-    && python manage.py collectstatic --noinput || true
+                              RUN mkdir -p /app && chmod -R 777 /app \\
+                                  && python manage.py collectstatic --noinput || true
 
-EXPOSE 8000
+                              EXPOSE 8000
 
-USER appuser
+                              USER appuser
 
-CMD ["sh", "-c", "/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_NAME}.wsgi"]
-""",
+                              CMD ["sh", "-c", "/usr/local/bin/gunicorn --bind 0.0.0.0:8000 --workers 3 ${APP_NAME}.wsgi"]
+                              """,
                 "default_env": [
                     {"key": "DEBUG", "value": "False"},
                     {"key": "SECRET_KEY", "value": ""},
@@ -2111,9 +2111,9 @@ CMD cat /version.txt
                 for call in mock_connect.call_args_list
                 if call[0][1] == network_name
             ]
-            assert (
-                len(network_calls) == 1
-            ), f"Network {network_name} should be connected exactly once"
+            assert len(network_calls) == 1, (
+                f"Network {network_name} should be connected exactly once"
+            )
 
     @pytest.mark.integration
     @pytest.mark.django_db

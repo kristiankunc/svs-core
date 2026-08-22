@@ -66,24 +66,24 @@ class Template(TemplateModel):
         return indentate(
             f"""Template: {self.name}
 Type: {type_value}
-Description: {self.description if self.description else 'None'}
-Image: {self.image if type_display == TemplateType.IMAGE else 'Built on-demand (Dockerfile)'}
-Documentation: {self.docs_url if self.docs_url else 'None'}
+Description: {self.description if self.description else "None"}
+Image: {self.image if type_display == TemplateType.IMAGE else "Built on-demand (Dockerfile)"}
+Documentation: {self.docs_url if self.docs_url else "None"}
 
 Default Environment Variables:
-    {'\n    '.join([f'{var.key}={var.value}' for var in self.default_env]) if self.default_env else 'None'}
+    {"\n    ".join([f"{var.key}={var.value}" for var in self.default_env]) if self.default_env else "None"}
 
 Default Ports (Host -> Container):
-    {'\n    '.join([f'{port.host_port} -> {port.container_port}' for port in self.default_ports]) if self.default_ports else 'None'}
+    {"\n    ".join([f"{port.host_port} -> {port.container_port}" for port in self.default_ports]) if self.default_ports else "None"}
 
 Default Volumes (Host -> Container):
-    {'\n    '.join([f'{vol.host_path} -> {vol.container_path}' for vol in self.default_volumes]) if self.default_volumes else 'None'}
+    {"\n    ".join([f"{vol.host_path} -> {vol.container_path}" for vol in self.default_volumes]) if self.default_volumes else "None"}
 
 Default Contents:
-    {'\n    '.join([f'{content.location}: {len(content.content)} bytes' for content in self.default_contents]) if self.default_contents else 'None'}
+    {"\n    ".join([f"{content.location}: {len(content.content)} bytes" for content in self.default_contents]) if self.default_contents else "None"}
 
 Services Using This Template ({len(services)}):
-    {'\n    '.join([f"{service.name} (ID: {service.id})" for service in services]) if services else 'None'}
+    {"\n    ".join([f"{service.name} (ID: {service.id})" for service in services]) if services else "None"}
 
 Miscellaneous:
     ID: {self.id}
@@ -134,7 +134,6 @@ Miscellaneous:
         Raises:
             ValidationException: If any of the provided values are invalid.
         """
-
         # Validate name (business rule)
         if not name:
             raise ValidationException("Template name cannot be empty")

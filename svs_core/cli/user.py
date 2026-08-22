@@ -26,7 +26,6 @@ def create(
     name: str = typer.Argument(..., help="Username of the new user"),
 ) -> None:
     """Create a new user."""
-
     reject_if_not_admin()
 
     password = typer.prompt("Password", hide_input=True, confirmation_prompt=True)
@@ -51,7 +50,6 @@ def get(
     ),
 ) -> None:
     """Get a user by name."""
-
     user = get_or_exit(User, name=name)
 
     print(user.pprint())
@@ -71,7 +69,6 @@ def list_users(
     ),
 ) -> None:
     """List all users."""
-
     if group:
         user_group = get_or_exit(UserGroup, name=group)
         users = user_group.proxy_members
@@ -102,7 +99,6 @@ def add_ssh_key(
     ssh_key: str = typer.Argument(..., help="SSH key to add to the user"),
 ) -> None:
     """Add an SSH key to a user's authorized_keys file."""
-
     user = get_or_exit(User, name=get_current_username())
 
     user.add_ssh_key(ssh_key)
@@ -114,7 +110,6 @@ def remove_ssh_key(
     ssh_key: str = typer.Argument(..., help="SSH key to remove from the user"),
 ) -> None:
     """Remove an SSH key from a user's authorized_keys file."""
-
     user = get_or_exit(User, name=get_current_username())
 
     user.remove_ssh_key(ssh_key)
@@ -130,7 +125,6 @@ def delete(
     ),
 ) -> None:
     """Delete a user."""
-
     reject_if_not_admin()
 
     user = get_or_exit(User, name=name)
@@ -151,7 +145,6 @@ def create_group(
     ),
 ) -> None:
     """Create a new user group."""
-
     reject_if_not_admin()
 
     from svs_core.users.user_group import UserGroup
@@ -173,9 +166,7 @@ def delete_group(
     ),
 ) -> None:
     """Delete a user group."""
-
     reject_if_not_admin()
-
     from svs_core.users.user_group import UserGroup
 
     user_group = get_or_exit(UserGroup, name=name)
@@ -200,9 +191,7 @@ def add_user_to_group(
     ),
 ) -> None:
     """Add a user to a user group."""
-
     reject_if_not_admin()
-
     from svs_core.users.user_group import UserGroup
 
     user = get_or_exit(User, name=username)
@@ -224,9 +213,7 @@ def remove_user_from_group(
     ),
 ) -> None:
     """Remove a user from a user group."""
-
     reject_if_not_admin()
-
     from svs_core.users.user_group import UserGroup
 
     user = get_or_exit(User, name=username)
@@ -239,7 +226,6 @@ def remove_user_from_group(
 @app.command("reset-password")
 def reset_password() -> None:
     """Reset a user's password."""
-
     user = get_or_exit(User, name=get_current_username())
 
     new_password = typer.prompt(

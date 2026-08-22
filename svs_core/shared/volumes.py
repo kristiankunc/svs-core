@@ -43,7 +43,6 @@ class SystemVolumeManager:
             )
             volume_path = base_resolved / str(user.id) / volume_id
             if not volume_path.exists():
-
                 if not volume_path.parent.exists():
                     SystemVolumeManager.create_user_volume(user)
                 create_directory(volume_path.as_posix(), user=user.name)
@@ -119,7 +118,6 @@ class SystemVolumeManager:
         Returns:
             Path | None: The corresponding host path if found, otherwise None.
         """
-
         for volume in volumes:
             vol_container_path = Path(volume.container_path).resolve()
             try:

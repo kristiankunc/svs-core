@@ -246,10 +246,10 @@ class User(UserModel):
         """Pretty-print the User details."""
         return indentate(
             f"""Name: {self.name}
-Role: {self.is_admin() and 'Admin' or 'Standard User'}
+Role: {self.is_admin() and "Admin" or "Standard User"}
 
 Services ({len(self.services.all())}):
-    {'\n    '.join([f"{service.name} (ID: {service.id})" for service in self.services.all()]) if self.services.all() else 'None'}
+    {"\n    ".join([f"{service.name} (ID: {service.id})" for service in self.services.all()]) if self.services.all() else "None"}
 
 Miscelaneous:
     ID: {self.id}

@@ -27,7 +27,6 @@ def import_template(
     ),
 ) -> None:
     """Import a new template from a file."""
-
     reject_if_not_admin()
 
     if not os.path.exists(file_path):
@@ -97,10 +96,9 @@ def import_template(
 def list_templates(
     inline: bool = typer.Option(
         False, "-i", "--inline", help="Display templates in inline format"
-    )
+    ),
 ) -> None:
     """List all available templates."""
-
     templates = Template.objects.all()
 
     if len(templates) == 0:
@@ -136,7 +134,6 @@ def get_template(
     ),
 ) -> None:
     """Get a template by ID."""
-
     template = get_or_exit(Template, id=template_id)
 
     if long:
@@ -151,10 +148,9 @@ def delete_template(
         ...,
         help="ID of the template to delete",
         autocompletion=template_id_autocomplete,
-    )
+    ),
 ) -> None:
     """Delete a template by ID."""
-
     reject_if_not_admin()
 
     template = get_or_exit(Template, id=template_id)

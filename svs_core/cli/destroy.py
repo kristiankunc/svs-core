@@ -1,8 +1,8 @@
 """CLI command for destroying (uninstalling) the SVS environment.
 
 Reverses everything that ``svs init`` sets up: stops Docker services,
-removes volumes, deletes configuration files, removes system users,
-and cleans up sudoers entries.
+removes volumes, deletes configuration files, removes system users, and
+cleans up sudoers entries.
 """
 
 from __future__ import annotations

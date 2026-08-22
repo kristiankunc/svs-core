@@ -66,7 +66,6 @@ class GitSource(GitSourceModel):
 
     def download(self) -> None:
         """Download the Git repository to the specified destination path."""
-
         if self.is_cloned():
             return self.update()
 
@@ -103,7 +102,6 @@ class GitSource(GitSourceModel):
 
     def update(self) -> None:
         """Update the Git repository at the destination path."""
-
         get_logger(__file__).info(
             f"Updating repository {self.repository_url} (branch: {self.branch}) at {self.destination_path}"
         )
@@ -128,7 +126,6 @@ class GitSource(GitSourceModel):
         Returns:
             bool: True if the local repository is up to date, False otherwise.
         """
-
         from svs_core.shared.shell import run_command
 
         get_logger(__file__).info(
@@ -171,7 +168,6 @@ class GitSource(GitSourceModel):
         Returns:
             bool: True if the repository is cloned, False otherwise.
         """
-
         destination = Path(self.destination_path)
         git_dir = destination / ".git"
         is_cloned = destination.exists() and git_dir.exists() and git_dir.is_dir()
@@ -214,7 +210,6 @@ class GitSource(GitSourceModel):
         Returns:
             str: The pretty-printed GitSource details.
         """
-
         if not self.is_cloned():
             status = "Not cloned"
         elif not self.is_updated():

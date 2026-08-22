@@ -22,9 +22,9 @@ Configure `settings.py` to read from environment variables:
 ```python
 import os
 
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-SECRET_KEY = os.environ.get('SECRET_KEY', 'your-default-key')
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+DEBUG = os.environ.get("DEBUG", "True") == "True"
+SECRET_KEY = os.environ.get("SECRET_KEY", "your-default-key")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 ```
 
 ## Required Environment Variables

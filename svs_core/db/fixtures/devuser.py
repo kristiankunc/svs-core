@@ -30,11 +30,8 @@ except User.DoesNotExist:
 
 with connection.cursor() as cursor:
     cursor.execute(
-        """
-        INSERT INTO users (name, password, created_at, updated_at)
-        VALUES (%s, %s, NOW(), NOW())
-        ON CONFLICT (name) DO NOTHING
-        """,
+        """INSERT INTO users (name, password, created_at, updated_at) VALUES
+        (%s, %s, NOW(), NOW()) ON CONFLICT (name) DO NOTHING.""",
         [devuser, password_hash],
     )
 

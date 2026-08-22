@@ -221,13 +221,13 @@ For example, in a Django `settings.py`:
 
 ```python
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mydatabase',
-        'USER': 'myuser',
-        'PASSWORD': 'mypassword',
-        'HOST': 'svs-3',  # Use the service container name
-        'PORT': '5432',   # Use the container port
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "mydatabase",
+        "USER": "myuser",
+        "PASSWORD": "mypassword",
+        "HOST": "svs-3",  # Use the service container name
+        "PORT": "5432",  # Use the container port
     }
 }
 ```

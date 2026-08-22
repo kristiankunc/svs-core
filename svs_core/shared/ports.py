@@ -39,7 +39,6 @@ class SystemPortManager:
         attempts = 0
 
         while attempts < MAX_ATTEMPTS:
-
             port = random.choice(SystemPortManager.PORT_RANGE)
             if not SystemPortManager.is_port_used(port):
                 return port

@@ -8,7 +8,6 @@ import svs_core.db.models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []

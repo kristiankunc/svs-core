@@ -30,7 +30,6 @@ def get_logger(name: str | None = None) -> logging.Logger:
     Returns:
         logging.Logger: The logger instance.
     """
-
     if name is None:
         name = "unknown"
 

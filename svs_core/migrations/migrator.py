@@ -17,10 +17,12 @@ class PackageVersion:
     """Entire version string as provided."""
     string: str
     """Major version number."""
+
     major: int
     """Minor version number."""
     minor: int
     """Patch version number."""
+
     patch: int
 
     def __init__(self, version_str: str):
@@ -81,6 +83,7 @@ class Migration:
     """
     version: PackageVersion
     """Migration execution function."""
+
     run: Callable[[], None]
 
 
@@ -96,7 +99,6 @@ class Migrator:
         Returns:
             PackageVersion: The current package version.
         """
-
         return PackageVersion(version("svs-core"))
 
     @staticmethod

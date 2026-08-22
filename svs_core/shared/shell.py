@@ -73,7 +73,6 @@ def read_file(path: Path, logger: logging.Logger | None = None) -> str:
     Returns:
         str: The content of the file.
     """
-
     if not logger:
         from svs_core.shared.logger import get_logger
 
@@ -105,7 +104,6 @@ def run_command(
     Returns:
         subprocess.CompletedProcess: The result of the executed command.
     """
-
     exec_env = dict(env) if env else {}
     exec_env.update({"DJANGO_SETTINGS_MODULE": "svs_core.db.settings"})
 

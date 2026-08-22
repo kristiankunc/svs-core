@@ -22,7 +22,6 @@ from svs_core.shared.exceptions import (
 
 
 class TestTemplate:
-
     @pytest.mark.integration
     @pytest.mark.django_db
     def test_create_image_template(self, mocker: MockerFixture) -> None:
@@ -863,9 +862,9 @@ CMD ["sh", "-c", "python manage.py migrate && gunicorn myapp.wsgi --bind 0.0.0.0
 """
 
         # Verify the CMD includes migrate command
-        assert (
-            "python manage.py migrate" in mock_dockerfile_content
-        ), "Dockerfile should include 'python manage.py migrate' in CMD"
+        assert "python manage.py migrate" in mock_dockerfile_content, (
+            "Dockerfile should include 'python manage.py migrate' in CMD"
+        )
 
         # Verify it's in the CMD line (not just a comment)
         cmd_lines = [
@@ -877,11 +876,11 @@ CMD ["sh", "-c", "python manage.py migrate && gunicorn myapp.wsgi --bind 0.0.0.0
 
         # Check that migrate is part of the CMD
         cmd_line = cmd_lines[0]
-        assert (
-            "migrate" in cmd_line
-        ), "CMD should include migrate command for auto-migration on startup"
+        assert "migrate" in cmd_line, (
+            "CMD should include migrate command for auto-migration on startup"
+        )
 
         # Verify it runs before gunicorn
-        assert (
-            "python manage.py migrate &&" in mock_dockerfile_content
-        ), "migrate command should run before the application server"
+        assert "python manage.py migrate &&" in mock_dockerfile_content, (
+            "migrate command should run before the application server"
+        )

@@ -20,7 +20,7 @@
 - **Web Proxy:** Caddy (for HTTP routing)
 - **Container Orchestration:** Docker + Docker Compose
 - **Testing:** pytest, pytest-django, pytest-mock
-- **Linting/Formatting:** ruff, black, isort, mypy, djlint
+- **Linting/Formatting:** ruff, mypy, djlint
 - **Documentation:** Zensical (mkdocs-based)
 
 ## Build & Validation Instructions
@@ -70,19 +70,16 @@ export DJANGO_SETTINGS_MODULE=svs_core.db.settings
 # Run all prek hooks (MANDATORY before every commit)
 prek run --all-files
 
-# This runs: black, isort, ruff, mypy, djlint, and other checks
+# This runs: ruff, mypy, djlint, and other checks
 # Expected time: 30-60 seconds for full run
 ```
 
 **Individual linting tools:**
 ```bash
-# Format code with black
-black .
+# Format code with ruff
+ruff format .
 
-# Sort imports
-isort .
-
-# Lint with ruff (includes docstring checks)
+# Lint and fix with ruff (includes docstring checks and import sorting)
 ruff check . --fix
 
 # Type check with mypy
@@ -235,10 +232,9 @@ web/                 - Django web interface
 ```
 
 ### Configuration Files
-- **pyproject.toml** - Package metadata, dependencies, tool configs (ruff, black)
+- **pyproject.toml** - Package metadata, dependencies, tool configs (ruff)
 - **pytest.ini** - Test configuration, markers (unit, integration, django_db)
 - **mypy.ini** - Type checking configuration
-- **.isort.cfg** - Import sorting configuration
 - **.pre-commit-config.yaml** - Hook definitions (shared with prek/pre-commit)
 - **mkdocs.yml** - Documentation configuration
 

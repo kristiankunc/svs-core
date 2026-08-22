@@ -70,7 +70,6 @@ class Service(ServiceModel):
         Returns:
             str: The health status (e.g., "healthy", "unhealthy", "starting") if available, or None if no healthcheck is configured or the container is not found.
         """
-
         container = DockerContainerManager.get_container(self.container_id)
         if container is None:
             return None
@@ -114,19 +113,19 @@ Status: {self.status.name}
 Owner: {self.user.name} (ID: {self.user_id})
 Template: {self.template.name} (ID: {self.template_id})
 Domain: {self.domain}
-Image: {self.image if self.template.type == TemplateType.IMAGE else 'Built on-demand'}
+Image: {self.image if self.template.type == TemplateType.IMAGE else "Built on-demand"}
 
 Exposed Ports (Host -> Container):
-    {'\n    '.join([f'{port.host_port} -> {port.container_port}' for port in self.exposed_ports]) if self.exposed_ports else 'None'}
+    {"\n    ".join([f"{port.host_port} -> {port.container_port}" for port in self.exposed_ports]) if self.exposed_ports else "None"}
 
 Volumes (Host -> Container):
-    {'\n    '.join([f'{vol.host_path} -> {vol.container_path}' for vol in self.volumes]) if self.volumes else 'None'}
+    {"\n    ".join([f"{vol.host_path} -> {vol.container_path}" for vol in self.volumes]) if self.volumes else "None"}
 
 Environment Variables:
-    {'\n    '.join([f'{var.key}={var.value}' for var in self.env]) if self.env else 'None'}
+    {"\n    ".join([f"{var.key}={var.value}" for var in self.env]) if self.env else "None"}
 
 Git Sources:
-{('\n'.join([gs.pprint(1) for gs in self.proxy_git_sources])) if self.proxy_git_sources else '    None'}
+{("\n".join([gs.pprint(1) for gs in self.proxy_git_sources])) if self.proxy_git_sources else "    None"}
 
 Miscelanous:
     Container ID: {self.container_id}
@@ -218,7 +217,6 @@ Miscelanous:
         Raises:
             ValueError: If name is empty or template_id doesn't correspond to an existing template.
         """
-
         try:
             template = Template.objects.get(id=template_id)
         except Template.DoesNotExist as e:
@@ -771,7 +769,6 @@ Miscelanous:
         Raises:
             InvalidGitSourceError: If any of the input parameters are invalid.
         """
-
         try:
             GitSource.create(
                 service_id=self.id,
@@ -821,7 +818,6 @@ Miscelanous:
             healthcheck: Healthcheck configuration to replace current one.
             args: Command arguments to replace current ones.
         """
-
         if env_variables is not None:
             if not isinstance(env_variables, list):
                 raise ValidationException(

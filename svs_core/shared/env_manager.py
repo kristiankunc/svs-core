@@ -76,7 +76,6 @@ class EnvManager:
         Returns:
             str | None: The value of the environment variable, or None if not set.
         """
-
         return os.getenv(key.value)
 
     @staticmethod
