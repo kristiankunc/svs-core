@@ -49,7 +49,7 @@ repos:
         args: ["--fast"]
 
   - repo: https://github.com/PyCQA/isort
-    rev: 6.0.1
+    rev: 8.0.1
     hooks:
       - id: isort
         language: system
