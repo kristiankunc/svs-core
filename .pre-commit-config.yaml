@@ -64,7 +64,7 @@ repos:
         args: ["--in-place", "--recursive", "--wrap-summaries", "79"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.0
+    rev: v0.16.4
     hooks:
       - id: ruff
         stages: [pre-commit]
