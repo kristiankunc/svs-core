@@ -809,7 +809,9 @@ class TestTemplate:
         # Load the postgres template
         template_path = (
             Path(__file__).parent.parent.parent.parent
-            / "service_templates"
+            / "svs_core"
+            / "data"
+            / "templates"
             / "postgres.json"
         )
         assert template_path.exists(), "postgres.json template file not found"

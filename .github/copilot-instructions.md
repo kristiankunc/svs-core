@@ -218,8 +218,6 @@ tests/               - Test suite
   cli/               - CLI command tests
   conftest.py        - Pytest fixtures
 docs/                - Zensical (mkdocs backward compatibility) documentation source
-service_templates/   - JSON templates for common services
-  schema.json        - Template validation schema
 web/                 - Django web interface
   app/               - Main web application code
     templates/       - Django templates (Bootstrap + Alpine.js)
@@ -325,7 +323,7 @@ python manage.py migrate
 - All services run in Docker containers
 - Uses `caddy` network for routing (created by docker compose)
 - User-specific networks isolate services
-- Templates define service configurations (see `service_templates/`)
+- Templates define service configurations (see `svs_core/data/templates/`)
 
 ### Key Entry Points
 - **CLI:** `svs_core/__main__.py` → `main()` function

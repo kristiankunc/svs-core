@@ -45,7 +45,7 @@ The section below outlines the generic steps to follow when using any of the gui
 
 For every service, you need a template that defines how the service should be built and run. These templates are already provided or you can create your own (advanced users).
 
-If you do not find a suitable template, contact your server administrator to import one from the [SVS Template Repository](https://github.com/kristiankunc/svs-core/tree/main/service_templates) or help you create a custom one.
+If you do not find a suitable template, contact your server administrator to import one from the [SVS Template Repository](https://github.com/kristiankunc/svs-core/tree/main/svs_core/data/templates) or help you create a custom one.
 
 Templates and services are keyed by their `IDs`. You will need to know the `ID` of the template you want to use to create a service. They are visible both in the CLI and Web.
 

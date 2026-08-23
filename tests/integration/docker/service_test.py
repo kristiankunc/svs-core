@@ -1348,7 +1348,9 @@ RUN echo "APP_VERSION=${APP_VERSION}" >> /app_info.txt
             os.path.dirname(
                 os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
             ),
-            "service_templates",
+            "svs_core",
+            "data",
+            "templates",
             "django.json",
         )
 
@@ -1383,7 +1385,9 @@ RUN echo "APP_VERSION=${APP_VERSION}" >> /app_info.txt
             os.path.dirname(
                 os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
             ),
-            "service_templates",
+            "svs_core",
+            "data",
+            "templates",
             "django.json",
         )
 
