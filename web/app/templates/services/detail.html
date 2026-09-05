@@ -329,7 +329,8 @@
                                             <small class="form-text text-muted d-block mt-1">Volume mounted at {{ volume.container_path }}</small>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="git_source_subdir" class="form-label">Subdirectory (Optional)</label>
+                                            <label for="git_source_subdir"
+                                                   class="form-label">Subdirectory (Optional)</label>
                                             <input type="text"
                                                    class="form-control"
                                                    id="git_source_subdir"
@@ -424,7 +425,8 @@
                                             <small class="form-text text-muted d-block mt-1">Volume mounted at {{ volume.container_path }}</small>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="git_source_subdir_empty" class="form-label">Subdirectory (Optional)</label>
+                                            <label for="git_source_subdir_empty"
+                                                   class="form-label">Subdirectory (Optional)</label>
                                             <input type="text"
                                                    class="form-control"
                                                    id="git_source_subdir_empty"
@@ -477,7 +479,7 @@
                         </button>
                     </form>
                     {% with template=service.proxy_template.first %}
-                        {% if template and template.type == 'build' %}
+                        {% if template and template.type == "build" %}
                             <div class="position-relative">
                                 <button type="button"
                                         class="btn btn-info w-100"
