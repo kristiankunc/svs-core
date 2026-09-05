@@ -19,4 +19,4 @@ sudo svs utils format-dockerfile svs_core/data/templates/python.Dockerfile
 
 ## Docker user
 
-The default user used in containsers is `root`. This is unsafe to use on SVS as it can lead to [privilige escalation](https://docs.docker.com/engine/security/#docker-daemon-attack-surface). To mitigate this, when writing a custom dockerfile you should **always create a non-root user who will be executing the entrypoint**.
+The default user used in containers is `root`. This is unsafe to use on SVS as it can lead to [privilege escalation](https://docs.docker.com/engine/security/#docker-daemon-attack-surface). To mitigate this, when writing a custom dockerfile you should **always create a non-root user who will be executing the entrypoint**.

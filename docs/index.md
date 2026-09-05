@@ -88,7 +88,7 @@ SVS relies on two system containers to function properly:
 1. **PSQL Database**: This container runs a PostgreSQL database that stores all metadata related to users, templates, and services.
 2. **Reverse Proxy**: This container runs a Caddy server that acts as a reverse proxy for all deployed services, handling incoming requests and routing them to the appropriate service containers.
 
-Configuration for these containers is stored in  `/etc/svs/docker/` directory on the host machine. It includes a Docker Compose files and an environment variable file required to run the containers.
+Configuration for these containers is stored in `/etc/svs/docker/` directory on the host machine. It includes a Docker Compose file and an environment variable file required to run the containers.
 
 !!! warning
     Once the database container is initialized, changing the credentials in the environment file will not have any effect as the database does not automatically update existing credentials. To change the database credentials, you will need to manually update them in the database itself.
