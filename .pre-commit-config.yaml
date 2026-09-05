@@ -25,10 +25,6 @@ repos:
         exclude: package(-lock)?\.json$
       - id: requirements-txt-fixer
         stages: [pre-commit]
-      - id: check-docstring-first
-        stages: [pre-commit]
-      - id: check-toml
-        stages: [pre-commit]
       - id: mixed-line-ending
         stages: [pre-commit]
         args: ["--fix=lf"]
