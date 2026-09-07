@@ -11,7 +11,6 @@
 
 ---
 
-::: svs_core.docker.json_properties.KeyValue
 ::: svs_core.docker.json_properties.EnvVariable
 ::: svs_core.docker.json_properties.Label
 ::: svs_core.docker.json_properties.ExposedPort

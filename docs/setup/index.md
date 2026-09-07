@@ -12,7 +12,7 @@
 
 ### Uninstalling
 
-To completely remove SVS from your server, use the [destroy](../cli-documentation/utils.md#svs-destroy) command:
+To completely remove SVS from your server, use the [destroy](../cli-documentation/destroy.md#svs-destroy) command:
 
 ```bash
 sudo svs destroy
