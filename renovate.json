@@ -14,24 +14,26 @@
 			]
 		},
 		{
-			"commitMessagePrefix": "chore(deps)",
 			"matchDepTypes": [
 				"project.dependencies"
 			],
 			"matchManagers": [
 				"pep621",
 				"poetry"
-			]
+			],
+			"semanticCommitScope": "deps",
+			"semanticCommitType": "chore"
 		},
 		{
-			"commitMessagePrefix": "chore(deps-dev)",
 			"matchDepTypes": [
 				"project.optional-dependencies"
 			],
 			"matchManagers": [
 				"pep621",
 				"poetry"
-			]
+			],
+			"semanticCommitScope": "deps-dev",
+			"semanticCommitType": "chore"
 		}
 	]
 }
