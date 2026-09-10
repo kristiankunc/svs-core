@@ -37,7 +37,7 @@ theme:
 plugins:
   - mkdocs-pdf
   - search:
-      lang: en
+      # lang: en  Does not work in zensical 0.0.60
       separator: '[\s\-]+'
   - awesome-nav
   - mkdocstrings:
