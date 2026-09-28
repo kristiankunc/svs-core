@@ -37,7 +37,7 @@ repos:
   #files: \.typ$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.8
+    rev: v0.16.9
     hooks:
       - id: ruff-check
         stages: [pre-commit]
@@ -46,7 +46,7 @@ repos:
         stages: [pre-commit]
 
   - repo: https://github.com/djlint/djlint
-    rev: v1.46.2
+    rev: v1.46.3
     hooks:
       - id: djlint
         stages: [pre-commit]
