@@ -5,6 +5,9 @@
 		"schedule:weekly",
 		":enablePreCommit"
 	],
+	"reviewers": [
+		"kristiankunc"
+	],
 	"packageRules": [
 		{
 			"automerge": true,
