@@ -5,9 +5,6 @@
 		"schedule:weekly",
 		":enablePreCommit"
 	],
-	"reviewers": [
-		"kristiankunc"
-	],
 	"packageRules": [
 		{
 			"automerge": true,
@@ -38,5 +35,8 @@
 			"semanticCommitScope": "deps-dev",
 			"semanticCommitType": "chore"
 		}
+	],
+	"reviewers": [
+		"kristiankunc"
 	]
 }
