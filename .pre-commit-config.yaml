@@ -46,7 +46,7 @@ repos:
         stages: [pre-commit]
 
   - repo: https://github.com/djlint/djlint
-    rev: v1.46.6
+    rev: v1.47.1
     hooks:
       - id: djlint
         stages: [pre-commit]
