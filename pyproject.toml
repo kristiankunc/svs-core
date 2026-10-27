@@ -32,13 +32,13 @@ dev = [
     "pytest-cov==7.1.0",
     "pytest-dotenv==0.5.2",
     "pytest_mock==3.17.0",
-    "ruff==0.17.2",
+    "ruff==0.17.3",
     "twine==7.0.0",
     "pytest-django==4.14.0",
     "pytest-xdist==3.8.0",
 ]
 docs = [
-    "zensical==0.0.72",
+    "zensical==0.0.73",
     "mkdocstrings[python]==1.0.8",
     "mkdocs-awesome-nav==3.3.0",
     "mkdocs-pdf==0.1.2",
