@@ -28,7 +28,7 @@ Changelog = "https://github.com/kristiankunc/svs-core/blob/main/CHANGELOG.md"
 dev = [
     "mypy==2.4.1",
     "prek==0.5.9",
-    "pytest==9.1.1",
+    "pytest==9.2.0",
     "pytest-cov==7.1.0",
     "pytest-dotenv==0.5.2",
     "pytest_mock==3.17.0",
