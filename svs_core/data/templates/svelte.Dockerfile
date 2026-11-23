@@ -1,4 +1,4 @@
-FROM node:24-slim AS builder
+FROM node:26-slim AS builder
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY . .
 RUN npm run build
 
 
-FROM node:24-slim
+FROM node:26-slim
 
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
