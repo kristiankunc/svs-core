@@ -1,4 +1,4 @@
-FROM php:8.5-apache
+FROM php:8.6-apache
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl \
