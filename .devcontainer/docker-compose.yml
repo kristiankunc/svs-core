@@ -13,7 +13,7 @@ services:
         command: sleep infinity
 
     db:
-        image: postgres:18
+        image: postgres:19
         container_name: svs-db
         env_file:
             - ../.env
