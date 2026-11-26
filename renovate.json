@@ -22,7 +22,7 @@
 				"poetry"
 			],
 			"semanticCommitScope": "deps",
-			"semanticCommitType": "chore"
+			"semanticCommitType": "fix"
 		},
 		{
 			"matchDepTypes": [
