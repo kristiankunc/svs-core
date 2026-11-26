@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/kristiankunc/svs-core/compare/v0.15.0...v0.15.1) (2026-11-26)
+
+
+### Bug Fixes
+
+* **deps:** release runtime dependency updates as fixes ([ccb05c4](https://github.com/kristiankunc/svs-core/commit/ccb05c4aefc95f045348a0ab3c2f41eca17aa086))
+
 ## [0.15.0](https://github.com/kristiankunc/svs-core/compare/v0.14.7...v0.15.0) (2026-09-07)
 
 
